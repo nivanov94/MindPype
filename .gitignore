@@ -1,0 +1,14 @@
+# vim swp files
+*.swp
+
+# tmp MATLAB files
+*.asv
+
+# MATLAB figures
+*.fig
+
+# MATLAB mat files
+*.mat
+
+# LSL xdf data files
+*.xdf
