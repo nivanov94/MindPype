@@ -8,19 +8,19 @@ classdef Queue < Array
     methods
         function [q, sess] = Queue(sess,len)
             q = q@Array(sess,len);
-            q.head = 0;
-            q.tail = 0;
+            q.head = 1;
+            q.tail = 1;
             
             % get the ID for this scalar
             uid = sess.produceIdentifier();
-            a.uuid = uid;
+            q.uuid = uid;
             
             % add the scalar to the session
-            sess = sess.addObject(a);
+            sess = sess.addObject(q);
         end
         
         function q = enqueue(q,elem)
-            q.tail = mod((q.tail + 1),q.len);
+            q.tail = mod((q.tail),q.len) + 1;
             if q.tail == q.head
                 warning("Queue Full - enqueue operation overwriting element at head.");
             end
@@ -30,7 +30,7 @@ classdef Queue < Array
         function [q, elem] = dequeue(q)
             if q.head ~= q.tail % ensure queue is not empty
                 elem = q.getElement(q.head);
-                q.head = mod(q.head + 1, q.len);
+                q.head = mod(q.head, q.len) + 1;
             else
                 warning("Queue is empty - Nothing to dequeue");
                 elem = [];
