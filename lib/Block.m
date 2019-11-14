@@ -5,8 +5,8 @@ classdef Block
     properties
         nodes Node
         edges Edge
-	trials {mustBeInteger,mustBePositive}
-	trial_labels {mustBeInteger}
+	    trials {mustBeInteger,mustBePositive}
+	    trial_labels {mustBeInteger}
     end
     
     methods
@@ -15,14 +15,39 @@ classdef Block
             %   Detailed explanation goes here
             block.nodes = {};
             block.edges = {};
-	    block.trial_labels = trial_labels;
-	    block.trials = len(trial_labels);
+	        block.trial_labels = trial_labels;
+	        block.trials = len(trial_labels);
         end
         
         function block = BlockAddNode(block,node)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             block.nodes{end+1} = node;
+        end
+
+	    function block = verify(block)
+        	%VERIFY Schedule the nodes within
+            % the block and the execution is valid
+            
+        end
+
+        function block = initialize(block)
+            %INITIALIZE Initialize all the block's
+            % nodes in preparation for block execution
+
+        end
+
+        function block = close(block)
+            %CLOSE Called after block is complete
+        end
+
+    end
+    
+    methods (Access = private)
+        function block = schedule(block)
+            %SCHEDULE Create the graph schedule
+
+
         end
     end
 end
