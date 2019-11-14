@@ -1,4 +1,4 @@
-classdef Block
+classdef Block < BciCapObject
     %BLOCK Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -10,13 +10,20 @@ classdef Block
     end
     
     methods
-        function block = Block(trial_labels)
+        function [block, sess] = Block(sess, trial_labels)
             %BLOCK Construct an instance of this class
             %   Detailed explanation goes here
             block.nodes = {};
             block.edges = {};
 	        block.trial_labels = trial_labels;
 	        block.trials = len(trial_labels);
+
+            % Get the ID for the block within the session
+            uuid = sess.produceIdentifier();
+            block.uuid = uuid;
+
+            % Add the block to the session
+            session = sess.addObject(block);
         end
         
         function block = BlockAddNode(block,node)
