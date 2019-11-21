@@ -5,8 +5,8 @@ Session.py - Defines the session class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_types import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 class Session(BCIP):
     """
@@ -14,10 +14,8 @@ class Session(BCIP):
     capture session.
     """
     
-    def __init__(self,n_classes = 2):
+    def __init__(self):
         super().__init__(BcipEnums.SESSION)
-        
-        self.n_classes = n_classes
         
         # define some private attributes
         self._blocks = [] # queue of blocks to execute
@@ -32,14 +30,16 @@ class Session(BCIP):
         
         Return true if the session has passed verification, false otherwise.
         """
-        verified = True
+        
         for b in self._blocks:
             verified = b.verify()
             
-            if verified == False:
+            if verified != BcipEnums.SUCCESS:
+                self._verified = False
                 return verified
         
-        return verified
+        self._verified = True
+        return BcipEnums.SUCCESS
     
     def pollVolatileChannels(self):
         """
@@ -52,7 +52,7 @@ class Session(BCIP):
             if d.isVolatile():
                 d.pollInputStream()
         
-    def execute(self):
+    def execute(self,label):
         """
         Execute a trial
         First updates all volatile input channels
@@ -60,13 +60,30 @@ class Session(BCIP):
         """
         self.pollVolatileChannels()
         b = self.getCurrentBlock()
-        b.execute()
+        sts = b.execute()
+        
+        # check if the block is finished
+        if b.trialsRemaining() == 0:
+            # block finished, close it up and remove it from the session queue
+            b.postProcess()
+            self.dequeueBlock()
+            
+        return sts
     
     def getCurrentBlock(self): #TODO Determine how this should be implemented
         return self._blocks[0]
     
     def enqueueBlock(self,b):
+        # block added, so make sure verified is false
+        self._verified = False
         self._blocks.append(b)
     
     def dequeueBlock(self):
         return self._blocks.pop(0)
+    
+    def addData(self,data):
+        self._datum.append(data)
+        
+    @classmethod
+    def create(cls):
+        return cls()

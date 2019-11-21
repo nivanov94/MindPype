@@ -5,8 +5,8 @@ Node.py - Generic node class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_types import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 
 class Node(BCIP):
@@ -43,4 +43,10 @@ class Node(BCIP):
                 outputs.append(p.data)
         
         return outputs
+    
+    def verify(self):
+        """
+        Verify the node is executable
+        """
+        return self.kernel.verify()
             

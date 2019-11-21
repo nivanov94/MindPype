@@ -15,15 +15,26 @@ class BcipEnums(Enum):
     SESSION = 101
     BLOCK   = 102
     NODE    = 103
-    TENSOR  = 104
-    SCALAR  = 105
-    ARRAY   = 106
+    KERNEL  = 104
+    PARAMETER = 105
+    TENSOR  = 106
+    SCALAR  = 107
+    ARRAY   = 108
     
     # Status Codes - Leading '2'
     SUCCESS = 200
     FAILURE = 201
     INVALID_BLOCK = 202
     INVALID_NODE  = 203
+    INVALID_PARAMETERS = 204
+    EXCEED_TRIAL_LIMIT = 205
     
+    # Parameter Directions - Leading '3'
+    INPUT  = 300
+    OUTPUT = 301
+    INOUT  = 302
+    
+    def __str__(self):
+        return self.name
     
     

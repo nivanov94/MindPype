@@ -5,46 +5,68 @@ Block.py - Defines the block class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_types import BcipEnums
-from session import Session
-from edge import Edge
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
+from .edge import Edge
 
 class Block(BCIP):
     """
     Defines a block within a BCIP session.
     """
     
-    def __init__(self,sess,n_trials,n_classes):
+    def __init__(self,sess,n_trials_per_class,n_classes):
         super().__init__(BcipEnums.BLOCK)
         
         self.sess = sess
-        self.n_trials = n_trials
+        self.n_trials_per_class = n_trials_per_class
         self.n_classes = n_classes
         
         # private attributes
         self._nodes = []
-        self._trials_executed = 0
+        self._trials_executed = [0] * n_classes
         self._verified = False
         
-        # add the block to the session
-        sess.enqueueBlock(self)
+    def getRemainingTrials(self,label=None):
+        """
+        Get the number of trials remaining for each class
+        """
+        if label is None:
+            return tuple([self.n_trials_per_class - n for n in self._trials_executed])
+        else:
+            return self.n_trials_per_class - self._trials_executed[label]
         
-    def _addNode(self,node):
+    def addNode(self,node):
         """
         Append a node object to the block's list of nodes
         """
+        self._verified = False
         self._nodes.append(node)
+        
+    def postProcess(self):
+        """
+        Perform any actions that need to be done at the end of the block
+        """
+        pass
     
-    def execute(self):
+    def trialsRemaining(self):
+        """
+        Calculate and return the total number of trials remaining in the block
+        """
+        return  sum(self.getRemainingTrials())
+        
+    
+    def execute(self,label):
         """
         Execute the block's processing graph. 
         
         Pre: Ensure the block's input data objects have been updated to 
              contain the correct trial's data
         
-        Returns a status code (false for failure)
+        Returns a status code
         """
+        
+        if self._trials_executed[label] == self.n_trials_per_class:
+            return BcipEnums.EXCEED_TRIAL_LIMIT
         
         # TODO update return codes to be ENUM codes
         
@@ -52,19 +74,19 @@ class Block(BCIP):
         # if not, verify and schedule the nodes
         if not self._verified:
             executable = self.verify()
-            if not executable:
+            if executable != BcipEnums.SUCCESS:
                 return executable
             
         # iterate over all the nodes and execute the kernel
         for n in self._nodes:
-            sts = n.execute()
+            sts = n.kernel.execute()
             
-            if not sts:
+            if sts != BcipEnums.SUCCESS:
                 # execute failed, exit...
                 return sts
         
-        self._trials_executed = self._trials_executed + 1
-        return True
+        self._trials_executed[label] = self._trials_executed[label] + 1
+        return BcipEnums.SUCCESS
         
     def verify(self):
         """
@@ -72,7 +94,7 @@ class Block(BCIP):
         for execution if the graph is valid
         """
         if self._verified:
-            return True
+            return BcipEnums.SUCCESS
         
         # begin by scheduling the nodes in execution order
         
@@ -85,7 +107,7 @@ class Block(BCIP):
             
             # add these inputs/outputs to edge objects
             for n_i in n_inputs:
-                if not (n_i.uid in edges.keys):
+                if not (n_i.uid in edges):
                     # no edge created for this input yet, so create a new one
                     edges[n_i.uid] = Edge(n_i)
                 
@@ -93,7 +115,7 @@ class Block(BCIP):
                 edges[n_i.uid].addConsumer(n)
                 
             for n_o in n_outputs:
-                if not (n_o.uid in edges.keys):
+                if not (n_o.uid in edges):
                     # no edge created for this output yet, so create a new one
                     edges[n_o.uid] = Edge(n_o)
                     
@@ -105,14 +127,14 @@ class Block(BCIP):
                     if len(edges[n_o.uid].getProducers()) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
-                        return False
+                        return BcipEnums.INVALID_BLOCK
                     else:
                         # add the producer to the edge
                         edges[n_o.uid].addProducer(n)
         
         # now determine which edges are ready to be consumed
         consumable_edges = {}
-        for e_key in edges.keys:
+        for e_key in edges:
             if len(edges[e_key].getProducers()) == 0:
                 # these edges have no producing nodes, so they are inputs to 
                 # the block and therefore can be consumed immediately
@@ -129,7 +151,7 @@ class Block(BCIP):
                 n_inputs = n.getInputs()
                 consumable = True
                 for n_i in n_inputs:
-                    if not (n_i.uid in consumable_edges.keys):
+                    if not (n_i.uid in consumable_edges):
                         # the inputs for this node must be produced by another
                         # node first, therefore this node cannot be scheduled
                         # yet
@@ -153,13 +175,25 @@ class Block(BCIP):
                     
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled
-                return False
+                return BcipEnums.INVALID_BLOCK
         
         # now all the nodes are in execution order, validate each node
         for n in self._nodes:
             valid = n.verify()
-            if not valid:
-                return False
+            if valid != BcipEnums.SUCCESS:
+                return valid
         
         # Done, all nodes scheduled and verified!
-        return True
+        self._verified = True
+        return BcipEnums.SUCCESS
+    
+    
+    @classmethod
+    def create(cls,sess,n_trials_per_class,n_classes):
+        b = cls(sess,n_trials_per_class,n_classes)
+        
+        # add the block to the session
+        sess.enqueueBlock(b)
+        
+        return b
+        

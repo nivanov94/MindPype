@@ -7,14 +7,14 @@ Scalar.py - Define the Scalar class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_type import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 class Scalar(BCIP):
     
     _valid_types = [int, float, complex, str, bool]
     
-    def __init__(self,scalar_type,val,is_virtual,ext_src):
+    def __init__(self,sess,scalar_type,val,is_virtual,ext_src):
         super().__init__(BcipEnums.SCALAR)
         self.scalar_type = scalar_type
         self.is_virtual = is_virtual
@@ -25,6 +25,9 @@ class Scalar(BCIP):
             self.volatile = False
         else:
             self.volatile = True
+        
+        # add the scalar to the session
+        sess.addData(self)
             
     def getValue(self):
         return self.val
@@ -49,28 +52,40 @@ class Scalar(BCIP):
     
     # Factory Methods
     @classmethod
-    def create(scalar_type):
+    def create(cls,sess,scalar_type):
         if not (scalar_type in Scalar._valid_types):
             return
-        return Scalar(scalar_type,None,False,None)
+        s = cls(sess,scalar_type,None,False,None)
     
     @classmethod
-    def createVirtual(scalar_type):
+    def createVirtual(cls,sess,scalar_type):
         if not (scalar_type in Scalar._valid_types):
             return
-        return Scalar(scalar_type,None,True,None)
+        s = cls(scalar_type,None,True,None)
+        
+        # add the scalar to the session
+        sess.addData(s)
+        return s
     
     @classmethod
-    def createFromValue(value):
+    def createFromValue(cls,sess,value):
         scalar_type = type(value)
         if not (scalar_type in Scalar._valid_types):
             return
         
-        return Scalar(scalar_type,value,False,None)
+        s = cls(sess,scalar_type,value,False,None)
+        
+        # add the scalar to the session
+        sess.addData(s)
+        return s
     
     @classmethod
-    def createFromHandle(scalar_type,src):
+    def createFromHandle(cls,sess,scalar_type,src):
         if not (scalar_type in Scalar._valid_types):
             return
-        return Scalar(scalar_type,None,False,src)
+        s = cls(sess,scalar_type,None,False,src)
+        
+        # add the scalar to the session
+        sess.addData(s)
+        return s
     

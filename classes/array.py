@@ -7,17 +7,18 @@ Array.py - Defines class of array objects that contain other BCIP objects
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_types import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 class Array(BCIP):
     """
     Array containing instances of other BCIP classes
     """
     
-    def __init__(self,capacity):
+    def __init__(self,sess,capacity):
         super().__init__(BcipEnums.ARRAY)
         
+        self.sess = sess
         self.capacity = capacity
         self._elements = [None] * capacity
         self.num_items = 0 # keep track of the non-none elements
@@ -36,4 +37,10 @@ class Array(BCIP):
         self._element[index] = element
         return True
     
+    @classmethod
+    def create(cls,sess,capacity):
+        a = cls(sess,capacity)
         
+        # add the array to the session
+        sess.addData(a)
+        return a
