@@ -12,3 +12,6 @@
 
 # LSL xdf data files
 *.xdf
+
+# pycache files
+*.pyc
