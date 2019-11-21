@@ -79,11 +79,7 @@ class Block(BCIP):
             
         # iterate over all the nodes and execute the kernel
         for n in self._nodes:
-            sts = n.kernel.execute()
-            
-            if sts != BcipEnums.SUCCESS:
-                # execute failed, exit...
-                return sts
+            n.kernel.execute()
         
         self._trials_executed[label] = self._trials_executed[label] + 1
         return BcipEnums.SUCCESS
@@ -177,6 +173,7 @@ class Block(BCIP):
                 # invalid graph, cannot be scheduled
                 return BcipEnums.INVALID_BLOCK
         
+        print("\t\tNodes Scheduled")
         # now all the nodes are in execution order, validate each node
         for n in self._nodes:
             valid = n.verify()

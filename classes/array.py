@@ -42,5 +42,5 @@ class Array(BCIP):
         a = cls(sess,capacity)
         
         # add the array to the session
-        sess.addData(a)
+        sess.AddData(a)
         return a

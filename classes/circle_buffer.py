@@ -35,6 +35,6 @@ class CircleBuffer(Array):
         cb = cls(sess,capacity)
         
         # add to the session
-        sess.addData(cb)
+        sess.AddData(cb)
         
         return cb

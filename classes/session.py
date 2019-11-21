@@ -20,6 +20,7 @@ class Session(BCIP):
         # define some private attributes
         self._blocks = [] # queue of blocks to execute
         self._datum = []
+        self._misc_objs = []
         self._verified = False
     
     def verify(self):
@@ -30,8 +31,10 @@ class Session(BCIP):
         
         Return true if the session has passed verification, false otherwise.
         """
-        
+        print("Verifying session...")
+        b_count = 1
         for b in self._blocks:
+            print("\tVerifying block {} of {}".format(b_count,len(self._blocks)))
             verified = b.verify()
             
             if verified != BcipEnums.SUCCESS:
@@ -60,7 +63,7 @@ class Session(BCIP):
         """
         self.pollVolatileChannels()
         b = self.getCurrentBlock()
-        sts = b.execute()
+        sts = b.execute(label)
         
         # check if the block is finished
         if b.trialsRemaining() == 0:
@@ -83,6 +86,9 @@ class Session(BCIP):
     
     def addData(self,data):
         self._datum.append(data)
+        
+    def addMiscBcipObj(self,obj):
+        self._misc_objs.append(obj)
         
     @classmethod
     def create(cls):

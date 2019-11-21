@@ -28,9 +28,9 @@ class Tensor(BCIP):
             self.data = np.zeros(shape)
         
         if ext_src is None:
-            self.volatile = False
+            self._volatile = False
         else:
-            self.volatile = True
+            self._volatile = True
             
     def getData(self):
         return self.data
@@ -46,6 +46,9 @@ class Tensor(BCIP):
     
     def isVirtual(self):
         return self.is_virtual
+    
+    def isVolatile(self):
+        return self._volatile
     
     def pollVolatileData(self):
         
@@ -66,7 +69,7 @@ class Tensor(BCIP):
         return t
     
     @classmethod
-    def createVirtual(cls,sess,shape):
+    def createVirtual(cls,sess,shape=()):
         t = cls(sess,shape,None,True,None)
         
         # add the tensor to the session
@@ -97,7 +100,7 @@ class Tensor(BCIP):
     # utility static methods
     @staticmethod
     def validateData(shape,data):
-        if not (data is None):
+        if data is None:
             return False
         
         if (not (type(data) is np.ndarray)) or (shape != data.shape):

@@ -20,6 +20,7 @@ class BcipEnums(Enum):
     TENSOR  = 106
     SCALAR  = 107
     ARRAY   = 108
+    FILTER  = 109
     
     # Status Codes - Leading '2'
     SUCCESS = 200
@@ -28,6 +29,7 @@ class BcipEnums(Enum):
     INVALID_NODE  = 203
     INVALID_PARAMETERS = 204
     EXCEED_TRIAL_LIMIT = 205
+    NOT_SUPPORTED = 206
     
     # Parameter Directions - Leading '3'
     INPUT  = 300
