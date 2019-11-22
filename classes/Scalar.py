@@ -26,6 +26,15 @@ class Scalar(BCIP):
         else:
             self.volatile = True
             
+    
+    def isVolatile(self):
+        return self.volatile
+    
+    def setData(self,data):
+        # TODO type check the incoming data
+        self.val = data
+        
+        
     def getValue(self):
         return self.val
     

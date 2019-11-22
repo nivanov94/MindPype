@@ -21,7 +21,7 @@ class RiemannMDMClassifierKernel(Kernel):
     Riemannian Minimum Distance to the Mean Classifier
     """
     
-    def __init__(self,block,inputA,outputA,n_classes):
+    def __init__(self,block,inputA,outputA):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
@@ -31,11 +31,10 @@ class RiemannMDMClassifierKernel(Kernel):
         self.outputA = outputA
         
         self._initialized = False
-        self._n_classes = n_classes
         self._classifier = classification.MDM()
         
     
-    def initialize(self,means):
+    def initialize(self):
         """
         Set the means for the classifier
         """
