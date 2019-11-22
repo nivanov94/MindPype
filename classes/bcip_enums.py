@@ -30,6 +30,8 @@ class BcipEnums(Enum):
     INVALID_PARAMETERS = 204
     EXCEED_TRIAL_LIMIT = 205
     NOT_SUPPORTED = 206
+    INITIALIZATION_FAILURE = 207
+    EXE_FAILURE_UNINITIALIZED = 208
     
     # Parameter Directions - Leading '3'
     INPUT  = 300
