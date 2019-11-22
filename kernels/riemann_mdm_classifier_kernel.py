@@ -70,11 +70,32 @@ class RiemannMDMClassifierKernel(Kernel):
         
         self._classifier.fit(X,y)
         
+        self.initialize()
+        
+        return BcipEnums.SUCCESS
+    
+    def loadClassifier(self,mdm_classifier):
+        """
+        Copy the reference to a previously trained MDM classifier and store
+        it within the node for use. Calling this method will initialize the
+        kernel making it ready for execution.
+        
+        This method allows you to bypass training the kernel directly by using
+        a pre-trained model.
+        """
+        # sanity check that the input is actually an MDM model
+        if not isinstance(mdm_classifier,classification.MDM):
+            return BcipEnums.FAILURE_INVALID_TYPE
+        
+        self._classifier = mdm_classifier
+        
+        self.initialize()
+        
         return BcipEnums.SUCCESS
     
     def verify(self):
         """
-        Verify the inputs and outputs are appropriately sized
+        Verify the inputs and outputs are appropriately sized and typed
         """
         
         # first ensure the input and output are tensors
@@ -83,7 +104,42 @@ class RiemannMDMClassifierKernel(Kernel):
                   isinstance(self.outputA,Scalar))):
                 return BcipEnums.INVALID_PARAMETERS
         
+        input_shape = self.inputA.shape
+        input_rank = len(input_shape)
         
+        # input tensor should not be greater than rank 3
+        if input_rank > 3 or input_rank < 2:
+            return BcipEnums.INVALID_PARAMETERS
+        
+        # if the output is a virtual tensor and dimensionless, 
+        # add the dimensions now
+        if (isinstance(self.outputA,Tensor) and self.outputA.isVirtual() \
+            and self.outputA.getShape == None):
+            if input_rank == 2:
+                self.outputA.setData(np.zeros((1,)))
+            else:
+                self.outputA.setData(np.zeros((input_shape[0],)))
+        
+        
+        # check for dimensional alignment
+        
+        if isinstance(self.outputA,Scalar):
+            # input tensor should only be a single trial
+            if len(self.inputA.shape) == 3:
+                # first dimension must be equal to one
+                if self.inputA.shape[0] != 1:
+                    return BcipEnums.INVALID_PARAMETERS
+        else:
+            # check that the dimensions of the output match the dimensions of
+            # input
+            if self.inputA.shape[0] != self.outputA.shape[0]:
+                return BcipEnums.INVALID_PARAMETERS
+
+            # output tensor should be one dimensional
+            if len(self.outputA.shape) > 1:
+                return BcipEnums.INVALID_PARAMETERS
+        
+        return BcipEnums.SUCCESS
         
     def execute(self):
         """
