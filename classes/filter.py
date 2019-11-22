@@ -26,8 +26,7 @@ class Filter(BCIP):
         """
         Create a new filter object
         """
-        super().__init__(BcipEnums.FILTER)
-        self.sess = sess
+        super().__init__(BcipEnums.FILTER,sess)
         
         self.ftype = ftype
         self.btype = btype

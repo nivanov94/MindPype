@@ -15,7 +15,7 @@ class Scalar(BCIP):
     _valid_types = [int, float, complex, str, bool]
     
     def __init__(self,sess,scalar_type,val,is_virtual,ext_src):
-        super().__init__(BcipEnums.SCALAR)
+        super().__init__(BcipEnums.SCALAR,sess)
         self.scalar_type = scalar_type
         self.is_virtual = is_virtual
         self.ext_src = ext_src
@@ -25,9 +25,6 @@ class Scalar(BCIP):
             self.volatile = False
         else:
             self.volatile = True
-        
-        # add the scalar to the session
-        sess.addData(self)
             
     def getValue(self):
         return self.val

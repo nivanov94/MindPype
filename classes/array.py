@@ -16,9 +16,8 @@ class Array(BCIP):
     """
     
     def __init__(self,sess,capacity):
-        super().__init__(BcipEnums.ARRAY)
+        super().__init__(BcipEnums.ARRAY,sess)
         
-        self.sess = sess
         self.capacity = capacity
         self._elements = [None] * capacity
         self.num_items = 0 # keep track of the non-none elements

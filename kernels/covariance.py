@@ -36,8 +36,8 @@ class CovarianceKernel(Kernel):
         Output: B (hxkxnxn)
     """
     
-    def __init__(self,inputA,outputA):
-        super().__init__('Covariance')
+    def __init__(self,block,inputA,outputA):
+        super().__init__('Covariance',block)
         self.inputA  = inputA
         self.outputA = outputA
     
@@ -114,14 +114,14 @@ class CovarianceKernel(Kernel):
         """
         
         # create the kernel object
-        k = cls(inputA,outputA)
+        k = cls(block,inputA,outputA)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(k,2,params)
+        node = Node(block,k,2,params)
         
         # add the node to the block
         block.addNode(node)

@@ -17,8 +17,9 @@ class Kernel(BCIP, ABC):
     must be defined
     """
     
-    def __init__(self,name):
-        super().__init__(BcipEnums.KERNEL)
+    def __init__(self,name,block):
+        session = block.getSession()
+        super().__init__(BcipEnums.KERNEL,session)
         self.name = name
         
     

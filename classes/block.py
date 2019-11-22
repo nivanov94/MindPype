@@ -15,9 +15,8 @@ class Block(BCIP):
     """
     
     def __init__(self,sess,n_trials_per_class,n_classes):
-        super().__init__(BcipEnums.BLOCK)
+        super().__init__(BcipEnums.BLOCK,sess)
         
-        self.sess = sess
         self.n_trials_per_class = n_trials_per_class
         self.n_classes = n_classes
         

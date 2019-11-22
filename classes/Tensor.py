@@ -16,8 +16,7 @@ class Tensor(BCIP):
     """
     
     def __init__(self,sess,shape,data,is_virtual,ext_src):
-        super().__init__(BcipEnums.TENSOR)
-        self.sess = sess
+        super().__init__(BcipEnums.TENSOR,sess)
         self.shape = shape
         self.is_virtual = is_virtual
         self.ext_src = ext_src

@@ -15,7 +15,7 @@ class Session(BCIP):
     """
     
     def __init__(self):
-        super().__init__(BcipEnums.SESSION)
+        super().__init__(BcipEnums.SESSION,self)
         
         # define some private attributes
         self._blocks = [] # queue of blocks to execute

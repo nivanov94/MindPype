@@ -22,8 +22,8 @@ class FilterKernel(Kernel):
     Filter a tensor along the first non-singleton dimension
     """
     
-    def __init__(self,inputA,filt,outputA):
-        super().__init__('Filter')
+    def __init__(self,block,inputA,filt,outputA):
+        super().__init__('Filter',block)
         self.inputA  = inputA
         self.filt = filt
         self.outputA = outputA
@@ -96,14 +96,14 @@ class FilterKernel(Kernel):
         """
         
         # create the kernel object
-        k = cls(inputA,filt,outputA)
+        k = cls(block,inputA,filt,outputA)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(k,2,params)
+        node = Node(block,k,2,params)
         
         # add the node to the block
         block.addNode(node)

@@ -20,8 +20,8 @@ class TransposeKernel(Kernel):
     Kernel to compute the tensor transpose
     """
     
-    def __init__(self,inputA,outputA,axes=None):
-        super().__init__('Transpose')
+    def __init__(self,block,inputA,outputA,axes=None):
+        super().__init__('Transpose',block)
         self.inputA  = inputA
         self.outputA = outputA
         self.axes = axes
@@ -82,14 +82,14 @@ class TransposeKernel(Kernel):
         """
         
         # create the kernel object
-        k = cls(inputA,outputA)
+        k = cls(block,inputA,outputA)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(k,2,params)
+        node = Node(block,k,2,params)
         
         # add the node to the block
         block.addNode(node)
