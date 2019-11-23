@@ -147,7 +147,13 @@ class RiemannMDMClassifierKernel(Kernel):
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         
-        self.outputA.setData(self._classifier.predict(self.inputA.getData()))
+        # pyriemann library requires input data to have 3 dimensions with the 
+        # first dimension being 1
+        input_data = self.inputA.getData()
+        input_data = input_data[np.newaxis,:,:]
+        
+        # TODO handle tensors and scalar outputs differently
+        self.outputA.setData(self._classifier.predict(input_data))
     
     @classmethod
     def addRiemannMDMKernel(cls,block,inputA,outputA):

@@ -76,6 +76,8 @@ def main():
     # RUN!
     sts = s.execute(0)
     
+    print(s_out.getData())
+    
     print("Test Passed =D")
 
 

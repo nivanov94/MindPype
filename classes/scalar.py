@@ -34,6 +34,8 @@ class Scalar(BCIP):
         # TODO type check the incoming data
         self.val = data
         
+    def getData(self):
+        return self.val
         
     def getValue(self):
         return self.val
@@ -62,6 +64,9 @@ class Scalar(BCIP):
         if not (scalar_type in Scalar._valid_types):
             return
         s = cls(sess,scalar_type,None,False,None)
+        
+        sess.addData(s)
+        return s
     
     @classmethod
     def createVirtual(cls,sess,scalar_type):
