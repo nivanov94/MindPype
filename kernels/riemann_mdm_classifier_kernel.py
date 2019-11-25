@@ -21,26 +21,41 @@ class RiemannMDMClassifierKernel(Kernel):
     Riemannian Minimum Distance to the Mean Classifier
     """
     
-    def __init__(self,block,inputA,outputA):
+    def __init__(self,block,inputA,outputA,init_style,initialize_params):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
-        super().__init__('Transpose',block)
+        super().__init__('RiemannMDM',init_style,block)
         self.inputA  = inputA
         self.outputA = outputA
         
-        self._initialized = False
-        self._classifier = classification.MDM()
+        self._initialize_params = initialize_params
+        
+        if init_style == BcipEnums.INIT_FROM_DATA:
+            # model will be trained using data in tensor object at later time
+            self._initialized = False
+            self._classifier = None
+        elif init_style == BcipEnums.INIT_FROM_COPY:
+            # model is copy of predefined MDM model object
+            self._classifier = initialize_params['model']
+            self._initialized = True
         
     
     def initialize(self):
         """
         Set the means for the classifier
         """
-        self._initialized = True
         
-    def trainClassifier(self,training_data,labels):
+        if self.init_style == BcipEnums.INIT_FROM_DATA:
+            return self.trainClassifier()
+        else:
+            # kernel contains a reference to a pre-existing MDM object, no
+            # need to train here
+            self._initialized = True
+            return BcipEnums.SUCCESS
+        
+    def trainClassifier(self):
         """
         Train the classifier
         
@@ -53,12 +68,13 @@ class RiemannMDMClassifierKernel(Kernel):
         The method will update the kernel's internal representation of the
         classifier
         """
-        if (not isinstance(training_data,Tensor)) or \
-            (not isinstance(labels,Tensor)):
+        
+        if (not isinstance(self._initialize_params['training_data'],Tensor)) or \
+            (not isinstance(self._initialize_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        X = training_data.getData()
-        y = labels.getData()
+        X = self._initialize_params['training_data'].getData()
+        y = self._initialize_params['labels'].getData()
         
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:
@@ -67,30 +83,13 @@ class RiemannMDMClassifierKernel(Kernel):
         if X.shape[0] != y.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
         
+        self._classifier = classification.MDM()
         self._classifier.fit(X,y)
         
-        self.initialize()
+        self._initialized = True
         
         return BcipEnums.SUCCESS
     
-    def loadClassifier(self,mdm_classifier):
-        """
-        Copy the reference to a previously trained MDM classifier and store
-        it within the node for use. Calling this method will initialize the
-        kernel making it ready for execution.
-        
-        This method allows you to bypass training the kernel directly by using
-        a pre-trained model.
-        """
-        # sanity check that the input is actually an MDM model
-        if not isinstance(mdm_classifier,classification.MDM):
-            return BcipEnums.FAILURE_INVALID_TYPE
-        
-        self._classifier = mdm_classifier
-        
-        self.initialize()
-        
-        return BcipEnums.SUCCESS
     
     def verify(self):
         """
@@ -156,15 +155,55 @@ class RiemannMDMClassifierKernel(Kernel):
         self.outputA.setData(self._classifier.predict(input_data))
     
     @classmethod
-    def addRiemannMDMKernel(cls,block,inputA,outputA):
+    def addUntrainedRiemannMDMKernel(cls,block,inputA,outputA,\
+                                     training_data,labels):
         """
-        Factory method to create a riemann minimum distance to the mean
-        classifier kernel and add it to a block
+        Factory method to create an untrained riemann minimum distance 
+        to the mean classifier kernel and add it to a block
         as a generic node object.
+        
+        Note that the node will have to be initialized (i.e. trained) prior 
+        to execution of the kernel.
         """
         
         # create the kernel object
-        k = cls(block,inputA,outputA)
+        init_params = {'training_data' : training_data, 
+                       'labels'        : labels}
+        k = cls(block,inputA,outputA,BcipEnums.INIT_FROM_DATA,init_params)
+        
+        # create parameter objects for the input and output
+        params = (Parameter(inputA,BcipEnums.INPUT), \
+                  Parameter(outputA,BcipEnums.OUTPUT))
+        
+        # add the kernel to a generic node object
+        node = Node(block,k,2,params)
+        
+        # add the node to the block
+        block.addNode(node)
+        
+        return node
+    
+    
+    @classmethod
+    def addTrainedRiemannMDMKernel(cls,block,inputA,outputA,\
+                                     model):
+        """
+        Factory method to create a riemann minimum distance 
+        to the mean classifier kernel containing a copy of a pre-trained
+        MDM classifier and add it to a block as a generic node object.
+        
+        The kernel will contain a reference to the model rather than making a 
+        deep-copy. Therefore any changes to the classifier object outside
+        will effect the classifier here.
+        """
+
+        # sanity check that the input is actually an MDM model
+        if not isinstance(model,classification.MDM):
+            return None
+        
+        # create the kernel object
+        init_params = {'model' : model}
+        k = cls(block,inputA,outputA,BcipEnums.INIT_FROM_COPY,init_params)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \

@@ -37,7 +37,7 @@ class CovarianceKernel(Kernel):
     """
     
     def __init__(self,block,inputA,outputA):
-        super().__init__('Covariance',block)
+        super().__init__('Covariance',BcipEnums.INIT_FROM_NONE,block)
         self.inputA  = inputA
         self.outputA = outputA
     
@@ -45,7 +45,7 @@ class CovarianceKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        pass
+        return BcipEnums.SUCCESS
     
     def verify(self):
         """

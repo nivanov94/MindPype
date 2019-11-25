@@ -21,7 +21,7 @@ class TransposeKernel(Kernel):
     """
     
     def __init__(self,block,inputA,outputA,axes=None):
-        super().__init__('Transpose',block)
+        super().__init__('Transpose',BcipEnums.INIT_FROM_NONE,block)
         self.inputA  = inputA
         self.outputA = outputA
         self.axes = axes
@@ -30,7 +30,7 @@ class TransposeKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        pass
+        return BcipEnums.SUCCESS
     
     def verify(self):
         """

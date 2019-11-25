@@ -50,4 +50,10 @@ class Node(BCIP):
         Verify the node is executable
         """
         return self.kernel.verify()
+    
+    def initialize(self):
+        """
+        Initialize the kernel function for execution
+        """
+        return self.kernel.initialize()
             

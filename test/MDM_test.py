@@ -30,6 +30,17 @@ def main():
     # add a block and some tensors
     b = Block.create(s,4,3)
 
+    # initialize the classifier
+    # fake data for training
+    raw_training_data = np.random.normal(loc=0.0,scale=1.0,size=(180,250,12))
+    training_data = np.zeros((180,12,12))
+    for i in range(180):
+        training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
+        
+    labels = np.asarray([0]*60 + [1]*60 + [2]*60)
+    X = Tensor.createFromData(s,training_data.shape,training_data)
+    y = Tensor.createFromData(s,labels.shape,labels)
+
     input_data = np.random.randn(500,12)
     t_in = Tensor.createFromData(s,(500,12),input_data)
     s_out = Scalar.createFromValue(s,-1)
@@ -45,7 +56,8 @@ def main():
     # add the nodes
     CovarianceKernel.addCovarianceNode(b,t_virt[0],t_virt[1])
     FilterKernel.addFilterNode(b,t_in,f,t_virt[0])
-    classifier = RiemannMDMClassifierKernel.addRiemannMDMKernel(b,t_virt[1],s_out)
+    RiemannMDMClassifierKernel.addUntrainedRiemannMDMKernel(b,t_virt[1],\
+                                                            s_out,X,y)
 
     # verify the session (i.e. schedule the nodes)
     sts = s.verify()
@@ -55,18 +67,8 @@ def main():
         print("Test Failed D=")
         return sts
     
-    # initialize the classifier
-    # fake data
-    raw_training_data = np.random.normal(loc=0.0,scale=1.0,size=(180,250,12))
-    training_data = np.zeros((180,12,12))
-    for i in range(180):
-        training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
-        
-    labels = np.asarray([0]*60 + [1]*60 + [2]*60)
-    X = Tensor.createFromData(s,training_data.shape,training_data)
-    y = Tensor.createFromData(s,labels.shape,labels)
-    
-    sts = classifier.kernel.trainClassifier(X,y)
+
+    sts = s.initializeBlock()
     
     if sts != BcipEnums.SUCCESS:
         print(sts)

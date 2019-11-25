@@ -17,10 +17,11 @@ class Kernel(BCIP, ABC):
     must be defined
     """
     
-    def __init__(self,name,block):
+    def __init__(self,name,init_style,block):
         session = block.getSession()
         super().__init__(BcipEnums.KERNEL,session)
         self.name = name
+        self.init_style = init_style
         
     
     @abstractmethod

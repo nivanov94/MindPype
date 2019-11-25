@@ -23,7 +23,7 @@ class FiltFiltKernel(Kernel):
     """
     
     def __init__(self,block,inputA,filt,outputA):
-        super().__init__('FiltFilt',block)
+        super().__init__('FiltFilt',BcipEnums.INIT_FROM_COPY,block)
         self.inputA  = inputA
         self.filt = filt
         self.outputA = outputA
@@ -32,7 +32,7 @@ class FiltFiltKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        pass
+        return BcipEnums.SUCCESS
     
     def verify(self):
         """

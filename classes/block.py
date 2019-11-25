@@ -183,6 +183,17 @@ class Block(BCIP):
         self._verified = True
         return BcipEnums.SUCCESS
     
+    def initialize(self):
+        """
+        Initialize each node within the block for trial execution
+        """
+        for n in self._nodes:
+            sts = n.initialize()
+            
+            if sts != BcipEnums.SUCCESS:
+                return sts
+        
+        return BcipEnums.SUCCESS
     
     @classmethod
     def create(cls,sess,n_trials_per_class,n_classes):

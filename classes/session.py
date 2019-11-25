@@ -44,6 +44,12 @@ class Session(BCIP):
         self._verified = True
         return BcipEnums.SUCCESS
     
+    def initializeBlock(self):
+        """
+        Initialize the current block object for trial execution.
+        """
+        return self.getCurrentBlock().initialize()
+    
     def pollVolatileChannels(self):
         """
         Update the contents of all volatile data streams

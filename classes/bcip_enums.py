@@ -38,6 +38,11 @@ class BcipEnums(Enum):
     OUTPUT = 301
     INOUT  = 302
     
+    # Kernel Initialization types - leading '4'
+    INIT_FROM_NONE = 400
+    INIT_FROM_DATA = 401
+    INIT_FROM_COPY = 402
+    
     def __str__(self):
         return self.name
     
