@@ -59,12 +59,6 @@ class RiemannMDMClassifierKernel(Kernel):
         """
         Train the classifier
         
-        training_data - Tensor of training data. Should be of rank 3
-                        with expected dimensions:
-                            (trials x channels x channels)
-                        
-        labels - 1D tensor containing labels for each training sample
-        
         The method will update the kernel's internal representation of the
         classifier
         """
@@ -141,7 +135,7 @@ class RiemannMDMClassifierKernel(Kernel):
         
     def execute(self):
         """
-        Execute the kernel function using the numpy transpose function
+        Execute the kernel by classifying the input trials
         """
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED

@@ -38,6 +38,9 @@ class Tensor(BCIP):
         if Tensor.validateData(data.shape,self.data):
             self.data = data
     
+    def getShape(self):
+        return self.shape
+    
     def setShape(self,shape):
         zero_tensor = np.zeros(shape)
         self.shape = shape
