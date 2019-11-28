@@ -15,31 +15,7 @@ from classes.parameter import Parameter
 
 import numpy as np
 
-from pyriemann.embedding import Embedding
-from pyriemann.utils import distance
-
-#from scipy.sparse.csgraph import laplacian as csgraph_laplacian
-#from scipy.sparse.linalg import eigsh
-#from sklearn.manifold import _set_diag
-#
-#def _spectral_embedding(adjacency, n_components):
-#    """
-#    Calculate the spectral embedding
-#    """
-#    
-#    laplacian, dd = csgraph_laplacian(adjacency,normed=True,
-#                                      return_diag=True)
-#    
-#    laplacian = _set_diag(laplacian,1,True)
-#    laplacian *= -1
-#    v0 = random_state.uniform(-1,1,laplacian.shape[0])
-#    lambdas, diff_map = eigsh(laplacian,k=n_components,sigma=1.0,
-#                              which='LM',tol=0.0,v0=v0)
-#    embedding = diff_map.T[n_components::-1]
-#    embedding = embedding / dd
-#    
-#    return embedding[1:n_components].T, lambdas
-
+from pyriemann.utils import distance as riem_dist
 
 class DiffusionMapKernel(Kernel):
     """
@@ -65,11 +41,15 @@ class DiffusionMapKernel(Kernel):
             # object at later time
             self._initialized = False
             self._embedding = None
+            self._eigenvals = None
+            self._training_pts = None
             self._eps = None
         elif init_style == BcipEnums.INIT_FROM_COPY:
             # model is copy of predefined manifold embedding object
             self._embedding = initialize_params['embedding']
+            self._eigenvals = initialize_params['eigenvals']
             self._eps = initialize_params['eps']
+            self._training_pts = initialize_params['training_pts']
             self._initialized = True
         
     
@@ -85,7 +65,8 @@ class DiffusionMapKernel(Kernel):
             # no need to fit here
             self._initialized = True
             return BcipEnums.SUCCESS
-        
+    
+
     def fitEmbedding(self):
         """
         Fit the embedding
@@ -106,38 +87,32 @@ class DiffusionMapKernel(Kernel):
         if X.shape[1] != X.shape[2]:
             return BcipEnums.INITIALIZATION_FAILURE
         
-        # create an embedding object from pyriemann
-        embdg = Embedding(self.n_components.getData())
         
+        distmatrix = riem_dist.pairwise_distance(X)
+        self._eps = np.median(distmatrix)**2 / 2
+        
+        kernel = np.exp(-distmatrix**2 / (4 * self._eps)) # 'heat' kernel represents similarities between trials
+        D = np.diag(np.dot(kernel,np.ones(len(kernel)))) # degree matrix, sum of rows of kernel
+        P = np.dot(np.inv(D),W) # markov chain for diffusion map
+            
+        # perform eigendecomposition to get mapping
+        w, v = np.linalg.eig(P)
 
+        # sort the eigenvalues
+        idx = np.flip(np.argsort(w))
+        w = w[idx]
+        v = v[:,idx]
         
-        # get the components of the embedded pts
-        self._embedding = embdg.fit_transform(X)
-        
-        if self._eps == None:
-            # save the value of eps used to generate the embedding
-            # TODO make this cleaner, consider writing modified version of
-            # embedding class to make eps accessible
-            distmatrix = distance.pairwise_distance(X)
-            self._eps = np.median(distmatrix)**2 / 2
-            
-            W = np.exp(-distmatrix**2 / (4 * self._eps))
-            q = np.dot(W,np.ones(len(W)))
-            W = np.divide(W,np.outer(q,q))
-            
-            D = np.linalg.inv(np.diag(np.sum(W,axis=1)))
-            P = np.dot(D,W)
-            
-            
-            # numpy calc
-            w, v = np.linalg.eig(P)
-            
+        # save the parameters of the embedding
+        self._embedding = v[:,2:2+self._n_components]
+        self._eigenvals = w[2:2+self._n_components]
+
         
         self._initialized = True
         
         return BcipEnums.SUCCESS
     
-    
+
     def verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
@@ -184,7 +159,27 @@ class DiffusionMapKernel(Kernel):
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         
-        
+
+        n_training_pts = self._training_pts.shape[0]
+
+        input_data = self.inA.getData()
+
+        K_proj = np.zeros(len(input_data), n_training_pts)
+        for i_trial in range(len(input_data)):
+            # get the distances between the input and the embedding pts
+            for i_tp in range(len(self._training_pts)):
+                K_proj[i_trial,i_tp] = riem_dist.distance_riemann(input_data[i_trial,:,:],
+                                                                  self._training_pts[i_tp,:,:])
+
+        # normalize the rows
+
+        # use to to project into the embedding
+
+        # set the output data
+
+
+
+
         
     
     @classmethod
