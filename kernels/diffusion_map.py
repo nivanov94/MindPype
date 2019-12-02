@@ -44,13 +44,6 @@ class DiffusionMapKernel(Kernel):
             self._eigenvals = None
             self._training_pts = None
             self._eps = None
-        elif init_style == BcipEnums.INIT_FROM_COPY:
-            # model is copy of predefined manifold embedding object
-            self._embedding = initialize_params['embedding']
-            self._eigenvals = initialize_params['eigenvals']
-            self._eps = initialize_params['eps']
-            self._training_pts = initialize_params['training_pts']
-            self._initialized = True
         
     
     def initialize(self):
@@ -63,8 +56,8 @@ class DiffusionMapKernel(Kernel):
         else:
             # kernel contains a reference to a pre-existing embedding object,
             # no need to fit here
-            self._initialized = True
-            return BcipEnums.SUCCESS
+            self._initialized = False
+            return BcipEnums.NOT_SUPPORTED
     
 
     def fitEmbedding(self):
@@ -93,7 +86,7 @@ class DiffusionMapKernel(Kernel):
         
         kernel = np.exp(-distmatrix**2 / (4 * self._eps)) # 'heat' kernel represents similarities between trials
         D = np.diag(np.dot(kernel,np.ones(len(kernel)))) # degree matrix, sum of rows of kernel
-        P = np.dot(np.inv(D),W) # markov chain for diffusion map
+        P = np.dot(np.inv(D),kernel) # markov chain for diffusion map
             
         # perform eigendecomposition to get mapping
         w, v = np.linalg.eig(P)
@@ -171,15 +164,17 @@ class DiffusionMapKernel(Kernel):
                 K_proj[i_trial,i_tp] = riem_dist.distance_riemann(input_data[i_trial,:,:],
                                                                   self._training_pts[i_tp,:,:])
 
-        # normalize the rows
+
+        kernel = np.exp(-K_proj**2 / (4 * self._eps))
+        
+        D = np.diag(np.dot(kernel,np.ones(len(kernel)))) + 1 # degree matrix, sum of rows of kernel
+        P = np.dot(np.inv(D),kernel) # markov chain for diffusion map of each trial
 
         # use to to project into the embedding
+        pt_proj = np.dot(P,self._embedding) * (1/self._eigenvals)
 
         # set the output data
-
-
-
-
+        self.outA.setData(pt_proj)
         
     
     @classmethod
@@ -211,35 +206,4 @@ class DiffusionMapKernel(Kernel):
         return node
     
     
-#    @classmethod
-#    def addTrainedRiemannMDMKernel(cls,block,inputA,outputA,\
-#                                     model):
-#        """
-#        Factory method to create a riemann minimum distance 
-#        to the mean classifier kernel containing a copy of a pre-trained
-#        MDM classifier and add it to a block as a generic node object.
-#        
-#        The kernel will contain a reference to the model rather than making a 
-#        deep-copy. Therefore any changes to the classifier object outside
-#        will effect the classifier here.
-#        """
-#
-#        # sanity check that the input is actually an MDM model
-#        if not isinstance(model,classification.MDM):
-#            return None
-#        
-#        # create the kernel object
-#        init_params = {'model' : model}
-#        k = cls(block,inputA,outputA,BcipEnums.INIT_FROM_COPY,init_params)
-#        
-#        # create parameter objects for the input and output
-#        params = (Parameter(inputA,BcipEnums.INPUT), \
-#                  Parameter(outputA,BcipEnums.OUTPUT))
-#        
-#        # add the kernel to a generic node object
-#        node = Node(block,k,2,params)
-#        
-#        # add the node to the block
-#        block.addNode(node)
-#        
-#        return node
+
