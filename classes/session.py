@@ -61,7 +61,51 @@ class Session(BCIP):
             if d.isVolatile():
                 d.pollInputStream()
         
-    def execute(self,label):
+        
+    def closeBlock(self):
+        """
+        Run any postprocessing on the block and remove it from the session
+        queue.
+        """
+        
+        # get the current block
+        b = self.getCurrentBlock()
+        
+        # check if the block is finished
+        if b.trialsRemaining() != 0:
+            # block not finished, don't close
+            return BcipEnums.FAILURE
+        
+        # run postprocessing
+        sts = b.postProcess()
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        # if everything executed nicely, remove the block from the session queue
+        self.dequeueBlock()
+        return BcipEnums.SUCCESS    
+    
+    def startBlock(self):
+        """
+        Initialize the block nodes and execute the preprocessing graph
+        """
+        b = self.getCurrentBlock()
+        
+        # make sure we're not in the middle of a block
+        if b.trialsRemaining() != b.getNumberTrials():
+            return BcipEnums.FAILURE
+        
+        # initialize everything first
+        sts = b.initialize()
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        # execute the preprocessing graph
+        sts = b.preProcess()
+        
+        return sts
+    
+    def executeTrial(self,label):
         """
         Execute a trial
         First updates all volatile input channels
@@ -69,14 +113,8 @@ class Session(BCIP):
         """
         self.pollVolatileChannels()
         b = self.getCurrentBlock()
-        sts = b.execute(label)
+        sts = b.processTrial(label)
         
-        # check if the block is finished
-        if b.trialsRemaining() == 0:
-            # block finished, close it up and remove it from the session queue
-            b.postProcess()
-            self.dequeueBlock()
-            
         return sts
     
     def getCurrentBlock(self): #TODO Determine how this should be implemented

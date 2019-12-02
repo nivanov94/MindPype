@@ -36,8 +36,8 @@ class CovarianceKernel(Kernel):
         Output: B (hxkxnxn)
     """
     
-    def __init__(self,block,inputA,outputA):
-        super().__init__('Covariance',BcipEnums.INIT_FROM_NONE,block)
+    def __init__(self,graph,inputA,outputA):
+        super().__init__('Covariance',BcipEnums.INIT_FROM_NONE,graph)
         self.inputA  = inputA
         self.outputA = outputA
     
@@ -105,25 +105,26 @@ class CovarianceKernel(Kernel):
             # reshape the output
             self.outputA.data = np.reshape(output_data,self.outputA.shape)
             
+        return BcipEnums.SUCCESS
     
     @classmethod
-    def addCovarianceNode(cls,block,inputA,outputA):
+    def addCovarianceNode(cls,graph,inputA,outputA):
         """
-        Factory method to create a covariance kernel and add it to a block
+        Factory method to create a covariance kernel and add it to a graph
         as a generic node object.
         """
         
         # create the kernel object
-        k = cls(block,inputA,outputA)
+        k = cls(graph,inputA,outputA)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(block,k,2,params)
+        node = Node(graph,k,2,params)
         
-        # add the node to the block
-        block.addNode(node)
+        # add the node to the graph
+        graph.addNode(node)
         
         return node

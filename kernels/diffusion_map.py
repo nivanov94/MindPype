@@ -22,14 +22,14 @@ class DiffusionMapKernel(Kernel):
     Kernel produces projection of trial into lower dimensional space
     """
     
-    def __init__(self,block,inA,outA,n_components,init_style,\
+    def __init__(self,graph,inA,outA,n_components,init_style,\
                  initialize_params):
         """
         Create a Diffusion map spectral embedding kernel.
         The embedding is generated with manifold learning techniques
         using a set of trials as a training set.
         """
-        super().__init__('DiffusionMap',init_style,block)
+        super().__init__('DiffusionMap',init_style,graph)
         self.inA  = inA
         self.outA = outA
         self.n_components = n_components
@@ -176,9 +176,11 @@ class DiffusionMapKernel(Kernel):
         # set the output data
         self.outA.setData(pt_proj)
         
+        return BcipEnums.SUCCESS
+        
     
     @classmethod
-    def addDiffusionMapKernel(cls,block,inA,outA,
+    def addDiffusionMapKernel(cls,graph,inA,outA,
                               training_data,dimensions):
         """
         Factory method to create a diffusion map 
@@ -198,10 +200,10 @@ class DiffusionMapKernel(Kernel):
                   Parameter(outA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(block,k,2,params)
+        node = Node(graph,k,2,params)
         
-        # add the node to the block
-        block.addNode(node)
+        # add the node to the graph
+        graph.addNode(node)
         
         return node
     

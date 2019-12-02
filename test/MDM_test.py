@@ -54,9 +54,10 @@ def main():
     f = Filter.createButter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    CovarianceKernel.addCovarianceNode(b,t_virt[0],t_virt[1])
-    FilterKernel.addFilterNode(b,t_in,f,t_virt[0])
-    RiemannMDMClassifierKernel.addUntrainedRiemannMDMKernel(b,t_virt[1],\
+    CovarianceKernel.addCovarianceNode(b.getTrialProcessGraph(),t_virt[0],t_virt[1])
+    FilterKernel.addFilterNode(b.getTrialProcessGraph(),t_in,f,t_virt[0])
+    RiemannMDMClassifierKernel.addUntrainedRiemannMDMKernel(b.getTrialProcessGraph(),
+                                                            t_virt[1],
                                                             s_out,X,y)
 
     # verify the session (i.e. schedule the nodes)
@@ -68,15 +69,14 @@ def main():
         return sts
     
 
-    sts = s.initializeBlock()
-    
+    sts = s.startBlock()
     if sts != BcipEnums.SUCCESS:
         print(sts)
         print("Test Failed D=")
         return sts
     
     # RUN!
-    sts = s.execute(0)
+    sts = s.executeTrial(0)
     
     print(s_out.getData())
     

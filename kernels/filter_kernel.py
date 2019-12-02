@@ -21,8 +21,8 @@ class FilterKernel(Kernel):
     Filter a tensor along the first non-singleton dimension
     """
     
-    def __init__(self,block,inputA,filt,outputA):
-        super().__init__('Filter',BcipEnums.INIT_FROM_COPY,block)
+    def __init__(self,graph,inputA,filt,outputA):
+        super().__init__('Filter',BcipEnums.INIT_FROM_COPY,graph)
         self.inputA  = inputA
         self.filt = filt
         self.outputA = outputA
@@ -85,26 +85,28 @@ class FilterKernel(Kernel):
             self.outputA.data = signal.sosfilt(self.filt.coeffs['sos'],\
                                                self.inputA.data,\
                                                axis=axis)
+        
+        return BcipEnums.SUCCESS
             
     
     @classmethod
-    def addFilterNode(cls,block,inputA,filt,outputA):
+    def addFilterNode(cls,graph,inputA,filt,outputA):
         """
-        Factory method to create a filter kernel and add it to a block
+        Factory method to create a filter kernel and add it to a graph
         as a generic node object.
         """
         
         # create the kernel object
-        k = cls(block,inputA,filt,outputA)
+        k = cls(graph,inputA,filt,outputA)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(block,k,2,params)
+        node = Node(graph,k,2,params)
         
-        # add the node to the block
-        block.addNode(node)
+        # add the node to the graph
+        graph.addNode(node)
         
         return node

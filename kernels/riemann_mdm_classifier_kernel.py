@@ -21,12 +21,12 @@ class RiemannMDMClassifierKernel(Kernel):
     Riemannian Minimum Distance to the Mean Classifier
     """
     
-    def __init__(self,block,inputA,outputA,init_style,initialize_params):
+    def __init__(self,graph,inputA,outputA,init_style,initialize_params):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
-        super().__init__('RiemannMDM',init_style,block)
+        super().__init__('RiemannMDM',init_style,graph)
         self.inputA  = inputA
         self.outputA = outputA
         
@@ -147,13 +147,15 @@ class RiemannMDMClassifierKernel(Kernel):
         
         # TODO handle tensors and scalar outputs differently
         self.outputA.setData(self._classifier.predict(input_data))
+        
+        return BcipEnums.SUCCESS
     
     @classmethod
-    def addUntrainedRiemannMDMKernel(cls,block,inputA,outputA,\
+    def addUntrainedRiemannMDMKernel(cls,graph,inputA,outputA,\
                                      training_data,labels):
         """
         Factory method to create an untrained riemann minimum distance 
-        to the mean classifier kernel and add it to a block
+        to the mean classifier kernel and add it to a graph
         as a generic node object.
         
         Note that the node will have to be initialized (i.e. trained) prior 
@@ -163,28 +165,28 @@ class RiemannMDMClassifierKernel(Kernel):
         # create the kernel object
         init_params = {'training_data' : training_data, 
                        'labels'        : labels}
-        k = cls(block,inputA,outputA,BcipEnums.INIT_FROM_DATA,init_params)
+        k = cls(graph,inputA,outputA,BcipEnums.INIT_FROM_DATA,init_params)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(block,k,2,params)
+        node = Node(graph,k,2,params)
         
-        # add the node to the block
-        block.addNode(node)
+        # add the node to the graph
+        graph.addNode(node)
         
         return node
     
     
     @classmethod
-    def addTrainedRiemannMDMKernel(cls,block,inputA,outputA,\
+    def addTrainedRiemannMDMKernel(cls,graph,inputA,outputA,\
                                      model):
         """
         Factory method to create a riemann minimum distance 
         to the mean classifier kernel containing a copy of a pre-trained
-        MDM classifier and add it to a block as a generic node object.
+        MDM classifier and add it to a graph as a generic node object.
         
         The kernel will contain a reference to the model rather than making a 
         deep-copy. Therefore any changes to the classifier object outside
@@ -197,16 +199,16 @@ class RiemannMDMClassifierKernel(Kernel):
         
         # create the kernel object
         init_params = {'model' : model}
-        k = cls(block,inputA,outputA,BcipEnums.INIT_FROM_COPY,init_params)
+        k = cls(graph,inputA,outputA,BcipEnums.INIT_FROM_COPY,init_params)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(block,k,2,params)
+        node = Node(graph,k,2,params)
         
-        # add the node to the block
-        block.addNode(node)
+        # add the node to the graph
+        graph.addNode(node)
         
         return node

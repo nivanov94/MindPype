@@ -7,7 +7,7 @@ Block.py - Defines the block class for BCIP
 
 from .bcip import BCIP
 from .bcip_enums import BcipEnums
-from .edge import Edge
+from .graph import Graph
 
 class Block(BCIP):
     """
@@ -21,10 +21,21 @@ class Block(BCIP):
         self.n_classes = n_classes
         
         # private attributes
-        self._nodes = []
         self._trials_executed = [0] * n_classes
         self._verified = False
         
+        # create the block's data processing graphs
+        self._preprocessing_graph = Graph.create(self)
+        self._postprocessing_graph = Graph.create(self)
+        self._trial_processing_graph = Graph.create(self)
+        
+    
+    def getNumberTrials(self):
+        """
+        Return the total number of trials to be executed within the block
+        """
+        return self.n_classes * self.n_trials_per_class
+    
     def getRemainingTrials(self,label=None):
         """
         Get the number of trials remaining for each class
@@ -33,19 +44,46 @@ class Block(BCIP):
             return tuple([self.n_trials_per_class - n for n in self._trials_executed])
         else:
             return self.n_trials_per_class - self._trials_executed[label]
-        
-    def addNode(self,node):
+    
+    def getTrialProcessGraph(self):
         """
-        Append a node object to the block's list of nodes
+        Return the trial processing graph
         """
-        self._verified = False
-        self._nodes.append(node)
+        return self._trial_processing_graph
+    
+    def getPreProcessingGraph(self):
+        """
+        Return the block preprocessing graph
+        """
+        return self._preprocessing_graph
+    
+    def getPostProcessingGraph(self):
+        """
+        Return the block postprocessing graph
+        """
+        return self._postprocessing_graph
         
     def postProcess(self):
         """
         Perform any actions that need to be done at the end of the block
+        and run the block close graph
         """
-        pass
+        
+        # execute the closing block graph
+        return self._postprocess_graph.execute()
+    
+    def preProcess(self):
+        """
+        Initialize all block nodes and Execute the block setup graph
+        """
+        
+        # set the internal state of the nodes
+        sts = self.initialize()
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        # execute the preprocess graph
+        return self._preprocessing_graph.execute()
     
     def trialsRemaining(self):
         """
@@ -54,7 +92,7 @@ class Block(BCIP):
         return  sum(self.getRemainingTrials())
         
     
-    def execute(self,label):
+    def processTrial(self,label):
         """
         Execute the block's processing graph. 
         
@@ -66,132 +104,53 @@ class Block(BCIP):
         
         if self._trials_executed[label] == self.n_trials_per_class:
             return BcipEnums.EXCEED_TRIAL_LIMIT
-        
-        # TODO update return codes to be ENUM codes
-        
-        # first ensure the block's processing graph has been verified,
-        # if not, verify and schedule the nodes
-        if not self._verified:
-            executable = self.verify()
-            if executable != BcipEnums.SUCCESS:
-                return executable
-            
-        # iterate over all the nodes and execute the kernel
-        for n in self._nodes:
-            n.kernel.execute()
+                
+        sts = self._trial_processing_graph.execute()
+        if sts != BcipEnums.SUCCESS:
+            return sts
         
         self._trials_executed[label] = self._trials_executed[label] + 1
         return BcipEnums.SUCCESS
         
     def verify(self):
         """
-        Verify the processing graph is valid. This method orders the nodes
-        for execution if the graph is valid
+        Verify each graph within the block
         """
-        if self._verified:
-            return BcipEnums.SUCCESS
+        sts = self._preprocessing_graph.verify()
         
-        # begin by scheduling the nodes in execution order
+        if sts != BcipEnums.SUCCESS:
+            return sts
         
-        # first we'll create a set of edges representing data within the graph
-        edges = {} # keys: uid of data obj, vals: edge object
-        for n in self._nodes:
-            # get a list of all the input objects to the node
-            n_inputs = n.getInputs()
-            n_outputs = n.getOutputs()
-            
-            # add these inputs/outputs to edge objects
-            for n_i in n_inputs:
-                if not (n_i.uid in edges):
-                    # no edge created for this input yet, so create a new one
-                    edges[n_i.uid] = Edge(n_i)
-                
-                # now add the node the edge's list of consumers
-                edges[n_i.uid].addConsumer(n)
-                
-            for n_o in n_outputs:
-                if not (n_o.uid in edges):
-                    # no edge created for this output yet, so create a new one
-                    edges[n_o.uid] = Edge(n_o)
-                    
-                    # add the node as a producer
-                    edges[n_o.uid].addProducer(n)
-                else:
-                    # edge already created, must check that it has no other 
-                    # producer
-                    if len(edges[n_o.uid].getProducers()) != 0:
-                        # this is an invalid graph, each data object can only
-                        # have a single producer
-                        return BcipEnums.INVALID_BLOCK
-                    else:
-                        # add the producer to the edge
-                        edges[n_o.uid].addProducer(n)
+        sts = self._trial_processing_graph.verify()
         
-        # now determine which edges are ready to be consumed
-        consumable_edges = {}
-        for e_key in edges:
-            if len(edges[e_key].getProducers()) == 0:
-                # these edges have no producing nodes, so they are inputs to 
-                # the block and therefore can be consumed immediately
-                consumable_edges[e_key] = edges[e_key]
+        if sts != BcipEnums.SUCCESS:
+            return sts
         
-        scheduled_nodes = 0
-        total_nodes = len(self._nodes)
+        sts = self._postprocessing_graph.verify()
         
-        while scheduled_nodes != total_nodes:
-            nodes_added = 0
-            # find the next node that has all its inputs ready to be consumed
-            for node_index in range(scheduled_nodes,len(self._nodes)):
-                n = self._nodes[node_index]
-                n_inputs = n.getInputs()
-                consumable = True
-                for n_i in n_inputs:
-                    if not (n_i.uid in consumable_edges):
-                        # the inputs for this node must be produced by another
-                        # node first, therefore this node cannot be scheduled
-                        # yet
-                        consumable = False
-                
-                if consumable:
-                    # schedule this node
-                    if scheduled_nodes != node_index:
-                        # swap the nodes at these indices
-                        tmp = self._nodes[scheduled_nodes]
-                        self._nodes[scheduled_nodes] = self._nodes[node_index]
-                        self._nodes[node_index] = tmp
-                    
-                    # mark this node's outputs ready for consumption
-                    for n_o in n.getOutputs():
-                        consumable_edges[n_o.uid] = edges[n_o.uid]
-                    
-                    nodes_added = nodes_added + 1
-                    scheduled_nodes = scheduled_nodes + 1
-                    
-                    
-            if nodes_added == 0:
-                # invalid graph, cannot be scheduled
-                return BcipEnums.INVALID_BLOCK
+        if sts != BcipEnums.SUCCESS:
+            return sts
         
-        print("\t\tNodes Scheduled")
-        # now all the nodes are in execution order, validate each node
-        for n in self._nodes:
-            valid = n.verify()
-            if valid != BcipEnums.SUCCESS:
-                return valid
-        
-        # Done, all nodes scheduled and verified!
-        self._verified = True
         return BcipEnums.SUCCESS
     
     def initialize(self):
         """
-        Initialize each node within the block for trial execution
+        Initialize each graph within the block for trial execution
         """
-        for n in self._nodes:
-            sts = n.initialize()
-            
-            if sts != BcipEnums.SUCCESS:
-                return sts
+        sts = self._preprocessing_graph.initialize()
+        
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        sts = self._trial_processing_graph.initialize()
+        
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        sts = self._postprocessing_graph.initialize()
+        
+        if sts != BcipEnums.SUCCESS:
+            return sts
         
         return BcipEnums.SUCCESS
     

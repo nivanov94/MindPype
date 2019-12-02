@@ -14,13 +14,14 @@ class BcipEnums(Enum):
     BCIP    = 100
     SESSION = 101
     BLOCK   = 102
-    NODE    = 103
-    KERNEL  = 104
-    PARAMETER = 105
-    TENSOR  = 106
-    SCALAR  = 107
-    ARRAY   = 108
-    FILTER  = 109
+    GRAPH   = 103
+    NODE    = 104
+    KERNEL  = 105
+    PARAMETER = 106
+    TENSOR  = 107
+    SCALAR  = 108
+    ARRAY   = 109
+    FILTER  = 110
     
     # Status Codes - Leading '2'
     SUCCESS = 200
@@ -42,6 +43,11 @@ class BcipEnums(Enum):
     INIT_FROM_NONE = 400
     INIT_FROM_DATA = 401
     INIT_FROM_COPY = 402
+    
+    # Block graph identifiers - leading '5'
+    ON_BEGIN = 500 # graph executes when block begins
+    ON_CLOSE = 501 # graph executes when block ends
+    ON_TRIAL = 502 # graph executes when a new trial is recorded
     
     def __str__(self):
         return self.name

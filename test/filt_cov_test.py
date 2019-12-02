@@ -48,8 +48,8 @@ def main():
     f = Filter.createButter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    cov_node  = CovarianceKernel.addCovarianceNode(b,t_virt,t_out)
-    filt_node = FilterKernel.addFilterNode(b,t_in,f,t_virt)
+    cov_node  = CovarianceKernel.addCovarianceNode(b.getTrialProcessGraph(),t_virt,t_out)
+    filt_node = FilterKernel.addFilterNode(b.getTrialProcessGraph(),t_in,f,t_virt)
 
     # verify the session (i.e. schedule the nodes)
     sts = s.verify()
@@ -59,7 +59,9 @@ def main():
         return sts
     
     # RUN!
-    sts = s.execute(0)
+    sts = s.startBlock()
+    sts = s.executeTrial(0)
+    
     
     # compare the output with manual calculation
     ground_truth = manual_computation(input_data)
