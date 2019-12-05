@@ -15,3 +15,6 @@
 
 # pycache files
 *.pyc
+
+# data dir
+data/*
