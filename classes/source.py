@@ -23,7 +23,6 @@ class BcipMatFile:
     """
     Utility for extracting data from a mat file for BCIP
     
-    This object
     """
     
     def __init__(self,filename,path,label_varname_map,dims=None):
@@ -50,12 +49,13 @@ class BcipMatFile:
             if not self.dims == None:
                 # check that the data has the correct number of dimensions
                 data_dims = d[varname].shape
-                for i in range(len(dims)): # ignore the first dimension b/c its the trial number
+                for i in range(len(dims)):
                     min_channel = min(dims[i])
                     max_channel = max(dims[i])
                     
-                    if min_channel < 0 or min_channel < data_dims[i] \
-                       or max_channel >= data_dims[i]:
+                    # ignore the first data dimension b/c its the trial number
+                    if min_channel < 0 or min_channel < data_dims[i+1] \
+                       or max_channel >= data_dims[i+1]:
                            # TODO log error
                            return
             
@@ -75,7 +75,7 @@ class BcipMatFile:
         class_data = data[self.label_varname_map[label]]
         if self.dims == None:
             # get all the dimensions
-            trial_data = class_data[self.label_counters[label],:,:]
+            trial_data = class_data[label,self.label_counters[label],:,:]
         else:
             indices = np.ix_((self.label_counters[label],),
                              self.dims[0],

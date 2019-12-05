@@ -44,13 +44,15 @@ class Scalar(BCIP):
         if self._validateValue(val):
             self.val = val
     
-    def pollVolatileData(self):
+    def pollVolatileData(self,label):
         
         # check if the data is actually volatile, if not just return
         if not self.is_voltatile:
-            return True
+            return BcipEnums.SUCCESS
         
-        # TODO - READ DATA FROM SOURCE HERE
+        self.setData(self.ext_src.pollData(label))
+        
+        return BcipEnums.SUCCESS
         
     def _validateValue(self,val):
         if type(val) is self.scalar_type:

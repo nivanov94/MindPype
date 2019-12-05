@@ -117,6 +117,9 @@ class Session(BCIP):
         
         return sts
     
+    def getBlocksRemaining(self):
+        return len(self._blocks)
+    
     def getCurrentBlock(self): #TODO Determine how this should be implemented
         return self._blocks[0]
     

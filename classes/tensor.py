@@ -52,14 +52,15 @@ class Tensor(BCIP):
     def isVolatile(self):
         return self._volatile
     
-    def pollVolatileData(self):
+    def pollVolatileData(self,label):
         
         # check if the data is actually volatile, if not just return
         if not self.is_voltatile:
-            return True
+            return BcipEnums.SUCCESS
         
-        # TODO - READ DATA FROM SOURCE HERE
+        self.setData(self.ext_src.pollData(label))
         
+        return BcipEnums.SUCCESS
     
     # Factory Methods
     @classmethod
