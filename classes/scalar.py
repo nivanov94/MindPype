@@ -40,6 +40,9 @@ class Scalar(BCIP):
     def getValue(self):
         return self.val
     
+    def getType(self):
+        return self.scalar_type
+    
     def setValue(self,val):
         if self._validateValue(val):
             self.val = val
@@ -59,6 +62,10 @@ class Scalar(BCIP):
             return True
         else:
             return False
+    
+    @classmethod
+    def validNumericTypes(cls):
+        return ['int','float','complex']
     
     # Factory Methods
     @classmethod

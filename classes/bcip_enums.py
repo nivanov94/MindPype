@@ -33,6 +33,7 @@ class BcipEnums(Enum):
     NOT_SUPPORTED = 206
     INITIALIZATION_FAILURE = 207
     EXE_FAILURE_UNINITIALIZED = 208
+    EXE_FAILURE = 209
     
     # Parameter Directions - Leading '3'
     INPUT  = 300
