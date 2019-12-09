@@ -21,6 +21,7 @@ from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
 
 import numpy as np
 from scipy.io import loadmat
+from scipy import signal
 
 from random import shuffle
 
@@ -36,13 +37,20 @@ def load_training_data():
     class2_data = class2_data[:,:,channels]
     class3_data = class3_data[:,:,channels]
     
+    # filter the data
+    sos = signal.butter(4,(8,35),btype='bandpass',output='sos',fs=250)
+    
+    class1_data = signal.sosfiltfilt(sos,class1_data,axis=1)
+    class2_data = signal.sosfiltfilt(sos,class2_data,axis=1)
+    class3_data = signal.sosfiltfilt(sos,class3_data,axis=1)
+    
     # use the last sixty trials of each for training
     X_train = np.zeros((180,Nc,Nc))
     for i in range(1,61):
         X_train[i-1,:,:] = np.cov(class1_data[-i,:,:],rowvar=False)
         X_train[i+59,:,:] = np.cov(class2_data[-i,:,:],rowvar=False)
         X_train[i+119,:,:] = np.cov(class3_data[-i,:,:],rowvar=False)
-    
+        
     y_train = np.asarray([0]*60 + [1]*60 + [2]*60)
     
     return X_train, y_train
@@ -62,7 +70,7 @@ def main():
     y = Tensor.createFromData(s,y_train.shape,y_train)
 
 
-    # create the data source obj
+    # create the volatile data source obj
     channels = (5,10,12,13,14,18,20,21,31,32,38,40,45,47,48,49,50,51,55,57,58)
     time_samples = tuple([i for i in range(500)])
     Ns = len(time_samples)
@@ -130,7 +138,12 @@ def main():
         
         t_num += 1
         
-    print("Accuracy = {}%.".format(correct_labels/len(trial_seq)))
+        b = s.getCurrentBlock()
+        if b.trialsRemaining() == 0:
+            # run the block closing graph
+            s.closeBlock()
+        
+    print("Accuracy = {:.2f}%.".format(100 * correct_labels/len(trial_seq)))
     
     print("Test Passed =D")
 

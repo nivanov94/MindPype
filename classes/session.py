@@ -50,7 +50,7 @@ class Session(BCIP):
         """
         return self.getCurrentBlock().initialize()
     
-    def pollVolatileChannels(self):
+    def pollVolatileChannels(self,label):
         """
         Update the contents of all volatile data streams
         
@@ -59,7 +59,7 @@ class Session(BCIP):
         """
         for d in self._datum:
             if d.isVolatile():
-                d.pollInputStream()
+                d.pollVolatileData(label)
         
         
     def closeBlock(self):
@@ -111,7 +111,7 @@ class Session(BCIP):
         First updates all volatile input channels
         Then executes current block
         """
-        self.pollVolatileChannels()
+        self.pollVolatileChannels(label)
         b = self.getCurrentBlock()
         sts = b.processTrial(label)
         

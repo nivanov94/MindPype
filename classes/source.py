@@ -54,8 +54,8 @@ class BcipMatFile:
                     max_channel = max(dims[i])
                     
                     # ignore the first data dimension b/c its the trial number
-                    if min_channel < 0 or min_channel < data_dims[i+1] \
-                       or max_channel >= data_dims[i+1]:
+                    if min_channel < 0 or min_channel >= data_dims[i+1] \
+                       or max_channel < 0 or max_channel >= data_dims[i+1]:
                            # TODO log error
                            return
             

@@ -70,7 +70,7 @@ class Block(BCIP):
         """
         
         # execute the closing block graph
-        return self._postprocess_graph.execute()
+        return self._postprocessing_graph.execute()
     
     def preProcess(self):
         """

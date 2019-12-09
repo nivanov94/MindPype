@@ -55,10 +55,18 @@ class Tensor(BCIP):
     def pollVolatileData(self,label):
         
         # check if the data is actually volatile, if not just return
-        if not self.is_voltatile:
+        if not self.isVolatile():
             return BcipEnums.SUCCESS
         
-        self.setData(self.ext_src.pollData(label))
+        data = self.ext_src.pollData(label)
+        try:
+            # if we only pulled one trial, remove the first dimension
+            data = np.squeeze(data,axis=0)
+        except ValueError:
+            pass # just ignore the error for now
+        
+        # set the data 
+        self.setData(data)
         
         return BcipEnums.SUCCESS
     
