@@ -106,7 +106,7 @@ class RiemannMDMClassifierKernel(Kernel):
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
         if (isinstance(self.outputA,Tensor) and self.outputA.isVirtual() \
-            and self.outputA.getShape == None):
+            and self.outputA.getShape() == None):
             if input_rank == 2:
                 self.outputA.setData(np.zeros((1,)))
             else:
