@@ -99,7 +99,7 @@ class RiemannMeanKernel(Kernel):
                   Parameter(outA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
-        node = Node(graph,k,2,params)
+        node = Node(graph,k,params)
         
         # add the node to the graph
         graph.addNode(node)

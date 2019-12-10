@@ -14,12 +14,11 @@ class Node(BCIP):
     Generic node object containing a kernel function
     """
     
-    def __init__(self,block,kernel,n_params,params):
+    def __init__(self,block,kernel,params):
         sess = block.getSession()
         super().__init__(BcipEnums.NODE,sess)
         
         self.kernel = kernel
-        self.n_params = n_params
         self.params = params
         
     
