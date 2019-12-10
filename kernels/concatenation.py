@@ -126,16 +126,11 @@ class ConcatenationKernel(Kernel):
         k = cls(graph,outA,inA,inB,axis)
         
         # create parameter objects for the input and output
-        params = [Parameter(outA,BcipEnums.OUTPUT), \
-                  Parameter(inA,BcipEnums.INPUT),   \
-                  Parameter(inB,BcipEnums.INPUT)]
+        params = (Parameter(outA,BcipEnums.OUTPUT),
+                  Parameter(inA,BcipEnums.INPUT),
+                  Parameter(inB,BcipEnums.INPUT))
         
-        
-        if axis != None:
-            params.append(Parameter(axis,BcipEnums.INPUT))
-        
-        params = tuple(params)
-        
+    
         # add the kernel to a generic node object
         node = Node(graph,k,params)
         
