@@ -20,9 +20,17 @@ class Kernel(BCIP, ABC):
     def __init__(self,name,init_style,graph):
         session = graph.getSession()
         super().__init__(BcipEnums.KERNEL,session)
-        self.name = name
-        self.init_style = init_style
+        self._name = name
+        self._init_style = init_style
         
+    # API Getters
+    @property
+    def name(self):
+        return self._name
+    
+    @property
+    def init_style(self):
+        return self._init_style
     
     @abstractmethod
     def verify(self):

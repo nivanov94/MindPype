@@ -18,11 +18,16 @@ class Node(BCIP):
         sess = block.getSession()
         super().__init__(BcipEnums.NODE,sess)
         
-        self.kernel = kernel
-        self.params = params
+        self._kernel = kernel
+        self._params = params
         
     
-    def getInputs(self):
+    # API getters
+    @property
+    def kernel(self):
+        return self._kernel
+    
+    def extract_inputs(self):
         """
         Return a list of all the node's inputs
         """
@@ -33,7 +38,7 @@ class Node(BCIP):
         
         return inputs
     
-    def getOutputs(self):
+    def extract_outputs(self):
         """
         Return a list of all the node's outputs
         """

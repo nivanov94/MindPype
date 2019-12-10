@@ -12,9 +12,13 @@ class Parameter:
     """
     
     def __init__(self,data,direction):
-        self.data = data # reference of the data object represented by parameter
-        self.direction = direction # enum indicating whether this is an input or output
+        self._data = data # reference of the data object represented by parameter
+        self._direction = direction # enum indicating whether this is an input or output
     
-    def getDirection(self):
-        return self.direction
+    @property
+    def direction(self):
+        return self._direction
     
+    @property
+    def data(self):
+        return self._data

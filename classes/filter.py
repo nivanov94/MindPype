@@ -28,17 +28,49 @@ class Filter(BCIP):
         """
         super().__init__(BcipEnums.FILTER,sess)
         
-        self.ftype = ftype
-        self.btype = btype
-        self.implementation = implementation
-        self.fs = fs
-        self.crit_frqs = crit_frqs
+        self._ftype = ftype
+        self._btype = btype
+        self._implementation = implementation
+        self._fs = fs
+        self._crit_frqs = crit_frqs
         
-        self.coeffs = coeffs
+        self._coeffs = coeffs
         
+    def __str__(self):
+        return "BCIP {} Filter with following" + \
+               "attributes:\nFilter Type: {}\nBand Type: {}\n" + \
+               "Implementation: {}\nSampling Frequency: {}\n" + \
+               "Critical Frequencies: {}".format(self.ftype,self.btype,
+                                                 self.implementation,
+                                                 self.fs, self.crit_frqs)
+        
+    # API Getters
+    @property
+    def ftype(self):
+        return self._ftype
+    
+    @property
+    def btype(self):
+        return self._btype
+    
+    @property
+    def implementation(self):
+        return self._implementation
+    
+    @property
+    def fs(self):
+        return self._fs
+    
+    @property
+    def crit_frqs(self):
+        return self._crit_frqs
+        
+    @property
+    def coeffs(self):
+        return self._coeffs
     
     @classmethod
-    def createButter(cls,sess,N,Wn,btype='lowpass',implementation='ba',fs=1.0):
+    def create_butter(cls,sess,N,Wn,btype='lowpass',implementation='ba',fs=1.0):
         """
         Factory method to create a butterworth BCIP filter object
         """
@@ -64,7 +96,7 @@ class Filter(BCIP):
         return f
     
     @classmethod
-    def createCheby1(cls,sess,N,rp,Wn,btype='lowpass',\
+    def create_cheby1(cls,sess,N,rp,Wn,btype='lowpass',\
                      implementation='ba',fs=1.0):
         """
         Factory method to create a Chebyshev Type-I BCIP filter object
@@ -91,7 +123,7 @@ class Filter(BCIP):
         return f
     
     @classmethod
-    def createCheby2(cls,sess,N,rs,Wn,btype='lowpass',\
+    def create_cheby2(cls,sess,N,rs,Wn,btype='lowpass',\
                      implementation='ba',fs=1.0):
         """
         Factory method to create a Chebyshev Type-I BCIP filter object
@@ -118,7 +150,7 @@ class Filter(BCIP):
         return f
         
     @classmethod
-    def createEllip(cls,sess,N,rp,rs,Wn,btype='lowpass',\
+    def create_ellip(cls,sess,N,rp,rs,Wn,btype='lowpass',\
                      implementation='ba',fs=1.0):
         """
         Factory method to create a Chebyshev Type-I BCIP filter object
@@ -148,7 +180,7 @@ class Filter(BCIP):
         return f
     
     @classmethod
-    def createBessel(cls,sess,N,Wn,btype='lowpass',\
+    def create_bessel(cls,sess,N,Wn,btype='lowpass',\
                      implementation='ba',norm='phase',fs=1.0):
         """
         Factory method to create a Chebyshev Type-I BCIP filter object

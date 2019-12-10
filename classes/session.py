@@ -22,6 +22,15 @@ class Session(BCIP):
         self._datum = []
         self._misc_objs = []
         self._verified = False
+        
+    # API Getters
+    @property
+    def current_block(self):
+        return self._blocks[0]
+    
+    @property
+    def remaining_blocks(self):
+        return len(self._blocks)
     
     def verify(self):
         """
@@ -44,13 +53,13 @@ class Session(BCIP):
         self._verified = True
         return BcipEnums.SUCCESS
     
-    def initializeBlock(self):
+    def initialize_block(self):
         """
         Initialize the current block object for trial execution.
         """
-        return self.getCurrentBlock().initialize()
+        return self.current_block.initialize()
     
-    def pollVolatileChannels(self,label):
+    def poll_volatile_channels(self,label):
         """
         Update the contents of all volatile data streams
         
@@ -58,41 +67,41 @@ class Session(BCIP):
         to indicate how each data object should be synced
         """
         for d in self._datum:
-            if d.isVolatile():
-                d.pollVolatileData(label)
+            if d.volatile:
+                d.poll_volatile_data(label)
         
         
-    def closeBlock(self):
+    def close_block(self):
         """
         Run any postprocessing on the block and remove it from the session
         queue.
         """
         
         # get the current block
-        b = self.getCurrentBlock()
+        b = self.current_block
         
         # check if the block is finished
-        if b.trialsRemaining() != 0:
+        if sum(b.remaining_trials()) != 0:
             # block not finished, don't close
             return BcipEnums.FAILURE
         
         # run postprocessing
-        sts = b.postProcess()
+        sts = b.post_process()
         if sts != BcipEnums.SUCCESS:
             return sts
         
         # if everything executed nicely, remove the block from the session queue
-        self.dequeueBlock()
+        self.dequeue_block()
         return BcipEnums.SUCCESS    
     
-    def startBlock(self):
+    def start_block(self):
         """
         Initialize the block nodes and execute the preprocessing graph
         """
-        b = self.getCurrentBlock()
+        b = self.current_block
         
         # make sure we're not in the middle of a block
-        if b.trialsRemaining() != b.getNumberTrials():
+        if b.remaining_trials() != b.n_class_trials:
             return BcipEnums.FAILURE
         
         # initialize everything first
@@ -101,40 +110,33 @@ class Session(BCIP):
             return sts
         
         # execute the preprocessing graph
-        sts = b.preProcess()
+        sts = b.pre_process()
         
         return sts
     
-    def executeTrial(self,label):
+    def execute_trial(self,label):
         """
         Execute a trial
         First updates all volatile input channels
         Then executes current block
         """
-        self.pollVolatileChannels(label)
-        b = self.getCurrentBlock()
-        sts = b.processTrial(label)
+        self.poll_volatile_channels(label)
+        sts = self.current_block.process_trial(label)
         
         return sts
     
-    def getBlocksRemaining(self):
-        return len(self._blocks)
-    
-    def getCurrentBlock(self): #TODO Determine how this should be implemented
-        return self._blocks[0]
-    
-    def enqueueBlock(self,b):
+    def enqueue_block(self,b):
         # block added, so make sure verified is false
         self._verified = False
         self._blocks.append(b)
     
-    def dequeueBlock(self):
+    def dequeue_block(self):
         return self._blocks.pop(0)
     
-    def addData(self,data):
+    def add_data(self,data):
         self._datum.append(data)
         
-    def addMiscBcipObj(self,obj):
+    def add_misc_bcip_obj(self,obj):
         self._misc_objs.append(obj)
         
     @classmethod

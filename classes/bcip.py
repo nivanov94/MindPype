@@ -9,16 +9,20 @@ class BCIP(object):
     It serves to define some attributes that will be shared across all
     other objects.
     """
-    def __init__(self,type,session):
-        self.type = type
-        self.uid  = id(self)
-        self.session = session
+    def __init__(self,bcip_type,session):
+        self._bcip_type = bcip_type
+        self._id  = id(self)
+        self._session = session
     
-    def getID(self):
-        return self.uid
+    # API getters
+    @property
+    def bcip_type(self):
+        return self._bcip_type
     
-    def getType(self):
-        return self.type
+    @property
+    def session_id(self):
+        return self._id
     
-    def getSession(self):
-        return self.session
+    @property
+    def session(self):
+        return self._session

@@ -18,24 +18,37 @@ class Array(BCIP):
     def __init__(self,sess,capacity):
         super().__init__(BcipEnums.ARRAY,sess)
         
-        self.capacity = capacity
+        self._num_items = 0 # keep track of the non-none elements
+        self._capacity = capacity
+        
+        # private non-user interfacing attributes
         self._elements = [None] * capacity
-        self.num_items = 0 # keep track of the non-none elements
         
     
-    def getElement(self,index):
+    def get_element(self,index):
         if index >= self.capacity or index < 0:
             return
         
         return self._elements[index]
     
-    def setElement(self,index,element):
+    def set_element(self,index,element):
         if index >= self.capacity or index < 0:
             return False
         
         self._element[index] = element
         return True
     
+    # User Facing Getters
+    @property
+    def capacity(self):
+        return self._capacity
+    
+    @property
+    def num_items(self):
+        return self._num_items
+    
+    
+    # API constructor
     @classmethod
     def create(cls,sess,capacity):
         a = cls(sess,capacity)

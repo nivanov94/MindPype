@@ -28,7 +28,7 @@ class Graph(BCIP):
         self._verified = False
         
     
-    def addNode(self,node):
+    def add_node(self,node):
         """
         Append a node object to the block's list of nodes
         """
@@ -47,43 +47,43 @@ class Graph(BCIP):
         # begin by scheduling the nodes in execution order
         
         # first we'll create a set of edges representing data within the graph
-        edges = {} # keys: uid of data obj, vals: edge object
+        edges = {} # keys: session_id of data obj, vals: edge object
         for n in self._nodes:
             # get a list of all the input objects to the node
-            n_inputs = n.getInputs()
-            n_outputs = n.getOutputs()
+            n_inputs = n.extract_inputs()
+            n_outputs = n.extract_outputs()
             
             # add these inputs/outputs to edge objects
             for n_i in n_inputs:
-                if not (n_i.uid in edges):
+                if not (n_i.session_id in edges):
                     # no edge created for this input yet, so create a new one
-                    edges[n_i.uid] = Edge(n_i)
+                    edges[n_i.session_id] = Edge(n_i)
                 
                 # now add the node the edge's list of consumers
-                edges[n_i.uid].addConsumer(n)
+                edges[n_i.session_id].add_consumer(n)
                 
             for n_o in n_outputs:
-                if not (n_o.uid in edges):
+                if not (n_o.session_id in edges):
                     # no edge created for this output yet, so create a new one
-                    edges[n_o.uid] = Edge(n_o)
+                    edges[n_o.session_id] = Edge(n_o)
                     
                     # add the node as a producer
-                    edges[n_o.uid].addProducer(n)
+                    edges[n_o.session_id].add_producer(n)
                 else:
                     # edge already created, must check that it has no other 
                     # producer
-                    if len(edges[n_o.uid].getProducers()) != 0:
+                    if len(edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
                         return BcipEnums.INVALID_BLOCK
                     else:
                         # add the producer to the edge
-                        edges[n_o.uid].addProducer(n)
+                        edges[n_o.session_id].add_producer(n)
         
         # now determine which edges are ready to be consumed
         consumable_edges = {}
         for e_key in edges:
-            if len(edges[e_key].getProducers()) == 0:
+            if len(edges[e_key].producers) == 0:
                 # these edges have no producing nodes, so they are inputs to 
                 # the block and therefore can be consumed immediately
                 consumable_edges[e_key] = edges[e_key]
@@ -96,10 +96,11 @@ class Graph(BCIP):
             # find the next node that has all its inputs ready to be consumed
             for node_index in range(scheduled_nodes,len(self._nodes)):
                 n = self._nodes[node_index]
-                n_inputs = n.getInputs()
+                n_inputs = n.extract_inputs()
+                n_outputs = n.extract_outputs()
                 consumable = True
                 for n_i in n_inputs:
-                    if not (n_i.uid in consumable_edges):
+                    if not (n_i.session_id in consumable_edges):
                         # the inputs for this node must be produced by another
                         # node first, therefore this node cannot be scheduled
                         # yet
@@ -114,12 +115,11 @@ class Graph(BCIP):
                         self._nodes[node_index] = tmp
                     
                     # mark this node's outputs ready for consumption
-                    for n_o in n.getOutputs():
-                        consumable_edges[n_o.uid] = edges[n_o.uid]
+                    for n_o in n_outputs:
+                        consumable_edges[n_o.session_id] = edges[n_o.session_id]
                     
                     nodes_added = nodes_added + 1
                     scheduled_nodes = scheduled_nodes + 1
-                    
                     
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled

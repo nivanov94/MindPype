@@ -13,20 +13,26 @@ class Edge:
     """
     
     def __init__(self,data):
-        self.data = data
-        self.producer = []
-        self.consumers = []
+        self._data = data
+        self._producers = []
+        self._consumers = []
         
     
-    def getProducers(self):
-        return self.producer
+    @property
+    def producers(self):
+        return self._producers
     
-    def getConsumers(self):
-        return self.consumers
+    @property
+    def consumers(self):
+        return self._consumers
     
-    def addProducer(self,producing_node):
-        self.producer.append(producing_node)
+    @property
+    def data(self):
+        return self._data
     
-    def addConsumer(self,consuming_node):
+    def add_producer(self,producing_node):
+        self.producers.append(producing_node)
+    
+    def add_consumer(self,consuming_node):
         self.consumers.append(consuming_node)
 

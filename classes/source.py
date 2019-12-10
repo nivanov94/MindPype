@@ -66,7 +66,7 @@ class BcipMatFile:
             self.label_counters[label] = 0
             
         
-    def pollData(self,label):
+    def poll_data(self,label):
         """
         Get the data from the file for the next trial of the input label
         """
@@ -139,7 +139,7 @@ class LSLStream:
             self.label_counters[label] = 0
         
     
-    def pollData(self,label):
+    def poll_data(self,label):
         """
         Pull data from the inlet stream until we have Ns data points for each
         channel.
@@ -183,8 +183,9 @@ class LSLStream:
         return trial_data
     
     @classmethod
-    def createMarkerCoupledDataStream(cls,stream_type,Ns,labels,
-                                      channels=None,marker_fmt="T{},L{},LN{}"):
+    def create_marker_coupled_data_stream(cls,stream_type,Ns,labels,
+                                          channels=None,
+                                          marker_fmt="T{},L{},LN{}"):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
@@ -192,8 +193,9 @@ class LSLStream:
         return cls(stream_type,Ns,labels,channels,True,marker_fmt)
     
     @classmethod
-    def createMarkerUncoupledDataStream(cls,stream_type,Ns,labels,
-                                        channels=None,marker_fmt="T{},L{},LN{}"):
+    def create_marker_uncoupled_data_stream(cls,stream_type,Ns,labels,
+                                            channels=None,
+                                            marker_fmt="T{},L{},LN{}"):
         """
         Create a LSLStream data object that maintains only a data stream with
         no associated marker stream

@@ -14,98 +14,102 @@ class Scalar(BCIP):
     
     _valid_types = [int, float, complex, str, bool]
     
-    def __init__(self,sess,scalar_type,val,is_virtual,ext_src):
+    def __init__(self,sess,value_type,val,is_virtual,ext_src):
         super().__init__(BcipEnums.SCALAR,sess)
-        self.scalar_type = scalar_type
-        self.is_virtual = is_virtual
-        self.ext_src = ext_src
-        self.val = val
+        self._data_type = value_type
+
+        self._ext_src = ext_src
+        self.data = val
         
+        self._virtual = is_virtual        
         if ext_src is None:
-            self.volatile = False
+            self._volatile = False
         else:
-            self.volatile = True
+            self._volatile = True
             
+    # API Getters
+    @property
+    def volatile(self):
+        return self._volatile
     
-    def isVolatile(self):
-        return self.volatile
+    @property
+    def virtual(self):
+        return self._virtual
     
-    def setData(self,data):
-        # TODO type check the incoming data
-        self.val = data
+    @property
+    def data(self):
+        return self._data
+    
+    @property
+    def data_type(self):
+        return self._data_type
+    
+    
+    # API Setters
+    @data.setter
+    def data(self,data):
+        if type(data) == self.data_type:
+            self._data = data
+        else:
+            raise ValueError("BCIP Scalar contains data of type {}. Cannot" + \
+                             "set data to type {}".format(self.data_type,
+                                                          type(data))) 
         
-    def getData(self):
-        return self.val
-        
-    def getValue(self):
-        return self.val
     
-    def getType(self):
-        return self.scalar_type
-    
-    def setValue(self,val):
-        if self._validateValue(val):
-            self.val = val
-    
-    def pollVolatileData(self,label):
+    def poll_volatile_data(self,label):
         
         # check if the data is actually volatile, if not just return
         if not self.is_voltatile:
             return BcipEnums.SUCCESS
         
-        self.setData(self.ext_src.pollData(label))
+        self.data = self.ext_src.pollData(label)
         
         return BcipEnums.SUCCESS
         
-    def _validateValue(self,val):
-        if type(val) is self.scalar_type:
-            return True
-        else:
-            return False
     
     @classmethod
-    def validNumericTypes(cls):
+    def valid_numeric_types(cls):
         return ['int','float','complex']
     
     # Factory Methods
     @classmethod
-    def create(cls,sess,scalar_type):
-        if not (scalar_type in Scalar._valid_types):
+    def create(cls,sess,data_type):
+        if not (data_type in Scalar._valid_types):
             return
-        s = cls(sess,scalar_type,None,False,None)
+        s = cls(sess,data_type,None,False,None)
         
-        sess.addData(s)
+        sess.add_data(s)
         return s
     
     @classmethod
-    def createVirtual(cls,sess,scalar_type):
-        if not (scalar_type in Scalar._valid_types):
+    def create_virtual(cls,sess,data_type):
+        if not (data_type in Scalar._valid_types):
             return
-        s = cls(scalar_type,None,True,None)
+        s = cls(data_type,None,True,None)
         
         # add the scalar to the session
-        sess.addData(s)
+        sess.add_data(s)
         return s
     
     @classmethod
-    def createFromValue(cls,sess,value):
-        scalar_type = type(value)
-        if not (scalar_type in Scalar._valid_types):
+    def create_from_value(cls,sess,value):
+        data_type = type(value)
+        if not (data_type in Scalar._valid_types):
             return
         
-        s = cls(sess,scalar_type,value,False,None)
+        s = cls(sess,data_type,value,False,None)
         
         # add the scalar to the session
-        sess.addData(s)
+        sess.add_data(s)
         return s
     
     @classmethod
-    def createFromHandle(cls,sess,scalar_type,src):
-        if not (scalar_type in Scalar._valid_types):
+    def create_from_handle(cls,sess,data_type,src):
+        if not (data_type in Scalar._valid_types):
             return
-        s = cls(sess,scalar_type,None,False,src)
+        s = cls(sess,data_type,None,False,src)
         
         # add the scalar to the session
-        sess.addData(s)
+        sess.add_data(s)
         return s
     

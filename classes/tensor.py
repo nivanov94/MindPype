@@ -17,9 +17,9 @@ class Tensor(BCIP):
     
     def __init__(self,sess,shape,data,is_virtual,ext_src):
         super().__init__(BcipEnums.TENSOR,sess)
-        self.shape = shape
-        self.is_virtual = is_virtual
-        self.ext_src = ext_src
+        self._shape = shape
+        self._virtual = is_virtual
+        self._ext_src = ext_src
         
         if not (data is None):
             self.data = data
@@ -30,35 +30,49 @@ class Tensor(BCIP):
             self._volatile = False
         else:
             self._volatile = True
-            
-    def getData(self):
-        return self.data
     
-    def setData(self,data):
-        if Tensor.validateData(data.shape,self.data):
-            self.data = data
+    # API Getters
+    @property
+    def data(self):
+        return self._data
     
-    def getShape(self):
-        return self.shape
+    @property
+    def shape(self):
+        return self._shape
     
-    def setShape(self,shape):
-        zero_tensor = np.zeros(shape)
-        self.shape = shape
-        self.setData(zero_tensor)
+    @property
+    def virtual(self):
+        return self._virtual
     
-    def isVirtual(self):
-        return self.is_virtual
-    
-    def isVolatile(self):
+    @property
+    def volatile(self):
         return self._volatile
     
-    def pollVolatileData(self,label):
+    #API setters
+    @data.setter
+    def data(self,data):
+        if self.shape == data.shape:
+            self._data = data
+        else:
+            raise ValueError("Mismatched shape")
+    
+    @shape.setter
+    def shape(self,shape):
+        if self.virtual:
+            self._shape = shape
+            # when changing the shape write a zero tensor to data
+            self.data = np.zeros(shape)
+        else:
+            raise ValueError("Cannot change shape of non-virtual tensor")
+    
+    
+    def poll_volatile_data(self,label):
         
         # check if the data is actually volatile, if not just return
-        if not self.isVolatile():
+        if not self.volatile:
             return BcipEnums.SUCCESS
         
-        data = self.ext_src.pollData(label)
+        data = self.ext_src.poll_data(label)
         try:
             # if we only pulled one trial, remove the first dimension
             data = np.squeeze(data,axis=0)
@@ -66,7 +80,7 @@ class Tensor(BCIP):
             pass # just ignore the error for now
         
         # set the data 
-        self.setData(data)
+        self.data = data
         
         return BcipEnums.SUCCESS
     
@@ -76,41 +90,41 @@ class Tensor(BCIP):
         t = cls(sess,shape,None,False,None)
         
         # add the tensor to the session
-        sess.addData(t)
+        sess.add_data(t)
         return t
     
     @classmethod
-    def createVirtual(cls,sess,shape=()):
+    def create_virtual(cls,sess,shape=()):
         t = cls(sess,shape,None,True,None)
         
         # add the tensor to the session
-        sess.addData(t)
+        sess.add_data(t)
         return t
     
     @classmethod
-    def createFromData(cls,sess,shape,data):
+    def create_from_data(cls,sess,shape,data):
         # make sure data is valid
-        if not cls.validateData(shape,data):
+        if not cls.validate_data(shape,data):
             # data invalid!
             return 
         t = cls(sess,shape,data,False,None)
         
         # add the tensor to the session
-        sess.addData(t)
+        sess.add_data(t)
         return t
         
     @classmethod
-    def createFromHandle(cls,sess,shape,src):
+    def create_from_handle(cls,sess,shape,src):
         t = cls(sess,shape,None,False,src)
         
         # add the tensor to the session
-        sess.addData(t)
+        sess.add_data(t)
         return t
     
     
     # utility static methods
     @staticmethod
-    def validateData(shape,data):
+    def validate_data(shape,data):
         if data is None:
             return False
         
