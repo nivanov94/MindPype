@@ -24,10 +24,10 @@ class ConcatenationKernel(Kernel):
     
     def __init__(self,graph,outA,inA,inB,axis):
         super().__init__('Concatenation',BcipEnums.INIT_FROM_NONE,graph)
-        self.inA  = inA
-        self.inB  = inB
-        self.outA = outA
-        self.axis = axis
+        self._inA  = inA
+        self._inB  = inB
+        self._outA = outA
+        self._axis = axis
     
     def initialize(self):
         """
@@ -40,34 +40,34 @@ class ConcatenationKernel(Kernel):
         Verify the inputs and outputs are appropriately sized
         """
         
-        if self.axis != None:
+        if self._axis != None:
             # check that the axis is a scalar object
-            if not isinstance(self.axis,Scalar):
+            if not isinstance(self._axis,Scalar):
                 return BcipEnums.INVALID_PARAMETERS
             
             # get the scalar type
-            if self.axis.getType() != 'int':
+            if self._axis.data_type != 'int':
                 return BcipEnums.INVALID_PARAMETERS
             
             # the scalar object should be non-volatile so it doesn't change 
             # during runtime
-            if self.axis.isVolatile():
+            if self._axis.volatile:
                 return BcipEnums.INVALID_PARAMETERS
             
-            concat_axis = self.axis.getData()
+            concat_axis = self._axis.data
         else:
             concat_axis = 0 # default axis
         
         
         # inA and inB must be a tensor
-        if not (isinstance(self.inA,Tensor) and isinstance(self.inB,Tensor) \
-                and isinstance(self.outA,Tensor)):
+        if not (isinstance(self._inA,Tensor) and isinstance(self._inB,Tensor) \
+                and isinstance(self._outA,Tensor)):
             return BcipEnums.INVALID_PARAMETERS
         
             
         # the dimensions along the catcat axis must be equal
-        sz_A = self.inA.getData().shape
-        sz_B = self.inB.getData().shape
+        sz_A = self._inA.shape
+        sz_B = self._inB.shape
         
         noncat_sz_A = [d for i,d in enumerate(sz_A) if i!=concat_axis]
         noncat_sz_B = [d for i,d in enumerate(sz_B) if i!=concat_axis]
@@ -83,11 +83,11 @@ class ConcatenationKernel(Kernel):
         output_sz.insert(concat_axis,sz_A[concat_axis]+sz_B[concat_axis])
         
         # check the output dimensions are valid
-        if self.outA.isVirtual() and len(self.outA.shape) == 0:
-            self.outA.setShape(output_sz)
+        if self._outA.virtual and len(self._outA.shape) == 0:
+            self._outA.shape = output_sz
         
         # ensure the output shape equals the expected output shape
-        if self.outA.shape != output_sz:
+        if self._outA.shape != output_sz:
             return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
@@ -96,27 +96,24 @@ class ConcatenationKernel(Kernel):
         """
         Execute the kernel function using numpy functions
         """
-        if self.axis == None:
-            concat_axis = 0
-        else:
-            concat_axis = self.axis.getData()
+        concat_axis = self._axis.data if self._axis != None else 0
         
         try:
-            out_tensor = np.concatenate((self.inA.getData(),
-                                         self.inB.getData()),
+            out_tensor = np.concatenate((self._inA.data,
+                                         self._inB.data),
                                         axis=concat_axis)
         except ValueError:
             # dimensions are invalid
             return BcipEnums.EXE_FAILURE
         
         # set the data in the output tensor
-        self.outA.setData(out_tensor)
+        self._outA.data = out_tensor
         
         return BcipEnums.SUCCESS
     
     
     @classmethod
-    def addConcatenationNode(cls,graph,outA,inA,inB,axis=None):
+    def add_concatenation_node(cls,graph,outA,inA,inB,axis=None):
         """
         Factory method to create a concatenation kernel and add it to a graph
         as a generic node object.
@@ -135,6 +132,6 @@ class ConcatenationKernel(Kernel):
         node = Node(graph,k,params)
         
         # add the node to the graph
-        graph.addNode(node)
+        graph.add_node(node)
         
         return node
