@@ -42,7 +42,7 @@ class DivisionKernel(Kernel):
         if not (isinstance(self._inA,Tensor) or isinstance(self._inA,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
-        if not (isinstance(self._inA,Tensor) or isinstance(self._inA,Scalar)):
+        if not (isinstance(self._inB,Tensor) or isinstance(self._inB,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
         if (isinstance(self._inA,Tensor) or isinstance(self._inB,Tensor)) and \
@@ -53,7 +53,7 @@ class DivisionKernel(Kernel):
             # o.w. the output should be a scalar
             return BcipEnums.INVALID_PARAMETERS
         
-        # if the inputs are scalars, ensure they are numberic
+        # if the inputs are scalars, ensure they are numeric
         if isinstance(self._inA,Scalar) and \
            not self._inA.data_type in Scalar.valid_numberic_types():
             return BcipEnums.INVALID_PARAMETERS
@@ -62,6 +62,9 @@ class DivisionKernel(Kernel):
            not self._inB.data_type in Scalar.valid_numeric_types():
             return BcipEnums.INVALID_PARAMETERS
         
+        if isinstance(self._outA,Scalar) and \
+           not self._outA.data_type in Scalar.valid_numeric_types():
+            return BcipEnums.INVALID_PARAMETERS
         
         # check the shapes
         if isinstance(self._inA,Tensor):

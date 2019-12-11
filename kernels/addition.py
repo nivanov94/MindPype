@@ -42,7 +42,7 @@ class AdditionKernel(Kernel):
         if not (isinstance(self._inA,Tensor) or isinstance(self._inA,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
-        if not (isinstance(self._inA,Tensor) or isinstance(self._inA,Scalar)):
+        if not (isinstance(self._inB,Tensor) or isinstance(self._inB,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
         if (isinstance(self._inA,Tensor) or isinstance(self._inB,Tensor)) and \
@@ -53,7 +53,7 @@ class AdditionKernel(Kernel):
             # o.w. the output should be a scalar
             return BcipEnums.INVALID_PARAMETERS
         
-        # if the inputs are scalars, ensure they are numberic
+        # if the inputs are scalars, ensure they are numeric
         if isinstance(self._inA,Scalar) and \
            not self._inA.data_type in Scalar.valid_numeric_types():
             return BcipEnums.INVALID_PARAMETERS
@@ -62,6 +62,9 @@ class AdditionKernel(Kernel):
            not self._inB.data_type in Scalar.valid_numeric_types():
             return BcipEnums.INVALID_PARAMETERS
         
+        if isinstance(self._outA,Scalar) and \
+           not self._outA.data_type in Scalar.valid_numeric_types():
+            return BcipEnums.INVALID_PARAMETERS
         
         # check the shapes
         if isinstance(self._inA,Tensor):
@@ -88,9 +91,9 @@ class AdditionKernel(Kernel):
         out_shape = phony_out.shape
         
         # if the output is a virtual tensor and has no defined shape, set the shape now
-        if isinstance(self._outA,Tensor) and self._outA.isVirtual() \
+        if isinstance(self._outA,Tensor) and self._outA.virtual \
            and len(self._outA.shape) == 0:
-            self._outA.setShape(out_shape)
+            self._outA.shape = out_shape
         
         # ensure the output shape equals the expected output shape
         if isinstance(self._outA,Tensor) and self._outA.shape != out_shape:
