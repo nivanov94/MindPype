@@ -37,19 +37,19 @@ def main():
     b = Block.create(s,4,3)
 
     input_data = np.random.randn(500,12)
-    t_in = Tensor.createFromData(s,(500,12),input_data)
+    t_in = Tensor.create_from_data(s,(500,12),input_data)
     t_out = Tensor.create(s,(12,12))
-    t_virt = Tensor.createVirtual(s)
+    t_virt = Tensor.create_virtual(s)
 
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
     fs = 250
-    f = Filter.createButter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
+    f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    cov_node  = CovarianceKernel.addCovarianceNode(b.getTrialProcessGraph(),t_virt,t_out)
-    filt_node = FilterKernel.addFilterNode(b.getTrialProcessGraph(),t_in,f,t_virt)
+    cov_node  = CovarianceKernel.add_covariance_node(b.trial_processing_graph,t_virt,t_out)
+    filt_node = FilterKernel.add_filter_node(b.trial_processing_graph,t_in,f,t_virt)
 
     # verify the session (i.e. schedule the nodes)
     sts = s.verify()
@@ -59,8 +59,8 @@ def main():
         return sts
     
     # RUN!
-    sts = s.startBlock()
-    sts = s.executeTrial(0)
+    sts = s.start_block()
+    sts = s.execute_trial(0)
     
     
     # compare the output with manual calculation

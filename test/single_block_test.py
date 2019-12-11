@@ -66,8 +66,8 @@ def main():
     # grab some data for training
     X_train, y_train = load_training_data()
         
-    X = Tensor.createFromData(s,X_train.shape,X_train)
-    y = Tensor.createFromData(s,y_train.shape,y_train)
+    X = Tensor.create_from_data(s,X_train.shape,X_train)
+    y = Tensor.create_from_data(s,y_train.shape,y_train)
 
 
     # create the volatile data source obj
@@ -80,29 +80,29 @@ def main():
     data_src = BcipMatFile.create('class_trials.mat','data/',label_varname_map,dims)
     
     # create the input data tensor
-    t_in = Tensor.createFromHandle(s, (Ns,Nc), data_src)
+    t_in = Tensor.create_from_handle(s, (Ns,Nc), data_src)
 
     # create virtual tensor (filtered data & covariance matrix)
-    t_virt = [Tensor.createVirtual(s), \
-              Tensor.createVirtual(s)]
+    t_virt = [Tensor.create_virtual(s), \
+              Tensor.create_virtual(s)]
 
     # create the output label
-    s_out = Scalar.createFromValue(s,-1)
+    s_out = Scalar.create_from_value(s,-1)
     
     
     # create a filter object
     order = 4
     bandpass = (8,35) # in Hz
     fs = 250
-    f = Filter.createButter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
+    f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
 
     # add the nodes to the block
-    CovarianceKernel.addCovarianceNode(b.getTrialProcessGraph(),t_virt[0],t_virt[1])
-    FilterKernel.addFilterNode(b.getTrialProcessGraph(),t_in,f,t_virt[0])
-    RiemannMDMClassifierKernel.addUntrainedRiemannMDMKernel(b.getTrialProcessGraph(),
-                                                            t_virt[1],
-                                                            s_out,X,y)
+    CovarianceKernel.add_covariance_node(b.trial_processing_graph,t_virt[0],t_virt[1])
+    FilterKernel.add_filter_node(b.trial_processing_graph,t_in,f,t_virt[0])
+    RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node(b.trial_processing_graph,
+                                                              t_virt[1],
+                                                              s_out,X,y)
 
     # verify the session (i.e. schedule the nodes)
     sts = s.verify()
@@ -112,7 +112,7 @@ def main():
         print("Test Failed D=")
         return sts
     
-    sts = s.startBlock()
+    sts = s.start_block()
     if sts != BcipEnums.SUCCESS:
         print(sts)
         print("Test Failed D=")
@@ -124,13 +124,13 @@ def main():
     # RUN!
     t_num = 1
     correct_labels = 0
-    while s.getBlocksRemaining() != 0 and sts == BcipEnums.SUCCESS:
+    while s.remaining_blocks != 0 and sts == BcipEnums.SUCCESS:
         y = trial_seq[t_num-1]
-        sts = s.executeTrial(y)
+        sts = s.execute_trial(y)
         
         if sts == BcipEnums.SUCCESS:
             # print the value of the most recent trial
-            y_bar = s_out.getData()
+            y_bar = s_out.data
             print("Trial {}: Label = {}, Predicted label = {}".format(t_num,y,y_bar))
             
             if y == y_bar:
@@ -138,10 +138,10 @@ def main():
         
         t_num += 1
         
-        b = s.getCurrentBlock()
-        if b.trialsRemaining() == 0:
+        b = s.current_block
+        if sum(b.remaining_trials()) == 0:
             # run the block closing graph
-            s.closeBlock()
+            s.close_block()
         
     print("Accuracy = {:.2f}%.".format(100 * correct_labels/len(trial_seq)))
     

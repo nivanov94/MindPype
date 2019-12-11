@@ -38,27 +38,27 @@ def main():
         training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
         
     labels = np.asarray([0]*60 + [1]*60 + [2]*60)
-    X = Tensor.createFromData(s,training_data.shape,training_data)
-    y = Tensor.createFromData(s,labels.shape,labels)
+    X = Tensor.create_from_data(s,training_data.shape,training_data)
+    y = Tensor.create_from_data(s,labels.shape,labels)
 
     input_data = np.random.randn(500,12)
-    t_in = Tensor.createFromData(s,(500,12),input_data)
-    s_out = Scalar.createFromValue(s,-1)
-    t_virt = [Tensor.createVirtual(s), \
-              Tensor.createVirtual(s)]
+    t_in = Tensor.create_from_data(s,(500,12),input_data)
+    s_out = Scalar.create_from_value(s,-1)
+    t_virt = [Tensor.create_virtual(s), \
+              Tensor.create_virtual(s)]
     
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
     fs = 250
-    f = Filter.createButter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
+    f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    CovarianceKernel.addCovarianceNode(b.getTrialProcessGraph(),t_virt[0],t_virt[1])
-    FilterKernel.addFilterNode(b.getTrialProcessGraph(),t_in,f,t_virt[0])
-    RiemannMDMClassifierKernel.addUntrainedRiemannMDMKernel(b.getTrialProcessGraph(),
-                                                            t_virt[1],
-                                                            s_out,X,y)
+    CovarianceKernel.add_covariance_node(b.trial_processing_graph,t_virt[0],t_virt[1])
+    FilterKernel.add_filter_node(b.trial_processing_graph,t_in,f,t_virt[0])
+    RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node(b.trial_processing_graph,
+                                                              t_virt[1],
+                                                              s_out,X,y)
 
     # verify the session (i.e. schedule the nodes)
     sts = s.verify()
@@ -69,16 +69,16 @@ def main():
         return sts
     
 
-    sts = s.startBlock()
+    sts = s.start_block()
     if sts != BcipEnums.SUCCESS:
         print(sts)
         print("Test Failed D=")
         return sts
     
     # RUN!
-    sts = s.executeTrial(0)
+    sts = s.execute_trial(0)
     
-    print(s_out.getData())
+    print(s_out.data)
     
     print("Test Passed =D")
 
