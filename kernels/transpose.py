@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Thu Nov 20 18:20:03 2019
 
@@ -22,9 +21,9 @@ class TransposeKernel(Kernel):
     
     def __init__(self,graph,inputA,outputA,axes=None):
         super().__init__('Transpose',BcipEnums.INIT_FROM_NONE,graph)
-        self.inputA  = inputA
-        self.outputA = outputA
-        self.axes = axes
+        self._inputA  = inputA
+        self._outputA = outputA
+        self._axes = axes
     
     def initialize(self):
         """
@@ -38,31 +37,31 @@ class TransposeKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (not isinstance(self.inputA,Tensor)) or \
-            (not isinstance(self.outputA,Tensor)) or \
-            (self.axes != None and ((not isinstance(self.axes,tuple)) or \
-            (len(self.axes) != len(self.inputA.shape)))):
+        if (not isinstance(self._inputA,Tensor)) or \
+            (not isinstance(self._outputA,Tensor)) or \
+            (self._axes != None and ((not isinstance(self._axes,tuple)) or \
+            (len(self._axes) != len(self._inputA.shape)))):
                 return BcipEnums.INVALID_PARAMETERS
         
         # check the shape
-        input_shape = self.inputA.shape
+        input_shape = self._inputA.shape
         input_rank = len(input_shape)
         
         # determine what the output shape should be
         if input_rank == 0:
             return BcipEnums.INVALID_PARAMETERS
         
-        if self.axes == None:
+        if self._axes == None:
             output_shape = reversed(input_shape)
         else:
-            output_shape = input_shape[self.axes]
+            output_shape = input_shape[self._axes]
                
         # if the output is virtual and has no defined shape, set the shape now
-        if self.outputA.isVirtual() and len(self.outputA.shape) == 0:
-            self.outputA.setShape(output_shape)
+        if self._outputA.virtual and len(self._outputA.shape) == 0:
+            self._outputA.shape = output_shape
         
         # ensure the output tensor's shape equals the expected output shape
-        if self.outputA.shape != output_shape:
+        if self._outputA.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
@@ -72,12 +71,12 @@ class TransposeKernel(Kernel):
         Execute the kernel function using the numpy transpose function
         """
         
-        self.outputA.data = np.transpose(self.inputA.data,axes=self.axes)
+        self._outputA.data = np.transpose(self._inputA.data,axes=self._axes)
         return BcipEnums.SUCCESS
 
 
     @classmethod
-    def addTransposeNode(cls,graph,inputA,outputA):
+    def add_transpose_node(cls,graph,inputA,outputA):
         """
         Factory method to create a transpose kernel and add it to a graph
         as a generic node object.
@@ -94,6 +93,6 @@ class TransposeKernel(Kernel):
         node = Node(graph,k,params)
         
         # add the node to the graph
-        graph.addNode(node)
+        graph.add_node(node)
         
         return node

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Mon Nov 25 12:19:56 2019
 
@@ -30,9 +29,9 @@ class DiffusionMapKernel(Kernel):
         using a set of trials as a training set.
         """
         super().__init__('DiffusionMap',init_style,graph)
-        self.inA  = inA
-        self.outA = outA
-        self.n_components = n_components
+        self._inA  = inA
+        self._outA = outA
+        self._n_components = n_components
         
         self._initialize_params = initialize_params
         
@@ -52,7 +51,7 @@ class DiffusionMapKernel(Kernel):
         """
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            return self.fitEmbedding()
+            return self.fit_embedding()
         else:
             # kernel contains a reference to a pre-existing embedding object,
             # no need to fit here
@@ -60,7 +59,7 @@ class DiffusionMapKernel(Kernel):
             return BcipEnums.NOT_SUPPORTED
     
 
-    def fitEmbedding(self):
+    def fit_embedding(self):
         """
         Fit the embedding
         
@@ -71,7 +70,7 @@ class DiffusionMapKernel(Kernel):
         if (not isinstance(self._initialize_params['training_data'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        X = self._initialize_params['training_data'].getData()
+        X = self._initialize_params['training_data'].data
         
         # ensure the shpaes are valid
         if len(X.shape) != 3:
@@ -112,11 +111,11 @@ class DiffusionMapKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (not isinstance(self.inA,Tensor)) or \
-            (not isinstance(self.outA,Tensor)):
+        if (not isinstance(self._inA,Tensor)) or \
+            (not isinstance(self._outA,Tensor)):
                 return BcipEnums.INVALID_PARAMETERS
         
-        input_shape = self.inA.shape
+        input_shape = self._inA.shape
         input_rank = len(input_shape)
         
         # input tensor should not be greater than rank 3
@@ -125,21 +124,21 @@ class DiffusionMapKernel(Kernel):
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if self.outA.isVirtual() and (self.outA.getShape() == ()):
+        if self.outA.virtual and (self.outA.shape == ()):
             if input_rank == 2:
-                self.outA.setShape((1,self.n_components.getData()))
-                self.outA.setData(np.zeros((1,self.n_components.getData())))
+                self._outA.shape = (1,self._n_components.data)
+                self._outA.data = np.zeros((1,self._n_components.data))
             else:
-                self.outA.setShape((1,self.n_components.getData()))
-                self.outA.setData(np.zeros((input_shape[0],
-                                            self.n_components.getData())))
+                self._outA.shape = (1,self._n_components.data)
+                self._outA.data = np.zeros((input_shape[0],
+                                            self._n_components.data))
         
         
         # check for dimensional alignment
         
         # check that the dimensions of the output match the dimensions of input
-        if (input_rank == 2 and self.outA.shape[0] != 1) or \
-            (input_rank == 3 and (self.inA.shape[0] != self.outA.shape[0])):
+        if (input_rank == 2 and self._outA.shape[0] != 1) or \
+            (input_rank == 3 and (self._inA.shape[0] != self._outA.shape[0])):
             return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
@@ -155,7 +154,7 @@ class DiffusionMapKernel(Kernel):
 
         n_training_pts = self._training_pts.shape[0]
 
-        input_data = self.inA.getData()
+        input_data = self._inA.data
 
         K_proj = np.zeros(len(input_data), n_training_pts)
         for i_trial in range(len(input_data)):
@@ -174,14 +173,14 @@ class DiffusionMapKernel(Kernel):
         pt_proj = np.dot(P,self._embedding) * (1/self._eigenvals)
 
         # set the output data
-        self.outA.setData(pt_proj)
+        self._outA.data = pt_proj
         
         return BcipEnums.SUCCESS
         
     
     @classmethod
-    def addDiffusionMapKernel(cls,graph,inA,outA,
-                              training_data,dimensions):
+    def add_diffusion_map_node(cls,graph,inA,outA,
+                               training_data,dimensions):
         """
         Factory method to create a diffusion map 
         visualization kernel and add it to a block
@@ -203,7 +202,7 @@ class DiffusionMapKernel(Kernel):
         node = Node(graph,k,params)
         
         # add the node to the graph
-        graph.addNode(node)
+        graph.add_node(node)
         
         return node
     

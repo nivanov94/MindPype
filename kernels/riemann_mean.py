@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Mon Dec  9 16:15:12 2019
 
@@ -25,8 +24,8 @@ class RiemannMeanKernel(Kernel):
         Kernel takes 3D Tensor input and produces 2D Tensor representing mean
         """
         super().__init__('RiemannMean',BcipEnums.INIT_FROM_NONE,graph)
-        self.inA  = inA
-        self.outA = outA
+        self._inA  = inA
+        self._outA = outA
         
     
     def initialize(self):
@@ -42,11 +41,11 @@ class RiemannMeanKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (not isinstance(self.inA,Tensor)) or \
-            (not isinstance(self.outA,Tensor)):
+        if (not isinstance(self._inA,Tensor)) or \
+            (not isinstance(self._outA,Tensor)):
                 return BcipEnums.INVALID_PARAMETERS
         
-        input_shape = self.inA.shape
+        input_shape = self._inA.shape
         input_rank = len(input_shape)
         
         # input tensor must be rank 3
@@ -55,17 +54,17 @@ class RiemannMeanKernel(Kernel):
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self.outA.isVirtual() and self.outA.getShape() == None):
-            self.outA.setData(np.zeros((input_shape[1:])))
+        if (self._outA.virtual and self._outA.shape == None):
+            self._outA.shape = input_shape[1:]
         
         
         # output tensor should be one dimensional
-        if len(self.outputA.shape) > 2:
+        if len(self._outputA.shape) > 2:
             return BcipEnums.INVALID_PARAMETERS
         
         # check that the dimensions of the output match the dimensions of
         # input
-        if self.inA.shape[1:] != self.outputA.shape:
+        if self._inA.shape[1:] != self._outputA.shape:
             return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
@@ -78,15 +77,12 @@ class RiemannMeanKernel(Kernel):
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         
         # calculate the mean using pyRiemann
-        mean = mean_riemann(self.inA.getData())
-        
-        # set the output
-        self.outA.setData(mean)
+        self._outputA.data = mean_riemann(self._inA.data)
         
         return BcipEnums.SUCCESS
     
     @classmethod
-    def addRiemannMeanKernel(cls,graph,inA,outA):
+    def add_riemann_mean_node(cls,graph,inA,outA):
         """
         Factory method to create a Riemann mean calculating kernel
         """
@@ -102,7 +98,7 @@ class RiemannMeanKernel(Kernel):
         node = Node(graph,k,params)
         
         # add the node to the graph
-        graph.addNode(node)
+        graph.add_node(node)
         
         return node
     

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Dec 10 13:05:29 2019
 
@@ -25,9 +24,9 @@ class StackKernel(Kernel):
     
     def __init__(self,graph,inA,outA,axis=None):
         super().__init__('stack',BcipEnums.INIT_FROM_NONE,graph)
-        self.inA  = inA
-        self.outA = outA
-        self.axis = axis
+        self._inA  = inA
+        self._outA = outA
+        self._axis = axis
     
     def initialize(self):
         """
@@ -41,33 +40,33 @@ class StackKernel(Kernel):
         """
                 
         # inA must be an array and outA must be a tensor
-        if not (isinstance(self.inA,Array) and isinstance(self.outA,Tensor)):
+        if not (isinstance(self._inA,Array) and isinstance(self._outA,Tensor)):
             return BcipEnums.INVALID_PARAMETERS
         
         # if an axis was provided, it must be a scalar
-        if self.axis != None and not isinstance(self.axis,Scalar):
+        if self._axis != None and not isinstance(self._axis,Scalar):
             return BcipEnums.INVALID_PARAMETERS
         
-        stack_axis = self.axis.value if self.axis != None else 0
+        stack_axis = self._axis.data if self._axis != None else 0
         
         # ensure that all the tensors in inA are the same size
-        tensor_shapes = [self.inA.getElement(i).shape
-                                    for i in range(self.inA.num_items)]
+        tensor_shapes = [self._inA.getElement(i).shape
+                                    for i in range(self._inA.num_items)]
         
         if len(set(tensor_shapes)) != 1:
             # tensors in array are different sizes OR array is empty
             return BcipEnums.INVALID_PARAMETERS
         
         # determine the output dimensions
-        output_shape = tensor_shapes[0][:stack_axis] + (self.inA.num_items,) \
+        output_shape = tensor_shapes[0][:stack_axis] + (self._inA.num_items,) \
                          + tensor_shapes[0][stack_axis:]
         
         # check the output dimensions are valid
-        if self.outA.isVirtual() and len(self.outA.shape) == 0:
-            self.outA.shape = output_shape
+        if self._outA.virtual and len(self._outA.shape) == 0:
+            self._outA.shape = output_shape
         
         # ensure the output shape equals the expected output shape
-        if self.outA.shape != output_shape:
+        if self._outA.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
@@ -77,11 +76,11 @@ class StackKernel(Kernel):
         Execute the kernel function using numpy functions
         """
         
-        stack_axis = self.axis.getData() if self.axis != None else 0
+        stack_axis = self._axis.data if self._axis != None else 0
         
         try:
-            input_tensors = [self.inA.getElement(i) for i 
-                                             in range(self.inA.num_items)]
+            input_tensors = [self._inA.getElement(i) for i 
+                                             in range(self._inA.num_items)]
             
             input_data = [t.data for t in input_tensors]
             output_data = np.stack(input_data,axis=stack_axis)
@@ -90,15 +89,15 @@ class StackKernel(Kernel):
             return BcipEnums.EXE_FAILURE
         
         # set the data of the output tensor
-        self.outA.data = output_data
+        self._outA.data = output_data
         
         return BcipEnums.SUCCESS
     
     
     @classmethod
-    def addConcatenationNode(cls,graph,inA,outA,axis=None):
+    def add_stack_node(cls,graph,inA,outA,axis=None):
         """
-        Factory method to create a concatenation kernel and add it to a graph
+        Factory method to create a stack kernel and add it to a graph
         as a generic node object.
         """
         
@@ -113,6 +112,6 @@ class StackKernel(Kernel):
         node = Node(graph,k,params)
         
         # add the node to the graph
-        graph.addNode(node)
+        graph.add_node(node)
         
         return node
