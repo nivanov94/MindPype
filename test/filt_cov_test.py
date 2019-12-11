@@ -34,7 +34,7 @@ def main():
     s = Session.create()
 
     # add a block and some tensors
-    b = Block.create(s,4,3)
+    b = Block.create(s,3,(4,4,4))
 
     input_data = np.random.randn(500,12)
     t_in = Tensor.create_from_data(s,(500,12),input_data)

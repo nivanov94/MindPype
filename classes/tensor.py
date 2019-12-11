@@ -48,6 +48,10 @@ class Tensor(BCIP):
     def volatile(self):
         return self._volatile
     
+    @property
+    def ext_src(self):
+        return self._ext_src
+    
     #API setters
     @data.setter
     def data(self,data):

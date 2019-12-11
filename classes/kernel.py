@@ -18,7 +18,7 @@ class Kernel(BCIP, ABC):
     """
     
     def __init__(self,name,init_style,graph):
-        session = graph.getSession()
+        session = graph.session
         super().__init__(BcipEnums.KERNEL,session)
         self._name = name
         self._init_style = init_style

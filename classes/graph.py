@@ -20,7 +20,7 @@ class Graph(BCIP):
         """
         Create a new graph within an existing block
         """
-        sess = block.getSession()
+        sess = block.session
         super().__init__(BcipEnums.GRAPH,sess)
         
         # private attributes

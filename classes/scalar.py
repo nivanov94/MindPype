@@ -10,6 +10,8 @@ Scalar.py - Define the Scalar class for BCIP
 from .bcip import BCIP
 from .bcip_enums import BcipEnums
 
+import numpy as np
+
 class Scalar(BCIP):
     
     _valid_types = [int, float, complex, str, bool]
@@ -48,12 +50,23 @@ class Scalar(BCIP):
     # API Setters
     @data.setter
     def data(self,data):
+        # if the data passed in is a numpy array, check if its a single value
+        if type(data) == np.ndarray and data.shape == (1,):
+            # convert from the np type to native python type
+            data = data[0]
+            if isinstance(data, np.integer):
+                data = int(data)
+            elif isinstance(data, np.float):
+                data = float(data)
+            elif isinstance(data,np.complex):
+                data = complex(data)
+            
         if type(data) == self.data_type:
             self._data = data
         else:
-            raise ValueError("BCIP Scalar contains data of type {}. Cannot" + \
-                             "set data to type {}".format(self.data_type,
-                                                          type(data))) 
+            raise ValueError(("BCIP Scalar contains data of type {}. Cannot" +\
+                              " set data to type {}").format(self.data_type,
+                                                             type(data))) 
         
     
     def poll_volatile_data(self,label):
@@ -85,7 +98,7 @@ class Scalar(BCIP):
     def create_virtual(cls,sess,data_type):
         if not (data_type in Scalar._valid_types):
             return
-        s = cls(data_type,None,True,None)
+        s = cls(sess,data_type,None,True,None)
         
         # add the scalar to the session
         sess.add_data(s)

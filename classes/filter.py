@@ -91,7 +91,7 @@ class Filter(BCIP):
         f = cls(sess,'butter',btype,implementation,Wn,fs,coeffs)
         
         # add the filter to the session
-        sess.addMiscBcipObj(f)
+        sess.add_misc_bcip_obj(f)
         
         return f
     
@@ -118,7 +118,7 @@ class Filter(BCIP):
         f = cls(sess,'cheby1',btype,implementation,Wn,fs,coeffs)
         
         # add the filter to the session
-        sess.addMiscBcipObj(f)
+        sess.add_misc_bcip_obj(f)
         
         return f
     
@@ -145,7 +145,7 @@ class Filter(BCIP):
         f = cls(sess,'cheby2',btype,implementation,Wn,fs,coeffs)
         
         # add the filter to the session
-        sess.addMiscBcipObj(f)
+        sess.add_misc_bcip_obj(f)
         
         return f
         
@@ -175,7 +175,7 @@ class Filter(BCIP):
         f = cls(sess,'ellip',btype,implementation,Wn,fs,coeffs)
         
         # add the filter to the session
-        sess.addMiscBcipObj(f)
+        sess.add_misc_bcip_obj(f)
         
         return f
     
@@ -202,6 +202,6 @@ class Filter(BCIP):
         f = cls(sess,'bessel',btype,implementation,Wn,fs,coeffs)
         
         # add the filter to the session
-        sess.addMiscBcipObj(f)
+        sess.add_misc_bcip_obj(f)
         
         return f

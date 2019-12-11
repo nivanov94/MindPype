@@ -161,7 +161,7 @@ class Block(BCIP):
         b = cls(sess,n_classes,n_class_trials)
         
         # add the block to the session
-        sess.enqueueBlock(b)
+        sess.enqueue_block(b)
         
         return b
         

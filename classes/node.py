@@ -15,7 +15,7 @@ class Node(BCIP):
     """
     
     def __init__(self,block,kernel,params):
-        sess = block.getSession()
+        sess = block.session
         super().__init__(BcipEnums.NODE,sess)
         
         self._kernel = kernel
@@ -32,8 +32,8 @@ class Node(BCIP):
         Return a list of all the node's inputs
         """
         inputs = []
-        for p in self.params:
-            if p.getDirection() == BcipEnums.INPUT:
+        for p in self._params:
+            if p.direction == BcipEnums.INPUT:
                 inputs.append(p.data)
         
         return inputs
@@ -43,8 +43,8 @@ class Node(BCIP):
         Return a list of all the node's outputs
         """
         outputs = []
-        for p in self.params:
-            if p.getDirection() == BcipEnums.OUTPUT:
+        for p in self._params:
+            if p.direction == BcipEnums.OUTPUT:
                 outputs.append(p.data)
         
         return outputs
