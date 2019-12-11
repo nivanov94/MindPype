@@ -8,7 +8,7 @@ from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
 from classes.tensor import Tensor
-from classse.scalar import Scalar
+from classes.scalar import Scalar
 from classes.bcip_enums import BcipEnums
 
 import numpy as np
