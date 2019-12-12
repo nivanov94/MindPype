@@ -1,0 +1,56 @@
+{
+  "session" : {
+      "name" : "s1",
+      "sources": {},
+      "tensors" : [
+	      "raw_eeg" : {
+		"creation_method" : "create_from_handle",
+		"shape" : [500,28],
+		"source" : "eeg_stream"
+	      },
+	      "intra_class_var" : {
+		"shape" : ["n_classes"]
+	      },
+	      "class_means" : {
+		"shape" : ["n_classes","eeg_channels","eeg_channels"]
+	      },
+	      "v_tensor" : {
+		"copies" : 14,
+		"creatation_method" : "create_virtual"
+	      }
+      ],
+      "scalars" : [
+	      "label" : {
+		"type" : "int"
+	      },
+	      "trial_score" : {
+		"type" : "float"
+	      },
+	      "fisher_criterion" : {
+		"type" : "float"
+	      },
+	      "n_classes" : {
+		"creation_method" : "from_value",
+		"type"  : "int",
+		"value" : "n_classes"
+	      },
+	      "history_len" : {
+		"creation_method" : "from_value",
+		"type" : "int",
+		"value" : "history_len"
+	      }
+      ],
+      "arrays" : [
+	      "prev_cov_mats" : {
+		"capacity" : "n_classes",
+		"template" : {"type" : "CircleBuffer",
+			      "capacity" : "history_len",
+			      "template" : {"type" : "Tensor",
+					    "shape" : ["eeg_channels","eeg_channels"]
+					    }
+			      }
+      ],
+
+
+
+  
