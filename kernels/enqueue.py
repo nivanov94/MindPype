@@ -11,6 +11,8 @@ from classes.parameter import Parameter
 from classes.bcip import BCIP
 from classes.bcip_enums import BcipEnums
 from classes.circle_buffer import CircleBuffer
+from classes.scalar import Scalar
+from classes.tensor import Tensor
 
 
 class EnqueueKernel(Kernel):
@@ -19,7 +21,7 @@ class EnqueueKernel(Kernel):
     """
     
     def __init__(self,graph,inA,queue):
-        super().__init__('ReducedSum',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Enqueue',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._circle_buff = queue
     
@@ -46,13 +48,15 @@ class EnqueueKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
-        
+    
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
         
-        self._outA.enqueue(self._inA)
+        # need to make a deep copy of the object to enqueue
+        cpy = self._inA.copy()
+        self._outA.enqueue(cpy)
             
         return BcipEnums.SUCCESS
     
