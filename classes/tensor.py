@@ -68,7 +68,20 @@ class Tensor(BCIP):
             self.data = np.zeros(shape)
         else:
             raise ValueError("Cannot change shape of non-virtual tensor")
-    
+            
+            
+    def copy(self):
+        """
+        Create and return a deep copy of the tensor
+        """
+        #TODO determine what to do when copying virtual
+        cpy = Tensor(self.session,
+                     self.shape,
+                     self.data,
+                     self.virtual,
+                     self.ext_src)
+        
+        return cpy
     
     def poll_volatile_data(self,label):
         

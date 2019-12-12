@@ -46,6 +46,10 @@ class Scalar(BCIP):
     def data_type(self):
         return self._data_type
     
+    @property
+    def ext_src(self):
+        return self._ext_src
+    
     
     # API Setters
     @data.setter
@@ -67,7 +71,19 @@ class Scalar(BCIP):
             raise ValueError(("BCIP Scalar contains data of type {}. Cannot" +\
                               " set data to type {}").format(self.data_type,
                                                              type(data))) 
+    
+    def copy(self):
+        """
+        Produce and return a deep copy of the scalar
+        """
+        cpy = Scalar(self.session,
+                     self.data_type,
+                     self.data,
+                     self.virtual,
+                     self.ext_src)
         
+        return cpy
+    
     
     def poll_volatile_data(self,label):
         
