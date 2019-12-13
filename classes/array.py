@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Nov 19 16:08:19 2019
 
@@ -15,15 +14,18 @@ class Array(BCIP):
     Array containing instances of other BCIP classes
     """
     
-    def __init__(self,sess,capacity,virtual=False):
+    def __init__(self,sess,capacity,element_template):
         super().__init__(BcipEnums.ARRAY,sess)
         
-        self._num_items = 0 # keep track of the non-none elements
         self._capacity = capacity
-        self._virtual = virtual
         
-        # private non-user interfacing attributes
         self._elements = [None] * capacity
+        if not 'type' in element_template:
+            # log error
+            return 
+        
+        for i in range(capacity):
+            self.set_element(i,element_template.make_copy())
         
     
     def get_element(self,index):
@@ -35,10 +37,6 @@ class Array(BCIP):
     def set_element(self,index,element):
         if index >= self.capacity or index < 0:
             return False
-        
-        # if there was nothing there, increase the num items counter
-        if self._element[index] == None:
-            self._num_items += 1
         
         self._element[index] = element
         return True
@@ -63,7 +61,7 @@ class Array(BCIP):
             self._elements = [None] * capacity
             
             
-    def copy(self):
+    def make_copy(self):
         """
         Create and return a deep copy of the array
         The copied array will maintain references to the same objects.
@@ -78,21 +76,21 @@ class Array(BCIP):
             cpy.set_element(e,self.get_element(e))
             
         return cpy
-        
+    
+    def copy_to(self,dest_array):
+        """
+        Copy all the attributes of the array to another array. Note
+        these will reference the same objects within the element list
+        """
+        dest_array.capacity = self.capacity
+        for i in range(self.capacity):
+            dest_array.set_element(i,self.get_element(i))
     
     # API constructor
     @classmethod
-    def create(cls,sess,capacity):
-        a = cls(sess,capacity)
+    def create(cls,sess,capacity,element_template):
+        a = cls(sess,capacity,element_template)
         
         # add the array to the session
         sess.add_data(a)
-        return a
-
-    @classmethod
-    def create_virtual(cls,sess,capacity=0):
-        a = cls(sess,capacity,True)
-        
-        sess.add_data(a)
-        
         return a

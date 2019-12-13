@@ -72,7 +72,7 @@ class Scalar(BCIP):
                               " set data to type {}").format(self.data_type,
                                                              type(data))) 
     
-    def copy(self):
+    def make_copy(self):
         """
         Produce and return a deep copy of the scalar
         """
@@ -83,6 +83,15 @@ class Scalar(BCIP):
                      self.ext_src)
         
         return cpy
+    
+    def copy_to(self,dest_scalar):
+        """
+        Copy all the elements of the scalar to another scalar
+        """
+        dest_scalar.data = self.data
+        
+        # for now, don't copy the type, virtual and ext_src attributes because these
+        # should really be set during creation not later
     
     
     def poll_volatile_data(self,label):

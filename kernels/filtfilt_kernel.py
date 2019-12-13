@@ -13,7 +13,6 @@ from classes.tensor import Tensor
 from classes.filter import Filter
 from classes.bcip_enums import BcipEnums
 
-import numpy as np
 from scipy import signal
 
 class FiltFiltKernel(Kernel):

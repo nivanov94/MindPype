@@ -70,7 +70,7 @@ class Tensor(BCIP):
             raise ValueError("Cannot change shape of non-virtual tensor")
             
             
-    def copy(self):
+    def make_copy(self):
         """
         Create and return a deep copy of the tensor
         """
@@ -82,6 +82,18 @@ class Tensor(BCIP):
                      self.ext_src)
         
         return cpy
+    
+    def copy_to(self,dest_tensor):
+        """
+        Copy the attributes of the tensor to another tensor object
+        """
+        if dest_tensor.virtual:
+            dest_tensor.shape = self.shape
+        dest_tensor.data = self.data
+        
+        # Not copying virtual and ext_src attributes because these should 
+        # only be set during creation and modifying could cause unintended
+        # consequences
     
     def poll_volatile_data(self,label):
         
