@@ -88,7 +88,7 @@ class FiltFiltKernel(Kernel):
         return BcipEnums.SUCCESS
     
     @classmethod
-    def addFiltFiltNode(cls,graph,inputA,filt,outputA):
+    def add_filtfilt_node(cls,graph,inputA,filt,outputA):
         """
         Factory method to create a filtfilt kernel and add it to a graph
         as a generic node object.

@@ -15,7 +15,7 @@ from classes.block import Block
 from classes.source import BcipMatFile
 from classes.bcip_enums import BcipEnums
 
-from kernels.filter_kernel import FilterKernel
+from kernels.filtfilt import FiltFiltKernel
 from kernels.covariance import CovarianceKernel
 from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
 
@@ -99,7 +99,7 @@ def main():
 
     # add the nodes to the block
     CovarianceKernel.add_covariance_node(b.trial_processing_graph,t_virt[0],t_virt[1])
-    FilterKernel.add_filter_node(b.trial_processing_graph,t_in,f,t_virt[0])
+    FiltFiltKernel.add_filtfilt_node(b.trial_processing_graph,t_in,f,t_virt[0])
     RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node(b.trial_processing_graph,
                                                               t_virt[1],
                                                               s_out,X,y)
