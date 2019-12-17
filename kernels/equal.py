@@ -14,7 +14,7 @@ from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
-class GreaterKernel(Kernel):
+class EqualKernel(Kernel):
     """
     Kernel to perform greater than logical operation elementwise on
     two BCIPP data containers (i.e. tensor or scalar)

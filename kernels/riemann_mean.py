@@ -12,7 +12,7 @@ from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
-from pyriemann.utils import mean_riemann
+from pyriemann.utils.mean import mean_riemann
 
 class RiemannMeanKernel(Kernel):
     """
