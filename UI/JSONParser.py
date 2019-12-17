@@ -15,8 +15,7 @@ from classes.circle_buffer import CircleBuffer
 from classes.filter import Filter
 from classes.source import BcipMatFile, LSLStream
 
-from kernels
-
+import kernels
 
 def _create_session(create_attrs):
     """
