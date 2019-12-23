@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Block.py - Defines the block class for BCIP
 
