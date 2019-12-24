@@ -8,9 +8,9 @@ Created on Mon Dec 16 15:57:19 2019
 import socket
 import json
 import struct
-from UI import BCIPJSONParser
+from UI.JSONParser import parse as bcip_json_parse
 
-HEADER_SZ = 2
+HEADER_SZ = 4
 
 class BCIPSocketInterface:
     
@@ -30,14 +30,20 @@ class BCIPSocketInterface:
         """
         Wait for the next client request and store it in the recv buffer
         """
-        packet_sz = self._sock.recv(HEADER_SZ)
+        
+        packet_sz = bytearray()
+        while len(packet_sz) < HEADER_SZ:
+            data = self._sock.recv(HEADER_SZ)
+            packet_sz.extend(data)
         
         # convert the size to an int
-        packet_sz = struct.unpack('!H',packet_sz)[0]
+        packet_sz = struct.unpack('!L',packet_sz)[0]
         print("Received packet indicating size {}".format(packet_sz))
         
         # read in the client packet payload
-        packet = self._sock.recv(packet_sz)
+        packet = bytearray()
+        while len(packet) < packet_sz:
+            packet += self._sock.recv(min(512,packet_sz - len(packet)))
         
         # store the packet
         self._recv = packet
@@ -50,10 +56,10 @@ class BCIPSocketInterface:
         
         # convert the received packet to json
         print(self._recv.decode('utf-8'))
-        in_packet = json.dumps(self._recv.decode('utf-8'))
+        in_packet = json.loads(self._recv.decode('utf-8'))
         
         # call the JSONParser
-        out_packet = BCIPJSONParser.parse(in_packet,self._sess_hash)
+        out_packet = bcip_json_parse(in_packet,self._sess_hash)
         
         # serialize the output packet
         self._send = out_packet.encode('utf-8')
@@ -63,7 +69,7 @@ class BCIPSocketInterface:
         Send a response to the client request
         """
         out_packet_sz = len(self._send)
-        out_packet_header = struct.pack('!H',out_packet_sz)
+        out_packet_header = struct.pack('!L',out_packet_sz)
         
         self._sock.sendall(out_packet_header)
         self._sock.sendall(self._send)

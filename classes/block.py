@@ -16,7 +16,7 @@ class Block(BCIP):
     def __init__(self,sess,n_classes,n_class_trials):
         super().__init__(BcipEnums.BLOCK,sess)
         
-        self._n_class_trials = n_class_trials
+        self._n_class_trials = tuple(n_class_trials)
         self._n_classes = n_classes
         
         # create the block's data processing graphs

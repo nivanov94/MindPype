@@ -21,6 +21,7 @@ class Session(BCIP):
         self._blocks = [] # queue of blocks to execute
         self._datum = []
         self._misc_objs = []
+        self._ext_srcs = []
         self._verified = False
         
     # API Getters
@@ -139,6 +140,41 @@ class Session(BCIP):
     def add_misc_bcip_obj(self,obj):
         self._misc_objs.append(obj)
         
+    def add_ext_src(self,src):
+        self._ext_srcs.append(src)
+        
+    def find_obj(self,id_num):
+        """
+        Search for and return a BCIP object within the session with a
+        specific ID number
+        """
+        
+        # check if the ID is the session itself
+        if id_num == self.session_id:
+            return self
+        
+        # check if its a block
+        for b in self._blocks:
+            if id_num == b.session_id:
+                return b
+        
+        # check if its a data obj
+        for d in self._datum:
+            if id_num == d.session_id:
+                return d
+        
+        # check if its a misc obj
+        for o in self._misc_objs:
+            if id_num == o.session_id:
+                return o
+        
+        # check if its a external source
+        for s in self._ext_srcs:
+            if id_num == s.session_id:
+                return s
+        
+        # not found, return None type
+        return None
     @classmethod
     def create(cls):
         return cls()

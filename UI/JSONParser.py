@@ -68,10 +68,10 @@ def _create_block(session, create_attrs):
                 return
             kern = kernel_LUT[node['name']]
         
-            if not 'create_method' in node.keys():
+            if not 'creation_method' in node.keys():
                 create_method_name = 'create'
             else:
-                create_method_name = node['create_method']
+                create_method_name = node['creation_method']
         
             if hasattr(kern,create_method_name):
                 create_method = getattr(kern,create_method_name)
@@ -87,7 +87,7 @@ def _create_block(session, create_attrs):
             else:
                 g = b.postprocessing_graph
             
-            create_params = [kern,g]
+            create_params = [g]
         
             # iterate through the params, find the objects and call the creation method
             for param in node['params']:
@@ -107,7 +107,7 @@ def _create_obj(session,obj,create_attrs):
     """
     Create a BCIP object according to the create_attrs
     """
-    create_method_name = create_attrs['create_method'] if 'create_method' \
+    create_method_name = create_attrs['creation_method'] if 'creation_method' \
                                                             in create_attrs \
                                                        else 'create'
     
@@ -119,13 +119,14 @@ def _create_obj(session,obj,create_attrs):
         return
     
     # look up any parameters
-    create_params = [obj,session]
+    create_params = [session]
     
-    for param in create_attrs['params']:
-        if isinstance(param,str) and param[:3] == "id_":
-            create_params.append(session.find_obj(int(param[3:])))
-        else:
-            create_params.append(param)
+    if 'params' in create_attrs:
+        for param in create_attrs['params']:
+            if isinstance(param,str) and param[:3] == "id_":
+                create_params.append(session.find_obj(int(param[3:])))
+            else:
+                create_params.append(param)
     
     return create_method(*create_params)
     
@@ -164,7 +165,9 @@ def parse(bcip_ext_req,sess_hash):
             if s == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
-                return_packet['id'] = max(sess_hash.keys())+1 if len(sess_hash) != 0 else 0
+                interface_sess_id = max(sess_hash.keys())+1 if len(sess_hash) != 0 else 0
+                return_packet['id'] = interface_sess_id
+                sess_hash[interface_sess_id] = s
         elif bcip_ext_req['params']['obj'] == 'block':
             b = _create_block(sess_hash[sess_id], create_attrs)
             if b == None:
@@ -227,15 +230,16 @@ def parse(bcip_ext_req,sess_hash):
         else:
             return_packet['sts'] = BcipEnums.FAILURE
         
-        exe_params = [obj]
-        for param in create_attrs['params']:
+        exe_attrs = bcip_ext_req['params']['attrs']
+        exe_params = []
+        for param in exe_attrs:
             if isinstance(param,str) and param[:3] == "id_":
                 exe_params.append(session.find_obj(int(param[3:])))
             else:
                 exe_params.append(param)
         
         return_packet['sts'] = execution_method(*exe_params)
-    elif bcip_ext_req['cmd'] == 'req_data':
+    elif bcip_ext_req['cmd_type'] == 'req_data':
         session = sess_hash[sess_id]
         obj = session.find_obj(bcip_ext_req['params']['obj']) \
                             if 'obj' in bcip_ext_req['params'] else session
@@ -247,6 +251,7 @@ def parse(bcip_ext_req,sess_hash):
         else:
             return_packet['sts'] = BcipEnums.FAILURE
     
+    return json.dumps(return_packet)
             
             
             

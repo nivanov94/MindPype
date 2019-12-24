@@ -160,7 +160,7 @@ class RiemannMDMClassifierKernel(Kernel):
         to execution of the kernel.
         """
         
-        # create the kernel object
+        # create the kernel object            
         init_params = {'training_data' : training_data, 
                        'labels'        : labels}
         k = cls(graph,inputA,outputA,BcipEnums.INIT_FROM_DATA,init_params)

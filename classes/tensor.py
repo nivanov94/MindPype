@@ -17,7 +17,7 @@ class Tensor(BCIP):
     
     def __init__(self,sess,shape,data,is_virtual,ext_src):
         super().__init__(BcipEnums.TENSOR,sess)
-        self._shape = shape
+        self._shape = tuple(shape)
         self._virtual = is_virtual
         self._ext_src = ext_src
         
@@ -132,6 +132,9 @@ class Tensor(BCIP):
     
     @classmethod
     def create_from_data(cls,sess,shape,data):
+        if type(data) is list:
+            data = np.asarray(data)
+        
         # make sure data is valid
         if not cls.validate_data(shape,data):
             # data invalid!
@@ -157,7 +160,7 @@ class Tensor(BCIP):
         if data is None:
             return False
         
-        if (not (type(data) is np.ndarray)) or (shape != data.shape):
+        if (not (type(data) is np.ndarray)) or (tuple(shape) != data.shape):
             return False
             
         return True

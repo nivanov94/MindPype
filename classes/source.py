@@ -14,21 +14,24 @@ Currently supported sources:
 # TODO: Enhance file based classes to enable bulk read (i.e. multiple trial)
 # capabilities
 
+from classes.bcip import BCIP
+from classes.bcip_enums import BcipEnums
 from scipy.io import loadmat
 import numpy as np
 import pylsl
 import os
 
-class BcipMatFile:
+class BcipMatFile(BCIP):
     """
     Utility for extracting data from a mat file for BCIP
     
     """
     
-    def __init__(self,filename,path,label_varname_map,dims=None):
+    def __init__(self,sess,filename,path,label_varname_map,dims=None):
         """
         Create a new mat file reader interface
         """
+        super().__init__(BcipEnums.SRC,sess)
         p = os.path.normpath(os.path.join(os.getcwd(),path))
         f = os.path.join(p,filename)
         if not os.path.exists(p) or not os.path.exists(f) or not os.path.isfile(f):
@@ -59,10 +62,18 @@ class BcipMatFile:
                            # TODO log error
                            return
             
-        self.label_varname_map = label_varname_map
+        self.label_varname_map = {}
+        # copy the dictionary - converting any string keys into ints
+        # a bit hacky, but makes it easier to create MAT file objs with the JSON parser
+        for key in label_varname_map:
+            if isinstance(key,str):
+                self.label_varname_map[int(key)] = label_varname_map[key]
+            else:
+                self.label_varname_map[key] = label_varname_map[key]
+        
         self.label_counters = {}
         
-        for label in label_varname_map:
+        for label in self.label_varname_map:
             self.label_counters[label] = 0
             
         
@@ -89,11 +100,15 @@ class BcipMatFile:
         return trial_data
     
     @classmethod
-    def create(cls,filename,path,label_varname_map,dims):
+    def create(cls,sess,filename,path,label_varname_map,dims):
         """
         Factory method for API
         """
-        return cls(filename,path,label_varname_map,dims)
+        src = cls(sess,filename,path,label_varname_map,dims)
+        
+        sess.add_ext_src(src)
+        
+        return src
 
 
 class LSLStream:
@@ -101,11 +116,12 @@ class LSLStream:
     An object for maintaining an LSL inlet
     """
 
-    def __init__(self,stream_type,labels,Ns,channels=None,
+    def __init__(self,sess,stream_type,labels,Ns,channels=None,
                  marker=True,marker_fmt="T{},L{},LN{}"):
         """
         Create a new LSL inlet stream object
         """
+        super().__init__(BcipEnums.SRC,sess)
         
         # resolve the stream on the LSL network
         available_streams = pylsl.resolve_stream('type',stream_type)
@@ -183,21 +199,27 @@ class LSLStream:
         return trial_data
     
     @classmethod
-    def create_marker_coupled_data_stream(cls,stream_type,Ns,labels,
+    def create_marker_coupled_data_stream(cls,sess,stream_type,Ns,labels,
                                           channels=None,
                                           marker_fmt="T{},L{},LN{}"):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
         """
-        return cls(stream_type,Ns,labels,channels,True,marker_fmt)
+        src = cls(sess,stream_type,Ns,labels,channels,True,marker_fmt)
+        sess.add_ext_src(src)
+        
+        return src
     
     @classmethod
-    def create_marker_uncoupled_data_stream(cls,stream_type,Ns,labels,
+    def create_marker_uncoupled_data_stream(cls,sess,stream_type,Ns,labels,
                                             channels=None,
                                             marker_fmt="T{},L{},LN{}"):
         """
         Create a LSLStream data object that maintains only a data stream with
         no associated marker stream
         """
-        return cls(stream_type,Ns,labels,channels,False)
+        src = cls(sess,stream_type,Ns,labels,channels,False)
+        sess.add_ext_src(src)
+        
+        return src

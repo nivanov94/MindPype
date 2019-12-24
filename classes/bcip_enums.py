@@ -7,9 +7,9 @@ BcipEnums - Define a class of enums used by BCIP
 @author: ivanovn
 """
 
-from enum import Enum
+from enum import IntEnum
 
-class BcipEnums(Enum):
+class BcipEnums(IntEnum):
     # Object Type Enums - Have a leading '1'
     BCIP    = 100
     SESSION = 101
@@ -22,6 +22,7 @@ class BcipEnums(Enum):
     SCALAR  = 108
     ARRAY   = 109
     FILTER  = 110
+    SRC     = 111
     
     # Status Codes - Leading '2'
     SUCCESS = 200
