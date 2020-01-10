@@ -47,7 +47,7 @@ class BCIPSocketInterface:
         
         # store the packet
         self._recv = packet
-        print(self._recv)
+        #print(self._recv)
     
     def parse_client_req(self):
         """

@@ -90,7 +90,7 @@ def _create_block(session, create_attrs):
             create_params = [g]
         
             # iterate through the params, find the objects and call the creation method
-            for param in node['params']:
+            for param in node['api_params']:
                 if isinstance(param,str) and param[:3] == "id_":
                     # lookup the id within the session and add
                     create_params.append(session.find_obj(int(param[3:])))
@@ -121,12 +121,15 @@ def _create_obj(session,obj,create_attrs):
     # look up any parameters
     create_params = [session]
     
-    if 'params' in create_attrs:
-        for param in create_attrs['params']:
+    if 'api_params' in create_attrs:
+        for param in create_attrs['api_params']:
             if isinstance(param,str) and param[:3] == "id_":
                 create_params.append(session.find_obj(int(param[3:])))
             else:
                 create_params.append(param)
+                
+                if obj == Tensor and param == 1:
+                    create_params[-1] = (1,)
     
     return create_method(*create_params)
     
@@ -216,6 +219,7 @@ def parse(bcip_ext_req,sess_hash):
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = f.session_id
+                
     elif bcip_ext_req['cmd_type'] == 'execute':
         session = sess_hash[sess_id]
         obj = session.find_obj(bcip_ext_req['params']['obj']) \
@@ -237,8 +241,11 @@ def parse(bcip_ext_req,sess_hash):
                 exe_params.append(session.find_obj(int(param[3:])))
             else:
                 exe_params.append(param)
+                if param.isnumeric():
+                    exe_params[-1] = int(param)
         
         return_packet['sts'] = execution_method(*exe_params)
+        
     elif bcip_ext_req['cmd_type'] == 'req_data':
         session = sess_hash[sess_id]
         obj = session.find_obj(bcip_ext_req['params']['obj']) \
@@ -250,6 +257,7 @@ def parse(bcip_ext_req,sess_hash):
             return_packet['data'] = getattr(obj,prop)
         else:
             return_packet['sts'] = BcipEnums.FAILURE
+                
     
     return json.dumps(return_packet)
             

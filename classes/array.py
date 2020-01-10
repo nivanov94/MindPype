@@ -17,12 +17,11 @@ class Array(BCIP):
     def __init__(self,sess,capacity,element_template):
         super().__init__(BcipEnums.ARRAY,sess)
         
+        self._virtual = False # no virtual arrays for now
+        
         self._capacity = capacity
         
         self._elements = [None] * capacity
-        if not 'type' in element_template:
-            # log error
-            return 
         
         for i in range(capacity):
             self.set_element(i,element_template.make_copy())
@@ -38,17 +37,13 @@ class Array(BCIP):
         if index >= self.capacity or index < 0:
             return False
         
-        self._element[index] = element
+        self._elements[index] = element
         return True
     
     # User Facing Getters
     @property
     def capacity(self):
         return self._capacity
-    
-    @property
-    def num_items(self):
-        return self._num_items
     
     @property
     def virtual(self):
@@ -70,9 +65,9 @@ class Array(BCIP):
         """
         cpy = Array(self.session,
                     self.capacity,
-                    self.virtual)
+                    self.get_element(0))
         
-        for e in range(self.num_items):
+        for e in range(self.capacity):
             cpy.set_element(e,self.get_element(e))
             
         return cpy
