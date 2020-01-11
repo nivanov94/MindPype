@@ -82,6 +82,10 @@ class Scalar(BCIP):
                      self.virtual,
                      self.ext_src)
         
+        # add the copy to the session
+        sess = self.session
+        sess.add_data(cpy)
+        
         return cpy
     
     def copy_to(self,dest_scalar):

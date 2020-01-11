@@ -43,6 +43,9 @@ class CircleBuffer(Array):
         
         for e in range(self.capacity):
             cpy.set_element(e,self.get_element(e))
+        
+        # add the copy to the session
+        self.session.add_data(cpy)
             
         return cpy
     

@@ -18,6 +18,7 @@ class Array(BCIP):
         super().__init__(BcipEnums.ARRAY,sess)
         
         self._virtual = False # no virtual arrays for now
+        self._volatile = False # no volatile arrays for now...
         
         self._capacity = capacity
         
@@ -49,6 +50,10 @@ class Array(BCIP):
     def virtual(self):
         return self._virtual
     
+    @property
+    def volatile(self):
+        return self._volatile
+    
     @capacity.setter
     def capacity(self,capacity):
         if self.virtual:
@@ -69,6 +74,9 @@ class Array(BCIP):
         
         for e in range(self.capacity):
             cpy.set_element(e,self.get_element(e))
+            
+        # add the copy to the session
+        self.session.add_data(cpy)
             
         return cpy
     
