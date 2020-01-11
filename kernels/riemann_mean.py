@@ -73,8 +73,6 @@ class RiemannMeanKernel(Kernel):
         """
         Execute the kernel and calculate the mean
         """
-        if not self._initialized:
-            return BcipEnums.EXE_FAILURE_UNINITIALIZED
         
         # calculate the mean using pyRiemann
         self._outputA.data = mean_riemann(self._inA.data)
