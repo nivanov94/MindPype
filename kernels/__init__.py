@@ -17,6 +17,7 @@ from .logical_xor import XorKernel
 from .multiplication import MultiplicationKernel
 from .reduced_sum import ReducedSumKernel
 from .riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
+from .riemann_distance import RiemannDistanceKernel
 from .riemann_mean import RiemannMeanKernel
 from .set_data import SetKernel
 from .stack import StackKernel
