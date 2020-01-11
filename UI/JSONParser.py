@@ -5,6 +5,7 @@ Created on Tue Dec 17 13:22:29 2019
 """
 
 import json
+from classes.bcip import BCIP
 from classes.bcip_enums import BcipEnums
 from classes.session import Session
 from classes.block import Block
@@ -18,52 +19,53 @@ from classes.source import BcipMatFile, LSLStream
 import kernels
 
 
-# this is kinda gross, but works for now
+# this is not ideal, but works for now
 kernel_LUT = {
-        "addition"       : kernels.addition.AdditionKernel,
-        "concatenation"  : kernels.concatenation.ConcatenationKernel,
-        "covariance"     : kernels.covariance.CovarianceKernel,
-        "diffusion_map"  : kernels.diffusion_map.DiffusionMapKernel,
-        "division"       : kernels.divsion.DivisionKernel,
-        "enqueue"        : kernels.enqueue.EnqueueKernel,
-        "equal"          : kernels.equal.EqualKernel,
-        "extract"        : kernels.extract.ExtractKernel,
-        "filter"         : kernels.filter_.FilterKernel,
-        "filtfilt"       : kernels.filtfilt.FiltFiltKernel,
-        "greater"        : kernels.greater.GreaterKernel,
-        "less"           : kernels.less.LessKernel,
-        "logical_and"    : kernels.logical_and.AndKernel,
-        "logical_not"    : kernels.logical_not.NotKernel,
-        "logical_or"     : kernels.logical_or.OrKernel,
-        "logical_xor"    : kernels.logical_xor.XorKernel,
-        "multiplication" : kernels.multiplication.MultiplicationKernel,
-        "reduced_sum"    : kernels.reduced_sum.ReducedSumKernel,
-        "riemann_mdm"    : kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel,
-        "riemann_mean"   : kernels.riemann_mean.RiemannMeanKernel,
-        "set"            : kernels.set_data.SetKernel,
-        "stack"          : kernels.stack.StackKernel,
-        "subtraction"    : kernels.subtraction.SubtractionKernel,
-        "transpose"      : kernels.transpose.TransposeKernel
+        "addition"         : kernels.addition.AdditionKernel,
+        "concatenation"    : kernels.concatenation.ConcatenationKernel,
+        "covariance"       : kernels.covariance.CovarianceKernel,
+        "diffusion_map"    : kernels.diffusion_map.DiffusionMapKernel,
+        "division"         : kernels.divsion.DivisionKernel,
+        "enqueue"          : kernels.enqueue.EnqueueKernel,
+        "equal"            : kernels.equal.EqualKernel,
+        "extract"          : kernels.extract.ExtractKernel,
+        "filter"           : kernels.filter_.FilterKernel,
+        "filtfilt"         : kernels.filtfilt.FiltFiltKernel,
+        "greater"          : kernels.greater.GreaterKernel,
+        "less"             : kernels.less.LessKernel,
+        "logical_and"      : kernels.logical_and.AndKernel,
+        "logical_not"      : kernels.logical_not.NotKernel,
+        "logical_or"       : kernels.logical_or.OrKernel,
+        "logical_xor"      : kernels.logical_xor.XorKernel,
+        "multiplication"   : kernels.multiplication.MultiplicationKernel,
+        "reduced_sum"      : kernels.reduced_sum.ReducedSumKernel,
+        "riemann_mdm"      : kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel,
+        "riemann_distance" : kernels.riemann_distance.RiemannDistanceKernel,
+        "riemann_mean"     : kernels.riemann_mean.RiemannMeanKernel,
+        "set"              : kernels.set_data.SetKernel,
+        "stack"            : kernels.stack.StackKernel,
+        "subtraction"      : kernels.subtraction.SubtractionKernel,
+        "transpose"        : kernels.transpose.TransposeKernel
     }
 
-def _create_session(create_attrs):
+def _create_session(create_method_name, api_params):
     """
     Create a session obj given some creation attributes
     """
     return Session.create()
 
-def _create_block(session, create_attrs):
+def _create_block(session, create_method_name, api_params, other_attrs):
     """
     Create a block obj given some creation attributes
     """
-    n_classes = create_attrs['n_classes']
-    n_class_trials = create_attrs['n_class_trials']
+    n_classes = api_params[0]
+    n_class_trials = api_params[1]
     
     b = Block.create(session,n_classes,n_class_trials)
 
     # add the preprocessing, trial_processing, and postprocessing
     for graph in ['pre','trial_processing','post']:
-        for node in create_attrs[graph]:
+        for node in other_attrs[graph]:
             if not node['name'] in kernel_LUT:
                 return
             kern = kernel_LUT[node['name']]
@@ -103,13 +105,10 @@ def _create_block(session, create_attrs):
 
     return b
 
-def _create_obj(session,obj,create_attrs):
+def _create_obj(session, obj, create_method_name, api_params):
     """
     Create a BCIP object according to the create_attrs
     """
-    create_method_name = create_attrs['creation_method'] if 'creation_method' \
-                                                            in create_attrs \
-                                                       else 'create'
     
     if hasattr(obj,create_method_name):
         create_method = getattr(obj,create_method_name)
@@ -121,15 +120,16 @@ def _create_obj(session,obj,create_attrs):
     # look up any parameters
     create_params = [session]
     
-    if 'api_params' in create_attrs:
-        for param in create_attrs['api_params']:
-            if isinstance(param,str) and param[:3] == "id_":
-                create_params.append(session.find_obj(int(param[3:])))
-            else:
-                create_params.append(param)
-                
-                if obj == Tensor and param == 1:
-                    create_params[-1] = (1,)
+
+    for param in api_params:
+        if isinstance(param,str) and param[:3] == "id_":
+            create_params.append(session.find_obj(int(param[3:])))
+        else:
+            create_params.append(param)
+            
+            # hack to create 1D tensors, 1D tuples are lost in JSON transmission
+            if obj == Tensor and param == 1:
+                create_params[-1] = (1,)
     
     return create_method(*create_params)
     
@@ -162,9 +162,20 @@ def parse(bcip_ext_req,sess_hash):
     sess_id = bcip_ext_req['sess_id']
     
     if bcip_ext_req['cmd_type'] == 'create':
-        create_attrs = bcip_ext_req['params']['attrs']
+        # extract the creation method
+        creation_method = 'create' # default
+        if 'creation_method' in bcip_ext_req['params']:
+            creation_method = bcip_ext_req['params']['creation_method']
+        
+        # extract the api_params
+        api_params = []
+        if 'api_params' in bcip_ext_req['params']:
+            api_params = bcip_ext_req['params']['api_params']
+        
+        
+        # determine the object to create and call the creation function
         if bcip_ext_req['params']['obj'] == 'session':
-            s = _create_session(create_attrs)
+            s = _create_session(creation_method, api_params)
             if s == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
@@ -172,49 +183,52 @@ def parse(bcip_ext_req,sess_hash):
                 return_packet['id'] = interface_sess_id
                 sess_hash[interface_sess_id] = s
         elif bcip_ext_req['params']['obj'] == 'block':
-            b = _create_block(sess_hash[sess_id], create_attrs)
+            other_attrs = {}
+            if 'other_attrs' in bcip_ext_req['params']:
+                other_attrs = bcip_ext_req['params']['other_attrs']
+            b = _create_block(sess_hash[sess_id], creation_method, api_params, other_attrs)
             if b == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = b.session_id
         elif bcip_ext_req['params']['obj'] == 'tensor':
-            t = _create_obj(sess_hash[sess_id],Tensor,create_attrs)
+            t = _create_obj(sess_hash[sess_id],Tensor, creation_method, api_params)
             if t == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = t.session_id
         elif bcip_ext_req['params']['obj'] == 'scalar':
-            s = _create_obj(sess_hash[sess_id],Scalar,create_attrs)
+            s = _create_obj(sess_hash[sess_id],Scalar, creation_method, api_params)
             if s == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = s.session_id
         elif bcip_ext_req['params']['obj'] == 'array':
-            a = _create_obj(sess_hash[sess_id],Array,create_attrs)
+            a = _create_obj(sess_hash[sess_id],Array, creation_method, api_params)
             if a == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = a.session_id
         elif bcip_ext_req['params']['obj'] == 'circle_buffer':
-            cb = _create_obj(sess_hash[sess_id],CircleBuffer,create_attrs)
+            cb = _create_obj(sess_hash[sess_id],CircleBuffer, creation_method, api_params)
             if cb == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = cb.session_id
         elif bcip_ext_req['params']['obj'] == 'filter':
-            f = _create_obj(sess_hash[sess_id],Filter,create_attrs)
+            f = _create_obj(sess_hash[sess_id],Filter, creation_method, api_params)
             if f == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = f.session_id
         elif bcip_ext_req['params']['obj'] == 'lsl_stream':
-            lsl = _create_obj(sess_hash[sess_id],LSLStream,create_attrs)
+            lsl = _create_obj(sess_hash[sess_id],LSLStream, creation_method, api_params)
             if lsl == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 return_packet['id'] = lsl.session_id
         elif bcip_ext_req['params']['obj'] == 'mat_file':
-            f = _create_obj(sess_hash[sess_id],BcipMatFile,create_attrs)
+            f = _create_obj(sess_hash[sess_id],BcipMatFile, creation_method, api_params)
             if f == None:
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
@@ -225,7 +239,7 @@ def parse(bcip_ext_req,sess_hash):
         obj = session.find_obj(bcip_ext_req['params']['obj']) \
                             if 'obj' in bcip_ext_req['params'] else session
         
-        execution_method_name = bcip_ext_req['params']['func']
+        execution_method_name = bcip_ext_req['params']['method']
         
         if hasattr(obj,execution_method_name):
             execution_method = getattr(obj,execution_method_name)
@@ -234,17 +248,27 @@ def parse(bcip_ext_req,sess_hash):
         else:
             return_packet['sts'] = BcipEnums.FAILURE
         
-        exe_attrs = bcip_ext_req['params']['attrs']
+        exe_attrs = []
+        if 'api_params' in bcip_ext_req['params']:
+            exe_attrs = bcip_ext_req['params']['api_params']
+            
         exe_params = []
         for param in exe_attrs:
             if isinstance(param,str) and param[:3] == "id_":
                 exe_params.append(session.find_obj(int(param[3:])))
             else:
                 exe_params.append(param)
-                if param.isnumeric():
-                    exe_params[-1] = int(param)
+
         
-        return_packet['sts'] = execution_method(*exe_params)
+        method_return = execution_method(*exe_params)
+        
+        if isinstance(method_return,BcipEnums):
+            return_packet['sts'] = method_return
+        elif isinstance(method_return,BCIP):
+            return_packet['sts'] = BcipEnums.SUCCESS
+            return_packet['obj'] = method_return.session_id
+        else:
+            return_packet['sts'] = BcipEnums.FAILURE
         
     elif bcip_ext_req['cmd_type'] == 'req_data':
         session = sess_hash[sess_id]
