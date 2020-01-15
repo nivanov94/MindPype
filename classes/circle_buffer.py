@@ -8,6 +8,7 @@ circle_buffer.py - Defines a circular buffer class for BCIP objects
 """
 
 from .array import Array
+from .bcip_enums import BcipEnums
 
 class CircleBuffer(Array):
     """
@@ -17,17 +18,66 @@ class CircleBuffer(Array):
     def __init__(self,sess,capacity,element_template):
         super().__init__(sess,capacity,element_template)
         
-        self._head = 0
-        self._tail = -1
+        self._head = None
+        self._tail = None
+    
+    def is_empty(self):
+        if self._head == None and self._tail == None:
+            return True
+        else:
+            return False
         
+    def is_full(self):
+        if self._head == ((self._tail + 1) % self.capacity):
+            return True
+        else:
+            return False
+    
+    def peek(self):
+        if self.is_empty():
+            return None
+        
+        return super(CircleBuffer,self).get_element(self._head)
+    
     def enqueue(self,obj):
+        if self.is_empty():
+            self._head = 0
+            self._tail = -1
+            
+        elif self.is_full():
+            self._head = (self._head + 1) % self.capacity
+        
         self._tail = (self._tail + 1) % self.capacity
-        return super(CircleBuffer,self).setElement(self._tail,obj)
+        return super(CircleBuffer,self).set_element(self._tail,obj)
+        
+    def enqueue_chunk(self,cb):
+        """
+        enqueue a number of elements from another circle buffer into this
+        circle buffer
+        """
+        
+        while not cb.is_empty():
+            element = cb.dequeue()
+            sts = self.enqueue(element)
+            
+            if sts != BcipEnums.SUCCESS:
+                return sts
+        
+        return BcipEnums.SUCCESS
+            
     
     def dequeue(self):
-        # TODO check if its empty?
-        ret = super(CircleBuffer,self).getElement(self._head)
-        self._head = (self._head + 1) % self.capacity
+        if self.is_empty():
+            return None
+        
+        ret = super(CircleBuffer,self).get_element(self._head)
+        
+        if self._head == self._tail:
+            self._head = None
+            self._tail = None
+        else:
+            self._head = (self._head + 1) % self.capacity
+        
         return ret
     
     def make_copy(self):
@@ -56,7 +106,13 @@ class CircleBuffer(Array):
         """
         dest_array.capacity = self.capacity
         for i in range(self.capacity):
-            dest_array.set_element(i,self.get_element(i))
+            sts = dest_array.set_element(i,self.get_element(i))
+            
+            if sts != BcipEnums.SUCCESS:
+                return sts
+        
+        return BcipEnums.SUCCESS
+        
         
     @classmethod
     def create(cls,sess,capacity,element_template):

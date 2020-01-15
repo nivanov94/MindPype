@@ -25,7 +25,7 @@ class Array(BCIP):
         self._elements = [None] * capacity
         
         for i in range(capacity):
-            self.set_element(i,element_template.make_copy())
+            self._elements[i] = element_template.make_copy()
         
     
     def get_element(self,index):
@@ -36,10 +36,10 @@ class Array(BCIP):
     
     def set_element(self,index,element):
         if index >= self.capacity or index < 0:
-            return False
+            return BcipEnums.FAILURE
         
-        self._elements[index] = element
-        return True
+        element.copy_to(self._elements[index])
+        return BcipEnums.SUCCESS
     
     # User Facing Getters
     @property
@@ -87,7 +87,12 @@ class Array(BCIP):
         """
         dest_array.capacity = self.capacity
         for i in range(self.capacity):
-            dest_array.set_element(i,self.get_element(i))
+            sts = dest_array.set_element(i,self.get_element(i))
+            
+            if sts != BcipEnums.SUCCESS:
+                return sts
+        
+        return BcipEnums.SUCCESS
     
     # API constructor
     @classmethod

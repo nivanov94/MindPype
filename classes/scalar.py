@@ -111,7 +111,7 @@ class Scalar(BCIP):
     
     @classmethod
     def valid_numeric_types(cls):
-        return ['int','float','complex']
+        return [int,float,complex]
     
     # Factory Methods
     @classmethod

@@ -45,10 +45,10 @@ class MultiplicationKernel(Kernel):
         if not (isinstance(self._inB,Tensor) or isinstance(self._inB,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
-        if (isinstance(self._inA,Tensor) or isinstance(self._inB,Tensor)) and \
-           (not isinstance(self._outA,Tensor)):
-            # if one of the inputs is a tensor, the output will be a tensor
-            return BcipEnums.INVALID_PARAMETERS
+        if isinstance(self._inA,Tensor) or isinstance(self._inB,Tensor):
+            if not isinstance(self._outA,Tensor):
+                # if one of the inputs is a tensor, the output will be a tensor
+                return BcipEnums.INVALID_PARAMETERS
         elif not isinstance(self._outA,Scalar):
             # o.w. the output should be a scalar
             return BcipEnums.INVALID_PARAMETERS

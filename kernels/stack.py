@@ -50,15 +50,15 @@ class StackKernel(Kernel):
         stack_axis = self._axis.data if self._axis != None else 0
         
         # ensure that all the tensors in inA are the same size
-        tensor_shapes = [self._inA.getElement(i).shape
-                                    for i in range(self._inA.num_items)]
+        tensor_shapes = [self._inA.get_element(i).shape
+                                    for i in range(self._inA.capacity)]
         
         if len(set(tensor_shapes)) != 1:
             # tensors in array are different sizes OR array is empty
             return BcipEnums.INVALID_PARAMETERS
         
         # determine the output dimensions
-        output_shape = tensor_shapes[0][:stack_axis] + (self._inA.num_items,) \
+        output_shape = tensor_shapes[0][:stack_axis] + (self._inA.capacity,) \
                          + tensor_shapes[0][stack_axis:]
         
         # check the output dimensions are valid
@@ -79,8 +79,8 @@ class StackKernel(Kernel):
         stack_axis = self._axis.data if self._axis != None else 0
         
         try:
-            input_tensors = [self._inA.getElement(i) for i 
-                                             in range(self._inA.num_items)]
+            input_tensors = [self._inA.get_element(i) for i 
+                                             in range(self._inA.capacity)]
             
             input_data = [t.data for t in input_tensors]
             output_data = np.stack(input_data,axis=stack_axis)
@@ -105,7 +105,7 @@ class StackKernel(Kernel):
         k = cls(graph,inA,outA,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT), \
+        params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object

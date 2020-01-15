@@ -129,6 +129,7 @@ class Graph(BCIP):
         # now all the nodes are in execution order, validate each node
         for n in self._nodes:
             valid = n.verify()
+            print(n.kernel)
             if valid != BcipEnums.SUCCESS:
                 return valid
         

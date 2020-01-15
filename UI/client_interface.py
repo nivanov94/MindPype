@@ -69,10 +69,12 @@ class BCIPSocketInterface:
         Send a response to the client request
         """
         out_packet_sz = len(self._send)
+        print("returning packet of size: ",out_packet_sz)
         out_packet_header = struct.pack('!L',out_packet_sz)
         
         self._sock.sendall(out_packet_header)
         self._sock.sendall(self._send)
+        print(self._send)
         
         
         

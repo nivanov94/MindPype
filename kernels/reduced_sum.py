@@ -17,14 +17,14 @@ import numpy as np
 class ReducedSumKernel(Kernel):
     """
     Kernel to compute the sum of the input tensor's 
-    element along the provided axes
+    element along the provided axis
     """
     
-    def __init__(self,graph,inA,outA,axes=None,keep_dims=False):
+    def __init__(self,graph,inA,outA,axis=None,keep_dims=False):
         super().__init__('ReducedSum',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._outA = outA
-        self._axes = axes
+        self._axis = axis
         self._keep_dims = keep_dims
     
     def initialize(self):
@@ -50,15 +50,17 @@ class ReducedSumKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         
         inA_shape = self._inA.shape
-        axes = self._axes if self._axes != None else ()
+        axis = (self._axis,) if self._axis != None else ()
         
         if self._keep_dims:
             # all reduced dimensions will be '1'
-            out_shape = tuple([1 if i in axes else inA_shape[i] 
+            out_shape = tuple([1 if i in axis else inA_shape[i] 
                                           for i in range(len(inA_shape))])
+        elif axis == ():
+            out_shape = (1,)
         else:
             out_shape = tuple([inA_shape[i] for i in range(len(inA_shape))
-                                                   if i not in axes])
+                                                   if i not in axis])
         
         # if the output is a virtual tensor and has no defined shape, set the shape now
         if isinstance(self._outA,Tensor) and self._outA.virtual \
@@ -80,8 +82,8 @@ class ReducedSumKernel(Kernel):
         
         try:
             self._outA.data = np.sum(self._inA.data, 
-                                     axes=self._axes,
-                                     keep_dims=self._keep_dims)
+                                     axis=self._axis,
+                                     keepdims=self._keep_dims)
 
         except ValueError:
             return BcipEnums.EXE_ERROR
@@ -89,14 +91,14 @@ class ReducedSumKernel(Kernel):
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_reduced_sum_node(cls,graph,inA,outA,axes=None,keep_dims=False):
+    def add_reduced_sum_node(cls,graph,inA,outA,axis=None,keep_dims=False):
         """
         Factory method to create a reduced sum kernel 
         and add it to a graph as a generic node object.
         """
         
         # create the kernel object
-        k = cls(graph,inA,outA,axes,keep_dims)
+        k = cls(graph,inA,outA,axis,keep_dims)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),

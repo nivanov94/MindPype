@@ -95,6 +95,8 @@ class Tensor(BCIP):
             dest_tensor.shape = self.shape
         dest_tensor.data = self.data
         
+        return BcipEnums.SUCCESS
+        
         # Not copying virtual and ext_src attributes because these should 
         # only be set during creation and modifying could cause unintended
         # consequences

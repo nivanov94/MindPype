@@ -69,8 +69,19 @@ class ConcatenationKernel(Kernel):
         sz_A = self._inA.shape
         sz_B = self._inB.shape
         
-        noncat_sz_A = [d for i,d in enumerate(sz_A) if i!=concat_axis]
-        noncat_sz_B = [d for i,d in enumerate(sz_B) if i!=concat_axis]
+        if len(sz_A) == len(sz_B):
+            noncat_sz_A = [d for i,d in enumerate(sz_A) if i!=concat_axis]
+            noncat_sz_B = [d for i,d in enumerate(sz_B) if i!=concat_axis]
+            output_sz = noncat_sz_A[:]
+            output_sz.insert(concat_axis,sz_A[concat_axis]+sz_B[concat_axis])
+        elif len(sz_A) == len(sz_B)+1:
+            # appending B to A
+            noncat_sz_A = [d for i,d in enumerate(sz_A) if i!=concat_axis]
+            noncat_sz_B = sz_B
+            output_sz = noncat_sz_A[:]
+            output_sz.insert(concat_axis,sz_A[concat_axis]+1)
+        else:
+            return BcipEnums.INVALID_PARAMETERS
         
         # check if the remaining dimensions are the same
         if (len(noncat_sz_A) != len(noncat_sz_B) or \
@@ -79,9 +90,7 @@ class ConcatenationKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         
         
-        output_sz = noncat_sz_A[:]
-        output_sz.insert(concat_axis,sz_A[concat_axis]+sz_B[concat_axis])
-        
+        output_sz = tuple(output_sz)
         # check the output dimensions are valid
         if self._outA.virtual and len(self._outA.shape) == 0:
             self._outA.shape = output_sz
@@ -98,9 +107,16 @@ class ConcatenationKernel(Kernel):
         """
         concat_axis = self._axis.data if self._axis != None else 0
         
+        inA_data = self._inA.data
+        inB_data = self._inB.data
+        
+        if len(inA_data.shape) == len(inB_data.shape)+1:
+            # add a leading dimension for input B
+            inB_data = np.expand_dims(inB_data,axis=0)
+        
         try:
-            out_tensor = np.concatenate((self._inA.data,
-                                         self._inB.data),
+            out_tensor = np.concatenate((inA_data,
+                                         inB_data),
                                         axis=concat_axis)
         except ValueError:
             # dimensions are invalid
@@ -113,7 +129,7 @@ class ConcatenationKernel(Kernel):
     
     
     @classmethod
-    def add_concatenation_node(cls,graph,outA,inA,inB,axis=None):
+    def add_concatenation_node(cls,graph,inA,inB,outA,axis=None):
         """
         Factory method to create a concatenation kernel and add it to a graph
         as a generic node object.

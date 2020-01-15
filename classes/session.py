@@ -19,9 +19,9 @@ class Session(BCIP):
         
         # define some private attributes
         self._blocks = [] # queue of blocks to execute
-        self._datum = []
-        self._misc_objs = []
-        self._ext_srcs = []
+        self._datum = {}
+        self._misc_objs = {}
+        self._ext_srcs = {}
         self._verified = False
         
     # API Getters
@@ -50,6 +50,8 @@ class Session(BCIP):
             if verified != BcipEnums.SUCCESS:
                 self._verified = False
                 return verified
+            
+            b_count += 1
         
         self._verified = True
         return BcipEnums.SUCCESS
@@ -68,8 +70,8 @@ class Session(BCIP):
         to indicate how each data object should be synced
         """
         for d in self._datum:
-            if d.volatile:
-                d.poll_volatile_data(label)
+            if self._datum[d].volatile:
+                self._datum[d].poll_volatile_data(label)
         
         
     def close_block(self):
@@ -135,13 +137,13 @@ class Session(BCIP):
         return self._blocks.pop(0)
     
     def add_data(self,data):
-        self._datum.append(data)
+        self._datum[data.session_id] = data
         
     def add_misc_bcip_obj(self,obj):
-        self._misc_objs.append(obj)
+        self._misc_objs[obj.session_id] = obj
         
     def add_ext_src(self,src):
-        self._ext_srcs.append(src)
+        self._ext_srcs[src.session_id] = src
         
     def find_obj(self,id_num):
         """
@@ -159,19 +161,16 @@ class Session(BCIP):
                 return b
         
         # check if its a data obj
-        for d in self._datum:
-            if id_num == d.session_id:
-                return d
+        if id_num in self._datum:
+            return self._datum[id_num]
         
         # check if its a misc obj
-        for o in self._misc_objs:
-            if id_num == o.session_id:
-                return o
+        if id_num in self._misc_objs:
+            return self._misc_objs[id_num]
         
         # check if its a external source
-        for s in self._ext_srcs:
-            if id_num == s.session_id:
-                return s
+        if id_num in self._ext_srcs:
+            return self._ext_srcs[id_num]
         
         # not found, return None type
         return None

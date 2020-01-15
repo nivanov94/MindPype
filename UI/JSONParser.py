@@ -3,7 +3,7 @@ Created on Tue Dec 17 13:22:29 2019
 
 @author: ivanovn
 """
-
+import numpy as np
 import json
 from classes.bcip import BCIP
 from classes.bcip_enums import BcipEnums
@@ -240,13 +240,16 @@ def parse(bcip_ext_req,sess_hash):
                             if 'obj' in bcip_ext_req['params'] else session
         
         execution_method_name = bcip_ext_req['params']['method']
-        
+
         if hasattr(obj,execution_method_name):
             execution_method = getattr(obj,execution_method_name)
             if not callable(execution_method):
                 return_packet['sts'] = BcipEnums.FAILURE
+                return json.dumps(return_packet)
         else:
             return_packet['sts'] = BcipEnums.FAILURE
+            return json.dumps(return_packet)
+        
         
         exe_attrs = []
         if 'api_params' in bcip_ext_req['params']:
@@ -259,7 +262,6 @@ def parse(bcip_ext_req,sess_hash):
             else:
                 exe_params.append(param)
 
-        
         method_return = execution_method(*exe_params)
         
         if isinstance(method_return,BcipEnums):
@@ -267,6 +269,7 @@ def parse(bcip_ext_req,sess_hash):
         elif isinstance(method_return,BCIP):
             return_packet['sts'] = BcipEnums.SUCCESS
             return_packet['obj'] = method_return.session_id
+            return_packet['type'] = str(type(method_return))
         else:
             return_packet['sts'] = BcipEnums.FAILURE
         
@@ -278,7 +281,10 @@ def parse(bcip_ext_req,sess_hash):
         prop = bcip_ext_req['params']['property']
         
         if hasattr(obj,prop):
-            return_packet['data'] = getattr(obj,prop)
+            data = getattr(obj,prop)
+            if isinstance(data,np.ndarray):
+                data = data.tolist()
+            return_packet['data'] = data
         else:
             return_packet['sts'] = BcipEnums.FAILURE
                 

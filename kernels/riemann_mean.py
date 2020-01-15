@@ -54,17 +54,17 @@ class RiemannMeanKernel(Kernel):
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self._outA.virtual and self._outA.shape == None):
+        if (self._outA.virtual and len(self._outA.shape) == 0):
             self._outA.shape = input_shape[1:]
         
         
         # output tensor should be one dimensional
-        if len(self._outputA.shape) > 2:
+        if len(self._outA.shape) > 2:
             return BcipEnums.INVALID_PARAMETERS
         
         # check that the dimensions of the output match the dimensions of
         # input
-        if self._inA.shape[1:] != self._outputA.shape:
+        if self._inA.shape[1:] != self._outA.shape:
             return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
@@ -75,7 +75,7 @@ class RiemannMeanKernel(Kernel):
         """
         
         # calculate the mean using pyRiemann
-        self._outputA.data = mean_riemann(self._inA.data)
+        self._outA.data = mean_riemann(self._inA.data)
         
         return BcipEnums.SUCCESS
     
