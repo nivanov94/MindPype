@@ -103,7 +103,7 @@ class Block(BCIP):
         Returns a status code
         """
         
-        if self.remaining_trials(label) == 0:
+        if self.remaining_trials(label) == (0,):
             return BcipEnums.EXCEED_TRIAL_LIMIT
                 
         sts = self.trial_processing_graph.execute()
