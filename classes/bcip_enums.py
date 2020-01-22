@@ -35,6 +35,7 @@ class BcipEnums(IntEnum):
     INITIALIZATION_FAILURE = 207
     EXE_FAILURE_UNINITIALIZED = 208
     EXE_FAILURE = 209
+    NOT_YET_IMPLEMENTED = 210
     
     # Parameter Directions - Leading '3'
     INPUT  = 300

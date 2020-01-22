@@ -20,12 +20,12 @@ class ExtractKernel(Kernel):
     Kernel to extract a portion of a tensor or array
     """
     
-    def __init__(self,graph,inA,axis,index,outA):
+    def __init__(self,graph,inA,indices,outA,reduce_dims):
         super().__init__('Extract',BcipEnums.INIT_FROM_NONE,graph)
         self._in   = inA
         self._out  = outA
-        self._axis = axis
-        self._index  = index
+        self._indices  = indices
+        self._reduce_dims = reduce_dims
     
     def initialize(self):
         """
@@ -49,45 +49,77 @@ class ExtractKernel(Kernel):
         # if the input is an array, then the there should only be a single 
         # dimension to extract with a value of zero
         if isinstance(self._in,Array):
-            if self._axis != 0:
+            if len(self._indices) != 1:
                 return BcipEnums.INVALID_PARAMETERS
             
             # check that the index to extract do not exceed the capacity
-            if self._index >= self._in.capacity:
-                return BcipEnums.INVALID_PARAMETERS
+            for index in self._indices[0]:
+                if index >= self._in.capacity:
+                    return BcipEnums.INVALID_PARAMETERS
+                
+            array_indices = self._indices[0]
         
             # if the output is a tensor, check the shape
             if isinstance(self._out,Tensor):
-                if not isinstance(self._in.get_element(self._index),Tensor):
+                if not isinstance(self._in.get_element(array_indices[0]),Tensor):
                     return BcipEnums.INVALID_PARAMETERS
+                
+                depth = len(array_indices)
                 
                 if self._out.virtual and len(self._out.shape) == 0:
-                    self._out.shape = self._in.get_element(self._index).shape
-                
-                if self._in.get_element(self._index) != self._out.shape:
-                    return BcipEnums.INVALID_PARAMETERS
+                    if depth == 1 and self._reduce_dims:
+                        self._out.shape = self._in.get_element(array_indices[0]).shape
+                    else:
+                        self._out.shape = (depth,) + \
+                                        self._in.get_element(array_indices[0]).shape
+
+                if depth == 1:
+                    if len(self._out.shape) == 2:
+                        output_sz = self._in.get_element(array_indices[0])
+                        if self._out.shape != output_sz:
+                            return BcipEnums.INVALID_PARAMETERS
+                    elif len(self._out.shape) == 3:
+                        if depth == 1:
+                            return BcipEnums.INVALID_PARAMETERS
+                        
+                        output_sz = (1,) + self._in.get_element(array_indices[0])
+                        if self._out.shape != output_sz:
+                            return BcipEnums.INVALID_PARAMETERS
+                    else:
+                        # invalid shape
+                        return BcipEnums.INVALID_PARAMETERS
+                else:
+                    output_sz = (depth,) + self._in.get_element(array_indices[0])
+                    if self._out.shape != output_sz:
+                        return BcipEnums.INVALID_PARAMETERS
+                    
         
         elif isinstance(self._in,Tensor):
             # check that the number of dimensions indicated does not exceed 
             # the tensor's rank
-            if self._axis >= len(self._in.shape):
+            if len(self._indices) != len(self._in.shape):
                 return BcipEnums.INVALID_PARAMETERS
             
-            # check that the index is valid for the given axis
-            if self._index < 0 or self._index >= self._in.shape[self._axis]:
-                return BcipEnums.INVALID_PARAMETERS
-        
+            output_sz = []
+            for axis in range(len(self._indices)):
+                if self._indices[axis] != None:
+                    for index in self._indices[axis]:
+                        # check that the index is valid for the given axis
+                        if index < 0 or index >= self._in.shape[axis]:
+                            return BcipEnums.INVALID_PARAMETERS
+                    
+                    if not self._reduce_dims or len(self._indices[axis]) > 1:
+                        output_sz.append(len(self._indices[axis]))
+                else:
+                    output_sz.append(self._in.shape[axis])
             
             # check that the output tensor's dimensions are valid
-            input_shape = self._in.shape
-            output_shape = tuple([input_shape[i] 
-                                            for i in range(len(input_shape)) 
-                                            if i!=self._axis])
+            output_sz = tuple(output_sz)
             
             if self._out.virtual and len(self._out.shape) == 0:
-                self._out.shape = output_shape
+                self._out.shape = output_sz
             
-            if self._out.shape != output_shape:
+            if self._out.shape != output_sz:
                 return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
@@ -99,34 +131,44 @@ class ExtractKernel(Kernel):
         
         if isinstance(self._in, Array):
             # extract the elements and set in the output array
-            self._out = self._in.get_element(self._index).copy()
+            for i in range(len(self._indices[0])):
+                if isinstance(self._out,Array):
+                    elem = self._in.get_element(self._indices[0][i])
+                    self._out.set_element(i,elem)
+                elif isinstance(self._out,Tensor):
+                    return BcipEnums.NOT_YET_IMPLEMENTED
         else:
             # tensor case
             ix_grid = []
-            for i in len(self._in.shape):
-                if i == self._axis:
-                    ix_grid.append(list(self._index))
+            for axis in range(len(self._indices)):
+                axis_indices = self._indices[axis]
+                if axis_indices == None:
+                    ix_grid.append([_ for _ in range(self._in.shape[axis])])
                 else:
-                    ix_grid.append([_ for _ in range(self._in.shape[i])])
-            
+                    ix_grid.append(list(axis_indices))
+
             ixgrid = np.ix_(ix_grid)
-            self._out.data = self._in.data[ixgrid]
+            extr_data = self._in.data[ixgrid]
+            
+            if self._reduce_dims:
+                extr_data = np.squeeze(extr_data)
+                
+            self._out.data = extr_data
         
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_extract_node(cls,graph,inA,axis,index,outA):
+    def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False):
         """
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
         """
         
         # create the kernel object
-        k = cls(graph,inA,axis,index,outA)
+        k = cls(graph,inA,indices,outA,reduce_dims)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(index,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
