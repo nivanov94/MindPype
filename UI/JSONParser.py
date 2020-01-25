@@ -42,11 +42,21 @@ kernel_LUT = {
         "riemann_mdm"      : kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel,
         "riemann_distance" : kernels.riemann_distance.RiemannDistanceKernel,
         "riemann_mean"     : kernels.riemann_mean.RiemannMeanKernel,
+        "riemann_potato"   : kernels.riemann_potato.RiemannPotatoKernel,
         "set"              : kernels.set_data.SetKernel,
         "stack"            : kernels.stack.StackKernel,
         "subtraction"      : kernels.subtraction.SubtractionKernel,
         "transpose"        : kernels.transpose.TransposeKernel
     }
+
+def _repl_nulls(l):
+    '''
+    find and replace all strings containing the word null in a list and with
+    the Python None type
+    '''
+    while 'null' in l:
+        i = l.index('null')
+        l[i] = None
 
 def _create_session(create_method_name, api_params):
     """
@@ -171,6 +181,8 @@ def parse(bcip_ext_req,sess_hash):
         api_params = []
         if 'api_params' in bcip_ext_req['params']:
             api_params = bcip_ext_req['params']['api_params']
+            if 'null' in api_params:
+                _repl_nulls(api_params)
         
         
         # determine the object to create and call the creation function
@@ -254,6 +266,8 @@ def parse(bcip_ext_req,sess_hash):
         exe_attrs = []
         if 'api_params' in bcip_ext_req['params']:
             exe_attrs = bcip_ext_req['params']['api_params']
+            if 'null' in api_params:
+                _repl_nulls(api_params)
             
         exe_params = []
         for param in exe_attrs:

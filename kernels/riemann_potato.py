@@ -81,7 +81,7 @@ class RiemannPotatoKernel(Kernel):
     """
     
     def __init__(self,graph,inA,out_label,out_score,thresh,update,alpha,
-                 training_data,training_labels,filt,
+                 training_data,filt,
                  stats_type,init_stopping_crit,k):
         """
         Kernel takes Tensor input and produces scalar label representing
@@ -98,7 +98,6 @@ class RiemannPotatoKernel(Kernel):
         self._ref  = None
         self._q = None
         self._training_data = training_data
-        self._training_labels = training_labels
         
         self._filt = filt
         
@@ -287,11 +286,11 @@ class RiemannPotatoKernel(Kernel):
     
     
     @classmethod
-    def add_riemann_potato(cls,graph,inA,filt,training_data,training_labels,
-                           out_labels=None,out_scores=None,
-                           thresh=2.5,update='static',alpha=0.1,
-                           stats_type='geometric',
-                           init_stopping_crit='iterative',k=3):
+    def add_riemann_potato_node(cls,graph,inA,filt,training_data,
+                                out_labels=None,out_scores=None,
+                                thresh=2.5,update='static',alpha=0.1,
+                                stats_type='geometric',
+                                init_stopping_crit='iterative',k=3):
         """
         Factory method to create a riemann potato artifact detector
         """
@@ -299,7 +298,7 @@ class RiemannPotatoKernel(Kernel):
         # create the kernel object            
 
         k = cls(graph,inA,out_labels,out_scores,thresh,update,alpha,
-                training_data,training_labels,filt,stats_type,
+                training_data,filt,stats_type,
                 init_stopping_crit,k)
         
         # create parameter objects for the input and output

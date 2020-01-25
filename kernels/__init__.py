@@ -19,6 +19,7 @@ from .reduced_sum import ReducedSumKernel
 from .riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
 from .riemann_distance import RiemannDistanceKernel
 from .riemann_mean import RiemannMeanKernel
+from .riemann_potato import RiemannPotatoKernel
 from .set_data import SetKernel
 from .stack import StackKernel
 from .subtraction import SubtractionKernel
