@@ -102,7 +102,7 @@ class ExtractKernel(Kernel):
             
             output_sz = []
             for axis in range(len(self._indices)):
-                if self._indices[axis] != None:
+                if self._indices[axis] != ":":
                     for index in self._indices[axis]:
                         # check that the index is valid for the given axis
                         if index < 0 or index >= self._in.shape[axis]:
@@ -142,7 +142,7 @@ class ExtractKernel(Kernel):
             ix_grid = []
             for axis in range(len(self._indices)):
                 axis_indices = self._indices[axis]
-                if axis_indices == None:
+                if axis_indices == ":":
                     ix_grid.append([_ for _ in range(self._in.shape[axis])])
                 else:
                     ix_grid.append(list(axis_indices))
