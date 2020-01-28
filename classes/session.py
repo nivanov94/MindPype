@@ -101,6 +101,9 @@ class Session(BCIP):
         """
         Initialize the block nodes and execute the preprocessing graph
         """
+        if len(self._blocks) == 0:
+            return BcipEnums.FAILURE
+        
         b = self.current_block
         
         # make sure we're not in the middle of a block
