@@ -120,6 +120,8 @@ class RiemannPotatoKernel(Kernel):
             self._update = 'moving_avg'
         else:
             self._update = 'cumulative'
+            
+        self._initialized = False
           
     
     def initialize(self):
@@ -149,7 +151,11 @@ class RiemannPotatoKernel(Kernel):
             Xfilt = _filter(self._filt,X[i,:,:])
         
             # calculate the covariance matrices
-            XXt[i,:,:] = _cov(Xfilt)
+            Xcov = _cov(Xfilt)
+            
+            # regularize the cov mat
+            r = 0.01
+            XXt[i,:,:] = 1/(1+r)*(Xcov + r*np.eye(Xcov.shape[0]))
 
         X_clean = []
         for i in range(self._k):
@@ -161,14 +167,20 @@ class RiemannPotatoKernel(Kernel):
             self._q = XXt
             
             for i in range(XXt.shape[0]):
-                if _z_score(distance_riemann(XXt[i,:,:], S),mu,sigma) < self._thresh:
+                if abs(_z_score(distance_riemann(XXt[i,:,:], S),mu,sigma)) < self._thresh:
                     X_clean.append(XXt[i,:,:])
+            
+            if len(X_clean) == XXt.shape[0]:
+                break
             
             XXt = np.stack(X_clean)
             
         self._ref = S
         self._mean = mu
         self._std = sigma
+        
+        self._initialized = True
+        return BcipEnums.SUCCESS
         
     
     
@@ -239,10 +251,14 @@ class RiemannPotatoKernel(Kernel):
             X = _filter(self._filt,in_data[i,:,:])
             X = _cov(X)
             
+            # regularize
+            r = 0.01
+            X = 1/(1+r) * (X + r*np.eye(X.shape[0]))
+            
             dt = distance_riemann(self._ref,X)
             scores.append(_z_score(dt,self._mean,self._std))
             
-            if scores[-1] > self._thresh:
+            if abs(scores[-1]) > self._thresh:
                 labels.append(1) # artifact
             else:
                 labels.append(0)

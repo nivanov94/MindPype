@@ -35,10 +35,11 @@ class CovarianceKernel(Kernel):
         Output: B (hxkxnxn)
     """
     
-    def __init__(self,graph,inputA,outputA):
+    def __init__(self,graph,inputA,outputA,regularization):
         super().__init__('Covariance',BcipEnums.INIT_FROM_NONE,graph)
         self._inputA  = inputA
         self._outputA = outputA
+        self._r = regularization
     
     def initialize(self):
         """
@@ -55,6 +56,9 @@ class CovarianceKernel(Kernel):
         if (not isinstance(self._inputA,Tensor)) or \
             (not isinstance(self._outputA,Tensor)):
                 return BcipEnums.INVALID_PARAMETERS
+        
+        if self._r > 1 or self._r < 0:
+            return BcipEnums.INVALID_PARAMETERS
         
         # check the shape
         input_shape = self._inputA.shape
@@ -90,7 +94,9 @@ class CovarianceKernel(Kernel):
         
         
         if rank <= 2:
-            self._outputA.data = np.cov(input_data,rowvar=False)
+            covmat = np.cov(input_data,rowvar=False)
+            self._outputA.data = 1/(1+self._r) * \
+                                    (covmat + self._r*np.eye(covmat.shape[0]))
         else:
             # reshape the input data so it's rank 3
             input_data = np.reshape(input_data,(-1,) + shape[-2:])
@@ -99,7 +105,9 @@ class CovarianceKernel(Kernel):
             
             # calculate the covariance for each 'trial'
             for i in range(output_data.shape[0]):
-                output_data[i,:,:] = np.cov(input_data,rowvar=False)
+                covmat = np.cov(input_data,rowvar=False)
+                output_data[i,:,:] = 1/(1+self._r) * \
+                                     (covmat + self._r*np.eye(covmat.shape[0]))
             
             # reshape the output
             self._outputA.data = np.reshape(output_data,self.outputA.shape)
@@ -107,14 +115,14 @@ class CovarianceKernel(Kernel):
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_covariance_node(cls,graph,inputA,outputA):
+    def add_covariance_node(cls,graph,inputA,outputA,regularization=0):
         """
         Factory method to create a covariance kernel and add it to a graph
         as a generic node object.
         """
         
         # create the kernel object
-        k = cls(graph,inputA,outputA)
+        k = cls(graph,inputA,outputA,regularization)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
