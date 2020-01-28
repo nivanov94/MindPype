@@ -147,8 +147,8 @@ class ExtractKernel(Kernel):
                 else:
                     ix_grid.append(list(axis_indices))
 
-            ixgrid = np.ix_(ix_grid)
-            extr_data = self._in.data[ixgrid]
+            npixgrid = np.ix_(*ix_grid)
+            extr_data = self._in.data[npixgrid]
             
             if self._reduce_dims:
                 extr_data = np.squeeze(extr_data)

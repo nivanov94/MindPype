@@ -26,6 +26,7 @@ class Block(BCIP):
         
         # private attributes
         self._trials_executed = [0] * n_classes
+        self._previous_trial_label = None
         self._verified = False
         
     
@@ -110,6 +111,7 @@ class Block(BCIP):
         if sts != BcipEnums.SUCCESS:
             return sts
         
+        self._previous_trial_label = label
         self._trials_executed[label] += 1
         return BcipEnums.SUCCESS
         
@@ -152,6 +154,18 @@ class Block(BCIP):
         
         if sts != BcipEnums.SUCCESS:
             return sts
+        
+        return BcipEnums.SUCCESS
+    
+    def reject_trial(self):
+        """
+        Reject the previous trial by rewinding the trial counter
+        """
+        if self._previous_trial_label == None \
+           or self._trials_executed[self._previous_trial_label] == 0:
+            return BcipEnums.FAILURE
+        
+        self._trials_executed[self._previous_trial_label] -= 1
         
         return BcipEnums.SUCCESS
     

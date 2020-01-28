@@ -105,7 +105,10 @@ def _create_block(session, create_method_name, api_params, other_attrs):
             for param in node['api_params']:
                 if isinstance(param,str) and param[:3] == "id_":
                     # lookup the id within the session and add
-                    create_params.append(session.find_obj(int(param[3:])))
+                    obj = session.find_obj(int(param[3:]))
+                    if obj == None:
+                        return
+                    create_params.append(obj)
                 else:
                     # no lookup, add as literal
                     create_params.append(param)
@@ -263,14 +266,14 @@ def parse(bcip_ext_req,sess_hash):
             return json.dumps(return_packet)
         
         
-        exe_attrs = []
+        api_params = []
         if 'api_params' in bcip_ext_req['params']:
-            exe_attrs = bcip_ext_req['params']['api_params']
+            api_params = bcip_ext_req['params']['api_params']
             if 'null' in api_params:
                 _repl_nulls(api_params)
             
         exe_params = []
-        for param in exe_attrs:
+        for param in api_params:
             if isinstance(param,str) and param[:3] == "id_":
                 exe_params.append(session.find_obj(int(param[3:])))
             else:

@@ -21,6 +21,20 @@ class Scalar(BCIP):
         self._data_type = value_type
 
         self._ext_src = ext_src
+        
+        if val == None:
+            if value_type == int:
+                val = 0
+            elif value_type == float:
+                val = 0.0
+            elif value_type == complex:
+                val = complex(0,0)
+            elif value_type == str:
+                val = ""
+            elif value_type == bool:
+                val = False
+        
+        
         self.data = val
         
         self._virtual = is_virtual        
@@ -64,7 +78,7 @@ class Scalar(BCIP):
                 data = float(data)
             elif isinstance(data,np.complex):
                 data = complex(data)
-            
+        
         if type(data) == self.data_type:
             self._data = data
         else:
@@ -116,6 +130,12 @@ class Scalar(BCIP):
     # Factory Methods
     @classmethod
     def create(cls,sess,data_type):
+        if isinstance(data_type,str):
+            dtypes = {'int':int, 'float':float,'complex':complex,
+                      'str':str,'bool':bool}
+            if data_type in dtypes:
+                data_type = dtypes[data_type]
+        
         if not (data_type in Scalar._valid_types):
             return
         s = cls(sess,data_type,None,False,None)

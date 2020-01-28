@@ -128,6 +128,13 @@ class Session(BCIP):
         
         return sts
     
+    def reject_trial(self):
+        """
+        Reject the previous trial and reset the block trial counters
+        """
+        return self.current_block.reject_trial()
+        
+    
     def enqueue_block(self,b):
         # block added, so make sure verified is false
         self._verified = False
@@ -174,6 +181,7 @@ class Session(BCIP):
         
         # not found, return None type
         return None
+    
     @classmethod
     def create(cls):
         return cls()

@@ -76,6 +76,17 @@ class BCIPSocketInterface:
         self._sock.sendall(self._send)
         print(self._send)
         
+    def end_connection(self):
+        """
+        Check if the latest packet was a terminate signal
+        """
+        in_packet = self._recv.decode('utf-8')
+
+        if in_packet == '"terminate"':
+            return True
+        else:
+            return False
+        
         
         
 # setup the connection
@@ -95,6 +106,9 @@ print("Done... Ready to work.")
 
 while True:
     socket_ui.recieve_next_client_req()
+    if socket_ui.end_connection():
+        break
+    
     socket_ui.parse_client_req()
     socket_ui.send_response()
 

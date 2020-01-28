@@ -9,6 +9,7 @@ from classes.node import Node
 from classes.parameter import Parameter
 from classes.tensor import Tensor
 from classes.scalar import Scalar
+from classes.array import Array
 from classes.bcip_enums import BcipEnums
 
 from math import exp, log, sqrt
@@ -126,39 +127,44 @@ class RiemannPotatoKernel(Kernel):
         Set reference covariance matrix, mean, and standard deviation
         """
         
-        if (not isinstance(self._training_data,Tensor)) or \
-           (not isinstance(self._training_labels,Tensor)):
+        if (not isinstance(self._training_data,Tensor)) and \
+        (not isinstance(self._training_data,Array)):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        X = self._training_data.data
-        y = self._training_labels.data
+        if isinstance(self._training_data,Tensor):
+            X = self._training_data.data
+        else:
+            X = [self._training_data.get_element(i).data 
+                        for i in range(self._training_data.capacity)]
+            X = np.stack(X,axis=0)
         
-        if len(X.shape) != 3 or len(y.shape) != 1:
+        if len(X.shape) != 3:
             return BcipEnums.INITIALIZATION_FAILURE
-            
-        if X.shape[0] != y.shape[0]:
-            return BcipEnums.INITIALIZATION_FAILURE
         
-        # filter the data
-        X = _filter(self._filt,X)
         
-        # calculate the covariance matrices
-        X = _cov(X)
+        XXt = np.zeros((X.shape[0],X.shape[2],X.shape[2]))
+        
+        for i in range(X.shape[0]):
+            # filter the data
+            Xfilt = _filter(self._filt,X[i,:,:])
+        
+            # calculate the covariance matrices
+            XXt[i,:,:] = _cov(Xfilt)
 
         X_clean = []
         for i in range(self._k):
             # compute the mean covariance matrix
-            S  = mean_covariance(X)
-            mu = _dist_mean(S,X,self._stats_type)
-            sigma = _dist_std(S,X,self._stats_type)
+            S  = mean_covariance(XXt)
+            mu = _dist_mean(S,XXt,self._stats_type)
+            sigma = _dist_std(S,XXt,self._stats_type)
                 
-            self._q = X
+            self._q = XXt
             
-            for i in range(X.shape[0]):
-                if _z_score(distance_riemann(X[i,:,:], S),mu,sigma) < self._thresh:
-                    X_clean.append(X[i,:,:])
+            for i in range(XXt.shape[0]):
+                if _z_score(distance_riemann(XXt[i,:,:], S),mu,sigma) < self._thresh:
+                    X_clean.append(XXt[i,:,:])
             
-            X = np.stack(X_clean)
+            XXt = np.stack(X_clean)
             
         self._ref = S
         self._mean = mu
@@ -302,9 +308,13 @@ class RiemannPotatoKernel(Kernel):
                 init_stopping_crit,k)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(out_labels,BcipEnums.OUTPUT),
-                  Parameter(out_scores,BcipEnums.OUTPUT))
+        params = (Parameter(inA,BcipEnums.INPUT),)
+        
+        if out_labels != None:
+            params += (Parameter(out_labels,BcipEnums.OUTPUT),)
+        
+        if out_scores != None:
+            params += (Parameter(out_scores,BcipEnums.OUTPUT),)
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
