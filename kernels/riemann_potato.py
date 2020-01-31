@@ -24,7 +24,7 @@ from pyriemann.utils.distance import distance_riemann
 def _filter(filt,X):
     
     axis = next((i for i, ex in enumerate(X.shape) if ex != 1))
-    
+
     if filt.implementation == 'ba':
         Y = signal.filtfilt(filt.coeffs['b'],
                             filt.coeffs['a'],
@@ -73,8 +73,12 @@ def _dist_std(S, T, stats='arithmetic'):
         
     return sigma
 
-def _z_score(d,mu,sigma):
-    return (d - mu) / sigma
+def _z_score(d,mu,sigma,stats='arithmetic'):
+    if stats == 'arithmetic':
+        return (d - mu) / sigma
+    else:
+        return log(d/mu) / log(sigma)
+    
 
 class RiemannPotatoKernel(Kernel):
     """
