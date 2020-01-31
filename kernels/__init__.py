@@ -1,3 +1,4 @@
+from .absolute import AbsoluteKernel
 from .addition import AdditionKernel
 from .concatenation import ConcatenationKernel
 from .covariance import CovarianceKernel
@@ -14,6 +15,8 @@ from .logical_and import AndKernel
 from .logical_not import NotKernel
 from .logical_or import OrKernel
 from .logical_xor import XorKernel
+from .max_ import MaxKernel
+from .min_ import MinKernel
 from .multiplication import MultiplicationKernel
 from .reduced_sum import ReducedSumKernel
 from .riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
@@ -23,4 +26,6 @@ from .riemann_potato import RiemannPotatoKernel
 from .set_data import SetKernel
 from .stack import StackKernel
 from .subtraction import SubtractionKernel
+from .threshold import ThresholdKernel
 from .transpose import TransposeKernel
+from .zscore import ZScoreKernel

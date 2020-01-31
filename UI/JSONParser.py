@@ -21,6 +21,7 @@ import kernels
 
 # this is not ideal, but works for now
 kernel_LUT = {
+        "absolute"         : kernels.absolute.AbsoluteKernel,
         "addition"         : kernels.addition.AdditionKernel,
         "concatenation"    : kernels.concatenation.ConcatenationKernel,
         "covariance"       : kernels.covariance.CovarianceKernel,
@@ -37,6 +38,8 @@ kernel_LUT = {
         "logical_not"      : kernels.logical_not.NotKernel,
         "logical_or"       : kernels.logical_or.OrKernel,
         "logical_xor"      : kernels.logical_xor.XorKernel,
+        "max"              : kernels.max_.MaxKernel,
+        "min"              : kernels.min_.MinKernel,
         "multiplication"   : kernels.multiplication.MultiplicationKernel,
         "reduced_sum"      : kernels.reduced_sum.ReducedSumKernel,
         "riemann_mdm"      : kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel,
@@ -46,7 +49,9 @@ kernel_LUT = {
         "set"              : kernels.set_data.SetKernel,
         "stack"            : kernels.stack.StackKernel,
         "subtraction"      : kernels.subtraction.SubtractionKernel,
-        "transpose"        : kernels.transpose.TransposeKernel
+        "threshold"        : kernels.threshold.ThresholdKernel,
+        "transpose"        : kernels.transpose.TransposeKernel,
+        "zscore"           : kernels.zscore.ZScoreKernel
     }
 
 def _repl_nulls(l):
