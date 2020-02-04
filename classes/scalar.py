@@ -145,6 +145,15 @@ class Scalar(BCIP):
     
     @classmethod
     def create_virtual(cls,sess,data_type):
+        if isinstance(data_type,str):
+            dtypes = {'int':int, 'float':float,'complex':complex,
+                      'str':str,'bool':bool}
+            if data_type in dtypes:
+                data_type = dtypes[data_type]
+        
+        if not (data_type in Scalar._valid_types):
+            return
+        
         if not (data_type in Scalar._valid_types):
             return
         s = cls(sess,data_type,None,True,None)
