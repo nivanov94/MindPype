@@ -2,7 +2,7 @@ from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
 from classes.bcip_enums import BcipEnums
-from classes.array import Array
+from classes.array import Scalar
 from classes.tensor import Tensor
 from classes.bcip import BCIP
 

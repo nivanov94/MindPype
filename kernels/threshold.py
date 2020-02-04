@@ -2,9 +2,9 @@ from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
 from classes.bcip_enums import BcipEnums
-from classes.array import Array
 from classes.tensor import Tensor
 from classes.bcip import BCIP
+from classes.scalar import Scalar
 
 import numpy as np
 
@@ -69,7 +69,7 @@ class ThresholdKernel(Kernel):
         """
         
         try:
-            if instance(self._in,Tensor):
+            if isinstance(self._in,Tensor):
                 self._out.data = self._in.data > self._thresh.data
             else:
                 gt = self._in.data > self._thresh
