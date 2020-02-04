@@ -103,13 +103,16 @@ class ExtractKernel(Kernel):
             output_sz = []
             for axis in range(len(self._indices)):
                 if self._indices[axis] != ":":
-                    for index in self._indices[axis]:
+                    axis_indices = self._indices[axis]
+                    if isinstance(axis_indices,int):
+                        axis_indices = (axis_indices,)
+                    for index in axis_indices:
                         # check that the index is valid for the given axis
                         if index < 0 or index >= self._in.shape[axis]:
                             return BcipEnums.INVALID_PARAMETERS
                     
                     if not self._reduce_dims or len(self._indices[axis]) > 1:
-                        output_sz.append(len(self._indices[axis]))
+                        output_sz.append(len(axis_indices))
                 else:
                     output_sz.append(self._in.shape[axis])
             
@@ -145,7 +148,10 @@ class ExtractKernel(Kernel):
                 if axis_indices == ":":
                     ix_grid.append([_ for _ in range(self._in.shape[axis])])
                 else:
-                    ix_grid.append(list(axis_indices))
+                    if isinstance(axis_indices,int):
+                        ix_grid.append([axis_indices])
+                    else:
+                        ix_grid.append(list(axis_indices))
 
             npixgrid = np.ix_(*ix_grid)
             extr_data = self._in.data[npixgrid]

@@ -55,7 +55,7 @@ class ThresholdKernel(Kernel):
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
-            if not (self._in.dtype in Scalar.valid_numeric_types()):
+            if not (self._in.data_type in Scalar.valid_numeric_types()):
                 return BcipEnums.INVALID_PARAMETERS
 
             if self._out.data_type != bool and self._out.data_type != int:
@@ -72,7 +72,7 @@ class ThresholdKernel(Kernel):
             if isinstance(self._in,Tensor):
                 self._out.data = self._in.data > self._thresh.data
             else:
-                gt = self._in.data > self._thresh
+                gt = self._in.data > self._thresh.data
                 if self._out.data_type == bool:
                     self._out.data = gt
                 else:

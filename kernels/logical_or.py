@@ -43,7 +43,7 @@ class OrKernel(Kernel):
         if not (isinstance(self._inA,Tensor) or isinstance(self._inA,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
-        if not (isinstance(self._inB,Tensor) or isinstance(self._inAB,Scalar)):
+        if not (isinstance(self._inB,Tensor) or isinstance(self._inB,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
         if (isinstance(self._inA,Tensor) or isinstance(self._inB,Tensor)) and \
@@ -111,10 +111,14 @@ class OrKernel(Kernel):
         """
         
         try:
-            self._outA.data = np.logical_or(self._inA.data, self._inB.data)
+            data = np.logical_or(self._inA.data,self._inB.data)
+            if isinstance(self._outA,Scalar):
+                self._outA.data = data.item()
+            else:
+                self._outA.data = data
 
-        except ValueError:
-            return BcipEnums.EXE_ERROR
+        except:
+            return BcipEnums.EXE_FAILURE
             
         return BcipEnums.SUCCESS
     

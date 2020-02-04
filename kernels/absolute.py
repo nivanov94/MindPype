@@ -2,7 +2,7 @@ from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
 from classes.bcip_enums import BcipEnums
-from classes.array import Scalar
+from classes.scalar import Scalar
 from classes.tensor import Tensor
 from classes.bcip import BCIP
 
@@ -48,7 +48,7 @@ class AbsoluteKernel(Kernel):
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
-            if not (self._in.dtype in Scalar.valid_numeric_types()):
+            if not (self._in.data_type in Scalar.valid_numeric_types()):
                 return BcipEnums.INVALID_PARAMETERS
 
             if self._out.data_type != self._in.data_type:

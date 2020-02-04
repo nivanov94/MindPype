@@ -86,9 +86,13 @@ class NotKernel(Kernel):
         """
         
         try:
-            self._outA.data = np.logical_not(self._inA.data)
+            data = np.logical_not(self._inA.data)
+            if isinstance(self._outA,Scalar):
+                self._outA.data = data.item()
+            else:
+                self._outA.data = data
 
-        except ValueError:
+        except:
             return BcipEnums.EXE_ERROR
             
         return BcipEnums.SUCCESS
