@@ -20,6 +20,9 @@ from scipy.io import loadmat
 import numpy as np
 import pylsl
 import os
+##for debugging
+#import matplotlib
+#import matplotlib.pyplot as plt
 
 class BcipMatFile(BCIP):
     """
@@ -111,12 +114,12 @@ class BcipMatFile(BCIP):
         return src
 
 
-class LSLStream:
+class LSLStream(BCIP):
     """
     An object for maintaining an LSL inlet
     """
 
-    def __init__(self,sess,stream_type,labels,Ns,channels=None,
+    def __init__(self,sess,prop,prop_value,Ns,labels,channels=None,
                  marker=True,marker_fmt="T{},L{},LN{}"):
         """
         Create a new LSL inlet stream object
@@ -124,7 +127,7 @@ class LSLStream:
         super().__init__(BcipEnums.SRC,sess)
         
         # resolve the stream on the LSL network
-        available_streams = pylsl.resolve_stream('type',stream_type)
+        available_streams = pylsl.resolve_byprop(prop,prop_value)
         
         if len(available_streams) == 0:
             # TODO log error
@@ -164,12 +167,14 @@ class LSLStream:
         if not self.marker_inlet == None:
             # get the timestamp for this trial's 
             target_marker = self.marker_fmt.format(self.trial_cnt,label,
-                                                   self.label_counter[label])
+                                                   self.label_counters[label])
             
             # pull the marker sample
             marker = None
             while marker != target_marker:
                 marker, t_begin = self.marker_inlet.pull_sample()
+                if marker != None:
+                    marker = marker[0]
         
         else:
             t_begin = 0 # i.e. all data is valid
@@ -177,49 +182,62 @@ class LSLStream:
         # pull the data in chunks until we get the total number of samples
         trial_data = np.array(()) # create an empty array
         
-        while trial_data.shape[1] < self.Ns:
+        while trial_data.shape == (0,) or trial_data.shape[0] < self.Ns:
             data, timestamps = self.data_inlet.pull_chunk()
             
-            # throw away data that comes after t_begin
-            data = data[:,timestamps > t_begin]
+            if len(timestamps) != 0:
+                # convert data to numpy arrays
+                data = np.asarray(data)
+                timestamps = np.asarray(timestamps)
+                # throw away data that comes after t_begin
+                data = data[timestamps > t_begin, :]
             
-            # append the latest chunk to the trial_data array
-            trial_data = np.append(trial_data,data,axis=1)
+                # append the latest chunk to the trial_data array
+                if trial_data.shape == (0,):
+                    trial_data = data
+                else:
+                    trial_data = np.append(trial_data,data,axis=0)
         
         # Remove any excess data pts from the end of the array and extract the
         # channels of interest
         if self.channels == None:
-            channels = [i for i in range(trial_data.shape[0]-1)] # -1 b/c last row contains no data
+            channels = [i for i in range(trial_data.shape[1])] 
         else:
             channels = self.channels
         
-        indices = np.ix_(channels,tuple([i for i in range(self.Ns)]))
-        trial_data = trial_data[indices].T # transpose to make channels columns
+        indices = np.ix_(tuple([i for i in range(self.Ns)]),channels)
+        trial_data = trial_data[indices]
+        
+#        # for debugging
+#        x = [_  for _ in range(self.Ns)]
+#        fig, ax = plt.subplots()
+#        ax.plot(x,trial_data[:,0],'bo',x,trial_data[:,1],'go',x,trial_data[:,2],'ro')
+#        plt.show()
         
         return trial_data
     
     @classmethod
-    def create_marker_coupled_data_stream(cls,sess,stream_type,Ns,labels,
+    def create_marker_coupled_data_stream(cls,sess,prop,prop_value,Ns,labels,
                                           channels=None,
                                           marker_fmt="T{},L{},LN{}"):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
         """
-        src = cls(sess,stream_type,Ns,labels,channels,True,marker_fmt)
+        src = cls(sess,prop,prop_value,Ns,labels,channels,True,marker_fmt)
         sess.add_ext_src(src)
         
         return src
     
     @classmethod
-    def create_marker_uncoupled_data_stream(cls,sess,stream_type,Ns,labels,
+    def create_marker_uncoupled_data_stream(cls,sess,prop,prop_value,Ns,labels,
                                             channels=None,
                                             marker_fmt="T{},L{},LN{}"):
         """
         Create a LSLStream data object that maintains only a data stream with
         no associated marker stream
         """
-        src = cls(sess,stream_type,Ns,labels,channels,False)
+        src = cls(sess,prop,prop_value,Ns,labels,channels,False)
         sess.add_ext_src(src)
         
         return src
