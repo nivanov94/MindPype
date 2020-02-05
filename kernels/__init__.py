@@ -20,6 +20,7 @@ from .min_ import MinKernel
 from .multiplication import MultiplicationKernel
 from .reduced_sum import ReducedSumKernel
 from .riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
+from .riemann_ts_rLDA_classifier import RiemannTangentSpacerLDAClassifierKernel
 from .riemann_distance import RiemannDistanceKernel
 from .riemann_mean import RiemannMeanKernel
 from .riemann_potato import RiemannPotatoKernel

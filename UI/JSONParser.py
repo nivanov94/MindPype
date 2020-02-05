@@ -43,6 +43,7 @@ kernel_LUT = {
         "multiplication"   : kernels.multiplication.MultiplicationKernel,
         "reduced_sum"      : kernels.reduced_sum.ReducedSumKernel,
         "riemann_mdm"      : kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel,
+        "riemann_rLDA"     : kernels.riemann_ts_rLDA_classifier.RiemannTangentSpacerLDAClassifierKernel,
         "riemann_distance" : kernels.riemann_distance.RiemannDistanceKernel,
         "riemann_mean"     : kernels.riemann_mean.RiemannMeanKernel,
         "riemann_potato"   : kernels.riemann_potato.RiemannPotatoKernel,
