@@ -26,7 +26,7 @@ def _extract_nested_data(bcip_obj):
     if not isinstance(bcip_obj,Array):
         return np.array(())
     
-    X = None
+    X = np.array(())
     for i in range(bcip_obj.capacity):
         e = bcip_obj.get_element(i)
         if isinstance(e,Tensor):
@@ -34,7 +34,7 @@ def _extract_nested_data(bcip_obj):
         else:
             elem_data = _extract_nested_data(e)
         
-        if X == None:
+        if X.shape == (0,):
             X = elem_data
         else:
             X = np.append(X,elem_data,axis=0)
