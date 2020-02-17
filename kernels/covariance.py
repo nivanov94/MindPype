@@ -14,6 +14,10 @@ from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
+# for debugging
+import matplotlib
+import matplotlib.pyplot as plt
+
 class CovarianceKernel(Kernel):
     """
     Kernel to compute the covariance of tensors. If the input tensor is 
@@ -111,6 +115,13 @@ class CovarianceKernel(Kernel):
             
             # reshape the output
             self._outputA.data = np.reshape(output_data,self.outputA.shape)
+            
+        # for debugging
+        d = self._outputA.data
+        plt.matshow(d)
+        plt.colorbar()
+        plt.figure()
+        plt.show()
             
         return BcipEnums.SUCCESS
     

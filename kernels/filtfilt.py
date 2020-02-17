@@ -15,6 +15,10 @@ from classes.bcip_enums import BcipEnums
 
 from scipy import signal
 
+#for debugging
+import matplotlib
+import matplotlib.pyplot as plt
+
 class FiltFiltKernel(Kernel):
     """
     Zero phase filter a tensor along the first non-singleton dimension
@@ -76,14 +80,27 @@ class FiltFiltKernel(Kernel):
         axis = next((i for i, x in enumerate(shape) if x != 1))
         
         if self._filt.implementation == 'ba':
-            self._outputA.data = signal.filtfilt(self._filt.coeffs['b'],\
-                                                self._filt.coeffs['a'],\
-                                                self._inputA.data, \
+            self._outputA.data = signal.filtfilt(self._filt.coeffs['b'],
+                                                self._filt.coeffs['a'],
+                                                self._inputA.data,
                                                 axis=axis)
         else:
-            self._outputA.data = signal.sosfiltfilt(self._filt.coeffs['sos'],\
-                                                   self._inputA.data,\
+            self._outputA.data = signal.sosfiltfilt(self._filt.coeffs['sos'],
+                                                   self._inputA.data,
                                                    axis=axis)
+        
+        # for debugging
+        d = self._outputA.data
+        x = [_  for _ in range(self._outputA.shape[0])]
+        fig, ax = plt.subplots()
+        lines = []
+        for i in range(self._outputA.shape[1]):
+            lines.append(x)
+            lines.append(d[:,i] + i*15)
+        lines = tuple(lines)
+        ax.plot(*lines)
+        plt.figure()
+        plt.show()
         
         return BcipEnums.SUCCESS
     
