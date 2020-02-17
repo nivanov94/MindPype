@@ -47,6 +47,12 @@ class Array(BCIP):
         return self._capacity
     
     @property
+    def num_elements(self):
+        # this property is included to allow for seamless abstraction with 
+        # circle buffer property
+        return self.capacity
+    
+    @property
     def virtual(self):
         return self._virtual
     

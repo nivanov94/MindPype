@@ -21,6 +21,16 @@ class CircleBuffer(Array):
         self._head = None
         self._tail = None
     
+    @property
+    def num_elements(self):
+        """
+        return the number of elements currently in the buffer
+        """
+        if self.is_empty():
+            return 0
+        else:
+            return ((self._tail - self._head) % self.capacity) + 1
+    
     def is_empty(self):
         if self._head == None and self._tail == None:
             return True
@@ -32,6 +42,19 @@ class CircleBuffer(Array):
             return True
         else:
             return False
+    
+    
+    def get_queued_element(self,index):
+        """
+        extract and return the element at the index relative to the current
+        head
+        """
+        if index > self.num_elements:
+            return None
+        
+        abs_index = (index + self._head) % self.capacity
+        
+        return self.get_element(abs_index)
     
     def peek(self):
         if self.is_empty():
@@ -94,6 +117,11 @@ class CircleBuffer(Array):
         for e in range(self.capacity):
             cpy.set_element(e,self.get_element(e))
         
+        # TODO this should be handled using API methods instead
+            # copy the head and tail as well
+        cpy._tail = self._tail
+        cpy._head = self._head
+        
         # add the copy to the session
         self.session.add_data(cpy)
             
@@ -111,6 +139,11 @@ class CircleBuffer(Array):
             if sts != BcipEnums.SUCCESS:
                 return sts
         
+        if isinstance(dest_array,CircleBuffer):
+            # copy the head and tail as well
+            dest_array._tail = self._tail
+            dest_array._head = self._head
+            
         return BcipEnums.SUCCESS
         
         
