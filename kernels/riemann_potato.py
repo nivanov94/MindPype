@@ -171,7 +171,8 @@ class RiemannPotatoKernel(Kernel):
             self._q = XXt
             
             for i in range(XXt.shape[0]):
-                if abs(_z_score(distance_riemann(XXt[i,:,:], S),mu,sigma)) < self._thresh:
+                if abs(_z_score(distance_riemann(XXt[i,:,:], S),
+                                mu,sigma,self._stats_type)) < self._thresh:
                     X_clean.append(XXt[i,:,:])
             
             if len(X_clean) == XXt.shape[0]:
@@ -260,7 +261,7 @@ class RiemannPotatoKernel(Kernel):
             X = 1/(1+r) * (X + r*np.eye(X.shape[0]))
             
             dt = distance_riemann(self._ref,X)
-            scores.append(_z_score(dt,self._mean,self._std))
+            scores.append(_z_score(dt,self._mean,self._std,self._stats_type))
             
             if abs(scores[-1]) > self._thresh:
                 labels.append(1) # artifact
