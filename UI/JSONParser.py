@@ -25,6 +25,7 @@ kernel_LUT = {
         "addition"         : kernels.addition.AdditionKernel,
         "concatenation"    : kernels.concatenation.ConcatenationKernel,
         "covariance"       : kernels.covariance.CovarianceKernel,
+        "cumulative_rmean" : kernels.cumulative_riemann_mean.CumulativeRiemannMeanKernel,
         "diffusion_map"    : kernels.diffusion_map.DiffusionMapKernel,
         "division"         : kernels.divsion.DivisionKernel,
         "enqueue"          : kernels.enqueue.EnqueueKernel,

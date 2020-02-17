@@ -2,6 +2,7 @@ from .absolute import AbsoluteKernel
 from .addition import AdditionKernel
 from .concatenation import ConcatenationKernel
 from .covariance import CovarianceKernel
+from .cumulative_riemann_mean import CumulativeRiemannMeanKernel
 from .diffusion_map import DiffusionMapKernel
 from .divsion import DivisionKernel 
 from .enqueue import EnqueueKernel
