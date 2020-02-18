@@ -79,7 +79,7 @@ class Session(BCIP):
         Run any postprocessing on the block and remove it from the session
         queue.
         """
-        
+        print("Closing block...")
         # get the current block
         b = self.current_block
         
@@ -101,6 +101,7 @@ class Session(BCIP):
         """
         Initialize the block nodes and execute the preprocessing graph
         """
+        print("Starting block...")
         if len(self._blocks) == 0:
             return BcipEnums.FAILURE
         
@@ -126,6 +127,7 @@ class Session(BCIP):
         First updates all volatile input channels
         Then executes current block
         """
+        print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
         sts = self.current_block.process_trial(label)
         

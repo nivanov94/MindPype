@@ -38,7 +38,7 @@ class BCIPSocketInterface:
         
         # convert the size to an int
         packet_sz = struct.unpack('!L',packet_sz)[0]
-        print("Received packet indicating size {}".format(packet_sz))
+        #print("Received packet indicating size {}".format(packet_sz))
         
         # read in the client packet payload
         packet = bytearray()
@@ -87,6 +87,14 @@ class BCIPSocketInterface:
         else:
             return False
         
+    def send_end_ack(self):
+        """
+        Send a return packet to indicate session is ending
+        """
+        self._send = json.dumps({'sts' : 200}).encode('utf-8')
+        self.send_response()
+        
+        
         
         
 # setup the connection
@@ -107,6 +115,7 @@ print("Done... Ready to work.")
 while True:
     socket_ui.recieve_next_client_req()
     if socket_ui.end_connection():
+        socket_ui.send_end_ack()
         break
     
     socket_ui.parse_client_req()
