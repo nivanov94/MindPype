@@ -21,8 +21,8 @@ import numpy as np
 import pylsl
 import os
 ##for debugging
-#import matplotlib
-#import matplotlib.pyplot as plt
+import matplotlib
+import matplotlib.pyplot as plt
 
 class BcipMatFile(BCIP):
     """
@@ -208,11 +208,16 @@ class LSLStream(BCIP):
         indices = np.ix_(tuple([i for i in range(self.Ns)]),channels)
         trial_data = trial_data[indices]
         
-#        # for debugging
-#        x = [_  for _ in range(self.Ns)]
-#        fig, ax = plt.subplots()
-#        ax.plot(x,trial_data[:,0],'bo',x,trial_data[:,1],'go',x,trial_data[:,2],'ro')
-#        plt.show()
+        # for debugging
+        x = [_  for _ in range(self.Ns)]
+        fig, ax = plt.subplots()
+        plot_data = []
+        for i in range(len(self.channels)):
+            plot_data.append(x)
+            plot_data.append(trial_data[:,i]+i*15)
+        plot_data = tuple(plot_data)
+        ax.plot(*plot_data)
+        plt.show()
         
         return trial_data
     
