@@ -5,6 +5,7 @@ Created on Tue Dec 17 13:22:29 2019
 """
 import numpy as np
 import json
+import os
 from classes.bcip import BCIP
 from classes.bcip_enums import BcipEnums
 from classes.session import Session
@@ -151,8 +152,73 @@ def _create_obj(session, obj, create_method_name, api_params):
             if obj == Tensor and param == 1:
                 create_params[-1] = (1,)
     
+    print("Creating {} object...".format(obj.__name__))
     return create_method(*create_params)
+
+def _extract_nested_data(bcip_obj):
+    """
+    Recursively extract Tensor data within a BCIP array or array-of-arrays
+    """
+    if not isinstance(bcip_obj,Array):
+        return np.array(())
     
+    X = np.array(())
+    for i in range(bcip_obj.capacity):
+        e = bcip_obj.get_element(i)
+        if isinstance(e,Tensor):
+            elem_data = np.expand_dims(e.data,0) # add dimension so we can append below
+        elif isinstance(e,Scalar):
+            elem_data = np.expand_dims(np.array(e.data),0)
+        else:
+            elem_data = _extract_nested_data(e)
+        
+        if X.shape == (0,):
+            X = elem_data
+        else:
+            X = np.append(X,elem_data,axis=0)
+    
+    return X
+
+def _save_obj_data(obj,params):
+    # extract the new data to save
+    if isinstance(obj,Tensor):
+        new_data = obj.data
+    elif isinstance(obj,Scalar):
+        new_data = np.array(obj.data)
+    elif isinstance(obj,Array):
+        new_data = _extract_nested_data(obj)
+    else:
+        return BcipEnums.FAILURE
+    
+    new_data_rank = len(new_data.shape)
+    
+    f = params['filename']
+    p = params['path']
+    if not os.path.exists(p):
+        return BcipEnums.FAILURE
+    
+    if os.path.isfile(os.path.join(p,f)):
+        # read the file and then append the new data
+        with np.load(os.path.join(p,f)) as data:
+            prev_data = data['arr_0']
+            prev_data_rank = len(prev_data.shape)
+            
+            if new_data_rank == prev_data_rank:
+                file_data = np.append(np.expand_dims(prev_data,0),
+                                      np.expand_dims(new_data,0),
+                                      axis=0)
+            elif prev_data_rank == (new_data_rank+1):
+                file_data = np.append(prev_data,
+                                      np.expand_dims(new_data,0),
+                                      axis=0)
+            else:
+                return BcipEnums.FAILURE
+    else:
+        # create the file with the new data
+        file_data = new_data
+    
+    np.savez_compressed(os.path.join(p,f),file_data)
+    return BcipEnums.SUCCESS
 
 def parse(bcip_ext_req,sess_hash):
     """
@@ -311,7 +377,16 @@ def parse(bcip_ext_req,sess_hash):
             return_packet['data'] = data
         else:
             return_packet['sts'] = BcipEnums.FAILURE
-                
+            
+    elif bcip_ext_req['cmd_type'] == 'save_data':
+        session = sess_hash[sess_id]
+        obj = session.find_obj(bcip_ext_req['params']['obj']) \
+                            if 'obj' in bcip_ext_req['params'] else session
+        
+        try:
+            return_packet['sts'] = _save_obj_data(obj,bcip_ext_req['params'])
+        except:
+            return_packet['sts'] = BcipEnums.FAILURE
     
     return json.dumps(return_packet)
             
