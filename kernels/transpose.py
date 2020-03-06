@@ -19,7 +19,7 @@ class TransposeKernel(Kernel):
     Kernel to compute the tensor transpose
     """
     
-    def __init__(self,graph,inputA,outputA,axes=None):
+    def __init__(self,graph,inputA,outputA,axes):
         super().__init__('Transpose',BcipEnums.INIT_FROM_NONE,graph)
         self._inputA  = inputA
         self._outputA = outputA
@@ -76,14 +76,14 @@ class TransposeKernel(Kernel):
 
 
     @classmethod
-    def add_transpose_node(cls,graph,inputA,outputA):
+    def add_transpose_node(cls,graph,inputA,outputA,axes=None):
         """
         Factory method to create a transpose kernel and add it to a graph
         as a generic node object.
         """
         
         # create the kernel object
-        k = cls(graph,inputA,outputA)
+        k = cls(graph,inputA,outputA,axes)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT), \
