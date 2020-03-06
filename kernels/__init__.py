@@ -17,6 +17,7 @@ from .logical_not import NotKernel
 from .logical_or import OrKernel
 from .logical_xor import XorKernel
 from .max_ import MaxKernel
+from .mean import MeanKernel
 from .min_ import MinKernel
 from .multiplication import MultiplicationKernel
 from .reduced_sum import ReducedSumKernel
@@ -27,6 +28,7 @@ from .riemann_mean import RiemannMeanKernel
 from .riemann_potato import RiemannPotatoKernel
 from .set_data import SetKernel
 from .stack import StackKernel
+from .std import StdKernel
 from .subtraction import SubtractionKernel
 from .threshold import ThresholdKernel
 from .transpose import TransposeKernel
