@@ -40,21 +40,8 @@ class ConcatenationKernel(Kernel):
         Verify the inputs and outputs are appropriately sized
         """
         
-        if self._axis != None:
-            # check that the axis is a scalar object
-            if not isinstance(self._axis,Scalar):
-                return BcipEnums.INVALID_PARAMETERS
-            
-            # get the scalar type
-            if self._axis.data_type != 'int':
-                return BcipEnums.INVALID_PARAMETERS
-            
-            # the scalar object should be non-volatile so it doesn't change 
-            # during runtime
-            if self._axis.volatile:
-                return BcipEnums.INVALID_PARAMETERS
-            
-            concat_axis = self._axis.data
+        if self._axis != None:            
+            concat_axis = self._axis
         else:
             concat_axis = 0 # default axis
         
@@ -105,7 +92,7 @@ class ConcatenationKernel(Kernel):
         """
         Execute the kernel function using numpy functions
         """
-        concat_axis = self._axis.data if self._axis != None else 0
+        concat_axis = self._axis if self._axis != None else 0
         
         inA_data = self._inA.data
         inB_data = self._inB.data
