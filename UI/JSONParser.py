@@ -24,6 +24,8 @@ import kernels
 kernel_LUT = {
         "absolute"         : kernels.absolute.AbsoluteKernel,
         "addition"         : kernels.addition.AdditionKernel,
+        "cdf"              : kernels.cdf.CDFKernel,
+        "combine_pvalues"  : kernels.combine_pvalues.CombinePValuesKernel,
         "concatenation"    : kernels.concatenation.ConcatenationKernel,
         "covariance"       : kernels.covariance.CovarianceKernel,
         "cumulative_rmean" : kernels.cumulative_riemann_mean.CumulativeRiemannMeanKernel,

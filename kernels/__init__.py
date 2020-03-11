@@ -1,5 +1,7 @@
 from .absolute import AbsoluteKernel
 from .addition import AdditionKernel
+from .cdf import CDFKernel
+from .combine_pvalues import CombinePValuesKernel
 from .concatenation import ConcatenationKernel
 from .covariance import CovarianceKernel
 from .cumulative_riemann_mean import CumulativeRiemannMeanKernel
