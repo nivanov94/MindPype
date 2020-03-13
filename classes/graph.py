@@ -131,6 +131,7 @@ class Graph(BCIP):
             valid = n.verify()
             #print(n.kernel)
             if valid != BcipEnums.SUCCESS:
+                print("Node {} failed verification".format(n.kernel.name))
                 return valid
         
         # Done, all nodes scheduled and verified!
@@ -165,6 +166,7 @@ class Graph(BCIP):
         for n in self._nodes:
             sts = n.kernel.execute()
             if sts != BcipEnums.SUCCESS:
+                print("Node {} failed with status {}".format(n.kernel.name,sts))
                 return sts
         
         return BcipEnums.SUCCESS
