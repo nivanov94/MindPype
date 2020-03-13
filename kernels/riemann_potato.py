@@ -221,9 +221,9 @@ class RiemannPotatoKernel(Kernel):
             if isinstance(output,Tensor):
                 
                 if output.virtual and len(output.shape) == 0:
-                    output.shape = (output_sz,)
+                    output.shape = (output_sz,1)
             
-                if output.shape != (output_sz,):
+                if output.shape != (output_sz,1):
                     return BcipEnums.INVALID_PARAMETERS
             
             elif (isinstance(output,Scalar)
@@ -304,7 +304,7 @@ class RiemannPotatoKernel(Kernel):
             self._out_label.data = labels[0]
         
         if isinstance(self._out_score,Tensor):
-            data = np.asarray(scores)
+            data = np.expand_dims(np.asarray(scores),axis=1)
             self._out_score.data = data
         elif isinstance(self._out_score,Scalar):
             self._out_score.data = scores[0]
