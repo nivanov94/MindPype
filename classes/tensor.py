@@ -55,6 +55,15 @@ class Tensor(BCIP):
     #API setters
     @data.setter
     def data(self,data):
+        # special case where every dimension is a singleton
+        if (np.prod(np.asarray(data.shape)) == 1 and 
+            np.prod(np.asarray(self.shape)) == 1):
+            while len(self.shape) > len(data.shape):
+                data = np.expand_dims(data,axis=0)
+            
+            while len(self.shape) < len(data.shape):
+                data = np.squeeze(data,axis=0)
+        
         if self.shape == data.shape:
             self._data = data
         else:
