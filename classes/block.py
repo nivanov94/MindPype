@@ -82,14 +82,8 @@ class Block(BCIP):
     
     def pre_process(self):
         """
-        Initialize all block nodes and Execute the block setup graph
-        """
-        
-        # set the internal state of the nodes
-        sts = self.initialize()
-        if sts != BcipEnums.SUCCESS:
-            return sts
-        
+        Execute the block setup graph
+        """        
         # execute the preprocess graph
         return self.preprocessing_graph.execute()
         
