@@ -74,7 +74,7 @@ class CombinePValuesKernel(Kernel):
                 if output.shape != output_shape:
                     return BcipEnums.INVALID_PARAMETERS
             
-            else:
+            elif isinstance(output,Scalar):
                 # scalar output
                 if output.data_type != float:
                     return BcipEnums.INVALID_PARAMETERS
@@ -87,12 +87,13 @@ class CombinePValuesKernel(Kernel):
         """
         
         try:
-            (ts,pv) = combine_pvalues(self._inA.data,method=self._method)
+            (ts,pv) = combine_pvalues(np.squeeze(self._inA.data),
+                                      method=self._method)
             
             for result_value, output in zip((ts,pv),(self._out_ts,self._out_pv)):
                 if isinstance(output,Tensor):
                     output.data = np.asarray(((result_value))) # make the result a 1x1 tensor
-                else:
+                elif isinstance(output,Scalar):
                     output.data = result_value
             
         except:
