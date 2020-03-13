@@ -19,7 +19,7 @@ class CDFKernel(Kernel):
     current support normal and chi2 distributions
     """
     
-    def __init__(self,graph,inA,outA,dist,loc,scale,df):
+    def __init__(self,graph,inA,outA,dist,df,loc,scale):
         """
         Kernel takes tensor input of RVs
         """
@@ -85,20 +85,19 @@ class CDFKernel(Kernel):
                                            self._df,
                                            loc=self._loc,
                                            scale=self._scale)
-                    
         except:
             return BcipEnums.EXE_FAILURE
         
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_cdf_node(cls,graph,inA,outA,dist='norm',loc=0,scale=1):
+    def add_cdf_node(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1):
         """
         Factory method to create a CDF node
         """
         
         # create the kernel object
-        k = cls(graph,inA,outA,dist,loc,scale)
+        k = cls(graph,inA,outA,dist,df,loc,scale)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT), \
