@@ -50,7 +50,7 @@ class RiemannDistanceKernel(Kernel):
             (not isinstance(self._outA,Array)):
                 return BcipEnums.INVALID_PARAMETERS
         
-        num_mats = []
+        out_sz = []
         mat_sz = None
         for param in (self._inA,self._inB):
             if isinstance(param,Tensor):
@@ -65,9 +65,9 @@ class RiemannDistanceKernel(Kernel):
                     return BcipEnums.INVALID_PARAMETERS
                 
                 if param_rank == 3:
-                    num_mats.append(param.shape[0])
+                    out_sz.append(param.shape[0])
                 else:
-                    num_mats.append(1)
+                    out_sz.append(1)
             else:
                 #ensure it is an array of 2D tensors
                 param_rank = param.capacity
@@ -81,19 +81,20 @@ class RiemannDistanceKernel(Kernel):
                     elif mat_sz != e.shape:
                         return BcipEnums.INVALID_PARAMETERS
                     
-                num_mats.append(param_rank)
+                out_sz.append(param_rank)
             
         
-        num_combos = num_mats[0]*num_mats[1]
+        out_sz = tuple(out_sz)
+        num_combos = out_sz[0]*out_sz[1]
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
         if (self._outA.virtual and len(self._outA.shape) == 0):
-            self._outA.shape = (num_combos,1)
+            self._outA.shape = out_sz
         
         
         if isinstance(self._outA,Tensor) and \
-           self._outA.shape != (num_combos,1):
+           self._outA.shape != out_sz:
             return BcipEnums.INVALID_PARAMETERS
         elif isinstance(self._outA,Array):
             if self._outA.capacity != num_combos:
@@ -127,16 +128,16 @@ class RiemannDistanceKernel(Kernel):
         def set_obj_data_at_index(obj,index,data):
             if isinstance(obj,Tensor):
                 tensor_data = obj.data # need to extract and edit numpy array b/c tensor currently does not allow sliced modifications
-                tensor_data[index,0] = data
+                tensor_data[index] = data
                 obj.data = tensor_data
             else:
-                e = obj.get_element(index)
+                e = obj.get_element(index[0]*index[1])
                 if isinstance(e,Tensor):
                     e.data = np.asarray([[data]])
                 else:
                     e.data = data
         
-        num_mats = []
+        out_sz = []
         for in_param in (self._inA,self._inB):
             if isinstance(in_param,Tensor):
                 if len(in_param.shape) == 3:
@@ -146,19 +147,19 @@ class RiemannDistanceKernel(Kernel):
             else:
                 m = in_param.capacity
         
-            num_mats.append(m)
+            out_sz.append(m)
         
         
-        for i in range(num_mats[0]):
+        for i in range(out_sz[0]):
             # extract the ith element from inA
-            x = get_obj_data_at_index(self._inA,i,num_mats[0])
+            x = get_obj_data_at_index(self._inA,i,out_sz[0])
             
-            for j in range(num_mats[1]):
+            for j in range(out_sz[1]):
                 # extract the jth element from inB
-                y = get_obj_data_at_index(self._inB,j,num_mats[1])
+                y = get_obj_data_at_index(self._inB,j,out_sz[1])
                 
                 try:
-                    set_obj_data_at_index(self._outA,num_mats[1]*i+j,
+                    set_obj_data_at_index(self._outA,(i,j),
                                           distance_riemann(x,y))
                 
                 except:

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Dec 11 14:47:12 2019
+Created on Sun Apr  5 19:50:46 2020
 
-@author: ivanovn
+@author: Nick
 """
 
 from classes.kernel import Kernel
@@ -14,16 +14,16 @@ from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
-class NotKernel(Kernel):
+class LogKernel(Kernel):
     """
-    Kernel to perform logical NOT operation elementwise on
-    one BCIPP data container (i.e. tensor or scalar)
+    Kernel to perform element-wise natural logarithm operation on
+    one BCIP data container (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
     """
     
     def __init__(self,graph,inA,outA):
-        super().__init__('NOT',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Log',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._outA = outA
     
@@ -50,12 +50,12 @@ class NotKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         
         # if the inputs are scalars, ensure they are logical
-        if isinstance(self._inA,Scalar) and \
-           not self._inA.data_type == bool:
+        if (isinstance(self._inA,Scalar) and 
+           not self._inA.data_type == bool):
             return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._outA,Scalar) and \
-           self._outA.data_type != bool:
+        if (isinstance(self._outA,Scalar) and 
+           self._outA.data_type != bool):
             return BcipEnums.INVALID_PARAMETERS
         
         # check the shapes
@@ -68,8 +68,8 @@ class NotKernel(Kernel):
         out_shape = inA_shape
         
         # if the output is a virtual tensor and has no defined shape, set the shape now
-        if isinstance(self._outA,Tensor) and self._outA.virtual \
-           and len(self._outA.shape) == 0:
+        if (isinstance(self._outA,Tensor) and self._outA.virtual 
+           and len(self._outA.shape) == 0):
             self._outA.shape = out_shape
         
         # ensure the output shape equals the expected output shape
@@ -86,7 +86,7 @@ class NotKernel(Kernel):
         """
         
         try:
-            data = np.logical_not(self._inA.data)
+            data = np.log(self._inA.data)
             if isinstance(self._outA,Scalar):
                 self._outA.data = data.item()
             else:
@@ -98,9 +98,9 @@ class NotKernel(Kernel):
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_not_node(cls,graph,inA,outA):
+    def add_log_node(cls,graph,inA,outA):
         """
-        Factory method to create a logical NOT kernel 
+        Factory method to create a log kernel 
         and add it to a graph as a generic node object.
         """
         

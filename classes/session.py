@@ -89,7 +89,7 @@ class Session(BCIP):
             return BcipEnums.FAILURE
         
         # run postprocessing
-        sts = b.post_process()
+        sts = b.close_block()
         if sts != BcipEnums.SUCCESS:
             return sts
         
@@ -111,15 +111,7 @@ class Session(BCIP):
         if b.remaining_trials() != b.n_class_trials:
             return BcipEnums.FAILURE
         
-        # initialize everything first
-        sts = b.initialize()
-        if sts != BcipEnums.SUCCESS:
-            return sts
-        
-        # execute the preprocessing graph
-        sts = b.pre_process()
-        
-        return sts
+        return b.open_block()
     
     def execute_trial(self,label):
         """

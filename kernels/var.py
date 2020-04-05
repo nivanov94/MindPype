@@ -1,13 +1,7 @@
 """
-Created on Fri Mar  6 10:55:07 2020
+Created on Sun Apr  5 17:13:07 2020
 
-@author: ivanovn
-"""
-
-"""
-Created on Mon Dec  9 16:15:12 2019
-
-@author: ivanovn
+@author: Nick
 """
 
 from classes.kernel import Kernel
@@ -18,19 +12,21 @@ from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
-class MeanKernel(Kernel):
+class VarKernel(Kernel):
     """
-    Calculates the mean of values in a tensor
+    Calculates the variance of values in a tensor
     """
     
-    def __init__(self,graph,inA,outA,axis):
+    def __init__(self,graph,inA,outA,axis,ddof):
         """
-        Kernal calculates arithmetic mean of values in tensor or array
+        Kernal calculates arithmetic variance of values in tensor
         """
-        super().__init__('Mean',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Std',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._outA = outA
         self._axis = axis
+        self._ddof = ddof
+        self._keep_dims = keep_dims
         
     
     def initialize(self):
@@ -53,9 +49,16 @@ class MeanKernel(Kernel):
         input_shape = self._inA.shape
         
         if self._axis == None:
-            output_shape = (1,1)
+            if self._keep_dims:
+                output_rank = len(input_shape)
+            else:
+                output_rank = 1
+            output_shape = (1,) * output_rank
         else:
-            output_shape = tuple([x for i,x in enumerate(input_shape) if i != self._axis])
+            if self._keep_dims:
+                output_shape = input_shape[:self._axis] + (1,) + input_shape[self._axis+1:]
+            else:
+                output_shape = tuple([x for i,x in enumerate(input_shape) if i != self._axis])
 
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
@@ -74,20 +77,23 @@ class MeanKernel(Kernel):
         """
         
         try:
-            self._outA.data = np.mean(self._inA.data,axis=self._axis)
+            self._outA.data = np.var(self._inA.data,
+                                      axis=self._axis,
+                                      ddof=self._ddof,
+                                      keep_dims=self._keep_dims)
         except:
             return BcipEnums.EXE_FAILURE
         
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_mean_node(cls,graph,inA,outA,axis=None):
+    def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keep_dims=False):
         """
-        Factory method to create a Riemann mean calculating kernel
+        Factory method to create a variance kernel
         """
         
         # create the kernel object
-        k = cls(graph,inA,outA,axis)
+        k = cls(graph,inA,outA,axis,ddof,keep_dims)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT), \
@@ -100,4 +106,3 @@ class MeanKernel(Kernel):
         graph.add_node(node)
         
         return node
-    

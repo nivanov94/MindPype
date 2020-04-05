@@ -116,12 +116,12 @@ class CovarianceKernel(Kernel):
             # reshape the output
             self._outputA.data = np.reshape(output_data,self.outputA.shape)
             
-        # for debugging
-        d = self._outputA.data
-        plt.matshow(d)
-        plt.colorbar()
-        plt.figure()
-        plt.show()
+#        # for debugging
+#        d = self._outputA.data
+#        plt.matshow(d)
+#        plt.colorbar()
+#        plt.figure()
+#        plt.show()
             
         return BcipEnums.SUCCESS
     

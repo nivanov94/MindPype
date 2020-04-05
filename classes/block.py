@@ -51,6 +51,10 @@ class Block(BCIP):
     def trial_processing_graph(self):
         return self._trial_processing_graph
     
+    @property
+    def latest_trial_label(self):
+        return self._previous_trial_label
+    
     
     def total_trials(self):
         """
@@ -150,6 +154,42 @@ class Block(BCIP):
             return sts
         
         return BcipEnums.SUCCESS
+    
+    def open_block(self):
+        """
+        Initialize & execute preprocessing graph then initialize
+        trial-processing graph.
+
+        Returns
+        -------
+        sts - a BcipEnum Status
+
+        """
+        sts = self.preprocessing_graph.initialize()
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        sts = self.preprocessing_graph.execute()
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        return self.trial_processing_graph.initialize()
+    
+    def close_block(self):
+        """
+        Initialize and execute the postprocessing graph
+
+        Returns
+        -------
+        sts - a BcipEnum Status
+
+        """
+        
+        sts = self.postprocessing_graph.initialize()
+        if sts != BcipEnums.SUCCESS:
+            return sts
+        
+        return self.postprocessing_graph.execute()
     
     def reject_trial(self):
         """

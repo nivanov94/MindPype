@@ -4,6 +4,7 @@ Created on Fri Jan 17 09:30:18 2020
 @author: ivanovn
 """
 
+
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -196,7 +197,10 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
         else:
             input_data = self._inputA.data
         
-        self._outputA.data = self._classifier.predict(input_data)
+        if isinstance(self._outputA,Scalar):
+            self._outputA.data = int(self._classifier.predict(input_data))
+        else:
+            self._outputA.data = self._classifier.predict(input_data)
         
         return BcipEnums.SUCCESS
     
@@ -204,7 +208,7 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
     def add_untrained_riemann_tangent_space_rLDA_node(cls,graph,inputA,outputA,
                                                       training_data,labels,
                                                       shrinkage='auto',
-                                                      solver='lsqr'):
+                                                      solver='eigen'):
         """
         Factory method to create a rLDA tangent space classifier from pyRiemann.
         

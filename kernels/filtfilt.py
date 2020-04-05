@@ -89,18 +89,18 @@ class FiltFiltKernel(Kernel):
                                                    self._inputA.data,
                                                    axis=axis)
         
-        # for debugging
-        d = self._outputA.data
-        x = [_  for _ in range(self._outputA.shape[0])]
-        fig, ax = plt.subplots()
-        lines = []
-        for i in range(self._outputA.shape[1]):
-            lines.append(x)
-            lines.append(d[:,i] + i*15)
-        lines = tuple(lines)
-        ax.plot(*lines)
-        plt.figure()
-        plt.show()
+#        # for debugging
+#        d = self._outputA.data
+#        x = [_  for _ in range(self._outputA.shape[0])]
+#        fig, ax = plt.subplots()
+#        lines = []
+#        for i in range(self._outputA.shape[1]):
+#            lines.append(x)
+#            lines.append(d[:,i] + i*15)
+#        lines = tuple(lines)
+#        ax.plot(*lines)
+#        plt.figure()
+#        plt.show()
         
         return BcipEnums.SUCCESS
     

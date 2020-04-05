@@ -8,7 +8,6 @@ from classes.bcip import BCIP
 
 import numpy as np
 
-
 class AbsoluteKernel(Kernel):
     """
     Calculate the element-wise absolute value of Tensor elements

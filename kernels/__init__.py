@@ -10,9 +10,11 @@ from .divsion import DivisionKernel
 from .enqueue import EnqueueKernel
 from .equal import EqualKernel
 from .extract import ExtractKernel
+from .feature_normalization import FeatureNormalizationKernel
 from .filter_ import FilterKernel
 from .filtfilt import FiltFiltKernel
 from .greater import GreaterKernel
+from .lda import LDAClassifierKernel
 from .less import LessKernel
 from .logical_and import AndKernel
 from .logical_not import NotKernel
@@ -32,6 +34,7 @@ from .set_data import SetKernel
 from .stack import StackKernel
 from .std import StdKernel
 from .subtraction import SubtractionKernel
+from .svm import SVMClassifierKernel
 from .threshold import ThresholdKernel
 from .transpose import TransposeKernel
 from .zscore import ZScoreKernel

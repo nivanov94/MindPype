@@ -272,7 +272,8 @@ def parse(bcip_ext_req,sess_hash):
                 return_packet['sts'] = BcipEnums.FAILURE
             else:
                 interface_sess_id = max(sess_hash.keys())+1 if len(sess_hash) != 0 else 0
-                return_packet['id'] = interface_sess_id
+                return_packet['id'] = s.session_id
+                return_packet['hash_id'] = interface_sess_id
                 sess_hash[interface_sess_id] = s
         elif bcip_ext_req['params']['obj'] == 'block':
             other_attrs = {}
@@ -378,7 +379,14 @@ def parse(bcip_ext_req,sess_hash):
             data = getattr(obj,prop)
             if isinstance(data,np.ndarray):
                 data = data.tolist()
-            return_packet['data'] = data
+            
+            if isinstance(data,BCIP):
+                return_packet['sts'] = BcipEnums.SUCCESS
+                return_packet['data'] = data.session_id
+                return_packet['type'] = str(type(data))
+            else:
+                return_packet['data'] = data
+                return_packet['sts'] = BcipEnums.SUCCESS
         else:
             return_packet['sts'] = BcipEnums.FAILURE
             
