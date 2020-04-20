@@ -17,11 +17,11 @@ class VarKernel(Kernel):
     Calculates the variance of values in a tensor
     """
     
-    def __init__(self,graph,inA,outA,axis,ddof):
+    def __init__(self,graph,inA,outA,axis,ddof,keep_dims):
         """
         Kernal calculates arithmetic variance of values in tensor
         """
-        super().__init__('Std',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Var',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._outA = outA
         self._axis = axis
@@ -80,7 +80,7 @@ class VarKernel(Kernel):
             self._outA.data = np.var(self._inA.data,
                                       axis=self._axis,
                                       ddof=self._ddof,
-                                      keep_dims=self._keep_dims)
+                                      keepdims=self._keep_dims)
         except:
             return BcipEnums.EXE_FAILURE
         

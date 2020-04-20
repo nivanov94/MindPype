@@ -56,6 +56,7 @@ kernel_LUT = {
         "stack"            : kernels.stack.StackKernel,
         "std"              : kernels.std.StdKernel,
         "subtraction"      : kernels.subtraction.SubtractionKernel,
+        "tensor_stack"     : kernels.tensor_stack.TensorStackKernel,
         "threshold"        : kernels.threshold.ThresholdKernel,
         "transpose"        : kernels.transpose.TransposeKernel,
         "zscore"           : kernels.zscore.ZScoreKernel

@@ -27,6 +27,10 @@ def main():
     regs = [0.01, 0.03, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,'auto']
     r_accuracy = {}
     
+    cropped_indices = (
+        tuple([_ for _ in range(250,1750)]),
+        ":")
+    
     for r in regs:
         
     
@@ -44,7 +48,9 @@ def main():
                                                 (len(dims[0]),len(dims[1])),
                                                 src)
         cov = tensor.Tensor.create(s,(len(dims[1]),len(dims[1])))
-        filt_data = tensor.Tensor.create_virtual(s)
+        lpfilt_data = tensor.Tensor.create_virtual(s)
+        bpfilt_data = tensor.Tensor.create_virtual(s)
+        cropped_data = tensor.Tensor.create_virtual(s)
     
         triclass_training_labels = tensor.Tensor.create_from_data(s,(Nclasses*window_len,),
                                                      np.concatenate((np.zeros(window_len,),
@@ -78,7 +84,8 @@ def main():
                                                                      cov))
     
         # filter
-        trial_filt = bcip_filter.Filter.create_butter(s,4,(8,30),'bandpass','sos',Fs)
+        lp_filt = bcip_filter.Filter.create_butter(s,4,30,'low','sos',Fs)
+        hp_filt = bcip_filter.Filter.create_butter(s,4,8,'high','sos',Fs)
     
         init_blocks = window_len // 4
         fb_blocks = 30-init_blocks
@@ -86,23 +93,41 @@ def main():
         for i in range(init_blocks):
             # create block
             b = block.Block.create(s,Nclasses,(4,4,4))
-            kernels.filtfilt.FiltFiltKernel.add_filtfilt_node(b.trial_processing_graph,
+            kernels.FiltFiltKernel.add_filtfilt_node(b.trial_processing_graph,
                                                           raw_data,
-                                                          trial_filt,
-                                                          filt_data)
-            kernels.covariance.CovarianceKernel.add_covariance_node(b.trial_processing_graph,
-                                                                filt_data,
+                                                          lp_filt,
+                                                          lpfilt_data)
+            kernels.FiltFiltKernel.add_filtfilt_node(b.trial_processing_graph,
+                                                 lpfilt_data,
+                                                 hp_filt,
+                                                 bpfilt_data)
+            kernels.ExtractKernel.add_extract_node(b.trial_processing_graph,
+                                               bpfilt_data,
+                                               cropped_indices,
+                                               cropped_data)
+        
+            kernels.CovarianceKernel.add_covariance_node(b.trial_processing_graph,
+                                                                cropped_data,
                                                                 cov,
                                                                 0.05)
     
         for i in range(fb_blocks):
             b = block.Block.create(s,Nclasses,(4,4,4))
-            kernels.filtfilt.FiltFiltKernel.add_filtfilt_node(b.trial_processing_graph,
+            kernels.FiltFiltKernel.add_filtfilt_node(b.trial_processing_graph,
                                                           raw_data,
-                                                          trial_filt,
-                                                          filt_data)
-            kernels.covariance.CovarianceKernel.add_covariance_node(b.trial_processing_graph,
-                                                                filt_data,
+                                                          lp_filt,
+                                                          lpfilt_data)
+            kernels.FiltFiltKernel.add_filtfilt_node(b.trial_processing_graph,
+                                                 lpfilt_data,
+                                                 hp_filt,
+                                                 bpfilt_data)
+            kernels.ExtractKernel.add_extract_node(b.trial_processing_graph,
+                                               bpfilt_data,
+                                               cropped_indices,
+                                               cropped_data)
+        
+            kernels.CovarianceKernel.add_covariance_node(b.trial_processing_graph,
+                                                                cropped_data,
                                                                 cov,
                                                                 0.05)
             kernels.riemann_ts_rLDA_classifier.RiemannTangentSpacerLDAClassifierKernel.add_untrained_riemann_tangent_space_rLDA_node(
@@ -172,10 +197,10 @@ def main():
         y = [l for l, t in zip(labels, accepted_trials) if t == 1]
         y = np.asarray(y[Nclasses*window_len:])
     
-        r_accuracy[r] = {'3c' : sum(y == tric_y_bars),
-                         '2s' : sum(y == twos_y_bars)}
+        r_accuracy[r] = {'3c' : (sum(y == tric_y_bars),sum(y == tric_y_bars)/y.shape[0]),
+                         '2s' : (sum(y == twos_y_bars),sum(y == tric_y_bars)/y.shape[0])}
     
-        
+        #print(r_accuracy)
     print(r_accuracy)
         
 #    # Riemann potato field artifact filtering

@@ -19,7 +19,7 @@ class RiemannMeanKernel(Kernel):
     Calculates the Riemann mean of covariances contained in a tensor
     """
     
-    def __init__(self,graph,inA,outA):
+    def __init__(self,graph,inA,outA,weights):
         """
         Kernel takes 3D Tensor input and produces 2D Tensor representing mean
         """
@@ -27,6 +27,7 @@ class RiemannMeanKernel(Kernel):
         self._inA  = inA
         self._outA = outA
         
+        self._w = weights
     
     def initialize(self):
         """
@@ -66,6 +67,10 @@ class RiemannMeanKernel(Kernel):
         # input
         if self._inA.shape[1:] != self._outA.shape:
             return BcipEnums.INVALID_PARAMETERS
+        
+        if self._w != None:
+            if len(self._w) != self._inA.shape[0]:
+                return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
         
@@ -75,18 +80,18 @@ class RiemannMeanKernel(Kernel):
         """
         
         # calculate the mean using pyRiemann
-        self._outA.data = mean_riemann(self._inA.data)
+        self._outA.data = mean_riemann(self._inA.data,sample_weight=self._w)
         
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_riemann_mean_node(cls,graph,inA,outA):
+    def add_riemann_mean_node(cls,graph,inA,outA,weights=None):
         """
         Factory method to create a Riemann mean calculating kernel
         """
         
         # create the kernel object
-        k = cls(graph,inA,outA)
+        k = cls(graph,inA,outA,weights)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT), \

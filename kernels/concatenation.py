@@ -67,11 +67,16 @@ class ConcatenationKernel(Kernel):
             noncat_sz_B = sz_B
             output_sz = noncat_sz_A[:]
             output_sz.insert(concat_axis,sz_A[concat_axis]+1)
+        elif len(sz_A) == len(sz_B)-1:
+            noncat_sz_B = [d for i,d in enumerate(sz_B) if i!=concat_axis]
+            noncat_sz_A = sz_A
+            output_sz = noncat_sz_B[:]
+            output_sz.insert(concat_axis,sz_B[concat_axis]+1)
         else:
             return BcipEnums.INVALID_PARAMETERS
         
         # check if the remaining dimensions are the same
-        if (len(noncat_sz_A) != len(noncat_sz_B) or \
+        if ((len(noncat_sz_A) != len(noncat_sz_B)) or 
             len(noncat_sz_A) != sum([1 for i,j in 
                                      zip(noncat_sz_A,noncat_sz_B) if i==j])):
             return BcipEnums.INVALID_PARAMETERS
@@ -100,6 +105,8 @@ class ConcatenationKernel(Kernel):
         if len(inA_data.shape) == len(inB_data.shape)+1:
             # add a leading dimension for input B
             inB_data = np.expand_dims(inB_data,axis=0)
+        elif len(inB_data.shape) == len(inA_data.shape)+1:
+            inA_data = np.expand_dims(inA_data,axis=0)
         
         try:
             out_tensor = np.concatenate((inA_data,

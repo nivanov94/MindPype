@@ -42,9 +42,10 @@ class LogKernel(Kernel):
         if not (isinstance(self._inA,Tensor) or isinstance(self._inA,Scalar)):
             return BcipEnums.INVALID_PARAMETERS
         
-        if isinstance(self._inA,Tensor) and (not isinstance(self._outA,Tensor)):
-            # if  the input is a tensor, the output will be a tensor
-            return BcipEnums.INVALID_PARAMETERS
+        if isinstance(self._inA,Tensor):
+            if not isinstance(self._outA,Tensor):
+                # if  the input is a tensor, the output will be a tensor
+                return BcipEnums.INVALID_PARAMETERS
         elif not isinstance(self._outA,Scalar):
             # o.w. the output should be a scalar
             return BcipEnums.INVALID_PARAMETERS

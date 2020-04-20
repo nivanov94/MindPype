@@ -4,6 +4,7 @@ from .cdf import CDFKernel
 from .combine_pvalues import CombinePValuesKernel
 from .concatenation import ConcatenationKernel
 from .covariance import CovarianceKernel
+from .csp import CommonSpatialPatternKernel
 from .cumulative_riemann_mean import CumulativeRiemannMeanKernel
 from .diffusion_map import DiffusionMapKernel
 from .divsion import DivisionKernel 
@@ -16,6 +17,7 @@ from .filtfilt import FiltFiltKernel
 from .greater import GreaterKernel
 from .lda import LDAClassifierKernel
 from .less import LessKernel
+from .log import LogKernel
 from .logical_and import AndKernel
 from .logical_not import NotKernel
 from .logical_or import OrKernel
@@ -35,6 +37,8 @@ from .stack import StackKernel
 from .std import StdKernel
 from .subtraction import SubtractionKernel
 from .svm import SVMClassifierKernel
+from .tensor_stack import TensorStackKernel
 from .threshold import ThresholdKernel
 from .transpose import TransposeKernel
+from .var import VarKernel
 from .zscore import ZScoreKernel

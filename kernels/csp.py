@@ -28,7 +28,7 @@ class CommonSpatialPatternKernel(Kernel):
         Kernel applies a set of common spatial pattern filters to tensor of 
         covariance matrices
         """
-        super().__init__('LDA',init_style,graph)
+        super().__init__('CSP',init_style,graph)
         self._inA = inA
         self._outA = outA        
         
@@ -64,21 +64,21 @@ class CommonSpatialPatternKernel(Kernel):
         Determine the filter values using the training data
         """
         
-        if (not (isinstance(self._initialize_params['training_data'],Tensor) or 
-                 isinstance(self._initialize_params['training_data'],Array)) or 
-            not isinstance(self._initialize_params['labels'],Tensor)):
+        if (not (isinstance(self._init_params['training_data'],Tensor) or 
+                 isinstance(self._init_params['training_data'],Array)) or 
+            not isinstance(self._init_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['training_data'],Tensor): 
-            X = self._initialize_params['training_data'].data
+        if isinstance(self._init_params['training_data'],Tensor): 
+            X = self._init_params['training_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._initialize_params['training_data'])
+                X = extract_nested_data(self._init_params['training_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
-        y = self._initialize_params['labels'].data
+        y = self._init_params['labels'].data
         
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:
@@ -109,7 +109,7 @@ class CommonSpatialPatternKernel(Kernel):
         d, V = np.linalg.eig(np.mean(C,axis=0))
         
         # sort the eigenvalues in descending order
-        ix = np.argsort(d).flip()
+        ix = np.flip(np.argsort(d))
         d = d[ix]
         V = V[:,ix]
         
@@ -123,13 +123,13 @@ class CommonSpatialPatternKernel(Kernel):
         W = np.matmul(M,W) # project filters back into channel space
         
         # sort the eigenvalues/vectors in descending over
-        ix = np.argsort(d).flip()
+        ix = np.flip(np.argsort(d))
         d = d[ix]
         W = W[:,ix]
         
         # extract the specified number of filters
         m = self._num_filts // 2
-        f_ix = [_ for _ in range(m)] + [_ for _ in range(d.shape[0],d.shape[0]-m,-1)]
+        f_ix = [_ for _ in range(m)] + [_ for _ in range(d.shape[0]-1,d.shape[0]-(m+1),-1)]
         self._W = W[:,f_ix]
         
         self._initialized = True
@@ -156,14 +156,14 @@ class CommonSpatialPatternKernel(Kernel):
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
         if len(self._inA.shape) == 2:
-            out_sz = (self._num_filts,self._num_filts)
+            out_sz = (self._inA.shape[0],self._num_filts)
         else:
-            out_sz = (self._inA.shape[0],self._num_filts,self._num_filts)
+            out_sz = self._inA.shape[0:2] + (self._num_filts,)
         
         if self._outA.virtual and len(self._outA.shape) == 0:
             self._outA.shape = out_sz
 
-        if self._outA.shape[0] != out_sz:
+        if self._outA.shape != out_sz:
             return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
