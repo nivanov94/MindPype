@@ -1,0 +1,28 @@
+{
+  "channels" : [[1,2,6,7,8,10,12,13,14,18,20]],
+
+  "freq_bands" : [[9],[10],[11],[12],[13]],
+
+  "classes" : [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4],
+               [1,2,3],[1,2,4],[1,3,4],[2,3,4]],
+
+  "train_set_sz" : [40],
+  "test_set_sz"  : [35],
+  "eval_set_sz"  : [null],
+
+  "metrics"  : ["Distinct","InterSpread","Consist"],
+  "inter_spread_ref" : ["pairwise"],
+  "win_sz" : [20,40,null],
+  "win_type" : [["sliding"],["exponential",0.85]],
+  "step_sz" : [4,8],
+
+
+  "dataset" : "BCICompIV-2a",
+  "participants" : [1,2,3,4,5,6,7,8,9],
+  "trial_data_dir" : "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\BCICompIV-2a\\cropped_data\\",
+  "cov_data_dir"   : "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\BCICompIV-2a\\cov_mats_data\\",
+  "trial_data_files" : "cropped_data-A0X.mat",
+  "cov_data_files" : "cov_mats-A0X.mat",
+
+  "output_file" : "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\BCICompIV-2a\\metric_stats\\metric_data"
+}
