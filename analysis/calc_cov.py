@@ -48,7 +48,7 @@ def cov_data(X):
 
 
 if __name__ == "__main__":
-    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/cropped_data/*.mat")
+    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/cropped_data/cropped-*.mat")
     
     output_dir = "D:/BCI/BCI_Capture/data/MI_datasets//cov_mats_data/"
     

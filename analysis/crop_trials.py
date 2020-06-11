@@ -43,9 +43,9 @@ def crop_data(front,back,X):
 
 
 if __name__ == "__main__":
-    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/Kayaetal/filtered_data/*.mat")
+    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/filtered_data/filtered-*.mat")
     
-    output_dir = "D:/BCI/BCI_Capture/data/MI_datasets/Kayaetal/cropped_trials/"
+    output_dir = "D:/BCI/BCI_Capture/data/MI_datasets/BCICompIV-2a/cropped_trials/"
     
     
     # amount to crop from beginning and end in seconds
@@ -55,8 +55,8 @@ if __name__ == "__main__":
     # HighGamma: Front-0.5, back-1
     # Kaya et al. : Front-1.5, back-1.5
     
-    front_s = 1.5
-    back_s = 1.5
+    front_s = 0.5
+    back_s = 1
     
     Fs = 250
     

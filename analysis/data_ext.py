@@ -30,7 +30,7 @@ class ParticipantDataExtractor:
         self.classes = classes
         
     
-    def extract_data(self):
+    def extract_trial_data(self):
         """
         Extract the data from the trial data file
 
@@ -59,7 +59,7 @@ class ParticipantDataExtractor:
             class_trials = class_trials[ixgrid]
             
             
-            if Xte == None:
+            if Xte is None:
                 Xte = class_trials[-self.test_set_sz:,:,:,:]
                 yte = c*np.ones((self.test_set_sz,))
             else:
@@ -69,7 +69,7 @@ class ParticipantDataExtractor:
                                      axis=0)
             
             train_start_index = Nt - self.test_set_sz - self.train_set_sz
-            if Xtr == None:
+            if Xtr is None:
                 Xtr = class_trials[train_start_index:(Nt-self.test_set_sz),:,:,:]
                 ytr = c*np.ones((self.train_set_sz,))
             else:
@@ -84,7 +84,7 @@ class ParticipantDataExtractor:
             else:
                 eval_set_sz = self.eval_set_sz
 
-            if Xev == None:
+            if Xev is None:
                 Xev = class_trials[:eval_set_sz,:,:,:]
                 yev = c*np.ones((eval_set_sz,))
             else:

@@ -47,7 +47,7 @@ def filter_data(filts,X):
 
 
 if __name__ == "__main__":
-    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/preprocessed_data/*.mat")
+    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/preprocessed_data/preprocessed-*.mat")
     
     output_dir = "D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/filtered_data/"
     
