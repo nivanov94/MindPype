@@ -39,6 +39,7 @@ class BcipMatFile(BCIP):
         f = os.path.join(p,filename)
         if not os.path.exists(p) or not os.path.exists(f) or not os.path.isfile(f):
             # TODO log error
+            print("File {} not found in dir {}".format(filename,path))
             return
         
         self.filepath = f
@@ -46,6 +47,7 @@ class BcipMatFile(BCIP):
         self.dims = dims
         
         # check if the variable names exist in the file
+        print("Setting up source from file: {}".format(self.filepath))
         d = loadmat(self.filepath)
         for varname in label_varname_map.values():
             if not varname in d:

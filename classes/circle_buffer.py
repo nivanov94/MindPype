@@ -145,7 +145,20 @@ class CircleBuffer(Array):
             dest_array._head = self._head
             
         return BcipEnums.SUCCESS
+    
+    def flush(self):
+        """
+        Empty the buffer of all elements
+
+        Returns
+        -------
+        BCIP Status code
+
+        """
+        while not self.is_empty():
+            self.dequeue()
         
+        return BcipEnums.SUCCESS
         
     @classmethod
     def create(cls,sess,capacity,element_template):

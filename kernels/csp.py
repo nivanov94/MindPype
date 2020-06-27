@@ -118,7 +118,7 @@ class CommonSpatialPatternKernel(Kernel):
 
         # calculate the CSP filters in the whitened space
         dC = C[0,:,:] - C[1,:,:]
-        S = np.matmul(M.T,np.dot(dC,M)) # M' * (C1 - C2) * M
+        S = np.matmul(M.T,np.matmul(dC,M)) # M' * (C1 - C2) * M
         d, W = np.linalg.eig(S)
         W = np.matmul(M,W) # project filters back into channel space
         

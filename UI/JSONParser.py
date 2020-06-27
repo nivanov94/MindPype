@@ -391,6 +391,20 @@ def parse(bcip_ext_req,sess_hash):
         else:
             return_packet['sts'] = BcipEnums.FAILURE
             
+    elif bcip_ext_req['cmd_type'] == 'set_scalar':
+        session = sess_hash[sess_id]
+        obj = session.find_obj(bcip_ext_req['params']['obj']) \
+                            if 'obj' in bcip_ext_req['params'] else None
+
+        if (obj is None) or (not isinstance(obj,Scalar)):
+            return_packet['sts'] = BcipEnums.FAILURE
+        
+        try:
+            obj.data = bcip_ext_req['params']['value']
+            return_packet['sts'] = BcipEnums.SUCCESS
+        except:
+            return_packet['sts'] = BcipEnums.FAILURE
+        
     elif bcip_ext_req['cmd_type'] == 'save_data':
         session = sess_hash[sess_id]
         obj = session.find_obj(bcip_ext_req['params']['obj']) \
