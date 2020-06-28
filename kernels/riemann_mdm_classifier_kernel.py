@@ -10,6 +10,7 @@ from classes.parameter import Parameter
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.array import Array
+from classes.circle_buffer import CircleBuffer
 from classes.bcip_enums import BcipEnums
 
 import numpy as np
@@ -25,15 +26,19 @@ def _extract_nested_data(bcip_obj):
     if not isinstance(bcip_obj,Array):
         return np.array(())
     
-    X = np.array(())
-    for i in range(bcip_obj.capacity):
+    N = bcip_obj.num_elements
+    
+    X = None
+    for i in range(N):
         e = bcip_obj.get_element(i)
         if isinstance(e,Tensor):
             elem_data = np.expand_dims(e.data,0) # add dimension so we can append below
+        elif isinstance(e,Scalar):
+            elem_data = np.asarray([e.data])
         else:
             elem_data = _extract_nested_data(e)
         
-        if X.shape == (0,):
+        if X is None:
             X = elem_data
         else:
             X = np.append(X,elem_data,axis=0)
@@ -89,7 +94,8 @@ class RiemannMDMClassifierKernel(Kernel):
         
         if (not (isinstance(self._initialize_params['training_data'],Tensor) or 
                  isinstance(self._initialize_params['training_data'],Array)) or 
-            not isinstance(self._initialize_params['labels'],Tensor)):
+            not (isinstance(self._initialize_params['labels'],Tensor) or
+                 isinstance(self._initialize_params['labels'],Array))):
                 return BcipEnums.INITIALIZATION_FAILURE
         
         if isinstance(self._initialize_params['training_data'],Tensor): 
@@ -101,7 +107,10 @@ class RiemannMDMClassifierKernel(Kernel):
             except:
                 return BcipEnums.INITIALIZATION_FAILURE
             
-        y = self._initialize_params['labels'].data
+        if isinstance(self._initialize_params['labels'],Tensor):
+            y = self._initialize_params['labels'].data
+        else:
+            y = _extract_nested_data(self._initialize_params['labels'])
         
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:

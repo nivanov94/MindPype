@@ -37,11 +37,7 @@ class TensorStackKernel(Kernel):
                  isinstance(self._outA,Tensor))):
             return BcipEnums.INVALID_PARAMETERS
         
-        # if an axis was provided, it must be a scalar
-        if self._axis != None and not isinstance(self._axis,Scalar):
-            return BcipEnums.INVALID_PARAMETERS
-        
-        stack_axis = self._axis.data if self._axis != None else 0
+        stack_axis = self._axis
         
         # ensure that all the tensors in inA are the same size
         tensor_shapes = [self._inA.shape, self._inB.shape]
@@ -68,7 +64,7 @@ class TensorStackKernel(Kernel):
         Execute the kernel function using numpy functions
         """
         
-        stack_axis = self._axis.data if self._axis != None else 0
+        stack_axis = self._axis
         
         try:
             input_tensors = [self._inA.data, self._inB.data]
@@ -85,7 +81,7 @@ class TensorStackKernel(Kernel):
     
     
     @classmethod
-    def add_tensor_stack_node(cls,graph,inA,inB,outA,axis=None):
+    def add_tensor_stack_node(cls,graph,inA,inB,outA,axis=0):
         """
         Factory method to create a tensor stack kernel and add it to a graph
         as a generic node object.

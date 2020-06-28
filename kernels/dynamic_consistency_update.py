@@ -54,7 +54,7 @@ class DynamicConsistencyUpdateKernel(Kernel):
         """
         
         # create array of trials executed this block
-        num_block_trials = self._block_trials.num_elements()
+        num_block_trials = self._block_trials.num_elements
         block_trials = []
         if num_block_trials > 0:
             block_trials = []
@@ -83,10 +83,10 @@ class DynamicConsistencyUpdateKernel(Kernel):
         k = cls(graph,mean,last_trial,block_trials,consist)
         
         # create parameter objects for the input and output
-        params = (Parameter(prev_mean,BcipEnums.INPUT),
+        params = (Parameter(mean,BcipEnums.INPUT),
                   Parameter(block_trials,BcipEnums.INPUT),
                   Parameter(last_trial,BcipEnums.INPUT),
-                  Parameter(new_mean,BcipEnums.OUTPUT))
+                  Parameter(consist,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

@@ -96,29 +96,33 @@ class BCIPSocketInterface:
         
         
         
-        
-# setup the connection
-HOST = 'localhost'
-PORT = 5000
+def launch():     
+    # setup the connection
+    HOST = 'localhost'
+    PORT = 5000
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((HOST,PORT))
-s.listen(1)
-print("waiting for response from client at port {}".format(PORT))
-conn, addr = s.accept()
-print("Connected by {}".format(addr))
-print("Connection Established")
-print("Creating the Interface object...")
-socket_ui = BCIPSocketInterface(conn,addr)
-print("Done... Ready to work.")
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((HOST,PORT))
+    s.listen(1)
+    print("waiting for response from client at port {}".format(PORT))
+    conn, addr = s.accept()
+    print("Connected by {}".format(addr))
+    print("Connection Established")
+    print("Creating the Interface object...")
+    socket_ui = BCIPSocketInterface(conn,addr)
+    print("Done... Ready to work.")
 
-while True:
-    socket_ui.recieve_next_client_req()
-    if socket_ui.end_connection():
-        socket_ui.send_end_ack()
-        break
+    while True:
+        socket_ui.recieve_next_client_req()
+        if socket_ui.end_connection():
+            socket_ui.send_end_ack()
+            break
     
-    socket_ui.parse_client_req()
-    socket_ui.send_response()
+        socket_ui.parse_client_req()
+        socket_ui.send_response()
 
-conn.close()
+    conn.close()
+
+
+if __name__ == "__main__":
+    launch()

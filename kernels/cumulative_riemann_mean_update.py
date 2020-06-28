@@ -56,7 +56,7 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
         """
         
         # create array of trials executed this block
-        num_block_trials = self._block_trials.num_elements()
+        num_block_trials = self._block_trials.num_elements
         if num_block_trials > 0:
             block_trials = []
             for i in range(num_block_trials):
@@ -68,11 +68,13 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
             new_trials = np.expand_dims(self._last_trial.data,axis=0)
         
         # concat new trials to existing mean
-        prev_mean_data = self._prev_mean.data
+        prev_mean_data = np.expand_dims(self._prev_mean.data,axis=0)
         mean_calc_input = np.concatenate((prev_mean_data,new_trials),axis=0)
         mean_calc_weights = self._w[:mean_calc_input.shape[0]]
         
-        new_mean = mean_riemann(mean_calc_input,sample_weights=mean_calc_weights)
+        new_mean = mean_riemann(mean_calc_input,sample_weight=mean_calc_weights)
+        
+        self._new_mean.data = new_mean
         
         return BcipEnums.SUCCESS
     

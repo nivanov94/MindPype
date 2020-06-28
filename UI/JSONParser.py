@@ -27,10 +27,13 @@ kernel_LUT = {
         "cdf"              : kernels.cdf.CDFKernel,
         "combine_pvalues"  : kernels.combine_pvalues.CombinePValuesKernel,
         "concatenation"    : kernels.concatenation.ConcatenationKernel,
+        "consistency_by_label" : kernels.consists_by_label.ConsistencyByLabelKernel,
         "covariance"       : kernels.covariance.CovarianceKernel,
         "cumulative_rmean" : kernels.cumulative_riemann_mean.CumulativeRiemannMeanKernel,
+        "cumulative_rmean_update" : kernels.cumulative_riemann_mean_update.CumulativeRiemannMeanUpdateKernel,
         "diffusion_map"    : kernels.diffusion_map.DiffusionMapKernel,
         "division"         : kernels.divsion.DivisionKernel,
+        "dynamic_consistency_update" : kernels.dynamic_consistency_update.DynamicConsistencyUpdateKernel,
         "enqueue"          : kernels.enqueue.EnqueueKernel,
         "equal"            : kernels.equal.EqualKernel,
         "extract"          : kernels.extract.ExtractKernel,
@@ -46,12 +49,14 @@ kernel_LUT = {
         "mean"             : kernels.mean.MeanKernel,
         "min"              : kernels.min_.MinKernel,
         "multiplication"   : kernels.multiplication.MultiplicationKernel,
+        "pairwise_dists"   : kernels.pairwise_dists.PairwiseRiemannDistanceKernel,
         "reduced_sum"      : kernels.reduced_sum.ReducedSumKernel,
         "riemann_mdm"      : kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel,
         "riemann_rLDA"     : kernels.riemann_ts_rLDA_classifier.RiemannTangentSpacerLDAClassifierKernel,
         "riemann_distance" : kernels.riemann_distance.RiemannDistanceKernel,
         "riemann_mean"     : kernels.riemann_mean.RiemannMeanKernel,
         "riemann_potato"   : kernels.riemann_potato.RiemannPotatoKernel,
+        "rmean_by_label"   : kernels.rmean_by_label.RiemannMeanByLabelKernel,
         "set"              : kernels.set_data.SetKernel,
         "stack"            : kernels.stack.StackKernel,
         "std"              : kernels.std.StdKernel,
@@ -114,8 +119,10 @@ def _create_block(session, create_method_name, api_params, other_attrs):
             
             create_params = [g]
         
+            #print(node['name'])
             # iterate through the params, find the objects and call the creation method
             for param in node['api_params']:
+                #print(param)
                 if isinstance(param,str) and param[:3] == "id_":
                     # lookup the id within the session and add
                     obj = session.find_obj(int(param[3:]))
@@ -158,6 +165,7 @@ def _create_obj(session, obj, create_method_name, api_params):
                 create_params[-1] = (1,)
     
     print("Creating {} object...".format(obj.__name__))
+    #print(create_params)
     return create_method(*create_params)
 
 def _extract_nested_data(bcip_obj):

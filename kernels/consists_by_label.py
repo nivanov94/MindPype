@@ -43,8 +43,8 @@ class ConsistencyByLabelKernel(Kernel):
         
         for p in (self._covs,self._means,self._labels,self._consists):
             # first ensure the input and output are appropriate types
-            if (not isinstance(p,Tensor)) or \
-                (not isinstance(p,Array)):
+            if ((not isinstance(p,Tensor)) and
+                (not isinstance(p,Array))):
                     return BcipEnums.INVALID_PARAMETERS
             
             if isinstance(self._covs,Tensor): #TODO
@@ -63,7 +63,7 @@ class ConsistencyByLabelKernel(Kernel):
         # extract all the labels
         unique_labels = set()
         label_covs = {}
-        for i in range(self._labels.num_element()):
+        for i in range(self._labels.num_elements):
             l = self._labels.get_queued_element(i).data
             unique_labels.add(l)
             
@@ -78,7 +78,7 @@ class ConsistencyByLabelKernel(Kernel):
         # calculate the means for each label
         for i in range(len(unique_labels)):
             l = unique_labels[i]
-            l_mean = self._means.get_element(i)
+            l_mean = self._means.get_element(i).data
             disp = sum([distance_riemann(l_mean, t) for t in label_covs[l]])
             consist = np.zeros((1,1))
             consist[0,0] = disp / len(label_covs[l])
@@ -100,7 +100,7 @@ class ConsistencyByLabelKernel(Kernel):
         params = (Parameter(covs,BcipEnums.INPUT), 
                   Parameter(labels,BcipEnums.INPUT),
                   Parameter(means,BcipEnums.INPUT),
-                  Parameter(consist,BcipEnums.OUTPUT))
+                  Parameter(consists,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

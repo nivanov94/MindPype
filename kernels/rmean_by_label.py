@@ -9,6 +9,7 @@ from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
 from classes.tensor import Tensor
+from classes.circle_buffer import CircleBuffer
 from classes.array import Array
 from classes.bcip_enums import BcipEnums
 
@@ -39,15 +40,23 @@ class RiemannMeanByLabelKernel(Kernel):
         Verify the inputs and outputs are appropriately sized and typed
         """
         
-        for p in (self._covs,self._means,self._labels):
+        for p in (self._covs,self._labels):
             # first ensure the input and output are appropriate types
-            if (not isinstance(p,Tensor)) or \
-                (not isinstance(p,Array)):
+            if ((not isinstance(p,Tensor)) and
+                (not isinstance(p,CircleBuffer))):
                     return BcipEnums.INVALID_PARAMETERS
             
             if isinstance(self._covs,Tensor): #TODO
                 return BcipEnums.NotImplemented
-                
+        
+        for p in (self._means,):
+            # first ensure the input and output are appropriate types
+            if ((not isinstance(p,Tensor)) and
+                (not isinstance(p,Array))):
+                    return BcipEnums.INVALID_PARAMETERS
+            
+            if isinstance(self._covs,Tensor): #TODO
+                return BcipEnums.NotImplemented
         
         ## TODO add remaining verification logic
   
@@ -61,7 +70,7 @@ class RiemannMeanByLabelKernel(Kernel):
         # extract all the labels
         unique_labels = set()
         label_covs = {}
-        for i in range(self._labels.num_element()):
+        for i in range(self._labels.num_elements):
             l = self._labels.get_queued_element(i).data
             unique_labels.add(l)
             

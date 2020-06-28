@@ -75,6 +75,7 @@ class Graph(BCIP):
                     if len(edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
+                        print("scheduling failed")
                         return BcipEnums.INVALID_BLOCK
                     else:
                         # add the producer to the edge

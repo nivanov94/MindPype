@@ -42,8 +42,8 @@ class RiemannMeanKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (not isinstance(self._inA,Tensor)) or \
-            (not isinstance(self._outA,Tensor)):
+        if ((not isinstance(self._inA,Tensor)) or 
+            (not isinstance(self._outA,Tensor))):
                 return BcipEnums.INVALID_PARAMETERS
         
         input_shape = self._inA.shape
@@ -94,7 +94,7 @@ class RiemannMeanKernel(Kernel):
         k = cls(graph,inA,outA,weights)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT), \
+        params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object

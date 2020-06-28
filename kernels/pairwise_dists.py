@@ -41,8 +41,8 @@ class PairwiseRiemannDistanceKernel(Kernel):
         
         for p in (self._covs,self._dists):
             # first ensure the input and output are appropriate types
-            if (not isinstance(p,Tensor)) or \
-                (not isinstance(p,Array)):
+            if ((not isinstance(p,Tensor)) and
+                (not isinstance(p,Array))):
                     return BcipEnums.INVALID_PARAMETERS
             
             if isinstance(self._covs,Tensor): #TODO
@@ -66,7 +66,8 @@ class PairwiseRiemannDistanceKernel(Kernel):
             pw_dist = np.zeros((1,1))
             pw_dist[0,0] = distance_riemann(m1,m2)
             pw_dist_tensor = self._dists.get_element(i)
-            pw_dist.tensor.data = pw_dist
+            pw_dist_tensor.data = pw_dist
+            i += 1
             
         return BcipEnums.SUCCESS
     
