@@ -14,6 +14,7 @@ from classes.array import Array
 from classes.bcip_enums import BcipEnums
 
 import numpy as np
+from scipy.linalg import fractional_matrix_power
 
 from pyriemann.utils.mean import mean_riemann
 
@@ -67,12 +68,20 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
         else:
             new_trials = np.expand_dims(self._last_trial.data,axis=0)
         
-        # concat new trials to existing mean
-        prev_mean_data = np.expand_dims(self._prev_mean.data,axis=0)
-        mean_calc_input = np.concatenate((prev_mean_data,new_trials),axis=0)
-        mean_calc_weights = self._w[:mean_calc_input.shape[0]]
+        # # concat new trials to existing mean
+        # prev_mean_data = np.expand_dims(self._prev_mean.data,axis=0)
+        # mean_calc_input = np.concatenate((prev_mean_data,new_trials),axis=0)
+        # mean_calc_weights = self._w[:mean_calc_input.shape[0]]
+        block_mean = mean_riemann(new_trials)
         
-        new_mean = mean_riemann(mean_calc_input,sample_weight=mean_calc_weights)
+        #new_mean = mean_riemann(mean_calc_input,sample_weight=mean_calc_weights)
+        prev_mean_data = self._prev_mean.data
+        prev_mean_inv_sqrt = fractional_matrix_power(prev_mean_data,-1/2)
+        prev_mean_sqrt = fractional_matrix_power(prev_mean_data,1/2)
+        
+        inner = np.matmul(prev_mean_inv_sqrt,np.matmul(block_mean,prev_mean_inv_sqrt))
+        inner_pw = fractional_matrix_power(inner,(1-self._w[0]))
+        new_mean = np.matmul(prev_mean_sqrt,np.matmul(inner_pw,prev_mean_sqrt))
         
         self._new_mean.data = new_mean
         

@@ -15,7 +15,8 @@ from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
-from pyriemann.utils.mean import distance_riemann
+from pyriemann.utils.mean import mean_riemann
+from pyriemann.utils.distance import distance_riemann
 
 class DynamicConsistencyUpdateKernel(Kernel):
     """
@@ -60,11 +61,15 @@ class DynamicConsistencyUpdateKernel(Kernel):
             block_trials = []
             for i in range(num_block_trials):
                 block_trials.append(self._block_trials.get_element(i).data)
-
+        
         block_trials.append(self._last_trial.data)
         
+        # just calculate the variance of trials within the block, ignore the
+        # running mean for now
+        block_mean = mean_riemann(np.stack(block_trials))
+        
         consist = np.zeros((1,1))
-        consist[0,0] = sum([distance_riemann(self._mean.data,t) for t in block_trials])
+        consist[0,0] = sum([distance_riemann(block_mean,t) for t in block_trials])
         consist[0,0] /= len(block_trials)
         
         self._consist.data = consist
