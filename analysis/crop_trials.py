@@ -39,14 +39,12 @@ def crop_data(front,back,X):
         Ch - Channels
 
     """
-    return X[:,:,front+1:-back,:]
+    return X[:,:,front:-back,:]
 
 
 if __name__ == "__main__":
     files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/filtered_data/filtered-*.mat")
-    
-    output_dir = "D:/BCI/BCI_Capture/data/MI_datasets/BCICompIV-2a/cropped_trials/"
-    
+        
     
     # amount to crop from beginning and end in seconds
     

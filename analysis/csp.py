@@ -30,33 +30,22 @@ class CSP:
         self.m = m
     
     
-    def extract_feats(self,train_set,test_set=None):
+    def extract_feats(self,train_set,test_set):
         """
          using provided data
 
-        """
-        if self.eval_type == 'static' and test_set == None:
-            raise("Static analysis requires a test set param")
-        
-        if self.eval_type == 'dynamic' and test_set != None:
-            raise("Dynamic analysis requires no test set")
-        
-        
+        """                
         # create classifier
         if self.eval_type == 'static':
             Xtr, ytr = train_set
             Xte, yte = test_set
-
-            # remove frequency dim
-            Xtr = np.squeeze(Xtr,axis=1)
-            Xte = np.squeeze(Xte,axis=1)
             
             # Calculate spatial filters and extract features
             W = self._calc_csp_filters(Xtr,ytr)
             
             # filter
-            Xtr_filt = self._apply_csp_filt(W,Xtr)
-            Xte_filt = self._apply_csp_filt(W,Xtr)
+            Xtr_filt = self._apply_csp_filts(W,Xtr)
+            Xte_filt = self._apply_csp_filts(W,Xte)
             
             # log-var feats
             Xtr_feats = self._ext_log_var(Xtr_filt)
@@ -174,10 +163,10 @@ class CSP:
             return self._calc_binary_csp_filters(X,y)
         
         if self.multi_class_ext == 'OVR':
-            _, Ns, Nc = X.shape
+            _, Nfb, Ns, Nc = X.shape
             labels = np.unique(y)
             Nl = labels.shape[0]
-            W = np.zeros((Nl,Nc,2*self.m))
+            W = np.zeros((Nl,Nfb,Nc,2*self.m))
             
             for i_l in range(Nl):
                 l = labels[i_l]
@@ -185,30 +174,30 @@ class CSP:
                 yl[y==l] = 1
                 yl[y!=l] = 0
                 
-                W[i_l,:,:] = self._calc_binary_csp_filters(X,yl)
+                W[i_l,:,:,:] = self._calc_binary_csp_filters(X,yl)
             
             return W
                 
         elif self.multi_class_ext == 'PW':
-            _, Ns, Nc = X.shape
+            _, Nfb, Ns, Nc = X.shape
             labels = np.unique(y)
             Nl = labels.shape[0]
             
-            Nf = binom(Nl,2)
+            Nf = int(binom(Nl,2))
             
-            W = np.zeros((Nf,Nc,2*self.m))
+            W = np.zeros((Nf,Nfb,Nc,2*self.m))
             
             i = 0
             for (l1,l2) in iter_combs(labels,2):
-                Xl1 = X[y==l1,:,:]
-                Xl2 = X[y==l2,:,:]
+                Xl1 = X[y==l1,:,:,:]
+                Xl2 = X[y==l2,:,:,:]
                 yl = np.concatenate((l1 * np.ones(Xl1.shape[0],),
                                      l2 * np.ones(Xl2.shape[0])),
                                     axis=0)
                 Xl = np.concatenate((Xl1,Xl2),
                                     axis=0)                
                 
-                W[i,:,:] = self._calc_binary_csp_filters(Xl,yl)
+                W[i,:,:,:] = self._calc_binary_csp_filters(Xl,yl)
                 i += 1
             
             return W
@@ -218,7 +207,7 @@ class CSP:
         
     
     def _calc_binary_csp_filters(self,X,y):
-        _, Ns, Nc = X.shape
+        _, Nf, Ns, Nc = X.shape
         
         labels = np.unique(y)
         Nl = labels.shape[0]
@@ -226,58 +215,66 @@ class CSP:
         if Nl != 2:
             raise("invalid number of labels")
         
-        # calc mean cov mats for each class
-        C = np.zeros((2,Nc,Nc))
-        for i_l in range(2):
-            l = labels[i_l]
-            X_l = X[y==l]
-            Nt = X_l.shape[0]
-            X_l = np.transpose(X_l,(2,1,0))
-            X_l = np.reshape(X_l,(Nc,Ns*Nt))
-            C[i_l,:,:] = np.cov(X_l)
+        # calculate for each frequency band
+        W = np.zeros((Nf,Nc,2*self.m))
+        
+        for i_fb in range(Nf):
+            Xfb = X[:,i_fb,:,:]
+            # calc mean cov mats for each class
+            C = np.zeros((2,Nc,Nc))
+            for i_l in range(2):
+                l = labels[i_l]
+                X_l = Xfb[y==l,:,:]
+                Nt = X_l.shape[0]
+                X_l = np.transpose(X_l,(2,1,0))
+                X_l = np.reshape(X_l,(Nc,Ns*Nt))
+                C[i_l,:,:] = np.cov(X_l)
                 
-        d, V = np.linalg.eig(np.mean(C,axis=0))
+            d, V = np.linalg.eig(np.mean(C,axis=0))
     
-        ix = np.flip(np.argsort(d))
-        d = d[ix]
-        V = V[:,ix]
+            ix = np.flip(np.argsort(d))
+            d = d[ix]
+            V = V[:,ix]
             
-        M = np.matmul(V,np.diag(d ** (-1/2))) # whitening matrix
+            M = np.matmul(V,np.diag(d ** (-1/2))) # whitening matrix
 
-        dC = C[0,:,:] - C[1,:,:]
-        S = np.matmul(M.T,np.matmul(dC,M))
-        d, W = np.linalg.eig(S)
-        W = np.matmul(M,W)
+            dC = C[0,:,:] - C[1,:,:]
+            S = np.matmul(M.T,np.matmul(dC,M))
+            d, Wfb = np.linalg.eig(S)
+            Wfb = np.matmul(M,Wfb)
             
-        ix = np.flip(np.argsort(d))
-        d = d[ix]
-        W = W[:,ix]
+            ix = np.flip(np.argsort(d))
+            d = d[ix]
+            Wfb = Wfb[:,ix]
     
-        W = np.concatenate((W[:,:self.m],W[:,-self.m:]),axis=1)
+            W[i_fb,:,:] = np.concatenate((Wfb[:,:self.m],Wfb[:,-self.m:]),axis=1)
     
         return W
     
     def _apply_csp_filts(self,W,X):
-        Nt,Ns,Ncx = X.shape
+        Nt,Nfbx,Ns,Ncx = X.shape
         
-        if len(W.shape) == 2:
-            Ncw, Nf = W.shape
+        if len(W.shape) == 3:
+            Ncl = 1
+            Nfbw, Ncw, Nf = W.shape
             W = np.expand_dims(W,axis=0)
-            X_filt = np.zeros((Nt,1,Ns,Ncx))
+            X_filt = np.zeros((Nt,Nfbw,1,Ns,Nf))
         else:
-            Ncl, Ncw, Nf = W.shape
-            X_filt = np.zeros((Nt,Ncl,Ns,Ncx))
+            Ncl, Nfbw, Ncw, Nf = W.shape
+            X_filt = np.zeros((Nt,Nfbw,Ncl,Ns,Nf))
             
-        if Ncw != Ncx:
-            raise("Channel mismatch")
+        if Ncw != Ncx or Nfbx != Nfbw:
+            raise Exception("Channel/freqband mismatch")
         
         for i_t in range(Nt):
-            X_filt[i_t,:,:,:] = np.matmul(X[i_t,:,:],W)
+            for i_fb in range(Nfbx):
+                for i_f in range(Ncl):
+                    X_filt[i_t,i_fb,i_f,:,:] = np.matmul(X[i_t,i_fb,:,:],W[i_f,i_fb,:,:])
             
         return X_filt
     
     def _ext_log_var(self,X):
-        X_var = np.var(X,axis=2)
+        X_var = np.var(X,axis=3)
         X_log_var = np.log(X_var)
         
         return X_log_var

@@ -1,19 +1,19 @@
 {
-  "channels" : [[5,13,15,21,31,38,40,48,50,52,58],
-                [5,13,14,21,31,38,40,48,50,51,58]],
+  "channels" : [[4,12,14,20,30,37,39,47,49,51,57],
+                [4,12,13,20,30,37,39,47,49,50,57]],
 
-  "freq_bands" : [[9],[10],[11],[12],[13]],
+  "freq_bands" : [[9,10,11,12,13]],
 
   "classes" : [[1,2]],
 
-  "train_set_sz" : [40],
-  "test_set_sz"  : [35],
+  "train_set_sz" : [45],
+  "test_set_sz"  : [30],
   "eval_set_sz"  : [null],
 
   "clsfs"  : ["MDM"],
   "win_sz" : [20,40,null],
   "win_type" : [["sliding"],["expanding"]],
-  "step_sz" : [4,8],
+  "step_sz" : [5],
 
 
   "dataset" : "Cho",

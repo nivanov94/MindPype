@@ -128,7 +128,11 @@ def run_participant(participant,cfg):
                + '-' + timestr + '.json')
     
     with open(outfile,'w+') as dest_file:
-        json.dump({'participant' : participant['number']},dest_file)
+        json.dump({'participant' : participant['number'],
+                   'dataset'     : cfg['dataset']},
+                  dest_file)
+    
+    artifact_file = cfg['artifacts_file']
     
     i = 1
     total_sets = len(metric_hyperparams)
@@ -149,6 +153,8 @@ def run_participant(participant,cfg):
         
         PDE = ParticipantDataExtractor(trial_data_file,
                                        cov_data_file,
+                                       artifact_file,
+                                       str(participant['number']),
                                        classes,
                                        channels,
                                        fbands,
@@ -156,8 +162,6 @@ def run_participant(participant,cfg):
         
         # get the covariance data matrices
         Xev,Xtr,Xte,yev,ytr,yte = PDE.extract_cov_data()
-        
-        
         
         # calculate metrics
         print("\t|\t|\tCalculating Distinct metrics...")
@@ -171,30 +175,53 @@ def run_participant(participant,cfg):
         metric = Distinct(metric_components,ref,win_sz,win_type,step_sz,len(classes),decay)
             
         # calcualte evaluation set metrics
-        print("\t|\t|\t|\tEval Set...")
-        eval_metrics = metric.calculate(Xev,yev)
-        print("\t|\t|\t|\tTrain Set...")
-        train_metrics = metric.calculate(Xtr,ytr)
-        print("\t|\t|\t|\tTest Set...")
-        test_metrics = metric.calculate(Xte,yte)
+        if yev.shape[0] > 0:
+            print("\t|\t|\t|\tEval Set...")
+            eval_metrics = metric.calculate(Xev,yev)
+        
+        if ytr.shape[0] > 0:
+            print("\t|\t|\t|\tTrain Set...")
+            train_metrics = metric.calculate(Xtr,ytr)
+        
+        if yte.shape[0] > 0:
+            print("\t|\t|\t|\tTest Set...")
+            test_metrics = metric.calculate(Xte,yte)
         
         # add the newest data
-        metric_data = {'hyp_set' : hyp_set}
+        metric_data = {'hyp_set' : hyp_set,
+                       'Eval-Trials' : yev.shape[0],
+                       'Train-Trials' : ytr.shape[0],
+                       'Test-Trials' : yte.shape[0]}
         
         if 'Distinct' in metric_components:
-            metric_data['Eval-Distinct'] = eval_metrics['Distinct'].tolist()
-            metric_data['Train-Distinct'] = train_metrics['Distinct'].tolist()
-            metric_data['Test-Distinct'] = test_metrics['Distinct'].tolist()
+            if yev.shape[0] > 0:
+                metric_data['Eval-Distinct'] = eval_metrics['Distinct'].tolist()
+            
+            if ytr.shape[0] > 0:
+                metric_data['Train-Distinct'] = train_metrics['Distinct'].tolist()
+            
+            if yte.shape[0] > 0:
+                metric_data['Test-Distinct'] = test_metrics['Distinct'].tolist()
         
         if 'InterSpread' in metric_components:
-            metric_data['Eval-InterSpread'] = eval_metrics['InterSpread'].tolist()
-            metric_data['Train-InterSpread'] = train_metrics['InterSpread'].tolist()
-            metric_data['Test-InterSpread'] = test_metrics['InterSpread'].tolist()
+            if yev.shape[0] > 0:
+                metric_data['Eval-InterSpread'] = eval_metrics['InterSpread'].tolist()
+            
+            if ytr.shape[0] > 0:
+                metric_data['Train-InterSpread'] = train_metrics['InterSpread'].tolist()
+            
+            if yte.shape[0] > 0:
+                metric_data['Test-InterSpread'] = test_metrics['InterSpread'].tolist()
         
         if 'Consist' in metric_components:
-            metric_data['Eval-Consist'] = eval_metrics['Consist'].tolist()
-            metric_data['Train-Consist'] = train_metrics['Consist'].tolist()
-            metric_data['Test-Consist'] = test_metrics['Consist'].tolist()
+            if yev.shape[0] > 0:
+                metric_data['Eval-Consist'] = eval_metrics['Consist'].tolist()
+            
+            if ytr.shape[0] > 0:
+                metric_data['Train-Consist'] = train_metrics['Consist'].tolist()
+            
+            if yte.shape[0] > 0:
+                metric_data['Test-Consist'] = test_metrics['Consist'].tolist()
         
         write_metric_data(outfile,metric_data)
 

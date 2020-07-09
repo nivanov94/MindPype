@@ -5,15 +5,15 @@
 
   "classes" : [[1,2],[1,3],[2,3],[1,2,3]],
 
-  "train_set_sz" : [45],
-  "test_set_sz"  : [35],
+  "train_set_sz" : [0],
+  "test_set_sz"  : [0],
   "eval_set_sz"  : [null],
 
   "clsfs"  : ["MDM"],
-  "win_sz" : [20,30,40,null],
+  "win_sz" : [30,45],
   "win_type" : [["sliding"],["expanding"]],
   "step_sz" : [5],
-  "mode" : "offline",
+  "mode"    : "online",
 
 
   "dataset" : "Kaya",

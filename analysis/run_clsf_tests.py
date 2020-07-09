@@ -5,7 +5,9 @@ Created on Mon Jun  8 09:58:45 2020
 @author: Nick
 """
 
-from clsf_eval import MDM
+from clsf_eval import MDM, FgMDM, rLDA
+from csp import CSP
+from emsemble_clsf_eval import rLDA as erLDA
 from data_ext import ParticipantDataExtractor
 
 import json
@@ -55,8 +57,10 @@ def extract_clsf_hyperparams(cfg):
     hyp_sets = []
     
     hyperparams = ['channels','freq_bands','classes','train_set_sz',
-                   'test_set_sz','eval_set_sz',
-                   'win_sz','win_type','step_sz']
+                   'test_set_sz','eval_set_sz']
+    
+    if cfg['mode'] == 'online':
+        hyperparams.extend(['win_sz','win_type','step_sz'])
     
     available_set = [list(cfg[h]) for h in hyperparams]
     used_set = [[] for _ in hyperparams]
@@ -124,10 +128,12 @@ def run_participant(participant,cfg):
     clsf_hyperparams = extract_clsf_hyperparams(cfg)
     
     outfile = (cfg['output_file'] + "P" + str(participant['number'])
-               + '-{}-' + timestr + '.json')
+               + '-{}-{}-' + timestr + '.json')
+    
+    artifact_file = cfg['artifacts_file']
     
     for clsf in cfg['clsfs']:
-        with open(outfile.format(clsf),'w+') as destfile:
+        with open(outfile.format(clsf,cfg['mode']),'w+') as destfile:
             json.dump(participant,destfile)
     
     i = 1
@@ -149,6 +155,8 @@ def run_participant(participant,cfg):
         
         PDE = ParticipantDataExtractor(trial_data_file,
                                        cov_data_file,
+                                       artifact_file,
+                                       str(participant['number']),
                                        classes,
                                        channels,
                                        fbands,
@@ -156,45 +164,153 @@ def run_participant(participant,cfg):
         
         # get the covariance data matrices
         cXev,cXtr,cXte,yev,ytr,yte = PDE.extract_cov_data()
-        tXev,tXtr,tXev,_,_,_ = PDE.extract_trial_data()
+        tXev,tXtr,tXte,_,_,_ = PDE.extract_trial_data()
         
         
         # evaluate the training and test set
         if 'MDM' in cfg['clsfs']:
+            if cfg['mode'] == 'offline':
+                print("\t|\t|\tCalculating classifier results for train & test set...")
+                mdm_clsf = MDM(len(classes))
+                train_test_results, cv_results = mdm_clsf.evaluate_train_test((cXtr,ytr),((cXte,yte)))
+            
+                # convert numpy arrays to lists to enable json serialization
+                # for file writing
+                for r in train_test_results:
+                    train_test_results[r] = train_test_results[r].tolist()
+                cv_results = cv_results.tolist()
+            
+            
+            # print("\t|\t|\tCalculating classifier results for eval set...")
+            # win_sz = hyp_set['win_sz']
+            # win_type = hyp_set['win_type'][0]
+            # step_sz = hyp_set['step_sz']
+            # if win_type == 'exponential':
+            #     decay = hyp_set['win_type'][1]
+            # else:
+            #     decay = 0
+            
+            # fgmdm_clsf = MDM('dynamic',len(classes),win_sz,win_type,step_sz,decay)
+            # eval_results = fgmdm_clsf.evaluate((cXev,yev))
+            
+            # # convert numpy arrays to lists to enable json serialization
+            # # for file writing
+            # for r in eval_results:
+            #     eval_results[r] = eval_results[r].tolist()
+            
+            
+                mdm_file = outfile.format('MDM','offline')
+                clsf_data = {'hyp_set'     : hyp_set,
+                             'Train-Test' : train_test_results,
+                             'CV'         : cv_results}
+            
+            
+            elif cfg['mode'] == 'online':
+                print("\t|\t|\tCalculating classifier results for online set...")
+                win_sz = hyp_set['win_sz']
+                win_type = hyp_set['win_type'][0]
+                step_sz = hyp_set['step_sz']
+            
+                mdm_clsf = MDM(len(classes),win_sz,win_type,step_sz)
+            
+                online_res, cv_res = mdm_clsf.evaluate_dynamic_online((cXev,yev)) 
+            
+                # convert numpy arrays to lists to enable json serialization
+                # for file writing
+                for r in online_res:
+                    online_res[r] = online_res[r].tolist()
+                cv_res = cv_res.tolist()
+            
+                mdm_file = outfile.format('MDM','online')
+                clsf_data = {'hyp_set'   : hyp_set,
+                             'Online'    : online_res,
+                             'CV'        : cv_res}
+            
+            write_clsf_data(mdm_file,clsf_data)
+
+        if 'FgMDM' in cfg['clsfs']:
             print("\t|\t|\tCalculating classifier results for train & test set...")
-            mdm_clsf = MDM('static',len(classes))
-            train_test_results = mdm_clsf.evaluate((cXtr,ytr),((cXte,yte)))
+            fgmdm_clsf = FgMDM(len(classes))
+            train_test_results, cv_results = fgmdm_clsf.evaluate_train_test((cXtr,ytr),((cXte,yte)))
             
             # convert numpy arrays to lists to enable json serialization
             # for file writing
             for r in train_test_results:
                 train_test_results[r] = train_test_results[r].tolist()
+            cv_results = cv_results.tolist()
             
             
-            print("\t|\t|\tCalculating classifier results for eval set...")
-            win_sz = hyp_set['win_sz']
-            win_type = hyp_set['win_type'][0]
-            step_sz = hyp_set['step_sz']
-            if win_type == 'exponential':
-                decay = hyp_set['win_type'][1]
+            # print("\t|\t|\tCalculating classifier results for eval set...")
+            # win_sz = hyp_set['win_sz']
+            # win_type = hyp_set['win_type'][0]
+            # step_sz = hyp_set['step_sz']
+            # if win_type == 'exponential':
+            #     decay = hyp_set['win_type'][1]
+            # else:
+            #     decay = 0
+            
+            # fgmdm_clsf = FgMDM('dynamic',len(classes),win_sz,win_type,step_sz,decay)
+            # eval_results = fgmdm_clsf.evaluate((cXev,yev))
+            
+            # # convert numpy arrays to lists to enable json serialization
+            # # for file writing
+            # for r in eval_results:
+            #     eval_results[r] = eval_results[r].tolist()
+            
+            fgmdm_file = outfile.format('FgMDM')
+            clsf_data = {'hyp_set'    : hyp_set,
+                         'Train-Test' : train_test_results,
+                         'CV'         : cv_results}
+            
+            write_clsf_data(fgmdm_file,clsf_data)
+            
+        if 'CSP-OVR-rLDA' in cfg['clsfs']:
+            print("\t|\t|\tCalculating CSP classifier results for train & test set...")
+            feat_extractor = CSP('static',len(classes),2,'OVR')
+            
+            if len(classes) > 2:
+                csp_lda_clsf = erLDA('static','OVR',len(classes))
             else:
-                decay = 0
-            
-            mdm_clsf = MDM('dynamic',len(classes),win_sz,win_type,step_sz,decay)
-            eval_results = mdm_clsf.evaluate((cXev,yev))
+                csp_lda_clsf = rLDA(2)
+            train_set, test_set = feat_extractor.extract_feats((tXtr,ytr),(tXte,yte))
+            train_test_results, cv_results = csp_lda_clsf.evaluate_train_test(train_set,test_set)
             
             # convert numpy arrays to lists to enable json serialization
             # for file writing
-            for r in eval_results:
-                eval_results[r] = eval_results[r].tolist()
+            for r in train_test_results:
+                train_test_results[r] = train_test_results[r].tolist()
+            cv_results = cv_results.tolist()
             
-            mdm_file = outfile.format('MDM')
+            csp_ovr_rlda_file = outfile.format('CSP-OVR-rLDA','offline')
             clsf_data = {'hyp_set'    : hyp_set,
                          'Train-Test' : train_test_results,
-                         'Eval'       : eval_results}
+                         'CV'         : cv_results}
             
-            write_clsf_data(mdm_file,clsf_data)
-
+            write_clsf_data(csp_ovr_rlda_file,clsf_data)
+            
+        if 'CSP-PW-rLDA' in cfg['clsfs']:
+            print("\t|\t|\tCalculating CSP classifier results for train & test set...")
+            feat_extractor = CSP('static',len(classes),2,'PW')
+            
+            if len(classes) > 2:
+                csp_lda_clsf = erLDA('static','PW',len(classes))
+            else:
+                csp_lda_clsf = rLDA(2)
+            train_set, test_set = feat_extractor.extract_feats((tXtr,ytr),(tXte,yte))
+            train_test_results, cv_results = csp_lda_clsf.evaluate_train_test(train_set,test_set)
+            
+            # convert numpy arrays to lists to enable json serialization
+            # for file writing
+            for r in train_test_results:
+                train_test_results[r] = train_test_results[r].tolist()
+            cv_results = cv_results.tolist()
+            
+            csp_pw_rlda_file = outfile.format('CSP-PW-rLDA','offline')
+            clsf_data = {'hyp_set'    : hyp_set,
+                         'Train-Test' : train_test_results,
+                         'CV'         : cv_results}
+            
+            write_clsf_data(csp_pw_rlda_file,clsf_data)
 
 
 def clsf_analysis(config_file):
@@ -208,13 +324,14 @@ def clsf_analysis(config_file):
     for participant in participants:
         partic_data = {"trial_data_file" : trial_data_template.format(participant),
                        "cov_data_file"   : cov_data_template.format(participant),
-                       "number"          : participant}
+                       "number"          : participant,
+                       "dataset"         : cfg['dataset']}
         
         print("Performing analysis for participant {}...".format(participant))
         run_participant(partic_data,cfg)
 
 
 if __name__ == "__main__":
-    config_file = "D:\BCI\BCI_Capture\data\MI_datasets\Kaya_MDM_testing_cfg.json"
+    config_file = "D:\BCI\BCI_Capture\data\MI_datasets\high_gamma_MDM_testing_cfg.json"
     
     clsf_analysis(config_file)

@@ -13,7 +13,7 @@ from scipy.io import loadmat, savemat
 if __name__ == "__main__":
     
     
-    dataset = 'BCICompIV-2a'
+    dataset = 'High'
     
     Fbands =      ((4,38),
                    (4,10),

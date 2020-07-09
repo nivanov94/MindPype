@@ -5,13 +5,14 @@ Created on Wed Jun 10 10:48:25 2020
 @author: Nick
 """
 
-from .clsf_eval import ClassifierEval, _generate_confusion_mat
+from clsf_eval import ClassifierEval
 from scipy.special import binom
 from scipy.stats import mode
 from itertools import combinations as iter_combs
 import numpy as np
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as skLDA
+from sklearn.metrics import confusion_matrix
 
 class EnsembleClassifierEval(ClassifierEval):
     
@@ -26,7 +27,7 @@ class EnsembleClassifierEval(ClassifierEval):
         Nl = labels.shape[0]
         
         if self.ext == 'PW':
-            Nclf = binom(Nl)
+            Nclf = int(binom(Nl,2))
             ytr_bar = -1 * np.ones((Nclf,Xtr.shape[0]))
             yte_bar = -1 * np.ones((Nclf,Xte.shape[0]))
             
@@ -57,13 +58,14 @@ class EnsembleClassifierEval(ClassifierEval):
             ytr_bar, _ = mode(ytr_bar,axis=0)
             yte_bar, _ = mode(yte_bar,axis=0)
             
-            train_res = _generate_confusion_mat(ytr, ytr_bar)
-            test_res = _generate_confusion_mat(yte, yte_bar)
+            ytr_bar = np.squeeze(ytr_bar)
+            yte_bar = np.squeeze(yte_bar)
+            
+            train_res = confusion_matrix(ytr, ytr_bar)
+            test_res = confusion_matrix(yte, yte_bar)
 
         elif self.ext == 'OVR':
-            labels = np.unique(ytr)
-            Nl = labels.shape[0]
-            
+
             ytr_bar = -1 * np.ones((Nl,Xtr.shape[0]))
             yte_bar = -1 * np.ones((Nl,Xte.shape[0]))
             
@@ -72,10 +74,10 @@ class EnsembleClassifierEval(ClassifierEval):
                 l1 = labels[i_c]
                 # train
                 ytr_l = np.zeros((ytr.shape[0],))
-                ytr_l[y == l1] = 1
-                ytr_l[y != l1] = 0
+                ytr_l[ytr == l1] = 1
+                ytr_l[ytr != l1] = 0
                 
-                clsf.fit(Xtr,ytr_l)
+                clsf.fit(Xtr[:,i_c,:],ytr_l)
                 
                 # eval train set
                 ytr_bar[i_c,:] = clsf.predict_proba(Xtr[:,i_c,:])[:,1]
@@ -86,11 +88,11 @@ class EnsembleClassifierEval(ClassifierEval):
                 i_c += 1
             
             # determine predicted class from  mode of all classifiers
-            ytr_bar, _ = np.argmax(ytr_bar,axis=0)
-            yte_bar, _ = np.argmax(yte_bar,axis=0)
+            ytr_bar = [labels[l] for l in np.argmax(ytr_bar,axis=0)]
+            yte_bar = [labels[l] for l in np.argmax(yte_bar,axis=0)]
             
-            train_res = _generate_confusion_mat(ytr, ytr_bar)
-            test_res = _generate_confusion_mat(yte, yte_bar)
+            train_res = confusion_matrix(ytr, ytr_bar)
+            test_res = confusion_matrix(yte, yte_bar)
             
         else:
             raise("Invalid multi-class extension")
@@ -199,33 +201,76 @@ class rLDA(EnsembleClassifierEval):
                  win_type='sliding',step_sz=None,decay=0.8)
         
         
-    def evaluate(self,train_set,test_set=None):
-        
-        if self.eval_type == 'static' and test_set == None:
-            raise("Static analysis requires a test set param")
-        
-        if self.eval_type == 'dynamic' and test_set != None:
-            raise("Dynamic analysis requires no test set")
-        
+    def evaluate_train_test(self,train_set,test_set):
         
         clsf = skLDA(solver='lsqr',shrinkage='auto')
         
-        if self.eval_type == 'static':
-            Xtr, ytr = train_set
-            Xte, yte = test_set
+        
+        Xtr, ytr = train_set
+        Xte, yte = test_set
 
-            results = self.static_eval(clsf,Xtr,ytr,Xte,yte)
-            
-        elif self.eval_type == 'dynamic':
-            # split the train set into train and test
-            # with a sliding window to simulate co-adaptive online session
-            
-            X = train_set[0]
-            y = train_set[1]
-                        
-            results = self.dynamic_eval(clsf,X,y)
+        best_fb, cv_res = self.select_best_feature_hyperparams(clsf,Xtr,ytr)
 
-        else:
-            raise("invalid evaluation type")
+        # extract best frequency band
+        Xtr = Xtr[:,best_fb,:,:]
+        Xte = Xte[:,best_fb,:,:]
+
+        results = self.static_eval(clsf,Xtr,ytr,Xte,yte)
+        
+        return results, cv_res    
+    
+    def select_best_feature_hyperparams(self,clsf,X,y):
+        """
+        Use K-fold CV to select best frequency band for user
+
+        """
+        X = np.transpose(X,axes=(1,0,2,3))
+        Nfb,Nt,Nf,Nch = X.shape
+        
+        cv_res = np.zeros((Nfb,2))
+        
+        labels = np.unique(y)
+        Nc = labels.shape[0]
+        
+        # np arrays for CV
+        # assuming 5-fold CV with 45 training samples per class
+        Xtr = np.zeros((Nc*36,Nf,Nch))
+        Xte = np.zeros((Nc*9,Nf,Nch))
+        ytr = np.zeros((Nc*36,))
+        yte = np.zeros((Nc*9,))
+        
+        
+        class_indices = [None] * Nc
+        for i_l in range(Nc):
+            class_indices[i_l] = np.squeeze(np.argwhere(y==labels[i_l]))
             
-        return results
+            ytr[i_l*36:(i_l+1)*36] = labels[i_l]
+            yte[i_l*9:(i_l+1)*9] = labels[i_l]
+        
+        cv_scr = np.zeros((5,))
+        
+        for i_f in range(Nfb):
+            Xf = X[i_f,:,:,:]
+            
+            for i_cv in range(5):
+                for i_l in range(Nc):
+                    l = labels[i_l]
+                    l_cv_te_slice_indices = class_indices[i_l][i_cv*9:(i_cv+1)*9]
+                    l_cv_tr_slice_indices = np.setdiff1d(class_indices[i_l],
+                                                         l_cv_te_slice_indices)
+                    
+                    Xtr[i_l*36:(i_l+1)*36,:,:] = Xf[l_cv_tr_slice_indices,:,:]
+                    Xte[i_l*9:(i_l+1)*9,:,:] = Xf[l_cv_te_slice_indices,:,:]
+                
+                
+                fold_res = self.static_eval(clsf,Xtr,ytr,Xte,yte)
+                fold_acc = np.sum(np.diag(fold_res['Test'])) / np.sum(fold_res['Test'])
+                cv_scr[i_cv] = fold_acc
+            
+            cv_res[i_f,0] = np.mean(cv_scr)
+            cv_res[i_f,1] = 2 * np.std(cv_scr) # 95% conf. interval           
+            
+        
+        best_fb = np.argmax(cv_res[:,0])
+        
+        return best_fb, cv_res

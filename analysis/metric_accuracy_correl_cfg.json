@@ -1,0 +1,21 @@
+{
+  "win_type" : [["exponential",0.85]],
+  "step_sz"  : [5],
+  "win_sz"   : [45],
+  "eval_set_sz" : [null],
+  "metric_fbands" : [13],
+  "metric_references" : ["pairwise"],
+  "channel_set" : [0],
+
+  "metric_files" : [["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\kayaetal\\metric_stats\\metric_dataP*-{}.json","20200702-1825"],
+                    ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\Choetal\\metric_stats\\metric_dataP*-{}.json",""],
+                    ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\BCICompIV-2a\\metric_stats\\metric_dataP*-{}.json","20200702-1814"],
+                    ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\HighGamma\\data\\metric_stats\\metric_dataP*-{}.json","20200702-2108"]],
+
+  "clsf_files" : [["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\kayaetal\\clsf_stats\\clsf_dataP*-MDM-offline-{}.json","20200628-2049"],
+                  ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\Choetal\\clsf_stats\\clsf_dataP*-MDM-{}.json",""],
+                  ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\BCICompIV-2a\\clsf_stats\\clsf_dataP*-MDM-offline-{}.json","20200628-2101"],
+                  ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\HighGamma\\data\\clsf_stats\\clsf_dataP*-MDM-offline-{}.json","20200628-2122"]],
+
+  "output_file" : "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\correlation\\correl_analysis-"
+}

@@ -15,6 +15,7 @@ from pyriemann.utils.distance import distance_riemann as rdist
 import numpy as np
 from itertools import combinations as iter_combs
 
+from scipy.linalg import fractional_matrix_power
 
 def _inter_spread(means,reference):
     if reference == 'common':
@@ -22,15 +23,15 @@ def _inter_spread(means,reference):
         common_mean = rmean(means)
                         
         # sum the distance from each mean to the common mean
-        inter_spread = sum([rdist(m,common_mean) for m in means])
+        inter_spread = [rdist(m,common_mean) for m in means]
                         
     elif reference == 'pairwise':
         # sum the distance between each pair of means
-        inter_spread = 0
+        inter_spread = []
         for i_m1,i_m2 in iter_combs(range(means.shape[0]),2):
             mean1 = means[i_m1,:,:]
             mean2 = means[i_m2,:,:]
-            inter_spread += rdist(mean1,mean2)
+            inter_spread.append(rdist(mean1,mean2))
             
     return inter_spread
 
@@ -77,6 +78,7 @@ class Metric:
                     disp[i_c] /= step_data.shape[0]
                                 
                 self.prev_means = np.copy(means)
+                self.prev_disp = np.copy(disp)
                         
             else:
                 start = (i_s - 1) * self.step_sz + win_sz
@@ -86,20 +88,33 @@ class Metric:
                     step_data = np.squeeze(data[i_c][start:stop,i_f,:,:])
                     
                     # calculate the mean
-                    covs = np.concatenate((np.expand_dims(self.prev_means[i_c,:,:],axis=0),
-                                           step_data),
-                                          axis=0)
-                    # create the weigtht vector
-                    new_sample_weights = tuple([(1-self.decay) / self.step_sz] * self.step_sz)
-                    weights = (self.decay,) + new_sample_weights
-                            
-                    means[i_c,:,:] = rmean(covs,sample_weight=weights)
-                                
+                    #covs = np.concatenate((np.expand_dims(self.prev_means[i_c,:,:],axis=0),
+                    #                       step_data),
+                    #                      axis=0)
+                    ## create the weigtht vector
+                    #new_sample_weights = tuple([(1-self.decay) / self.step_sz] * self.step_sz)
+                    #weights = (self.decay,) + new_sample_weights
+                           
+                    #means[i_c,:,:] = rmean(covs,sample_weight=weights)
+                    
+                    # calculate the block mean
+                    block_mean = rmean(step_data)
+                    
+                    # new mean is weighted mean between session and block mean
+                    prev_mean_inv_sqrt = fractional_matrix_power(self.prev_means[i_c,:,:],-1/2)
+                    prev_mean_sqrt = fractional_matrix_power(self.prev_means[i_c,:,:],1/2)
+                    inner = np.matmul(prev_mean_inv_sqrt,np.matmul(block_mean,prev_mean_inv_sqrt))
+                    means[i_c,:,:] = np.matmul(prev_mean_sqrt,
+                                               np.matmul(fractional_matrix_power(inner,(1-self.decay)),
+                                                         prev_mean_sqrt))
+                    
                     # calculate the average distance to the mean
-                    disp[i_c] = sum([rdist(t,means[i_c,:,:]) for t in step_data])
-                    disp[i_c] /= step_data.shape[0]
+                    disp_block = sum([rdist(t,block_mean) for t in step_data])
+                    disp_block /= step_data.shape[0]
+                    disp[i_c] = self.decay * self.prev_disp[i_c] + (1 - self.decay) * disp_block
                     
                 self.prev_means = np.copy(means)
+                self.prev_disp = np.copy(disp)
         
         return means, disp
 
@@ -140,7 +155,7 @@ class Distinct(Metric):
                 if comp == 'Distinct':        
                     metrics['Distinct'] = np.zeros((1,X.shape[1]))
                 elif comp == 'InterSpread':
-                    metrics['InterSpread'] = np.zeros((1,X.shape[1]))
+                    metrics['InterSpread'] = np.zeros((1,X.shape[1],self.classes))
                 elif comp == 'Consist':
                     metrics['Consist'] = np.zeros((1,X.shape[1],self.classes))
             
@@ -152,7 +167,15 @@ class Distinct(Metric):
             if comp == 'Distinct':        
                 metrics['Distinct'] = np.zeros((metric_samples,X.shape[1]))
             elif comp == 'InterSpread':
-                metrics['InterSpread'] = np.zeros((metric_samples,X.shape[1]))
+                if self.classes == 3:
+                    dists = 3
+                elif self.classes == 2:
+                    if self.reference == 'common':
+                        dists = 2
+                    elif self.reference == 'pairwise':
+                        dists = 1
+                        
+                metrics['InterSpread'] = np.zeros((metric_samples,X.shape[1],dists))
             elif comp == 'Consist':
                 metrics['Consist'] = np.zeros((metric_samples,X.shape[1],self.classes))
         
@@ -167,10 +190,10 @@ class Distinct(Metric):
                     
                 # save the metrics for this step/band
                 if 'Distinct' in self.components:
-                    metrics['Distinct'][i_s,i_f] = inter_spread / intra_spread
+                    metrics['Distinct'][i_s,i_f] = sum(inter_spread) / intra_spread
                 
                 if 'InterSpread' in self.components:
-                    metrics['InterSpread'][i_s,i_f] = inter_spread
+                    metrics['InterSpread'][i_s,i_f,:] = inter_spread
                 
                 if 'Consist' in self.components:
                     metrics['Consist'][i_s,i_f,:] = 1 / (1 + disp)

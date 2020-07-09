@@ -1,0 +1,21 @@
+{
+  "metric_win_type" : ["exponential0.85"],
+  "clsf_win_type" : ["expanding"],
+  "step_sz"  : [5],
+  "win_sz"   : [45],
+  "eval_set_sz" : [null],
+  "metric_fbands" : [13],
+  "ref" : ["pairwise"],
+  "channel_set" : [0],
+  "num_classes" : [3],
+
+  "clsf_file_template" : ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\kayaetal\\clsf_stats\\clsf_data*-ws{}-ss{}-wt{}-20200629-2237.csv",
+                          "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\BCICompIV-2a\\clsf_stats\\clsf_data*-ws{}-ss{}-wt{}-20200629-2238.csv",
+                          "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\HighGamma\\data\\clsf_stats\\clsf_data*-ws{}-ss{}-wt{}-20200629-2238.csv"],
+
+  "metric_file_template" : ["D:\\BCI\\BCI_Capture\\data\\MI_datasets\\kayaetal\\metric_stats\\metric_data*-ref{}-ws{}-ss{}-wt{}-20200702-2122.csv",
+                            "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\BCICompIV-2a\\metric_stats\\metric_data*-ref{}-ws{}-ss{}-wt{}-20200702-2120.csv",
+                            "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\HighGamma\\data\\metric_stats\\metric_data*-ref{}-ws{}-ss{}-wt{}-20200702-2119.csv"],
+
+  "output_file" : "D:\\BCI\\BCI_Capture\\data\\MI_datasets\\correlation\\mutual_info-{}.json"
+}

@@ -48,15 +48,16 @@ def cov_data(X):
 
 
 if __name__ == "__main__":
-    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/cropped_data/cropped-*.mat")
+    files = glob("D:/BCI/BCI_Capture/data/MI_datasets/HighGamma/data/cropped_data/cropped-5.mat")
     
     output_dir = "D:/BCI/BCI_Capture/data/MI_datasets//cov_mats_data/"
     
     for file in files:
+        cov_mats = {}
+
         print("Calculating covariance matrices trials in file {}".format(file))
         data = loadmat(file)
         
-        cov_mats = {}
         for i_c in range(1,5):
             key = "class" + str(i_c) + "_trials"
             if key in data:
