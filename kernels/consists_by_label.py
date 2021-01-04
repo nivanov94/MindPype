@@ -16,6 +16,7 @@ from classes.bcip_enums import BcipEnums
 import numpy as np
 
 from pyriemann.utils.distance import distance_riemann
+from pyriemann.utils.mean import mean_riemann
 
 class ConsistencyByLabelKernel(Kernel):
     """
@@ -78,10 +79,16 @@ class ConsistencyByLabelKernel(Kernel):
         # calculate the means for each label
         for i in range(len(unique_labels)):
             l = unique_labels[i]
-            l_mean = self._means.get_element(i).data
-            disp = sum([distance_riemann(l_mean, t) for t in label_covs[l]])
+            
+            step_sz = 5
+            disp_sum = 0
+            for j in range(len(label_covs[i]) // step_sz):
+                step_data = np.stack(label_covs[l][j*step_sz:(j+1)*step_sz],axis=0)
+                step_mean = mean_riemann(step_data)
+                disp_sum += ((sum([distance_riemann(t,step_mean) for t in step_data])) / step_sz)
+            
             consist = np.zeros((1,1))
-            consist[0,0] = disp / len(label_covs[l])
+            consist[0,0] = disp_sum / (len(label_covs[i]) // step_sz)
             consist_tensor = self._consists.get_element(i)
             consist_tensor.data = consist
         

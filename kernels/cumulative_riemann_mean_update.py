@@ -23,7 +23,7 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
     Calculates the Riemann mean of covariances contained in a tensor
     """
     
-    def __init__(self,graph,prev_mean,block_trials,last_trial,new_mean,weights):
+    def __init__(self,graph,prev_mean,block_trials,last_trial,new_mean,weight):
         """
         Kernel calculates an exponentially weighted riemann mean
         """
@@ -33,7 +33,7 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
         self._last_trial = last_trial
         self._new_mean = new_mean
         
-        self._w = weights
+        self._w = weight
     
     def initialize(self):
         """
@@ -68,19 +68,15 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
         else:
             new_trials = np.expand_dims(self._last_trial.data,axis=0)
         
-        # # concat new trials to existing mean
-        # prev_mean_data = np.expand_dims(self._prev_mean.data,axis=0)
-        # mean_calc_input = np.concatenate((prev_mean_data,new_trials),axis=0)
-        # mean_calc_weights = self._w[:mean_calc_input.shape[0]]
+
         block_mean = mean_riemann(new_trials)
         
-        #new_mean = mean_riemann(mean_calc_input,sample_weight=mean_calc_weights)
         prev_mean_data = self._prev_mean.data
         prev_mean_inv_sqrt = fractional_matrix_power(prev_mean_data,-1/2)
         prev_mean_sqrt = fractional_matrix_power(prev_mean_data,1/2)
         
         inner = np.matmul(prev_mean_inv_sqrt,np.matmul(block_mean,prev_mean_inv_sqrt))
-        inner_pw = fractional_matrix_power(inner,(1-self._w[0]))
+        inner_pw = fractional_matrix_power(inner,(1-self._w))
         new_mean = np.matmul(prev_mean_sqrt,np.matmul(inner_pw,prev_mean_sqrt))
         
         self._new_mean.data = new_mean
@@ -90,13 +86,13 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
     @classmethod
     def add_cumulative_rmean_update_node(cls,graph,prev_mean,
                                          block_trials,last_trial,
-                                         new_mean,weights):
+                                         new_mean,weight):
         """
         Factory method to create a cumulative Riemann mean calculating kernel
         """
         
         # create the kernel object
-        k = cls(graph,prev_mean,block_trials,last_trial,new_mean,weights)
+        k = cls(graph,prev_mean,block_trials,last_trial,new_mean,weight)
         
         # create parameter objects for the input and output
         params = (Parameter(prev_mean,BcipEnums.INPUT),
