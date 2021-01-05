@@ -21,3 +21,7 @@ data/*
 
 # bcip dir
 bcip
+
+# venvs
+venv/
+Lib/
