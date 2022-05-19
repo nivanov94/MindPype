@@ -23,7 +23,8 @@ class Session(BCIP):
         self._misc_objs = {}
         self._ext_srcs = {}
         self._verified = False
-        
+        self._graphs = {}
+
     # API Getters
     @property
     def current_block(self):
@@ -113,7 +114,7 @@ class Session(BCIP):
         
         return b.open_block()
     
-    def execute_trial(self,label):
+    def execute_trial(self,label,graph):
         """
         Execute a trial
         First updates all volatile input channels
@@ -121,7 +122,7 @@ class Session(BCIP):
         """
         print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
-        sts = self.current_block.process_trial(label)
+        sts = self.current_block.process_trial(label, graph)
         
         return sts
     
@@ -131,7 +132,9 @@ class Session(BCIP):
         """
         return self.current_block.reject_trial()
         
-    
+    def add_graph(self,graph, name):
+        self._graphs[name] = graph
+
     def enqueue_block(self,b):
         # block added, so make sure verified is false
         self._verified = False

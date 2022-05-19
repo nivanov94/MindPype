@@ -20,9 +20,9 @@ class Block(BCIP):
         self._n_classes = n_classes
         
         # create the block's data processing graphs
-        self._preprocessing_graph = Graph.create(self)
-        self._postprocessing_graph = Graph.create(self)
-        self._trial_processing_graph = Graph.create(self)
+        #self._preprocessing_graph = Graph.create(self)
+        #self._postprocessing_graph = Graph.create(self)
+        #self._trial_processing_graph = Graph.create(self)
         
         # private attributes
         self._trials_executed = [0] * n_classes
@@ -75,7 +75,7 @@ class Block(BCIP):
             return (self.n_class_trials[label] - self._trials_executed[label],)
     
         
-    def post_process(self):
+    #def post_process(self):
         """
         Perform any actions that need to be done at the end of the block
         and run the block close graph
@@ -84,7 +84,7 @@ class Block(BCIP):
         # execute the closing block graph
         return self.postprocessing_graph.execute()
     
-    def pre_process(self):
+    #def pre_process(self):
         """
         Execute the block setup graph
         """        
@@ -113,7 +113,7 @@ class Block(BCIP):
         self._trials_executed[label] += 1
         return BcipEnums.SUCCESS
         
-    def verify(self):
+    #def verify(self):
         """
         Verify each graph within the block
         """
@@ -155,7 +155,7 @@ class Block(BCIP):
         
         return BcipEnums.SUCCESS
     
-    def open_block(self):
+   # def open_block(self):
         """
         Initialize & execute preprocessing graph then initialize
         trial-processing graph.
@@ -175,7 +175,7 @@ class Block(BCIP):
         
         return self.trial_processing_graph.initialize()
     
-    def close_block(self):
+    #def close_block(self):
         """
         Initialize and execute the postprocessing graph
 

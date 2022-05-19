@@ -14,8 +14,8 @@ class Node(BCIP):
     Generic node object containing a kernel function
     """
     
-    def __init__(self,block,kernel,params):
-        sess = block.session
+    def __init__(self,graph,kernel,params):
+        sess = graph.session
         super().__init__(BcipEnums.NODE,sess)
         
         self._kernel = kernel

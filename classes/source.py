@@ -104,6 +104,17 @@ class BcipMatFile(BCIP):
         
         return trial_data
     
+
+    def format_simbci_data(self, link_to_data, classes = ["class1", "class2"]):
+        raw_data = loadmat(link_to_data, mat_dtype = True, struct_as_record = True)
+        
+
+
+        {"data":{classes[0]: [], classes[1]: []}}
+
+        pass
+
+
     @classmethod
     def create(cls,sess,filename,path,label_varname_map,dims):
         """
