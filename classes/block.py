@@ -18,7 +18,8 @@ class Block(BCIP):
         
         self._n_class_trials = tuple(n_class_trials)
         self._n_classes = n_classes
-        
+        self.sess = sess
+
         # create the block's data processing graphs
         #self._preprocessing_graph = Graph.create(self)
         #self._postprocessing_graph = Graph.create(self)
@@ -38,19 +39,25 @@ class Block(BCIP):
     @property
     def n_class_trials(self):
         return self._n_class_trials
-    
+
     @property
-    def preprocessing_graph(self):
+    def graph(self, graph_name):
+        return self.sess.graphs[graph_name]
+    
+    #@property
+    #def preprocessing_graph(self):
         return self._preprocessing_graph
     
-    @property
-    def postprocessing_graph(self):
+    #@property
+    #def postprocessing_graph(self):
         return self._postprocessing_graph
     
-    @property
-    def trial_processing_graph(self):
+    #@property
+   # def trial_processing_graph(self):
         return self._trial_processing_graph
     
+
+
     @property
     def latest_trial_label(self):
         return self._previous_trial_label
@@ -92,7 +99,7 @@ class Block(BCIP):
         return self.preprocessing_graph.execute()
         
     
-    def process_trial(self,label):
+    def process_trial(self,label,graph):
         """
         Execute the block's processing graph. 
         
@@ -105,7 +112,7 @@ class Block(BCIP):
         if self.remaining_trials(label) == (0,):
             return BcipEnums.EXCEED_TRIAL_LIMIT
                 
-        sts = self.trial_processing_graph.execute()
+        sts = graph.execute()
         if sts != BcipEnums.SUCCESS:
             return sts
         
@@ -134,27 +141,29 @@ class Block(BCIP):
         
         return BcipEnums.SUCCESS
     
-    def initialize(self):
+    def initialize(self, graph):
         """
         Initialize each graph within the block for trial execution
         """
-        sts = self.preprocessing_graph.initialize()
+        #sts = self.preprocessing_graph.initialize()
         
-        if sts != BcipEnums.SUCCESS:
-            return sts
+        #if sts != BcipEnums.SUCCESS:
+        #    return sts
         
-        sts = self.trial_processing_graph.initialize()
+        #sts = self.trial_processing_graph.initialize()
         
-        if sts != BcipEnums.SUCCESS:
-            return sts
+        #if sts != BcipEnums.SUCCESS:
+        #    return sts
         
-        sts = self.postprocessing_graph.initialize()
+        sts = graph.initialize()
         
         if sts != BcipEnums.SUCCESS:
             return sts
         
         return BcipEnums.SUCCESS
     
+    
+
    # def open_block(self):
         """
         Initialize & execute preprocessing graph then initialize

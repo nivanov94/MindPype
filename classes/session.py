@@ -23,7 +23,9 @@ class Session(BCIP):
         self._misc_objs = {}
         self._ext_srcs = {}
         self._verified = False
-        self._graphs = {}
+        
+        
+        self.graphs = []
 
     # API Getters
     @property
@@ -36,27 +38,30 @@ class Session(BCIP):
     
     def verify(self):
         """
-        Ensure all blocks and their processing graphs are valid.
+        Ensure all graphs are valid.
         Execute this method prior data collection to mitigate potential
         crashes due to invalid processing graph construction.
         
         Return true if the session has passed verification, false otherwise.
         """
         print("Verifying session...")
-        b_count = 1
-        for b in self._blocks:
-            print("\tVerifying block {} of {}".format(b_count,len(self._blocks)))
-            verified = b.verify()
+        graph_count = 1
+        for graph in self.graphs:
+            print("\tVerifying graph {} of {}".format(graph_count,len(self.graphs)))
+            verified = graph.verify()
             
             if verified != BcipEnums.SUCCESS:
                 self._verified = False
                 return verified
             
-            b_count += 1
+            graph_count += 1
         
         self._verified = True
         return BcipEnums.SUCCESS
     
+    def initialize_graph(self, graph):
+        return graph.initialize()
+
     def initialize_block(self):
         """
         Initialize the current block object for trial execution.
@@ -75,30 +80,30 @@ class Session(BCIP):
                 self._datum[d].poll_volatile_data(label)
         
         
-    def close_block(self):
-        """
-        Run any postprocessing on the block and remove it from the session
-        queue.
-        """
-        print("Closing block...")
+    #def close_block(self):
+    #    """
+    #    Run any postprocessing on the block and remove it from the session
+    #    queue.
+    #    """
+    #    print("Closing block...")
         # get the current block
-        b = self.current_block
+     #   b = self.current_block
         
         # check if the block is finished
-        if sum(b.remaining_trials()) != 0:
+   #     if sum(b.remaining_trials()) != 0:
             # block not finished, don't close
-            return BcipEnums.FAILURE
-        
+  #          return BcipEnums.FAILURE
+    #    
         # run postprocessing
-        sts = b.close_block()
-        if sts != BcipEnums.SUCCESS:
-            return sts
+    #    sts = b.close_block()
+   #     if sts != BcipEnums.SUCCESS:
+  #          return sts
         
         # if everything executed nicely, remove the block from the session queue
-        self.dequeue_block()
-        return BcipEnums.SUCCESS    
+   #     self.dequeue_block()
+    #    return BcipEnums.SUCCESS    
     
-    def start_block(self):
+    def start_block(self, graph):
         """
         Initialize the block nodes and execute the preprocessing graph
         """
@@ -112,7 +117,7 @@ class Session(BCIP):
         if b.remaining_trials() != b.n_class_trials:
             return BcipEnums.FAILURE
         
-        return b.open_block()
+        return b.initialize(graph)
     
     def execute_trial(self,label,graph):
         """
@@ -132,12 +137,12 @@ class Session(BCIP):
         """
         return self.current_block.reject_trial()
         
-    def add_graph(self,graph, name):
-        self._graphs[name] = graph
+    def add_graph(self,graph):
+        self._verified = False
+        self.graphs.append(graph)
 
     def enqueue_block(self,b):
-        # block added, so make sure verified is false
-        self._verified = False
+        # block added, so make sure verified is false -> not needed, graphs verified now
         self._blocks.append(b)
     
     def dequeue_block(self):

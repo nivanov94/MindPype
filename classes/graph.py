@@ -16,7 +16,7 @@ class Graph(BCIP):
     Data processing flow graph
     """
     
-    def __init__(self, sess, name):
+    def __init__(self, sess):
         """
         Create a new graph within an existing block
         """
@@ -26,7 +26,7 @@ class Graph(BCIP):
         # private attributes
         self._nodes = []
         self._verified = False
-        self._name = name
+        self._sess = sess
         
     
     def add_node(self,node):
@@ -121,13 +121,18 @@ class Graph(BCIP):
                         consumable_edges[n_o.session_id] = edges[n_o.session_id]
                     
                     nodes_added = nodes_added + 1
-                    scheduled_nodes = scheduled_nodes + 1
                     
+                    scheduled_nodes = scheduled_nodes + 1
+                    print(f"\t\t{n.kernel._name}Node Scheduled")
+
+            
+
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled
                 return BcipEnums.INVALID_GRAPH
         
-        print("\t\tNodes Scheduled")
+        
+            
         # now all the nodes are in execution order, validate each node
         for n in self._nodes:
             valid = n.verify()
@@ -174,11 +179,11 @@ class Graph(BCIP):
         return BcipEnums.SUCCESS
             
     @classmethod
-    def create(cls,sess, name):
+    def create(cls,sess):
         """
         Generic factory method for a graph
         """
-        graph = cls(sess, name)
-        sess.add_graph(graph, name)
+        graph = cls(sess)
+        sess.add_graph(graph)
         
         return graph
