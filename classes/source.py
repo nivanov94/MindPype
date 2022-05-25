@@ -188,7 +188,7 @@ class BcipContinuousMat(BCIP):
 
     def poll_continuous_data(self, label):
         class_data = self.class_separated_data[label]
-        trial_data = class_data[:,self.event_duration*self.label_counters[label] : self.event_duration*self.label_counters[label] +event_duration]
+        trial_data = class_data[:,self.event_duration*self.label_counters[label] : self.event_duration*self.label_counters[label] + self.event_duration]
         self.label_counters[label] += 1
 
         return trial_data
