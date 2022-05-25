@@ -30,7 +30,7 @@ class BcipMatFile(BCIP):
     
     """
     
-    def __init__(self,sess,filename,path,label_varname_map,dims=None):
+    def __init__(self,sess,filename,path,label_varname_map, link_to_data, link_to_labels, num_classes, event_duration, dims=None):
         """
         Create a new mat file reader interface
         """
@@ -43,7 +43,11 @@ class BcipMatFile(BCIP):
             return
         
         self.filepath = f
-        
+        self.continuous_data = None
+        self.link_to_data = link_to_data
+        self.link_to_labels = link_to_labels
+        self.num_classes = num_classes
+        self.event_duration = event_duration
         self.dims = dims
         
         # check if the variable names exist in the file
@@ -105,27 +109,116 @@ class BcipMatFile(BCIP):
         return trial_data
     
 
-    def format_simbci_data(self, link_to_data, classes = ["class1", "class2"]):
-        raw_data = loadmat(link_to_data, mat_dtype = True, struct_as_record = True)
-        
-
-
-        {"data":{classes[0]: [], classes[1]: []}}
-
-        pass
-
-
     @classmethod
-    def create(cls,sess,filename,path,label_varname_map,dims):
+    def create(cls,sess,filename,path,label_varname_map, dims):
         """
         Factory method for API
         """
-        src = cls(sess,filename,path,label_varname_map,dims)
+        src = cls(sess,filename,path,label_varname_map, dims)
         
         sess.add_ext_src(src)
         
         return src
 
+class BcipContinuousMat(BCIP):
+    def __init__(self,sess, num_classes, event_duration, start_index, end_index, link_to_data, link_to_labels=None):
+        """
+        Create a new mat file reader interface
+        """
+        super().__init__(BcipEnums.SRC,sess)
+        
+        self.continuous_data = None
+        self.class_separated_data = None
+        self.link_to_data = link_to_data
+        self.link_to_labels = link_to_labels
+        self.num_classes = num_classes
+        self.event_duration = event_duration
+        print(link_to_labels,"\n\n")
+
+        if link_to_labels != None:
+            raw_data = loadmat(link_to_data, mat_dtype = True, struct_as_record = True)
+            raw_data = np.transpose(raw_data['eegdata'])
+            self.continuous_data = raw_data
+            try:
+                raw_data = raw_data[:, start_index:end_index]
+            except:
+                print("Start and/or End index incorrect.")
+
+            labels = loadmat(link_to_labels, mat_dtype = True, struct_as_record = True)
+            labels = np.array(labels['labels'])
+        if link_to_labels == None:
+            raw_data = loadmat(link_to_data, mat_dtype = True, struct_as_record = True)
+            labels = np.array(raw_data['labels'])
+            raw_data = np.transpose(raw_data['eegdata'])
+            try:
+                raw_data = raw_data[:, start_index:end_index]
+            except:
+                print("Start and/or End index incorrect.")
+
+        self.label_counters = {}
+        
+        for i in range(self.num_classes):
+            self.label_counters[i] = 0            
+
+        data = {}
+        for i in range(1,num_classes+1):
+            data[i] = np.array([[0]*np.size(raw_data,0)]).T
+
+        i = 0
+        first_row = 0
+        last_row = np.size(labels, 0)
+        while i < np.size(labels, 0):
+            if labels[i][1] < start_index:
+                first_row = i
+                i += 1
+            elif labels[i][1] > end_index:
+                last_row = i
+                i += 1
+            else:
+                i+=1
+
+        labels = labels[first_row:last_row, :]
+
+        for row in range(np.size(labels, 0)):
+            data_to_add = [values[int(labels[row][1]):int(labels[row][1]+ event_duration)] for values in raw_data ]
+            np.concatenate((data[int(labels[row][0])], data_to_add),1)
+
+        self.class_separated_data = data
+        self.labels = labels
+
+    def poll_continuous_data(self, label):
+        class_data = self.class_separated_data[label]
+        trial_data = class_data[:,self.event_duration*self.label_counters[label] : self.event_duration*self.label_counters[label] +event_duration]
+        self.label_counters[label] += 1
+
+        return trial_data
+
+    def format_continuous_data(self):
+        raw_data = loadmat(self.link_to_data, mat_dtype = True, struct_as_record = True)
+        raw_data = np.transpose(raw_data['eegdata'])
+
+        labels = loadmat(self.link_to_labels, mat_dtype = True, struct_as_record = True)
+        labels = np.array(labels['labels'])
+
+        data = {}
+        for i in range(1,self.num_classes+1):
+            data[i] = np.array([[0]*np.size(raw_data,0)]).T
+
+        for row in range(np.size(labels, 0)):
+            data_to_add = [values[int(labels[row][1]):int(labels[row][1]+ self.event_duration)] for values in raw_data ]
+            np.concatenate((data[int(labels[row][0])], data_to_add),1)
+
+        self.class_separated_data = data
+        return [data, labels]
+
+    @classmethod
+    def create_continuous(cls, sess, num_classes, event_duration, start_index, end_index, link_to_data, link_to_labels):
+
+        src = cls(sess, num_classes, event_duration, start_index, end_index, link_to_data, link_to_labels)
+
+        sess.add_ext_src(src)
+
+        return src
 
 class LSLStream(BCIP):
     """

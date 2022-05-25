@@ -17,6 +17,7 @@ from classes.filter import Filter
 from classes.block import Block
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
+from classes.source import BcipContinuousMat
 
 from kernels.filter_ import FilterKernel
 from kernels.covariance import CovarianceKernel
@@ -31,16 +32,20 @@ def main():
 
     # add a block and some tensors
     block = Block.create(session,3,(4,4,4))
+    
+    data = BcipContinuousMat.create_continuous(session, 2, 800, 0, 160000, 'data\eegdata.mat', 'data\labels.mat')
+
+    # need to take 20% of each array to use as training data
+
 
     # initialize the classifier
-    # fake data for training
-    raw_training_data = np.random.normal(loc=0.0,scale=1.0,size=(180,250,12))
-    training_data = np.zeros((180,12,12))
-    for i in range(180):
-        training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
-        
-    labels = np.asarray([0]*60 + [1]*60 + [2]*60)
-    X = Tensor.create_from_data(session,training_data.shape,training_data)
+    # raw_training_data = np.random.normal(loc=0.0,scale=1.0,size=(180,250,12))
+    # training_data = np.zeros((180,12,12))
+    # for i in range(180):
+    #    training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
+    
+    
+    """X = Tensor.create_from_data(session,data.shape,data)
     y = Tensor.create_from_data(session,labels.shape,labels)
 
     input_data = np.random.randn(500,12)
@@ -81,7 +86,7 @@ def main():
     
     print(s_out.data)
     
-    print("Test Passed =D")
+    print("Test Passed =D")"""
 
 if __name__ == "__main__":
     main()
