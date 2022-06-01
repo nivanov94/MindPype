@@ -6,18 +6,18 @@ Created on Tue Dec 17 13:22:29 2019
 import numpy as np
 import json
 import os
-from classes.bcip import BCIP
-from classes.bcip_enums import BcipEnums
-from classes.session import Session
-from classes.block import Block
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.array import Array
-from classes.circle_buffer import CircleBuffer
-from classes.filter import Filter
-from classes.source import BcipMatFile, LSLStream
+from bcipy.classes.bcip import BCIP
+from bcipy.classes.bcip_enums import BcipEnums
+from bcipy.classes.session import Session
+from bcipy.classes.block import Block
+from bcipy.classes.tensor import Tensor
+from bcipy.classes.scalar import Scalar
+from bcipy.classes.array import Array
+from bcipy.classes.circle_buffer import CircleBuffer
+from bcipy.classes.filter import Filter
+from bcipy.classes.source import BcipMatFile, LSLStream
 
-import kernels
+import bcipy.kernels as kernels
 
 
 # this is not ideal, but works for now

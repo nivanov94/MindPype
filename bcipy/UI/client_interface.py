@@ -7,7 +7,7 @@ Created on Mon Dec 16 15:57:19 2019
 import socket
 import json
 import struct
-from UI.JSONParser import parse as bcip_json_parse
+from JSONParser import parse as bcip_json_parse
 
 HEADER_SZ = 4
 
