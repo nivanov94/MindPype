@@ -7,9 +7,9 @@ graph.py - Defines the graph object
 @author: ivanovn
 """
 
-from .bcip import BCIP
-from .bcip_enums import BcipEnums
-from .edge import Edge
+from bcip import BCIP
+from bcip_enums import BcipEnums
+from edge import Edge
 
 class Graph(BCIP):
     """

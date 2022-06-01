@@ -4,9 +4,9 @@ Block.py - Defines the block class for BCIP
 @author: ivanovn
 """
 
-from .bcip import BCIP
-from .bcip_enums import BcipEnums
-from .graph import Graph
+from bcip import BCIP
+from bcip_enums import BcipEnums
+from graph import Graph
 
 class Block(BCIP):
     """
