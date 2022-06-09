@@ -25,3 +25,10 @@ bcip
 # venvs
 venv/
 Lib/
+
+#bcipy info
+bcipy.egg-info/
+build/
+dist/
+test.py
+BcipyGUI/
