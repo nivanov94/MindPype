@@ -30,6 +30,12 @@ class Edge:
     def data(self):
         return self._data
 
+    def add_producer(self, producing_node):
+        self.producers.append(producing_node)
+
+    def add_consumer(self, consuming_node):
+        self.consumers.append(consuming_node)
+
     def add_data(self, data):
         self.data = data
 

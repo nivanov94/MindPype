@@ -120,6 +120,20 @@ class Block(BCIP):
         self._trials_executed[label] += 1
         return BcipEnums.SUCCESS
         
+    def verify(self):
+        """
+        Verify block
+        """
+        
+        return BcipEnums.SUCCESS
+    
+    def initialize(self, graph):
+        """
+        Initialize the block for trial execution
+        """
+        
+        return BcipEnums.SUCCESS
+    
     
     def reject_trial(self):
         """
