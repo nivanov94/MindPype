@@ -168,25 +168,31 @@ class Graph(BCIP):
         if len(n_inputs) == 0 and n._init_inA == None:
             return BcipEnums.INVALID_GRAPH
         for n_i in n_inputs:
+            # identify the up-stream node producing each input
             producer = edges[n_i.session_id].producers[0]
-            if producer._init_outA != None:
-                if hasattr(n, "_init_inB") and n._init_inA != None:
+
+            # TODO: need to more robustly identify the correct initialization output
+            # may require modification of the node/parameter data structures.
+            if producer._init_outA != None: # TODO init data may come from other node outputs
+                if hasattr(n, "_init_inB") and n._init_inA != None: # TODO add some error checking here - check if both are not None?
                     n._init_inB = producer._init_outA
                 else:
                     n._init_inA = producer._init_outA
             else:
-                init_data = Tensor.create_virtual(sess=self._sess)
+                init_data = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
                 producer._init_outA = init_data
-                if hasattr(n, "_init_inB") and n._init_inA != None:
+                if hasattr(n, "_init_inB") and n._init_inA != None: # TODO error/invalid handle?
                     n._init_inB = init_data
                 else:
                     n._init_inA = init_data
+
+            # recurse process on up-stream nodes
             if producer._init_inA == None:
                 sts = self.check_inputs(self, producer, edges)
                 if sts != BcipEnums.SUCCESS:
                     return BcipEnums.INVALID_GRAPH
-            else:
-                pass
+            else: # this is unnecessary
+                pass 
         
         return BcipEnums.SUCCESS
 
