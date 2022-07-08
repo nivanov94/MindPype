@@ -6,9 +6,6 @@ graph.py - Defines the graph object
 
 @author: ivanovn
 """
-import copy
-from asyncio.windows_events import NULL
-from audioop import reverse
 from bcip import BCIP
 from bcip_enums import BcipEnums
 from bcipy.classes.tensor import Tensor
@@ -154,7 +151,7 @@ class Graph(BCIP):
                 if hasattr(n, "training_data"):
                     if n.training_data == None:
                         
-                        sts = self.check_inputs(n, edges)
+                        sts = self.fill_initialization_links(n, edges)
                         if sts != BcipEnums.SUCCESS:
                             return BcipEnums.INVALID_GRAPH
                                                     
@@ -163,7 +160,7 @@ class Graph(BCIP):
         self._verified = True
         return BcipEnums.SUCCESS
     
-    def check_inputs(self, n, edges):
+    def fill_initialization_links(self, n, edges):
         n_inputs = n.extract_inputs()
         if len(n_inputs) == 0 and n._init_inA == None:
             return BcipEnums.INVALID_GRAPH
@@ -174,25 +171,32 @@ class Graph(BCIP):
             # TODO: need to more robustly identify the correct initialization output
             # may require modification of the node/parameter data structures.
             if producer._init_outA != None: # TODO init data may come from other node outputs
-                if hasattr(n, "_init_inB") and n._init_inA != None: # TODO add some error checking here - check if both are not None?
+                if hasattr(n, "_init_inB") and n._init_inA != None:
+                    if n._init_inB != None and n._init_inA != None:
+                        return BcipEnums.INVALID_GRAPH
+                    
                     n._init_inB = producer._init_outA
+                
+                if (not hasattr(n, "_init_inB")) and n._init_inA != None:
+                    return BcipEnums.INVALID_GRAPH
+
                 else:
                     n._init_inA = producer._init_outA
             else:
                 init_data = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
                 producer._init_outA = init_data
-                if hasattr(n, "_init_inB") and n._init_inA != None: # TODO error/invalid handle?
+                if hasattr(n, "_init_inB") and n._init_inA != None:
+                    if n._init_inB != None:
+                        return BcipEnums.INVALID_GRAPH
                     n._init_inB = init_data
                 else:
                     n._init_inA = init_data
-
-            # recurse process on up-stream nodes
+            
+             # recurse process on up-stream nodes
             if producer._init_inA == None:
-                sts = self.check_inputs(self, producer, edges)
+                sts = self.fill_initialization_links(self, producer, edges)
                 if sts != BcipEnums.SUCCESS:
                     return BcipEnums.INVALID_GRAPH
-            else: # this is unnecessary
-                pass 
         
         return BcipEnums.SUCCESS
 
