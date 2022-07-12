@@ -3,6 +3,7 @@ Created on Wed Mar 11 10:53:18 2020
 
 @author: ivanovn
 """
+#TODO: Delete
 
 from ..classes.kernel import Kernel
 from ..classes.node import Node
@@ -27,7 +28,10 @@ class CombinePValuesKernel(Kernel):
         self._inA  = inA
         self._out_ts = out_ts
         self._out_pv = out_pv
-        self._method = method        
+        self._method = method    
+
+        self._init_inA = None
+        self._init_outA = None    
     
     def initialize(self):
         """
@@ -80,7 +84,31 @@ class CombinePValuesKernel(Kernel):
                     return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        try:
+            (ts,pv) = combine_pvalues(np.squeeze(input_data.data),
+                                      method=self._method)
+            
+            for result_value, output in zip((ts,pv),(self._out_ts,self._out_pv)):
+                if isinstance(output,Tensor):
+                    output.data = np.asarray(((result_value))) # make the result a 1x1 tensor
+                elif isinstance(output,Scalar):
+                    output.data = result_value
+            
+        except:
+            return BcipEnums.EXE_FAILURE
+        
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel and calculate the combined p-value

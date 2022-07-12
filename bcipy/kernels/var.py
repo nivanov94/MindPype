@@ -4,6 +4,8 @@ Created on Sun Apr  5 17:13:07 2020
 @author: Nick
 """
 
+from asyncio import start_server
+from threading import stack_size
 from ..classes.kernel import Kernel
 from ..classes.node import Node
 from ..classes.parameter import Parameter
@@ -28,12 +30,16 @@ class VarKernel(Kernel):
         self._ddof = ddof
         self._keep_dims = keep_dims
         
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         No internal state to setup
         """
-        return BcipEnums.SUCCESS
+
+        sts = self.initialization_execution()
+        return sts
         
     
     def verify(self):
@@ -71,13 +77,17 @@ class VarKernel(Kernel):
   
         return BcipEnums.SUCCESS
         
-    def execute(self):
-        """
-        Execute the kernel and calculate the mean
-        """
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
         try:
-            self._outA.data = np.var(self._inA.data,
+            output_data.data = np.var(input_data.data,
                                       axis=self._axis,
                                       ddof=self._ddof,
                                       keepdims=self._keep_dims)
@@ -85,6 +95,14 @@ class VarKernel(Kernel):
             return BcipEnums.EXE_FAILURE
         
         return BcipEnums.SUCCESS
+    
+
+    def execute(self):
+        """
+        Execute the kernel and calculate the mean
+        """
+        
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keep_dims=False):

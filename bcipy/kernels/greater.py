@@ -27,12 +27,16 @@ class GreaterKernel(Kernel):
         self._inA  = inA
         self._inB  = inB
         self._outA = outA
+
+        self._init_inA = None
+        self._init_inB = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
     
     def verify(self):
         """
@@ -104,19 +108,30 @@ class GreaterKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data1, input_data2, output_data):
+        try:
+            output_data.data = input_data1.data > input_data2.data
+
+        except ValueError:
+            return BcipEnums.EXE_FAILURE
+            
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
         
-        try:
-            self._outA.data = self._inA.data > self._inB.data
-
-        except ValueError:
-            return BcipEnums.EXE_ERROR
-            
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inA, self._inB, self._outA)
     
     @classmethod
     def add_greater_node(cls,graph,inA,inB,outA):

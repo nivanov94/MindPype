@@ -29,12 +29,15 @@ class FiltFiltKernel(Kernel):
         self._inputA  = inputA
         self._filt = filt
         self._outputA = outputA
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
     
     def verify(self):
         """
@@ -70,26 +73,30 @@ class FiltFiltKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
-    def execute(self):
-        """
-        Execute the kernel function using the scipy module function
-        """
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
         
-        shape = self._inputA.shape
+        return sts
+
+    def process_data(self, input_data, output_data):
+        shape = input_data.shape
         axis = next((i for i, x in enumerate(shape) if x != 1))
         
         if self._filt.implementation == 'ba':
-            self._outputA.data = signal.filtfilt(self._filt.coeffs['b'],
+            output_data.data = signal.filtfilt(self._filt.coeffs['b'],
                                                 self._filt.coeffs['a'],
-                                                self._inputA.data,
+                                                input_data.data,
                                                 axis=axis)
         else:
-            self._outputA.data = signal.sosfiltfilt(self._filt.coeffs['sos'],
-                                                   self._inputA.data,
+            output_data.data = signal.sosfiltfilt(self._filt.coeffs['sos'],
+                                                   input_data.data,
                                                    axis=axis)
-        
-#        # for debugging
+
+#        for debugging
 #        d = self._outputA.data
 #        x = [_  for _ in range(self._outputA.shape[0])]
 #        fig, ax = plt.subplots()
@@ -101,8 +108,14 @@ class FiltFiltKernel(Kernel):
 #        ax.plot(*lines)
 #        plt.figure()
 #        plt.show()
+
+    def execute(self):
+        """
+        Execute the kernel function using the scipy module function
+        """
         
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inputA, self._outputA)
+
     
     @classmethod
     def add_filtfilt_node(cls,graph,inputA,filt,outputA):

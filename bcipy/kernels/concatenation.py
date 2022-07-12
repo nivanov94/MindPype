@@ -28,12 +28,16 @@ class ConcatenationKernel(Kernel):
         self._inB  = inB
         self._outA = outA
         self._axis = axis
-    
+        self._init_inA = None
+        self._init_inB = None
+        self._init_outA = None
+
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        
+        return self.initialization_execution()
     
     def verify(self):
         """
@@ -92,15 +96,20 @@ class ConcatenationKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
-    def execute(self):
-        """
-        Execute the kernel function using numpy functions
-        """
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data1, input_data2, output_data):
         concat_axis = self._axis if self._axis != None else 0
         
-        inA_data = self._inA.data
-        inB_data = self._inB.data
+        inA_data = input_data1.data
+        inB_data = input_data2.data
         
         if len(inA_data.shape) == len(inB_data.shape)+1:
             # add a leading dimension for input B
@@ -117,9 +126,15 @@ class ConcatenationKernel(Kernel):
             return BcipEnums.EXE_FAILURE
         
         # set the data in the output tensor
-        self._outA.data = out_tensor
+        output_data.data = out_tensor
         
         return BcipEnums.SUCCESS
+
+    def execute(self):
+        """
+        Execute the kernel function using numpy functions
+        """
+        return self.process_data(self._inA, self._inB, self._outA)
     
     
     @classmethod

@@ -18,12 +18,15 @@ class MaxKernel(Kernel):
         super().__init__('Max',BcipEnums.INIT_FROM_NONE,graph)
         self._in   = inA
         self._out  = outA
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
     
     def verify(self):
         """
@@ -54,21 +57,32 @@ class MaxKernel(Kernel):
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        try:
+            if isinstance(self._out,Scalar):
+                output_data.data = np.amax(input_data.data).item()
+            else:
+                output_data.data = np.asarray([np.amax(input_data.data)])
+        except:
+            return BcipEnums.EXE_FAILURE
+        
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
         
-        try:
-            if isinstance(self._out,Scalar):
-                self._out.data = np.amax(self._in.data).item()
-            else:
-                self._out.data = np.asarray([np.amax(self._in.data)])
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+        return self.process_data(self._in, self._out)
     
     @classmethod
     def add_max_node(cls,graph,inA,outA):

@@ -31,11 +31,14 @@ class CDFKernel(Kernel):
         self._scale = scale
         self._df = df        
     
+        self._init_inA = None
+        self._init_outA = None
+
     def initialize(self):
         """
         No internal state to setup
         """
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
         
     
     def verify(self):
@@ -70,18 +73,22 @@ class CDFKernel(Kernel):
         
         return BcipEnums.SUCCESS
         
-    def execute(self):
-        """
-        Execute the kernel and calculate the CDF
-        """
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
         try:
             if self._dist == 'norm':
-                self._outA.data = norm.cdf(self._inA.data,
+                output_data.data = norm.cdf(input_data.data,
                                            loc=self._loc,
                                            scale=self._scale)
             elif self._dist == 'chi2':
-                self._outA.data = chi2.cdf(self._inA.data,
+                output_data.data = chi2.cdf(input_data.data,
                                            self._df,
                                            loc=self._loc,
                                            scale=self._scale)
@@ -89,6 +96,12 @@ class CDFKernel(Kernel):
             return BcipEnums.EXE_FAILURE
         
         return BcipEnums.SUCCESS
+
+    def execute(self):
+        """
+        Execute the kernel and calculate the CDF
+        """
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_cdf_node(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1):

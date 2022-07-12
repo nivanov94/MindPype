@@ -5,7 +5,7 @@ diff_map.py - Defines a diffusion mapping kernel for data visualization
 
 @author: ivanovn
 """
-
+#TODO: Delete
 from ..classes.tensor import Tensor
 from ..classes.bcip_enums import BcipEnums
 from ..classes.kernel import Kernel
@@ -34,14 +34,18 @@ class DiffusionMapKernel(Kernel):
         self._n_components = n_components
         
         self._initialize_params = initialize_params
-        
+
+        self._init_inA = None
+        self._init_inB = None
+        self._init_outA = None
+
         if init_style == BcipEnums.INIT_FROM_DATA:
             # manifold will be approximated using data in tensor 
             # object at later time
             self._initialized = False
             self._embedding = None
             self._eigenvals = None
-            self._training_pts = None
+            self.initialization_data = None
             self._eps = None
         
     
@@ -49,6 +53,9 @@ class DiffusionMapKernel(Kernel):
         """
         Set the embedding of the kernel
         """
+
+        if self._initialize_params['initialization_data'] == None:
+            self._initialize_params['initialization_data'] = self._init_inA
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
             return self.fit_embedding()
@@ -67,10 +74,10 @@ class DiffusionMapKernel(Kernel):
         embedding
         """
         
-        if (not isinstance(self._initialize_params['training_data'],Tensor)):
+        if (not isinstance(self._initialize_params['initialization_data'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        X = self._initialize_params['training_data'].data
+        X = self._initialize_params['initialization_data'].data
         
         # ensure the shpaes are valid
         if len(X.shape) != 3:
@@ -142,7 +149,20 @@ class DiffusionMapKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data1, input_data2, output_data1):
+        pass
+
+
+
     def execute(self):
         """
         Execute the kernel and project the input trials
@@ -152,16 +172,16 @@ class DiffusionMapKernel(Kernel):
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         
 
-        n_training_pts = self._training_pts.shape[0]
+        n_training_pts = self.initialization_data.shape[0]
 
         input_data = self._inA.data
 
         K_proj = np.zeros(len(input_data), n_training_pts)
         for i_trial in range(len(input_data)):
             # get the distances between the input and the embedding pts
-            for i_tp in range(len(self._training_pts)):
+            for i_tp in range(len(self.initialization_data)):
                 K_proj[i_trial,i_tp] = riem_dist.distance_riemann(input_data[i_trial,:,:],
-                                                                  self._training_pts[i_tp,:,:])
+                                                                  self.initialization_data[i_tp,:,:])
 
 
         kernel = np.exp(-K_proj**2 / (4 * self._eps))
@@ -180,7 +200,7 @@ class DiffusionMapKernel(Kernel):
     
     @classmethod
     def add_diffusion_map_node(cls,graph,inA,outA,
-                               training_data,dimensions):
+                               initialization_data,dimensions):
         """
         Factory method to create a diffusion map 
         visualization kernel and add it to a block
@@ -191,7 +211,7 @@ class DiffusionMapKernel(Kernel):
         """
         
         # create the kernel object
-        init_params = {'training_data' : training_data}
+        init_params = {'initialization_data' : initialization_data}
         k = cls(graph,inA,outA,dimensions,BcipEnums.INIT_FROM_DATA,init_params)
         
         # create parameter objects for the input and output

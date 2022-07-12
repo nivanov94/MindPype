@@ -58,6 +58,9 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
         super().__init__('rLDATangentSpace',init_style,graph)
         self._inputA  = inputA
         self._outputA = outputA
+
+        self._init_inA = None
+        self._init_outA = None
         
         self._initialize_params = initialize_params
         
@@ -92,17 +95,17 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
         classifier
         """
         
-        if (not (isinstance(self._initialize_params['training_data'],Tensor) or 
-                 isinstance(self._initialize_params['training_data'],Array)) or 
+        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
+                 isinstance(self._initialize_params['initialization_data'],Array)) or 
             not isinstance(self._initialize_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['training_data'],Tensor): 
-            X = self._initialize_params['training_data'].data
+        if isinstance(self._initialize_params['initialization_data'],Tensor): 
+            X = self._initialize_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = _extract_nested_data(self._initialize_params['training_data'])
+                X = _extract_nested_data(self._initialize_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
@@ -206,7 +209,7 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
     
     @classmethod
     def add_untrained_riemann_tangent_space_rLDA_node(cls,graph,inputA,outputA,
-                                                      training_data,labels,
+                                                      initialization_data,labels,
                                                       shrinkage='auto',
                                                       solver='eigen'):
         """
@@ -217,7 +220,7 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
         """
         
         # create the kernel object            
-        init_params = {'training_data' : training_data, 
+        init_params = {'initialization_data' : initialization_data, 
                        'labels'        : labels,
                        'shrinkage'     : shrinkage,
                        'solver'        : solver}

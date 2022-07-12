@@ -58,6 +58,9 @@ class RiemannMDMClassifierKernel(Kernel):
         super().__init__('RiemannMDM',init_style,graph)
         self._inputA  = inputA
         self._outputA = outputA
+
+        self._init_inA = None
+        self._init_outA = None
         
         self._initialize_params = initialize_params
         
@@ -92,18 +95,18 @@ class RiemannMDMClassifierKernel(Kernel):
         classifier
         """
         
-        if (not (isinstance(self._initialize_params['training_data'],Tensor) or 
-                 isinstance(self._initialize_params['training_data'],Array)) or 
+        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
+                 isinstance(self._initialize_params['initialization_data'],Array)) or 
             not (isinstance(self._initialize_params['labels'],Tensor) or
                  isinstance(self._initialize_params['labels'],Array))):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['training_data'],Tensor): 
-            X = self._initialize_params['training_data'].data
+        if isinstance(self._initialize_params['initialization_data'],Tensor): 
+            X = self._initialize_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = _extract_nested_data(self._initialize_params['training_data'])
+                X = _extract_nested_data(self._initialize_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE
             
@@ -196,7 +199,7 @@ class RiemannMDMClassifierKernel(Kernel):
     
     @classmethod
     def add_untrained_riemann_MDM_node(cls,graph,inputA,outputA,\
-                                       training_data,labels):
+                                       initialization_data,labels):
         """
         Factory method to create an untrained riemann minimum distance 
         to the mean classifier kernel and add it to a graph
@@ -207,7 +210,7 @@ class RiemannMDMClassifierKernel(Kernel):
         """
         
         # create the kernel object            
-        init_params = {'training_data' : training_data, 
+        init_params = {'initialization_data' : initialization_data, 
                        'labels'        : labels}
         k = cls(graph,inputA,outputA,BcipEnums.INIT_FROM_DATA,init_params)
         

@@ -27,14 +27,18 @@ class StdKernel(Kernel):
         self._axis = axis
         self._ddof = ddof
         
-    
+        self._init_inA = None
+        self._init_outA = None
+
     def initialize(self):
         """
         No internal state to setup
         """
+        if self._init_inA != None:
+            return self.initialization_execution()
+
         return BcipEnums.SUCCESS
         
-    
     def verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
@@ -62,20 +66,30 @@ class StdKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
-    def execute(self):
-        """
-        Execute the kernel and calculate the mean
-        """
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
         
+        return sts
+
+    def process_data(self, input_data, output_data):
         try:
-            self._outA.data = np.std(self._inA.data,
+            output_data.data = np.std(input_data.data,
                                       axis=self._axis,
                                       ddof=self._ddof)
         except:
             return BcipEnums.EXE_FAILURE
         
         return BcipEnums.SUCCESS
+
+    def execute(self):
+        """
+        Execute the kernel and calculate the mean
+        """
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_std_node(cls,graph,inA,outA,axis=None,ddof=0):

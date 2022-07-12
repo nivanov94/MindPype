@@ -19,11 +19,15 @@ class ThresholdKernel(Kernel):
         self._in   = inA
         self._out  = outA
         self._thresh = thresh
-    
+
+        self._init_inA = None
+        self._init_outA = None
+
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
+        sts = self.initialization_execution()
         return BcipEnums.SUCCESS
     
     def verify(self):
@@ -62,25 +66,37 @@ class ThresholdKernel(Kernel):
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        try:
+            if isinstance(input_data,Tensor):
+                output_data.data = input_data.data > self._thresh.data
+            else:
+                gt = input_data.data > self._thresh.data
+                if output_data.data_type == bool:
+                    output_data.data = gt
+                else:
+                    output_data.data = int(gt)
+        except:
+            return BcipEnums.EXE_FAILURE
+        
+        return BcipEnums.SUCCESS
+    
+
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
         
-        try:
-            if isinstance(self._in,Tensor):
-                self._out.data = self._in.data > self._thresh.data
-            else:
-                gt = self._in.data > self._thresh.data
-                if self._out.data_type == bool:
-                    self._out.data = gt
-                else:
-                    self._out.data = int(gt)
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inA, self._inB, self._outA)
     
     @classmethod
     def add_threshold_node(cls,graph,inA,outA,thresh):

@@ -35,6 +35,9 @@ class SVMClassifierKernel(Kernel):
         self._y_bar = y_bar
         
         self._initialize_params = init_params
+
+        self._init_inA = None
+        self._init_outA = None
         
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -64,14 +67,27 @@ class SVMClassifierKernel(Kernel):
         """
         Set the means for the classifier
         """
+
+        if self._initialize_params['initialization_data'] == None:
+            self._initialize_params['initialization_data'] = self._init_inA
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            return self.train_classifier()
+            sts = self.train_classifier()
+        
         else:
             # kernel contains a reference to a pre-existing MDM object, no
             # need to train here
+            sts = BcipEnums.SUCCESS
             self._initialized = True
+            #return BcipEnums.SUCCESS
+
+        sts2 = self.initialization_execution()
+        
+        if sts == BcipEnums.SUCCESS and sts2 == BcipEnums.SUCCESS:
             return BcipEnums.SUCCESS
+        else:
+            return BcipEnums.INITIALIZATION_FAILURE
+
         
     def train_classifier(self):
         """
@@ -81,17 +97,17 @@ class SVMClassifierKernel(Kernel):
         classifier
         """
         
-        if (not (isinstance(self._initialize_params['training_data'],Tensor) or 
-                 isinstance(self._initialize_params['training_data'],Array)) or 
+        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
+                 isinstance(self._initialize_params['initialization_data'],Array)) or 
             not isinstance(self._initialize_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['training_data'],Tensor): 
-            X = self._initialize_params['training_data'].data
+        if isinstance(self._initialize_params['initialization_data'],Tensor): 
+            X = self._initialize_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._initialize_params['training_data'])
+                X = extract_nested_data(self._initialize_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
@@ -148,27 +164,38 @@ class SVMClassifierKernel(Kernel):
 
         
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        if not self._initialized:
+            return BcipEnums.EXE_FAILURE_UNINITIALIZED
+        
+        y_b = self._classifier.predict(input_data.data)
+        
+        if isinstance(self._y_bar,Scalar):
+            output_data.data = int(y_b)
+        else:
+            output_data.data = y_b
+            
+        
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel by classifying the input trials
         """
-        if not self._initialized:
-            return BcipEnums.EXE_FAILURE_UNINITIALIZED
-        
-        y_b = self._classifier.predict(self._X.data)
-        
-        if isinstance(self._y_bar,Scalar):
-            self._y_bar.data = int(y_b)
-        else:
-            self._y_bar.data = y_b
-            
-        
-        return BcipEnums.SUCCESS
+        return self.process_data(self._X, self._y_bar)
     
     @classmethod
     def add_untrained_SVM_node(cls,graph,X,y_bar,
-                               training_data,labels,
+                               initialization_data,labels,
                                C=1.0,kernel='rbf',degree=3,gamma='scale',
                                coef0=0.0,shrinking=True,probability=False,
                                tol=0.0001,cache_size=200,class_weight=None,
@@ -182,7 +209,7 @@ class SVMClassifierKernel(Kernel):
         """
         
         # create the kernel object            
-        init_params = {'training_data' : training_data, 
+        init_params = {'initialization_data' : initialization_data, 
                        'labels'        : labels,
                        'C'             : C,
                        'kernel'        : kernel,

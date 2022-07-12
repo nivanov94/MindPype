@@ -4,7 +4,7 @@ Created on Fri Jun 26 22:11:49 2020
 
 @author: Nick
 """
-
+#TODO: Figure out what to do with this kernel
 from ..classes.kernel import Kernel
 from ..classes.node import Node
 from ..classes.parameter import Parameter
@@ -27,6 +27,9 @@ class RiemannMeanByLabelKernel(Kernel):
         self._covs  = covs
         self._labels = labels
         self._means = means
+
+        self._init_inA = None
+        self._init_outA = None
             
     def initialize(self):
         """

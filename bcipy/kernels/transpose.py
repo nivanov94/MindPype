@@ -24,12 +24,17 @@ class TransposeKernel(Kernel):
         self._inputA  = inputA
         self._outputA = outputA
         self._axes = axes
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+
+        sts = self.initialization_execution()
+        return sts
     
     def verify(self):
         """
@@ -65,14 +70,26 @@ class TransposeKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+    
+    def process_data(self, input_data, output_data):
+        output_data.data = np.transpose(input_data.data,axes=self._axes)
+
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel function using the numpy transpose function
         """
         
-        self._outputA.data = np.transpose(self._inputA.data,axes=self._axes)
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inputA, self._outputA)
 
 
     @classmethod

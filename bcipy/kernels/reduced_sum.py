@@ -26,12 +26,16 @@ class ReducedSumKernel(Kernel):
         self._outA = outA
         self._axis = axis
         self._keep_dims = keep_dims
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        sts = self.initialization_execution()
+        return sts
     
     def verify(self):
         """
@@ -74,21 +78,32 @@ class ReducedSumKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        try:
+            output_data.data = np.sum(input_data.data, 
+                                     axis=self._axis,
+                                     keepdims=self._keep_dims)
+
+        except ValueError:
+            return BcipEnums.EXE_FAILURE
+            
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
         
-        try:
-            self._outA.data = np.sum(self._inA.data, 
-                                     axis=self._axis,
-                                     keepdims=self._keep_dims)
-
-        except ValueError:
-            return BcipEnums.EXE_ERROR
-            
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_reduced_sum_node(cls,graph,inA,outA,axis=None,keep_dims=False):

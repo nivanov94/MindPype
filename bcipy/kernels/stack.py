@@ -27,6 +27,9 @@ class StackKernel(Kernel):
         self._inA  = inA
         self._outA = outA
         self._axis = axis
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
@@ -70,7 +73,34 @@ class StackKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        stack_axis = self._axis.data if self._axis != None else 0
+        
+        try:
+            input_tensors = [self._inA.get_element(i) for i 
+                                             in range(self._inA.capacity)]
+            
+            input_data = [t.data for t in input_tensors]
+            output_data = np.stack(input_data,axis=stack_axis)
+        
+        except ValueError:
+            return BcipEnums.EXE_FAILURE
+        
+        # set the data of the output tensor
+        self._outA.data = output_data
+        
+        return BcipEnums.SUCCESS
+
+
     def execute(self):
         """
         Execute the kernel function using numpy functions

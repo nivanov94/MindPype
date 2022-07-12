@@ -19,12 +19,18 @@ class TensorStackKernel(Kernel):
         self._inB  = inB
         self._outA = outA
         self._axis = axis
+
+        self._init_inA = None
+        self._init_inB = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+
+        sts = self.initialization_execution()
+        return sts
     
     def verify(self):
         """
@@ -58,26 +64,35 @@ class TensorStackKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data1, input_data2, output_data):
+        stack_axis = self._axis
+        
+        try:
+            input_tensors = [input_data1.data, input_data2.data]
+            
+            output_data.data = np.stack(input_tensors,axis=stack_axis)
+        
+        except ValueError:
+            return BcipEnums.EXE_FAILURE
+    
+        
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel function using numpy functions
         """
         
-        stack_axis = self._axis
-        
-        try:
-            input_tensors = [self._inA.data, self._inB.data]
-            
-            output_data = np.stack(input_tensors,axis=stack_axis)
-        
-        except ValueError:
-            return BcipEnums.EXE_FAILURE
-        
-        # set the data of the output tensor
-        self._outA.data = output_data
-        
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inA, self._inB, self._outA)
     
     
     @classmethod

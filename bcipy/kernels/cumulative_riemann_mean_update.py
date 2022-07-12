@@ -5,7 +5,7 @@ Created on Fri Jun 26 23:10:39 2020
 @author: Nick
 """
 
-
+#TODO: Delete
 from ..classes.kernel import Kernel
 from ..classes.node import Node
 from ..classes.parameter import Parameter
@@ -34,6 +34,9 @@ class CumulativeRiemannMeanUpdateKernel(Kernel):
         self._new_mean = new_mean
         
         self._w = weight
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """

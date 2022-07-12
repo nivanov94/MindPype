@@ -44,12 +44,15 @@ class CovarianceKernel(Kernel):
         self._inputA  = inputA
         self._outputA = outputA
         self._r = regularization
-    
+
+        self._init_inA = None
+        self._init_outA = None
+
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
     
     def verify(self):
         """
@@ -86,20 +89,24 @@ class CovarianceKernel(Kernel):
         else:
             return BcipEnums.SUCCESS
         
-    def execute(self):
-        """
-        Execute the kernel function using the numpy cov function
-        """
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
-        shape = self._inputA.shape
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data1, output_data1):
+        shape = input_data1.shape
         rank = len(shape)
         
-        input_data = self._inputA.data
+        input_data = input_data1.data
         
         
         if rank <= 2:
             covmat = np.cov(input_data,rowvar=False)
-            self._outputA.data = 1/(1+self._r) * \
+            output_data1.data = 1/(1+self._r) * \
                                     (covmat + self._r*np.eye(covmat.shape[0]))
         else:
             # reshape the input data so it's rank 3
@@ -114,7 +121,7 @@ class CovarianceKernel(Kernel):
                                      (covmat + self._r*np.eye(covmat.shape[0]))
             
             # reshape the output
-            self._outputA.data = np.reshape(output_data,self.outputA.shape)
+            output_data1.data = np.reshape(output_data,self.outputA.shape)
             
 #        # for debugging
 #        d = self._outputA.data
@@ -124,6 +131,13 @@ class CovarianceKernel(Kernel):
 #        plt.show()
             
         return BcipEnums.SUCCESS
+    
+    def execute(self):
+        """
+        Execute the kernel function using the numpy cov function
+        """
+        
+        return self.process_data(self._inputA, self._outputA)
     
     @classmethod
     def add_covariance_node(cls,graph,inputA,outputA,regularization=0):

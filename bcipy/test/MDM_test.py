@@ -22,7 +22,6 @@ from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
 import numpy as np
 
 
-
 def main():
     # create a session
     s = Session.create()

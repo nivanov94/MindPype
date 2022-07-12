@@ -23,6 +23,10 @@ class RiemannDistanceKernel(Kernel):
         self._inA  = inA
         self._inB  = inB
         self._outA = outA
+
+        self._init_inA = None
+        self._init_inB = None
+        self._init_outA = None
         
     
     def initialize(self):
@@ -109,13 +113,19 @@ class RiemannDistanceKernel(Kernel):
                 
   
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
-    def execute(self):
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+        
+    def process_data(self, input_data1, input_data2, output_data1):
         """
         Execute the kernel and calculate the mean
         """
-
-
         def get_obj_data_at_index(obj,index,rank):
             if isinstance(obj,Tensor):
                 if rank == 1 and len(obj.shape) == 2:
@@ -152,20 +162,23 @@ class RiemannDistanceKernel(Kernel):
         
         for i in range(out_sz[0]):
             # extract the ith element from inA
-            x = get_obj_data_at_index(self._inA,i,out_sz[0])
+            x = get_obj_data_at_index(input_data1,i,out_sz[0])
             
             for j in range(out_sz[1]):
                 # extract the jth element from inB
-                y = get_obj_data_at_index(self._inB,j,out_sz[1])
+                y = get_obj_data_at_index(input_data2,j,out_sz[1])
                 
                 try:
-                    set_obj_data_at_index(self._outA,(i,j),
+                    set_obj_data_at_index(output_data1,(i,j),
                                           distance_riemann(x,y))
                 
                 except:
                     return BcipEnums.FAILURE
                     
         return BcipEnums.SUCCESS
+
+    def execute(self):
+        return self.process_data(self._init_inA, self._init_inB, self._init_outA)
     
     @classmethod
     def add_riemann_distance_node(cls,graph,inA,inB,outA):

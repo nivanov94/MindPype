@@ -5,7 +5,7 @@ Implements a cumulative riemann mean kernel
 
 @author: ivanovn
 """
-
+#TODO: Delete
 from ..classes.kernel import Kernel
 from ..classes.node import Node
 from ..classes.parameter import Parameter
@@ -28,6 +28,9 @@ class CumulativeRiemannMeanKernel(Kernel):
         self._inB  = inB
         self._outA = outA
         
+        self._init_inA = None
+        self._init_inB = None
+        self._init_outA = None
     
     def initialize(self):
         """
@@ -79,6 +82,39 @@ class CumulativeRiemannMeanKernel(Kernel):
   
         return BcipEnums.SUCCESS
         
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
+        
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data1, input_data2, output_data):
+        try:
+            cov_dims = input_data1.get_element(0).shape
+            n_covs = input_data1.num_elements
+            if input_data2 != None:
+                n_covs += 1
+            
+            d = np.zeros(((n_covs,) + cov_dims))
+            # extract all the circle buffer's tensors into a single numpy array
+            for i in range(input_data1.num_elements):
+                d[i,:,:] = input_data1.get_queued_element(i).data
+            
+            # add the data from inB
+            if input_data2 != None:
+                d[-1,:,:] = input_data2.data
+            
+            
+            # calculate the mean using pyRiemann
+            output_data.data = mean_riemann(d)
+        except:
+            return BcipEnums.EXE_FAILURE
+        
+        return BcipEnums.SUCCESS
+
+
     def execute(self):
         """
         Execute the kernel and calculate the mean

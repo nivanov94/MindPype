@@ -4,7 +4,7 @@ Created on Fri Jun 26 22:53:06 2020
 
 @author: Nick
 """
-
+#TODO: Delete
 from ..classes.kernel import Kernel
 from ..classes.node import Node
 from ..classes.parameter import Parameter
@@ -26,6 +26,9 @@ class PairwiseRiemannDistanceKernel(Kernel):
         super().__init__('PWRiemannDists',BcipEnums.INIT_FROM_NONE,graph)
         self._covs  = covs
         self._dists = dists
+
+        self._init_inA = None
+        self._init_outA = None
             
     def initialize(self):
         """

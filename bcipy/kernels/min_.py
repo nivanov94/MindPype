@@ -18,12 +18,16 @@ class MinKernel(Kernel):
         super().__init__('Min',BcipEnums.INIT_FROM_NONE,graph)
         self._in   = inA
         self._out  = outA
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        sts = self.initialization_execution()
+        return sts
     
     def verify(self):
         """
@@ -54,21 +58,32 @@ class MinKernel(Kernel):
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        try:
+            if isinstance(output_data,Scalar):
+                output_data.data = np.amin(input_data.data).item()
+            else:
+                output_data.data = np.asarray([np.amin(input_data.data)])
+        except:
+            return BcipEnums.EXE_FAILURE
+        
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
         
-        try:
-            if isinstance(self._out,Scalar):
-                self._out.data = np.amin(self._in.data).item()
-            else:
-                self._out.data = np.asarray([np.amin(self._in.data)])
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+        return self.process_data(self._in, self._out)
     
     @classmethod
     def add_min_node(cls,graph,inA,outA):

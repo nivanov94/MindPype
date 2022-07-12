@@ -31,7 +31,7 @@ class FeatureNormalizationKernel(Kernel):
         self._inA  = inA
         self._outA = outA
         self._method = method
-        self._init_data = init_data
+        self.initialization_data = init_data
         self._translate = 0
         self._scale = 1
         
@@ -40,11 +40,11 @@ class FeatureNormalizationKernel(Kernel):
         """
         Calculate the normalization parameters using the setup data
         """
-        if isinstance(self._init_data,Tensor):
-            X = self._init_data.data
-        elif isinstance(self._init_data,Array):
+        if isinstance(self.initialization_data,Tensor):
+            X = self.initialization_data.data
+        elif isinstance(self.initialization_data,Array):
             try:
-                X = extract_nested_data(self._init_data)
+                X = extract_nested_data(self.initialization_data)
             except:
                 return BcipEnums.INITIALIZATION_FAILURE
         else:
@@ -81,8 +81,8 @@ class FeatureNormalizationKernel(Kernel):
         if self._method not in ('min-max','mean-norm','zscore-norm'):
             return BcipEnums.INVALID_PARAMETERS
         
-        if ((not isinstance(self._init_data,Tensor)) and 
-            (not isinstance(self._init_data,Array))):
+        if ((not isinstance(self.initialization_data,Tensor)) and 
+            (not isinstance(self.initialization_data,Array))):
             return BcipEnums.INVALID_PARAMETERS
         
         

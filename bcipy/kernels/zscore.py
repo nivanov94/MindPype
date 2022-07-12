@@ -19,7 +19,10 @@ class ZScoreKernel(Kernel):
         super().__init__('Zscore',BcipEnums.INIT_FROM_DATA,graph)
         self._in   = inA
         self._out  = outA
-        self._init_data = init_data
+        self.initialization_data = init_data
+
+        self._init_inA = None
+        self._init_outA = None
 
         self._mu = 0
         self._sigma = 0
@@ -29,14 +32,17 @@ class ZScoreKernel(Kernel):
         """
         Initialize the mean and std
         """
-        if not (isinstance(self._init_data,Array) or isinstance(self._init_data,Tensor)):
+        if self.initialization_data == None:
+            self.initialization_data = self._init_inA
+
+        if not (isinstance(self.initialization_data,Array) or isinstance(self.initialization_data,Tensor)):
             return BcipEnums.INITIALIZATION_FAILURE
 
-        if isinstance(self._init_data,Tensor):
-            if len(self._init_data.data.squeeze().shape) != 1:
+        if isinstance(self.initialization_data,Tensor):
+            if len(self.initialization_data.data.squeeze().shape) != 1:
                 return BcipEnums.INITIALIZATION_FAILURE
         else:
-            e = self._init_data.get_element(0)
+            e = self.initialization_data.get_element(0)
             if isinstance(e,Tensor):
                 if (e.data.shape != (1,)) and (e.data.shape != (1,1)):
                     return BcipEnums.INITIALIZATION_FAILURE
@@ -46,13 +52,13 @@ class ZScoreKernel(Kernel):
             else:
                 return BcipEnums.INITIALIZATION_FAILURE
 
-        if isinstance(self._init_data,Tensor):
-            d = self._init_data.data.squeeze()
+        if isinstance(self.initialization_data,Tensor):
+            d = self.initialization_data.data.squeeze()
         else:
-            e = self._init_data.get_element(0)
+            e = self.initialization_data.get_element(0)
             dl = []
-            for i in range(self._init_data.capacity):
-                elem_data = self._init_data.get_element(i).data
+            for i in range(self.initialization_data.capacity):
+                elem_data = self.initialization_data.get_element(i).data
                 if isinstance(e,Tensor):
                     dl.append(elem_data)
                 else:
@@ -68,9 +74,9 @@ class ZScoreKernel(Kernel):
         self._mu = np.sum(d) / N
         self._sigma = np.sqrt(np.sum((d - self._mu)**2) / (N-1))
 
-
         self._initialized = True
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
+
     
     def verify(self):
         """
@@ -121,14 +127,14 @@ class ZScoreKernel(Kernel):
 
 
         # check if the init data is the correct type
-        if not (isinstance(self._init_data,Array) or isinstance(self._init_data,Tensor)):
+        if not (isinstance(self.initialization_data,Array) or isinstance(self.initialization_data,Tensor)):
             return BcipEnums.INITIALIZATION_FAILURE
 
-        if isinstance(self._init_data,Tensor):
-            if len(self._init_data.data.squeeze().shape) != 1:
+        if isinstance(self.initialization_data,Tensor):
+            if len(self.initialization_data.data.squeeze().shape) != 1:
                 return BcipEnums.INITIALIZATION_FAILURE
         else:
-            e = self._init_data.get_element(0)
+            e = self.initialization_data.get_element(0)
             if isinstance(e,Tensor):
                 if (e.data.shape != (1,)) and (e.data.shape != (1,1)):
                     return BcipEnums.INITIALIZATION_FAILURE
@@ -139,32 +145,43 @@ class ZScoreKernel(Kernel):
                 return BcipEnums.INITIALIZATION_FAILURE
 
         return BcipEnums.SUCCESS
-        
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
 
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
+        
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
         if not self._initialized:
             return BcipEnums.EXE_FAILURE
 
         try:
-            out_data = (self._in.data - self._mu) / self._sigma
+            out_data = (input_data.data - self._mu) / self._sigma
 
-            if isinstance(self._in,Tensor) and isinstance(self._out,Scalar):
+            if isinstance(input_data,Tensor) and isinstance(output_data,Scalar):
                 # peel back layers of array until the value is extracted
                 while isinstance(out_data,np.ndarry):
                     out_data = out_data[0]
-                self._out.data = out_data
-            elif isinstance(self._in,Scalar) and isinstance(self._out,Tensor):
-                self._out.data = np.asarray([[out_data]])
+                output_data.data = out_data
+            elif isinstance(input_data,Scalar) and isinstance(output_data,Tensor):
+                output_data.data = np.asarray([[out_data]])
             else:
-                self._out.data = out_data
+                output_data.data = out_data
             
         except:
             return BcipEnums.EXE_FAILURE
         
         return BcipEnums.SUCCESS
+
+
+    def execute(self):
+        """
+        Execute the kernel function using numpy function
+        """
+        return self.process_data(self._in, self._out)
     
     @classmethod
     def add_zscore_node(cls,graph,inA,outA,init_data):

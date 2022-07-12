@@ -86,7 +86,7 @@ class RiemannPotatoKernel(Kernel):
     """
     
     def __init__(self,graph,inA,out_label,out_score,thresh,update,alpha,
-                 training_data,filt,
+                 initialization_data,filt,
                  stats_type,init_stopping_crit,k):
         """
         Kernel takes Tensor input and produces scalar label representing
@@ -102,7 +102,7 @@ class RiemannPotatoKernel(Kernel):
         self._std  = None
         self._ref  = None
         self._q = None
-        self._training_data = training_data
+        self.initialization_data = initialization_data
         
         self._filt = filt
         
@@ -133,15 +133,15 @@ class RiemannPotatoKernel(Kernel):
         Set reference covariance matrix, mean, and standard deviation
         """
         
-        if (not isinstance(self._training_data,Tensor)) and \
-        (not isinstance(self._training_data,Array)):
+        if (not isinstance(self.initialization_data,Tensor)) and \
+        (not isinstance(self.initialization_data,Array)):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._training_data,Tensor):
-            X = self._training_data.data
+        if isinstance(self.initialization_data,Tensor):
+            X = self.initialization_data.data
         else:
-            X = [self._training_data.get_element(i).data 
-                        for i in range(self._training_data.capacity)]
+            X = [self.initialization_data.get_element(i).data 
+                        for i in range(self.initialization_data.capacity)]
             X = np.stack(X,axis=0)
         
         if len(X.shape) != 3:
@@ -314,7 +314,7 @@ class RiemannPotatoKernel(Kernel):
     
     
     @classmethod
-    def add_riemann_potato_node(cls,graph,inA,filt,training_data,
+    def add_riemann_potato_node(cls,graph,inA,filt,initialization_data,
                                 out_labels=None,out_scores=None,
                                 thresh=2.5,update='static',alpha=0.1,
                                 stats_type='geometric',
@@ -326,7 +326,7 @@ class RiemannPotatoKernel(Kernel):
         # create the kernel object            
 
         k = cls(graph,inA,out_labels,out_scores,thresh,update,alpha,
-                training_data,filt,stats_type,
+                initialization_data,filt,stats_type,
                 init_stopping_crit,k)
         
         # create parameter objects for the input and output

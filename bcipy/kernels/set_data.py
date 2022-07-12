@@ -28,6 +28,10 @@ class SetKernel(Kernel):
         self._data = data
         self._axis = axis
         self._index  = index
+
+        self._init_in_Data = None
+        self._init_container = None
+
     
     def initialize(self):
         """
@@ -111,7 +115,7 @@ class SetKernel(Kernel):
         Execute the kernel function using numpy function
         """
         
-        if isinstance(self._in, Array):
+        if isinstance(self._data, Array):
             # copy all the elements of the input container except the the 
             # data to set
             for i in range(self._out.capacity):

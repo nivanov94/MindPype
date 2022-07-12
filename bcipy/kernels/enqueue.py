@@ -24,6 +24,8 @@ class EnqueueKernel(Kernel):
         super().__init__('Enqueue',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._circle_buff = queue
+
+        
     
     def initialize(self):
         """

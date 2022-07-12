@@ -5,7 +5,6 @@ Created on Fri Apr  3 15:03:27 2020
 @author: Nick
 """
 
-from pytz import NonExistentTimeError
 from ..classes.kernel import Kernel
 from ..classes.node import Node
 from ..classes.parameter import Parameter
@@ -36,9 +35,14 @@ class CommonSpatialPatternKernel(Kernel):
         self._num_filts = num_filts
         self._init_params = init_params
 
-        self.training_data = init_params['training_data']
-        self._init_inA = self.training_data
+        self._init_inA = None
         self._init_outA = None
+        
+        if init_params['initialization_data'] != None:
+            self._init_inA.data = init_params['initialization_data']
+
+        
+
         self.graph = graph
 
         if init_style == BcipEnums.INIT_FROM_DATA:
@@ -50,16 +54,15 @@ class CommonSpatialPatternKernel(Kernel):
             # model is copy of predefined MDM model object
             self._W = init_params['filters']
             self._initialized = True
-        
-    def batch_processing(self):
-        self._init_out = np.matmul(self._init_in,self._W) 
-
-        return BcipEnums.SUCCESS
+    
 
     def initialize(self):
         """
         Set the filter values
         """
+
+        if self._init_params['initialization_data'] == None:
+            self._init_params['initialization_data'] = self._init_inA
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
             sts = self.extract_filters()
@@ -70,25 +73,38 @@ class CommonSpatialPatternKernel(Kernel):
             # need to train here
             self._initialized = True
         
-        if self.graph._missing_data:
-            self.batch_processing()
+        self.initialization_execution()
+    
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        output_data.data = np.matmul(input_data.data,self._W) 
+
+        return BcipEnums.SUCCESS
+
+
     def extract_filters(self):
         """
         Determine the filter values using the training data
         """
 
-        if (not (isinstance(self._init_params['training_data'],Tensor) or 
-                 isinstance(self._init_params['training_data'],Array)) or 
+        if (not (isinstance(self._init_params['initialization_data'],Tensor) or 
+                 isinstance(self._init_params['initialization_data'],Array)) or 
             not isinstance(self._init_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._init_params['training_data'],Tensor): 
-            X = self._init_params['training_data'].data
+        if isinstance(self._init_params['initialization_data'],Tensor): 
+            X = self._init_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._init_params['training_data'])
+                X = extract_nested_data(self._init_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
@@ -186,20 +202,12 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Execute the kernel by classifying the input trials
         """
-        if not self._initialized:
-            return BcipEnums.EXE_FAILURE_UNINITIALIZED
-        
-        try:
-            self._outA.data = np.matmul(self._inA.data,self._W)
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        
-        return BcipEnums.SUCCESS
+        #TODO: add
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
-                                   training_data,labels,
+                                   initialization_data,labels,
                                    num_filts):
         """
         Factory method to create a CSP filter node and add it to a graph
@@ -209,7 +217,7 @@ class CommonSpatialPatternKernel(Kernel):
         """
         
         # create the kernel object            
-        init_params = {'training_data' : training_data, 
+        init_params = {'initialization_data' : initialization_data, 
                        'labels'        : labels}
         
         k = cls(graph,inA,outA,BcipEnums.INIT_FROM_DATA,init_params,num_filts)

@@ -31,13 +31,17 @@ class MeanKernel(Kernel):
         self._inA  = inA
         self._outA = outA
         self._axis = axis
+
+        self._init_inA = None
+        self._init_outA = None
         
     
     def initialize(self):
         """
         No internal state to setup
         """
-        return BcipEnums.SUCCESS
+        sts = self.initialization_execution()
+        return sts
         
     
     def verify(self):
@@ -67,18 +71,29 @@ class MeanKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        try:
+            output_data.data = np.mean(input_data.data,axis=self._axis)
+        except:
+            return BcipEnums.EXE_FAILURE
+        
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel and calculate the mean
         """
         
-        try:
-            self._outA.data = np.mean(self._inA.data,axis=self._axis)
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_mean_node(cls,graph,inA,outA,axis=None):

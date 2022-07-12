@@ -38,6 +38,8 @@ class LDAClassifierKernel(Kernel):
         self._pred_proba = pred_proba
         
         self._initialize_params = initialize_params
+        self._init_inA = initialize_params['initialization_data']
+        self._init_outA = None
         
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -60,7 +62,15 @@ class LDAClassifierKernel(Kernel):
         """
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            return self.train_classifier()
+            sts1 = self.train_classifier()
+            sts2 = self.initialization_execution()
+            if sts1 != BcipEnums.SUCCESS:
+                return sts1
+            elif sts2 != BcipEnums.SUCCESS:
+                return sts2
+            else:
+                return BcipEnums.SUCCESS
+
         else:
             # kernel contains a reference to a pre-existing MDM object, no
             # need to train here
@@ -74,18 +84,22 @@ class LDAClassifierKernel(Kernel):
         The method will update the kernel's internal representation of the
         classifier
         """
-        
-        if (not (isinstance(self._initialize_params['training_data'],Tensor) or 
-                 isinstance(self._initialize_params['training_data'],Array)) or 
+        try:
+            initialization_data = self._initialize_params['initialization_data']
+        except KeyError:
+            self._initialize_params['initialization_data'] = self._init_inA
+
+        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
+                 isinstance(self._initialize_params['initialization_data'],Array)) or 
             not isinstance(self._initialize_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['training_data'],Tensor): 
-            X = self._initialize_params['training_data'].data
+        if isinstance(self._initialize_params['initialization_data'],Tensor): 
+            X = self._initialize_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._initialize_params['training_data'])
+                X = extract_nested_data(self._initialize_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
@@ -103,7 +117,6 @@ class LDAClassifierKernel(Kernel):
         self._initialized = True
         
         return BcipEnums.SUCCESS
-    
     
     def verify(self):
         """
@@ -149,11 +162,17 @@ class LDAClassifierKernel(Kernel):
 
         
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        try:
+            self._init_outA.data = Scalar.create_from_value(self._classifier.predict(self._init_inA.data))
+        except:
+            return BcipEnums.INITIALIZATION_FAILURE
         
-    def execute(self):
-        """
-        Execute the kernel by classifying the input trials
-        """
+        return BcipEnums.SUCCESS
+
+    def process_data(self):
+        #TODO: fix
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         
@@ -181,9 +200,15 @@ class LDAClassifierKernel(Kernel):
         
         return BcipEnums.SUCCESS
     
+    def execute(self):
+        """
+        Execute the kernel by classifying the input trials
+        """
+        
+    
     @classmethod
     def add_untrained_LDA_node(cls,graph,X,y_bar,
-                               training_data,labels,
+                               initialization_data,labels,
                                pred_proba=None,conf=None,
                                solver='eigen',shrinkage=None,
                                priors=None,n_components=None,
@@ -196,7 +221,7 @@ class LDAClassifierKernel(Kernel):
         """
         
         # create the kernel object            
-        init_params = {'training_data' : training_data, 
+        init_params = {'initialization_data' : initialization_data, 
                        'labels'        : labels,
                        'shrinkage'     : shrinkage,
                        'solver'        : solver,

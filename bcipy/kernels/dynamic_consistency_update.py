@@ -5,7 +5,7 @@ Created on Fri Jun 26 23:29:49 2020
 @author: Nick
 """
 
-
+#TODO: Delete
 from ..classes.kernel import Kernel
 from ..classes.node import Node
 from ..classes.parameter import Parameter
@@ -32,13 +32,16 @@ class DynamicConsistencyUpdateKernel(Kernel):
         self._block_trials = block_trials
         self._last_trial = last_trial
         self._consist = consist
+
+        self._init_inA = None
+        self._init_outA = None
             
     def initialize(self):
         """
         No internal state to setup
         """
-        return BcipEnums.SUCCESS
-        
+        return self.initialization_execution()
+    
     
     def verify(self):
         """
@@ -48,7 +51,18 @@ class DynamicConsistencyUpdateKernel(Kernel):
         ## TODO implement verification logic
   
         return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts    
+    
+    def process_data(self, input_data, output_data):
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel and calculate the mean

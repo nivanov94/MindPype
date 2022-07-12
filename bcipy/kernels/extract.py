@@ -22,16 +22,19 @@ class ExtractKernel(Kernel):
     
     def __init__(self,graph,inA,indices,outA,reduce_dims):
         super().__init__('Extract',BcipEnums.INIT_FROM_NONE,graph)
-        self._in   = inA
-        self._out  = outA
-        self._indices  = indices
+        self._in = inA
+        self._out = outA
+        self._indices = indices
         self._reduce_dims = reduce_dims
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
     
     def verify(self):
         """
@@ -127,18 +130,23 @@ class ExtractKernel(Kernel):
         
         return BcipEnums.SUCCESS
         
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
-        if isinstance(self._in, Array):
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        
+        if isinstance(input_data, Array):
             # extract the elements and set in the output array
             for i in range(len(self._indices[0])):
-                if isinstance(self._out,Array):
-                    elem = self._in.get_element(self._indices[0][i])
-                    self._out.set_element(i,elem)
-                elif isinstance(self._out,Tensor):
+                if isinstance(output_data,Array):
+                    elem = input_data.get_element(self._indices[0][i])
+                    output_data.set_element(i,elem)
+                elif isinstance(output_data,Tensor):
                     return BcipEnums.NOT_YET_IMPLEMENTED
         else:
             # tensor case
@@ -146,7 +154,7 @@ class ExtractKernel(Kernel):
             for axis in range(len(self._indices)):
                 axis_indices = self._indices[axis]
                 if axis_indices == ":":
-                    ix_grid.append([_ for _ in range(self._in.shape[axis])])
+                    ix_grid.append([_ for _ in range(input_data.shape[axis])])
                 else:
                     if isinstance(axis_indices,int):
                         ix_grid.append([axis_indices])
@@ -159,9 +167,16 @@ class ExtractKernel(Kernel):
             if self._reduce_dims:
                 extr_data = np.squeeze(extr_data)
                 
-            self._out.data = extr_data
+            output_data.data = extr_data
         
         return BcipEnums.SUCCESS
+
+    def execute(self):
+        """
+        Execute the kernel function using numpy function
+        """
+        
+        return self.process_data(self._in, self._out)
     
     @classmethod
     def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False):

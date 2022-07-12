@@ -26,12 +26,15 @@ class LogKernel(Kernel):
         super().__init__('Log',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._outA = outA
+
+        self._init_inA = None
+        self._init_outA = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return BcipEnums.SUCCESS
+        return self.initialization_execution()
     
     def verify(self):
         """
@@ -80,23 +83,34 @@ class LogKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
+
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
         
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data,output_data):
+        try:
+            data = np.log(input_data.data)
+            if isinstance(output_data, Scalar):
+                output_data.data = data.item()
+
+            else:
+                output_data.data = data
+        except:
+            return BcipEnums.EXE_FAILURE
+
+        return BcipEnums.SUCCESS
+
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
         
-        try:
-            data = np.log(self._inA.data)
-            if isinstance(self._outA,Scalar):
-                self._outA.data = data.item()
-            else:
-                self._outA.data = data
-
-        except:
-            return BcipEnums.EXE_ERROR
-            
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_log_node(cls,graph,inA,outA):

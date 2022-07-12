@@ -26,6 +26,9 @@ class RiemannMeanKernel(Kernel):
         super().__init__('RiemannMean',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._outA = outA
+
+        self._init_inA = None
+        self._init_outA = None
         
         self._w = weights
     
@@ -35,7 +38,19 @@ class RiemannMeanKernel(Kernel):
         """
         return BcipEnums.SUCCESS
         
-    
+    def initialization_execution(self):
+        sts = self.process_data(self._init_inA, self._init_outA)
+        
+        if sts != BcipEnums.SUCCESS:
+            return BcipEnums.INITIALIZATION_FAILURE
+        
+        return sts
+
+    def process_data(self, input_data, output_data):
+        output_data.data = mean_riemann(input_data.data,sample_weight=self._w)
+        
+        return BcipEnums.SUCCESS
+
     def verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
@@ -73,6 +88,7 @@ class RiemannMeanKernel(Kernel):
                 return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
+
         
     def execute(self):
         """
@@ -80,9 +96,7 @@ class RiemannMeanKernel(Kernel):
         """
         
         # calculate the mean using pyRiemann
-        self._outA.data = mean_riemann(self._inA.data,sample_weight=self._w)
-        
-        return BcipEnums.SUCCESS
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_riemann_mean_node(cls,graph,inA,outA,weights=None):
