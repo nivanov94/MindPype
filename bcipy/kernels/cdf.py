@@ -4,11 +4,12 @@ Created on Wed Mar 11 10:38:01 2020
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.bcip_enums import BcipEnums
 
 from scipy.stats import norm, chi2
 
@@ -30,6 +31,8 @@ class CDFKernel(Kernel):
         self._loc = loc
         self._scale = scale
         self._df = df        
+
+        self.graph = graph
     
         self._init_inA = None
         self._init_outA = None
@@ -38,7 +41,10 @@ class CDFKernel(Kernel):
         """
         No internal state to setup
         """
-        return self.initialization_execution()
+        if self._init_outA.__class__ != NoneType:
+            return self.initialization_execution()
+        
+        return BcipEnums.SUCCESS
         
     
     def verify(self):

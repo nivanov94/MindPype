@@ -1,11 +1,12 @@
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.bcip_enums import BcipEnums
-from ..classes.array import Array
-from ..classes.tensor import Tensor
-from ..classes.bcip import BCIP
-from ..classes.scalar import Scalar
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.bcip_enums import BcipEnums
+from classes.array import Array
+from classes.tensor import Tensor
+from classes.bcip import BCIP
+from classes.scalar import Scalar
 
 import numpy as np
 
@@ -27,6 +28,8 @@ class ZScoreKernel(Kernel):
         self._mu = 0
         self._sigma = 0
         self._initialized = False
+
+        self.graph = graph
     
     def initialize(self):
         """
@@ -75,7 +78,13 @@ class ZScoreKernel(Kernel):
         self._sigma = np.sqrt(np.sum((d - self._mu)**2) / (N-1))
 
         self._initialized = True
-        return self.initialization_execution()
+
+
+        if self._init_outA.__class__ != NoneType:
+            return self.initialization_execution()
+        
+        return BcipEnums.SUCCESS
+
 
     
     def verify(self):

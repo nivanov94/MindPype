@@ -5,13 +5,13 @@ Created on Fri Jun 26 22:11:49 2020
 @author: Nick
 """
 #TODO: Figure out what to do with this kernel
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.circle_buffer import CircleBuffer
-from ..classes.array import Array
-from ..classes.bcip_enums import BcipEnums
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.circle_buffer import CircleBuffer
+from classes.array import Array
+from classes.bcip_enums import BcipEnums
 
 import numpy as np
 

@@ -6,12 +6,13 @@ addition.py - Define kernel for adding scalars and tensors
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.scalar import Scalar
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.scalar import Scalar
+from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
@@ -27,6 +28,8 @@ class AdditionKernel(Kernel):
         self._inB  = inB
         self._outA = outA
 
+        self.graph = graph
+
         self._init_inA = None
         self._init_inB = None
         self._init_outA = None
@@ -35,7 +38,10 @@ class AdditionKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        return self.initialization_execution()
+        if self._init_outA.__class__ != NoneType:
+            return self.initialization_execution()
+        
+        return BcipEnums.SUCCESS
         
     
     def verify(self):

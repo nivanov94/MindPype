@@ -1,5 +1,5 @@
-from ...classes.array import Array
-from ...classes.tensor import Tensor
+from classes.array import Array
+from classes.tensor import Tensor
 
 
 import numpy as np

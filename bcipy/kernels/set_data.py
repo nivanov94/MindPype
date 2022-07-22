@@ -5,13 +5,13 @@ Created on Thu Dec 12 14:55:13 2019
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.bcip_enums import BcipEnums
-from ..classes.array import Array
-from ..classes.tensor import Tensor
-from ..classes.bcip import BCIP
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.bcip_enums import BcipEnums
+from classes.array import Array
+from classes.tensor import Tensor
+from classes.bcip import BCIP
 
 import numpy as np
 

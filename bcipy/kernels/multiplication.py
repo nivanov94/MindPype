@@ -4,12 +4,13 @@ Created on Mon Dec  9 17:33:21 2019
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.scalar import Scalar
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.scalar import Scalar
+from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
@@ -32,12 +33,16 @@ class MultiplicationKernel(Kernel):
         self._init_outA = None
 
     
+        self.graph = graph
+    
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = self.initialization_execution()
-        return sts
+        if self._init_outA.__class__ != NoneType:
+            return self.initialization_execution()
+        
+        return BcipEnums.SUCCESS
     
     def verify(self):
         """

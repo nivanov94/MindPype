@@ -1,11 +1,12 @@
 from concurrent.futures import process
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.bcip_enums import BcipEnums
-from ..classes.scalar import Scalar
-from ..classes.tensor import Tensor
-from ..classes.bcip import BCIP
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.bcip_enums import BcipEnums
+from classes.scalar import Scalar
+from classes.tensor import Tensor
+from classes.bcip import BCIP
 
 import numpy as np
 
@@ -18,6 +19,9 @@ class AbsoluteKernel(Kernel):
         super().__init__('Absolute',BcipEnums.INIT_FROM_NONE,graph)
         self._in   = inA
         self._out  = outA
+
+        self.graph = graph
+
         self._init_inA = None
         self._init_outA = None
     
@@ -25,7 +29,7 @@ class AbsoluteKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        if self._init_inA != None:
+        if self._init_outA.__class__ != NoneType:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS

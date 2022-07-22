@@ -5,12 +5,13 @@ Created on Fri Apr  3 15:03:27 2020
 @author: Nick
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.array import Array
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.array import Array
+from classes.bcip_enums import BcipEnums
 from .utils.data_extraction import extract_nested_data
 
 import numpy as np
@@ -35,11 +36,10 @@ class CommonSpatialPatternKernel(Kernel):
         self._num_filts = num_filts
         self._init_params = init_params
 
-        self._init_inA = None
+        self._init_inA = init_params['initialization_data']
         self._init_outA = None
         
-        if init_params['initialization_data'] != None:
-            self._init_inA.data = init_params['initialization_data']
+        self._initialization_data = self._init_params['initialization_data']
 
         
 
@@ -60,12 +60,12 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Set the filter values
         """
-
-        if self._init_params['initialization_data'] == None:
-            self._init_params['initialization_data'] = self._init_inA
+        sts1, sts2 = BcipEnums.SUCCESS, BcipEnums.SUCCESS
+        if self._initialization_data == None:
+            self._initialization_data = self._init_inA
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            sts = self.extract_filters()
+            sts1 = self.extract_filters()
             
 
         else:
@@ -73,15 +73,45 @@ class CommonSpatialPatternKernel(Kernel):
             # need to train here
             self._initialized = True
         
-        self.initialization_execution()
+        if self._init_outA.__class__ != NoneType:
+            sts2 = self.initialization_execution()
+        
+        if sts1 != BcipEnums.SUCCESS:
+            return sts1
+        elif sts2 != BcipEnums.SUCCESS:
+            return sts2
+        else:
+            return BcipEnums.SUCCESS
+
     
     def initialization_execution(self):
-        sts = self.process_data(self._init_inA, self._init_outA)
+
+        if len(self._init_inA.shape) == 3:
+            
+            self._init_outA.shape = (self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1])
+            self._init_outA.data = np.zeros((self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1]))
+            print(f"{self._init_outA.shape}")
+            #self._init_outA = Tensor.create_from_data( \
+            #                                        self.session, 
+            #                                        (self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1]), 
+            #                                        np.zeros((self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1])))
+            
+        #try:   
+        for i in range(self._init_inA.shape[0]):
+            input_data = np.array(self._init_inA.data[i,:,:])
+
+            if len(np.shape(input_data)) == 3:
+                input_data = np.squeeze(input_data)
+
+            output_data = np.matmul(input_data,self._W)
+            self._init_outA.data[i, :, :] = output_data
         
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
+        print(f"init_out ID: {self._init_outA._id}")
+        return BcipEnums.SUCCESS
+
+        #except:
+        #    return BcipEnums.INITIALIZATION_FAILURE
         
-        return sts
 
     def process_data(self, input_data, output_data):
         output_data.data = np.matmul(input_data.data,self._W) 
@@ -94,27 +124,30 @@ class CommonSpatialPatternKernel(Kernel):
         Determine the filter values using the training data
         """
 
-        if (not (isinstance(self._init_params['initialization_data'],Tensor) or 
-                 isinstance(self._init_params['initialization_data'],Array)) or 
+        if (not (isinstance(self._initialization_data,Tensor) or 
+                 isinstance(self._initialization_data,Array)) or 
             not isinstance(self._init_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._init_params['initialization_data'],Tensor): 
-            X = self._init_params['initialization_data'].data
+        if isinstance(self._initialization_data,Tensor): 
+            X = self._initialization_data.data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._init_params['initialization_data'])
+                X = extract_nested_data(self._initialization_data)
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
         y = self._init_params['labels'].data
         
         # ensure the shpaes are valid
+        if len(X.shape) == 2:
+            X = X[np.newaxis, :, :]
+
         if len(X.shape) != 3 or len(y.shape) != 1:
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if X.shape[0] != y.shape[0]:
+        if X.shape[0] != y.shape[0] and X.shape[1] != y.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
         
         # y must contain 2, and only 2, unique labels
@@ -171,6 +204,9 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
+
+        if self._initialization_data == None:
+            self.graph._missing_data = True
         
         # first ensure the input and output are tensors
         if (not isinstance(self._inA,Tensor) or 

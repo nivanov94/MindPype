@@ -6,12 +6,13 @@ FilterKernel.py - Define the filter kernel for BCIP
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.filter import Filter
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.filter import Filter
+from classes.bcip_enums import BcipEnums
 
 from scipy import signal
 import numpy as np
@@ -34,7 +35,10 @@ class FilterKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        return self.initialization_execution()
+        if self._init_outA.__class__ != NoneType:
+            return self.initialization_execution()
+        
+        return BcipEnums.SUCCESS
     
     def verify(self):
         """
@@ -75,24 +79,28 @@ class FilterKernel(Kernel):
         """
         Execute the kernel function using the scipy module function
         """
-        
         return self.process_data(self._inputA, self._outputA)
         
 
     def process_data(self, input_data, output_data):
         shape = input_data.shape
 	# TODO make an axis input parameter instead
-        axis = next((i for i, x in enumerate(shape) if x != 1))
+        try:
+            axis = next((i for i, x in enumerate(shape) if x != 1))
         
-        if self._filt.implementation == 'ba':
-            output_data.data = signal.lfilter(self._filt.coeffs['b'],\
-                                               self._filt.coeffs['a'],\
-                                               input_data.data, \
-                                               axis=axis)
-        else:
-            output_data.data = signal.sosfilt(self._filt.coeffs['sos'],\
-                                               input_data.data,\
-                                               axis=axis)
+            if self._filt.implementation == 'ba':
+                output_data.data = signal.lfilter(self._filt.coeffs['b'],\
+                                                self._filt.coeffs['a'],\
+                                                input_data.data, \
+                                                axis=axis)
+            else:
+                output_data.data = signal.sosfilt(self._filt.coeffs['sos'],\
+                                                input_data.data,\
+                                                axis=axis)
+            return BcipEnums.SUCCESS
+
+        except:
+            return BcipEnums.EXE_FAILURE
 
     def initialization_execution(self):
         sts = self.process_data(self._init_inA, self._init_outA)

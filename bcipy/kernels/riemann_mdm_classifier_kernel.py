@@ -4,14 +4,14 @@ Created on Fri Nov 22 09:12:33 2019
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.scalar import Scalar
-from ..classes.array import Array
-from ..classes.circle_buffer import CircleBuffer
-from ..classes.bcip_enums import BcipEnums
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.scalar import Scalar
+from classes.array import Array
+from classes.circle_buffer import CircleBuffer
+from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
@@ -59,7 +59,7 @@ class RiemannMDMClassifierKernel(Kernel):
         self._inputA  = inputA
         self._outputA = outputA
 
-        self._init_inA = None
+        self._init_inA = initialize_params['initialization_data']
         self._init_outA = None
         
         self._initialize_params = initialize_params
@@ -73,6 +73,7 @@ class RiemannMDMClassifierKernel(Kernel):
             self._classifier = initialize_params['model']
             self._initialized = True
         
+        self._graph = graph
     
     def initialize(self):
         """
@@ -134,6 +135,9 @@ class RiemannMDMClassifierKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
+
+        if self._initialize_params['initialization_data'] == None:
+            self._graph._missing_data = True
         
         # first ensure the input and output are tensors
         if (not isinstance(self._inputA,Tensor)) or \

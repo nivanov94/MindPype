@@ -4,12 +4,12 @@ Created on Wed Apr  1 10:12:10 2020
 """
 
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.array import Array
-from ..classes.bcip_enums import BcipEnums
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.array import Array
+from classes.bcip_enums import BcipEnums
 
 from .utils.data_extraction import extract_nested_data
 
@@ -34,6 +34,8 @@ class FeatureNormalizationKernel(Kernel):
         self.initialization_data = init_data
         self._translate = 0
         self._scale = 1
+
+        self.graph = graph
         
     
     def initialize(self):

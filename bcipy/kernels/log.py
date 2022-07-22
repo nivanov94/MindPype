@@ -5,12 +5,13 @@ Created on Sun Apr  5 19:50:46 2020
 @author: Nick
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.scalar import Scalar
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.scalar import Scalar
+from classes.bcip_enums import BcipEnums
 
 import numpy as np
 
@@ -29,12 +30,18 @@ class LogKernel(Kernel):
 
         self._init_inA = None
         self._init_outA = None
+
+        self.graph = graph
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return self.initialization_execution()
+
+        if self._init_outA.__class__ != NoneType:
+            return self.initialization_execution()
+        
+        return BcipEnums.SUCCESS
     
     def verify(self):
         """

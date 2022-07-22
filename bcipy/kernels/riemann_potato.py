@@ -4,13 +4,13 @@ Created on Fri Jan 17 12:14:43 2020
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.scalar import Scalar
-from ..classes.array import Array
-from ..classes.bcip_enums import BcipEnums
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.scalar import Scalar
+from classes.array import Array
+from classes.bcip_enums import BcipEnums
 
 from math import exp, log, sqrt
 import numpy as np

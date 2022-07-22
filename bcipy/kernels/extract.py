@@ -4,13 +4,14 @@ Created on Thu Dec 12 12:12:25 2019
 @author: ivanovn
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.bcip_enums import BcipEnums
-from ..classes.array import Array
-from ..classes.tensor import Tensor
-from ..classes.bcip import BCIP
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.bcip_enums import BcipEnums
+from classes.array import Array
+from classes.tensor import Tensor
+from classes.bcip import BCIP
 
 import numpy as np
 
@@ -29,12 +30,17 @@ class ExtractKernel(Kernel):
 
         self._init_inA = None
         self._init_outA = None
+
+        self.graph = graph
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        return self.initialization_execution()
+        if self._init_outA.__class__ != NoneType:
+            return self.initialization_execution()
+        
+        return BcipEnums.SUCCESS
     
     def verify(self):
         """

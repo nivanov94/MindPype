@@ -5,13 +5,14 @@ Created on Tue Mar 31 14:31:32 2020
 @author: Nick
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.scalar import Scalar
-from ..classes.array import Array
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.scalar import Scalar
+from classes.array import Array
+from classes.bcip_enums import BcipEnums
 from .utils.data_extraction import extract_nested_data
 
 import numpy as np
@@ -36,11 +37,14 @@ class LDAClassifierKernel(Kernel):
         self._y_bar = y_bar
         self._conf = conf
         self._pred_proba = pred_proba
+
+        self.graph = graph
         
         self._initialize_params = initialize_params
         self._init_inA = initialize_params['initialization_data']
         self._init_outA = None
-        
+        self._initialization_data = initialize_params['initialization_data']
+
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
             self._initialized = False
@@ -60,10 +64,11 @@ class LDAClassifierKernel(Kernel):
         """
         Set the means for the classifier
         """
-        
+        sts1, sts2 = BcipEnums.SUCCESS, BcipEnums.SUCCESS
         if self.init_style == BcipEnums.INIT_FROM_DATA:
             sts1 = self.train_classifier()
-            sts2 = self.initialization_execution()
+            if self.graph._missing_data:
+                sts2 = self.initialization_execution()
             if sts1 != BcipEnums.SUCCESS:
                 return sts1
             elif sts2 != BcipEnums.SUCCESS:
@@ -75,6 +80,9 @@ class LDAClassifierKernel(Kernel):
             # kernel contains a reference to a pre-existing MDM object, no
             # need to train here
             self._initialized = True
+            if self._init_outA.__class__ != NoneType:
+                return self.initialization_execution()
+
             return BcipEnums.SUCCESS
         
     def train_classifier(self):
@@ -85,21 +93,21 @@ class LDAClassifierKernel(Kernel):
         classifier
         """
         try:
-            initialization_data = self._initialize_params['initialization_data']
+            initialization_data = self._initialization_data
         except KeyError:
-            self._initialize_params['initialization_data'] = self._init_inA
+            self._initialization_data = self._init_inA
 
-        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
-                 isinstance(self._initialize_params['initialization_data'],Array)) or 
+        if (not (isinstance(self._initialization_data,Tensor) or 
+                 isinstance(self._initialization_data,Array)) or 
             not isinstance(self._initialize_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['initialization_data'],Tensor): 
-            X = self._initialize_params['initialization_data'].data
+        if isinstance(self._initialization_data,Tensor): 
+            X = self._initialization_data.data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._initialize_params['initialization_data'])
+                X = extract_nested_data(self._initialization_data)
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             

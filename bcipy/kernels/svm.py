@@ -5,13 +5,14 @@ Created on Tue Mar 31 16:22:02 2020
 @author: Nick
 """
 
-from ..classes.kernel import Kernel
-from ..classes.node import Node
-from ..classes.parameter import Parameter
-from ..classes.tensor import Tensor
-from ..classes.scalar import Scalar
-from ..classes.array import Array
-from ..classes.bcip_enums import BcipEnums
+from types import NoneType
+from classes.kernel import Kernel
+from classes.node import Node
+from classes.parameter import Parameter
+from classes.tensor import Tensor
+from classes.scalar import Scalar
+from classes.array import Array
+from classes.bcip_enums import BcipEnums
 from .utils.data_extraction import extract_nested_data
 
 import numpy as np
@@ -38,6 +39,8 @@ class SVMClassifierKernel(Kernel):
 
         self._init_inA = None
         self._init_outA = None
+
+        self.graph = graph
         
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -68,6 +71,8 @@ class SVMClassifierKernel(Kernel):
         Set the means for the classifier
         """
 
+        sts1, sts2 = BcipEnums.SUCCESS, BcipEnums.SUCCESS
+
         if self._initialize_params['initialization_data'] == None:
             self._initialize_params['initialization_data'] = self._init_inA
         
@@ -81,7 +86,9 @@ class SVMClassifierKernel(Kernel):
             self._initialized = True
             #return BcipEnums.SUCCESS
 
-        sts2 = self.initialization_execution()
+               
+        if self._init_outA.__class__ != NoneType:
+            sts2 = self.initialization_execution()
         
         if sts == BcipEnums.SUCCESS and sts2 == BcipEnums.SUCCESS:
             return BcipEnums.SUCCESS
