@@ -6,10 +6,11 @@ graph.py - Defines the graph object
 
 @author: ivanovn
 """
-from bcip import BCIP
-from bcip_enums import BcipEnums
-from bcipy.classes.tensor import Tensor
-from edge import Edge
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
+from .tensor import Tensor
+from .edge import Edge
+import copy
 
 class Graph(BCIP):
     """
@@ -138,8 +139,8 @@ class Graph(BCIP):
         for n in self._nodes:
             valid = n.verify()
             
-            if hasattr(n._kernel, "initialization_data"):
-                if n._kernel.initialization_data == None:
+            if hasattr(n._kernel, "_initialization_data"):
+                if n._kernel._initialization_data == None:
                     self._missing_data = True
                     
             if valid != BcipEnums.SUCCESS:
@@ -148,8 +149,8 @@ class Graph(BCIP):
         
         if self._missing_data:         
             for n in self._nodes:
-                if hasattr(n._kernel, "initialization_data"):
-                    if n._kernel.initialization_data == None:
+                if hasattr(n._kernel, "_initialization_data"):
+                    if n._kernel._initialization_data == None:
                         
                         sts = self.fill_initialization_links(n, edges)
                         if sts != BcipEnums.SUCCESS:
@@ -166,8 +167,10 @@ class Graph(BCIP):
             return BcipEnums.INVALID_GRAPH
         for n_i in n_inputs:
             # identify the up-stream node producing each input
-            producer = edges[n_i.session_id].producers[0]
-
+            try:
+                producer = edges[n_i.session_id].producers[0]
+            except:
+                continue
             # TODO: need to more robustly identify the correct initialization output
             # may require modification of the node/parameter data structures.
 
@@ -184,18 +187,19 @@ class Graph(BCIP):
                 else:
                     n._kernel._init_inA = producer._kernel._init_outA
             else:
-                init_data = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
-                producer._kernel._init_outA = init_data
+                producer._kernel._init_outA = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
                 if hasattr(n._kernel, "_init_inB") and n._kernel._init_inA != None:
                     if n._kernel._init_inB != None:
                         return BcipEnums.INVALID_GRAPH
-                    n._kernel._init_inB = init_data
+                    n._kernel._init_inB = producer._kernel._init_outA
                 else:
-                    n._kernel._init_inA = init_data
+                    n._kernel._init_inA = producer._kernel._init_outA
+                    print(f"Consumer in: {n._kernel._init_inA._id}\nProducer out: {producer._kernel._init_outA._id}")
+                    
             
              # recurse process on up-stream nodes
             if producer._kernel._init_inA == None:
-                sts = self.fill_initialization_links(self, producer, edges)
+                sts = self.fill_initialization_links(producer, edges)
                 if sts != BcipEnums.SUCCESS:
                     return BcipEnums.INVALID_GRAPH
         

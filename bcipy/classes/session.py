@@ -5,8 +5,8 @@ Session.py - Defines the session class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_enums import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 class Session(BCIP):
     """

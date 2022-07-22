@@ -5,8 +5,8 @@ Tensor.py - Defines the Tensor class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_enums import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 import numpy as np
 

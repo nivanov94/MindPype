@@ -15,9 +15,10 @@ filter.py - Defines the filter Class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_enums import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 from sklearn import *
+from pyriemann import classification
 
 class Classifier(BCIP):
     """
@@ -57,6 +58,7 @@ class Classifier(BCIP):
     def create_LDA(cls,sess, solver="svd", shrinkage=None, priors=None, n_components=None, store_covariance=False, tol=0.0001, covariance_estimator=None):
         """Factory method to create an LDA BCIP Classifier object"""
         lda_object = discriminant_analysis.LinearDiscriminantAnalysis(solver, shrinkage, priors, n_components, store_covariance, tol, covariance_estimator)
+        #clf = classification.TSclassifier(clf=lda_object)
         f = cls(sess, 'lda', lda_object)
 
         sess.add_misc_bcip_obj(f)
@@ -64,7 +66,7 @@ class Classifier(BCIP):
         return f
 
     @classmethod
-    def create_classifier(cls, sess, classifier_object, classifier_type):
+    def add_classifier(cls, sess, classifier_object, classifier_type):
         f = cls(sess, classifier_type, classifier_object)
         sess.add_misc_bcip_obj(f)
 

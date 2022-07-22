@@ -7,8 +7,8 @@ Kernel.py - Defines a generic kernel class
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_enums import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 from abc import ABC, abstractmethod
 
 class Kernel(BCIP, ABC):

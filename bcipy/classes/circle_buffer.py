@@ -7,8 +7,8 @@ circle_buffer.py - Defines a circular buffer class for BCIP objects
 @author: ivanovn
 """
 
-from array import Array
-from bcip_enums import BcipEnums
+from .array import Array
+from .bcip_enums import BcipEnums
 
 class CircleBuffer(Array):
     """

@@ -6,13 +6,15 @@ Created on Thu Nov 21 16:30:09 2019
 """
 
 # Create a simple graph for testing
-
+import sys, os
+sys.path.insert(0, os.getcwd())
 
 from classes.session import Session
 from classes.tensor import Tensor
 from classes.filter import Filter
 from classes.block import Block
 from classes.bcip_enums import BcipEnums
+from classes.graph import Graph
 
 from kernels.filter_ import FilterKernel
 from kernels.covariance import CovarianceKernel
@@ -34,7 +36,9 @@ def main():
     s = Session.create()
 
     # add a block and some tensors
-    b = Block.create(s,3,(4,4,4))
+    b = Block.create(s,2,(4,4))
+
+    trial_graph = Graph.create(s)
 
     input_data = np.random.randn(500,12)
     t_in = Tensor.create_from_data(s,(500,12),input_data)
@@ -48,8 +52,8 @@ def main():
     f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    cov_node  = CovarianceKernel.add_covariance_node(b.trial_processing_graph,t_virt,t_out)
-    filt_node = FilterKernel.add_filter_node(b.trial_processing_graph,t_in,f,t_virt)
+    cov_node  = CovarianceKernel.add_covariance_node(trial_graph,t_virt,t_out)
+    filt_node = FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt)
 
     # verify the session (i.e. schedule the nodes)
     sts = s.verify()
@@ -58,9 +62,11 @@ def main():
         print(sts)
         return sts
     
+    # Starting the block initializes the graph
+    sts = s.start_block(trial_graph)
+
     # RUN!
-    sts = s.start_block()
-    sts = s.execute_trial(0)
+    sts = s.execute_trial(0, trial_graph)
     
     
     # compare the output with manual calculation

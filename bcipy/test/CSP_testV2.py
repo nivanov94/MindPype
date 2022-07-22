@@ -9,7 +9,7 @@ import sys, os
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
-
+from classes.classifier import Classifier
 from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
@@ -18,32 +18,34 @@ from classes.block import Block
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
 
+from kernels.csp import CommonSpatialPatternKernel
 from kernels.filter_ import FilterKernel
+from kernels.classifier_ import ClassifierKernel
 from kernels.covariance import CovarianceKernel
 from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
 
 import numpy as np
+from random import shuffle
 
 def main():
     # create a session
     session = Session.create()
     trial_graph = Graph.create(session)
+    block = Block.create(session, 2, (4,4))
 
-    # add a block and some tensors
-    block = Block.create(session,3,(4,4,4))
-
-    # initialize the classifier
-    # fake data for training
-    raw_training_data = np.random.normal(loc=0.0,scale=1.0,size=(180,250,12))
-    training_data = np.zeros((180,12,12))
-    for i in range(180):
-        training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
+    #data
+    training_data = np.random.random((120,500,12))
         
-    labels = np.asarray([0]*60 + [1]*60 + [2]*60)
+    labels = np.asarray([0]*60 + [1]*60)
+
     X = Tensor.create_from_data(session,training_data.shape,training_data)
     y = Tensor.create_from_data(session,labels.shape,labels)
 
-    input_data = np.random.randn(500,12)
+    y_LDA = Tensor.create_from_data(session, labels.shape, labels)
+
+
+    input_data = np.random.randn(500, 12)
+
     t_in = Tensor.create_from_data(session,(500,12),input_data)
     s_out = Scalar.create_from_value(session,-1)
     t_virt = [Tensor.create_virtual(session), \
@@ -55,15 +57,18 @@ def main():
     fs = 250
     f = Filter.create_butter(session,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
+    classifier = Classifier.create_LDA(session)
+    
     # add the nodes
-    CovarianceKernel.add_covariance_node(trial_graph,t_virt[0],t_virt[1])
     FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
-    RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node(trial_graph,
-                                                              t_virt[1],
-                                                              s_out,X,y)
+    CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph, t_virt[0], t_virt[1], X, y, 2)
+    ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, y_LDA)
+    
+
 
     # verify the session (i.e. schedule the nodes)
     verify = session.verify()
+    print(trial_graph._missing_data)
 
     if verify != BcipEnums.SUCCESS:
         print(verify)
@@ -77,9 +82,35 @@ def main():
         return start
     
     # RUN!
-    execute = session.execute_trial(0, trial_graph)
+    trial_seq = [0]*4 + [1]*4
     
-    print(s_out.data)
+    
+    shuffle(trial_seq)
+
+    t_num = 0
+    sts = BcipEnums.SUCCESS
+    correct_labels = 0
+    
+    while sum(block.remaining_trials()) != 0 and sts == BcipEnums.SUCCESS:
+        print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
+        y = trial_seq[t_num]
+        sts = session.execute_trial(y, trial_graph)
+        
+        if sts == BcipEnums.SUCCESS:
+            # print the value of the most recent trial
+            y_bar = s_out.data
+            print("Trial {}: Label = {}, Predicted label = {}".format(t_num+1,y,y_bar))
+            
+            if y == y_bar:
+                correct_labels += 1
+        
+        else:
+            print(f"Trial {t_num+1} raised error, status code: {sts}")
+            break
+
+        t_num += 1
+        
+    print("Accuracy = {:.2f}%.".format(100 * correct_labels/len(trial_seq)))
     
     print("Test Passed =D")
 

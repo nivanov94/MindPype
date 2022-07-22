@@ -6,8 +6,8 @@ Array.py - Defines class of array objects that contain other BCIP objects
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_enums import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 class Array(BCIP):
     """

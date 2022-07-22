@@ -4,9 +4,9 @@ Block.py - Defines the block class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_enums import BcipEnums
-from graph import Graph
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
+from .graph import Graph
 
 class Block(BCIP):
     """
@@ -131,8 +131,9 @@ class Block(BCIP):
         """
         Initialize the block for trial execution
         """
+        sts = graph.initialize()
         
-        return BcipEnums.SUCCESS
+        return sts
     
     
     def reject_trial(self):

@@ -7,8 +7,8 @@ Scalar.py - Define the Scalar class for BCIP
 @author: ivanovn
 """
 
-from bcip import BCIP
-from bcip_enums import BcipEnums
+from .bcip import BCIP
+from .bcip_enums import BcipEnums
 
 import numpy as np
 
