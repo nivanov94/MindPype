@@ -96,6 +96,8 @@ class RiemannPotatoKernel(Kernel):
         self._inA  = inA
         self._out_label = out_label
         self._out_score = out_score
+
+        self._labels = None
         
         self._thresh = thresh
         self._mean = None
@@ -148,7 +150,7 @@ class RiemannPotatoKernel(Kernel):
             return BcipEnums.INITIALIZATION_FAILURE
         
         
-        XXt = np.zeros((X.shape[0],X.shape[2],X.shape[2]))
+        XXt = np.zeros((X.shape[0],X.shape[1],X.shape[1]))
         
         for i in range(X.shape[0]):
             # filter the data

@@ -119,7 +119,7 @@ class Tensor(BCIP):
         data = self.ext_src.poll_data(label)
         try:
             # if we only pulled one trial, remove the first dimension
-            data = np.squeeze(data,axis=0)
+            data = np.squeeze(data)
         except ValueError:
             pass # just ignore the error for now
         

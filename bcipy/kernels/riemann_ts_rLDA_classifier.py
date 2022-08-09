@@ -62,7 +62,7 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
         
-        self._initialize_params = initialize_params
+        self._init_params = initialize_params
         
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -95,21 +95,21 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
         classifier
         """
         
-        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
-                 isinstance(self._initialize_params['initialization_data'],Array)) or 
-            not isinstance(self._initialize_params['labels'],Tensor)):
+        if (not (isinstance(self._init_params['initialization_data'],Tensor) or 
+                 isinstance(self._init_params['initialization_data'],Array)) or 
+            not isinstance(self._init_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['initialization_data'],Tensor): 
-            X = self._initialize_params['initialization_data'].data
+        if isinstance(self._init_params['initialization_data'],Tensor): 
+            X = self._init_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = _extract_nested_data(self._initialize_params['initialization_data'])
+                X = _extract_nested_data(self._init_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
-        y = self._initialize_params['labels'].data
+        y = self._init_params['labels'].data
         
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:
@@ -119,11 +119,11 @@ class RiemannTangentSpacerLDAClassifierKernel(Kernel):
             return BcipEnums.INITIALIZATION_FAILURE
         
         
-        solver = self._initialize_params['solver']
+        solver = self._init_params['solver']
         if solver != 'lsqr' and solver != 'eigen':
             return BcipEnums.INITIALIZATION_FAILURE
         
-        shrinkage = self._initialize_params['shrinkage']
+        shrinkage = self._init_params['shrinkage']
         if shrinkage != 'auto' and (shrinkage < 0 or shrinkage > 1):
             return BcipEnums.INITIALIZATION_FAILURE
         

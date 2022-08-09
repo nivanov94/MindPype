@@ -180,21 +180,79 @@ class Graph(BCIP):
                         return BcipEnums.INVALID_GRAPH
                     
                     n._kernel._init_inB = producer._kernel._init_outA
+
+                    if hasattr(n._kernel, "_labels"): 
+                        if n._kernel._labels == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._labels = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._labels = producer._kernel._init_params['labels']
+
+                    elif hasattr(n._kernel, "_init_params"):
+                        if n._kernel._init_params['labels'] == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._init_params['labels'] = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
                 
                 if (not hasattr(n._kernel, "_init_inB")) and n._kernel._init_inA != None:
                     return BcipEnums.INVALID_GRAPH
 
                 else:
+
                     n._kernel._init_inA = producer._kernel._init_outA
+                    
+                    if hasattr(n._kernel, "_labels"): 
+                        if n._kernel._labels == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._labels = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._labels = producer._kernel._init_params['labels']
+
+                    elif hasattr(n._kernel, "_init_params"):
+                        if n._kernel._init_params['labels'] == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._init_params['labels'] = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
             else:
                 producer._kernel._init_outA = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
+                
                 if hasattr(n._kernel, "_init_inB") and n._kernel._init_inA != None:
                     if n._kernel._init_inB != None:
                         return BcipEnums.INVALID_GRAPH
                     n._kernel._init_inB = producer._kernel._init_outA
+
+                    if hasattr(n._kernel, "_labels"): 
+                        if n._kernel._labels == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._labels = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._labels = producer._kernel._init_params['labels']
+
+                    elif hasattr(n._kernel, "_init_params"):
+                        if n._kernel._init_params['labels'] == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._init_params['labels'] = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
+                
                 else:
                     n._kernel._init_inA = producer._kernel._init_outA
-                    print(f"Consumer in: {n._kernel._init_inA._id}\nProducer out: {producer._kernel._init_outA._id}")
+                    
+                    if hasattr(n._kernel, "_labels"): 
+                        if n._kernel._labels == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._labels = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._labels = producer._kernel._init_params['labels']
+
+                    elif hasattr(n._kernel, "_init_params"):
+                        if n._kernel._init_params['labels'] == None:
+                            if hasattr(producer._kernel, "_labels"):
+                                n._kernel._init_params['labels'] = producer._kernel._labels
+                            elif hasattr(producer._kernel, "_init_params"):
+                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
                     
             
              # recurse process on up-stream nodes

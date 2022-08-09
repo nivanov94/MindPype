@@ -8,6 +8,7 @@ class BCIP(object):
     This is the base class for all objects used in the BCIP API.
     It serves to define some attributes that will be shared across all
     other objects.
+
     """
     def __init__(self,bcip_type,session):
         self._bcip_type = bcip_type

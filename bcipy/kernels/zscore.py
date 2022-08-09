@@ -30,7 +30,9 @@ class ZScoreKernel(Kernel):
         self._initialized = False
 
         self.graph = graph
-    
+
+        self._labels = None
+
     def initialize(self):
         """
         Initialize the mean and std

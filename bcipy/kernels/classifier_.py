@@ -75,10 +75,13 @@ class ClassifierKernel(Kernel):
             index1, index2, index3 = self._initialization_data.shape
             temp_tensor = np.reshape(temp_tensor, (index1, index2 * index3))
 
-        if (len(temp_tensor.shape) != 2 or len(self._labels.shape) != 1):
+        if len(self._labels.shape) == 2:
+            temp_labels = np.squeeze(self._labels.data)
+
+        if (len(temp_tensor.shape) != 2 or len(temp_labels.shape) != 1):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if temp_tensor.shape[0] != self._labels.shape[0]:
+        if temp_tensor.shape[0] != temp_labels.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
 
         #print(self._initialization_data.shape, self._labels.shape)
@@ -86,8 +89,7 @@ class ClassifierKernel(Kernel):
         #all_zeros = not np.any(self._initialization_data.data)
         #print(all_zeros)
         try:
-            print(np.shape(temp_tensor))
-            self._classifier._classifier.fit(temp_tensor, self._labels.data)
+            self._classifier._classifier.fit(temp_tensor, temp_labels)
         except:
             return BcipEnums.INITIALIZATION_FAILURE
 

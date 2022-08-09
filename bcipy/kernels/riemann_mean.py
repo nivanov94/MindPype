@@ -34,6 +34,8 @@ class RiemannMeanKernel(Kernel):
         self._w = weights
     
         self.graph = graph
+
+        self._labels = None
     
     def initialize(self):
         """

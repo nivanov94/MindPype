@@ -30,6 +30,8 @@ class RiemannDistanceKernel(Kernel):
         self._init_outA = None
         
         self.graph = graph
+
+        self._labels = None
     
     def initialize(self):
         """
@@ -65,7 +67,8 @@ class RiemannDistanceKernel(Kernel):
             if isinstance(param,Tensor):
                 # ensure it is 3D or 2D
                 param_rank = len(param.shape)
-                if not param_rank in (2,3):
+                if param_rank != 2 and param_rank != 3:
+                    print("Both inputs must be either 2D or 3D")
                     return BcipEnums.INVALID_PARAMETERS
                 
                 if mat_sz == None:
@@ -183,7 +186,7 @@ class RiemannDistanceKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def execute(self):
-        return self.process_data(self._init_inA, self._init_inB, self._init_outA)
+        return self.process_data(self._inA, self._inB, self._outA)
     
     @classmethod
     def add_riemann_distance_node(cls,graph,inA,inB,outA):

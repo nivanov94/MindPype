@@ -34,7 +34,7 @@ def main():
     block = Block.create(session, 2, (4,4))
 
     #data
-    training_data = np.random.random((120,500,12))
+    training_data = np.random.random((120,12,500))
         
     labels = np.asarray([0]*60 + [1]*60)
 
@@ -44,9 +44,9 @@ def main():
     y_LDA = Tensor.create_from_data(session, labels.shape, labels)
 
 
-    input_data = np.random.randn(500, 12)
+    input_data = np.random.randn(12, 500)
 
-    t_in = Tensor.create_from_data(session,(500,12),input_data)
+    t_in = Tensor.create_from_data(session,(12,500),input_data)
     s_out = Scalar.create_from_value(session,-1)
     t_virt = [Tensor.create_virtual(session), \
               Tensor.create_virtual(session)]
@@ -62,7 +62,7 @@ def main():
     # add the nodes
     FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
     CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph, t_virt[0], t_virt[1], X, y, 2)
-    ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, y_LDA)
+    ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, None)
     
 
 
@@ -76,6 +76,10 @@ def main():
         return verify
     
     start = session.start_block(trial_graph)
+
+    print(trial_graph._nodes[1]._kernel._init_params['labels']._id)
+    print(trial_graph._nodes[2].kernel._labels._id)
+
     if start != BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")

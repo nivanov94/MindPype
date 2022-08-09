@@ -31,6 +31,8 @@ class SubtractionKernel(Kernel):
         self._init_outA = None
         self.graph = graph
     
+        self._labels = None
+
     def initialize(self):
         """
         This kernel has no internal state that must be initialized

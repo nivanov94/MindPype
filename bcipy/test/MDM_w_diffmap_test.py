@@ -15,10 +15,10 @@ from classes.filter import Filter
 from classes.block import Block
 from classes.bcip_enums import BcipEnums
 
-from kernels.filter_kernel import FilterKernel
+from kernels.filter_ import FilterKernel
 from kernels.covariance import CovarianceKernel
 from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
-from kernels.diffusion_map import DiffusionMapKernel
+
 
 import numpy as np
 

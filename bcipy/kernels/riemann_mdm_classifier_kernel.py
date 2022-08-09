@@ -62,7 +62,7 @@ class RiemannMDMClassifierKernel(Kernel):
         self._init_inA = initialize_params['initialization_data']
         self._init_outA = None
         
-        self._initialize_params = initialize_params
+        self._init_params = initialize_params
         
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -96,25 +96,25 @@ class RiemannMDMClassifierKernel(Kernel):
         classifier
         """
         
-        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
-                 isinstance(self._initialize_params['initialization_data'],Array)) or 
-            not (isinstance(self._initialize_params['labels'],Tensor) or
-                 isinstance(self._initialize_params['labels'],Array))):
+        if (not (isinstance(self._init_params['initialization_data'],Tensor) or 
+                 isinstance(self._init_params['initialization_data'],Array)) or 
+            not (isinstance(self._init_params['labels'],Tensor) or
+                 isinstance(self._init_params['labels'],Array))):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['initialization_data'],Tensor): 
-            X = self._initialize_params['initialization_data'].data
+        if isinstance(self._init_params['initialization_data'],Tensor): 
+            X = self._init_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = _extract_nested_data(self._initialize_params['initialization_data'])
+                X = _extract_nested_data(self._init_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE
             
-        if isinstance(self._initialize_params['labels'],Tensor):
-            y = self._initialize_params['labels'].data
+        if isinstance(self._init_params['labels'],Tensor):
+            y = self._init_params['labels'].data
         else:
-            y = _extract_nested_data(self._initialize_params['labels'])
+            y = _extract_nested_data(self._init_params['labels'])
         
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:
@@ -136,7 +136,7 @@ class RiemannMDMClassifierKernel(Kernel):
         Verify the inputs and outputs are appropriately sized and typed
         """
 
-        if self._initialize_params['initialization_data'] == None:
+        if self._init_params['initialization_data'] == None:
             self._graph._missing_data = True
         
         # first ensure the input and output are tensors

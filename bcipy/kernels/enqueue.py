@@ -26,6 +26,8 @@ class EnqueueKernel(Kernel):
         self._circle_buff = queue
 
         self.graph = graph
+
+        self._labels = None
     
     def initialize(self):
         """

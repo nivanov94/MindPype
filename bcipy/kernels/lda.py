@@ -40,7 +40,7 @@ class LDAClassifierKernel(Kernel):
 
         self.graph = graph
         
-        self._initialize_params = initialize_params
+        self._init_params = initialize_params
         self._init_inA = initialize_params['initialization_data']
         self._init_outA = None
         self._initialization_data = initialize_params['initialization_data']
@@ -99,7 +99,7 @@ class LDAClassifierKernel(Kernel):
 
         if (not (isinstance(self._initialization_data,Tensor) or 
                  isinstance(self._initialization_data,Array)) or 
-            not isinstance(self._initialize_params['labels'],Tensor)):
+            not isinstance(self._init_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
         if isinstance(self._initialization_data,Tensor): 
@@ -111,7 +111,7 @@ class LDAClassifierKernel(Kernel):
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
-        y = self._initialize_params['labels'].data
+        y = self._init_params['labels'].data
         
         # ensure the shpaes are valid
         if len(X.shape) != 2 or len(y.shape) != 1:

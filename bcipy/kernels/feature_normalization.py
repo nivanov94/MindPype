@@ -36,6 +36,8 @@ class FeatureNormalizationKernel(Kernel):
         self._scale = 1
 
         self.graph = graph
+
+        self._labels = None
         
     
     def initialize(self):

@@ -28,12 +28,14 @@ class Array(BCIP):
             self._elements[i] = element_template.make_copy()
         
     
+    # Returns an element at a particular index
     def get_element(self,index):
         if index >= self.capacity or index < 0:
             return
         
         return self._elements[index]
     
+    # Changes the element at a particular index to a specified value
     def set_element(self,index,element):
         if index >= self.capacity or index < 0:
             return BcipEnums.FAILURE

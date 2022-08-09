@@ -32,6 +32,8 @@ class SetKernel(Kernel):
         self._init_in_Data = None
         self._init_container = None
 
+        self._labels = None
+
     
     def initialize(self):
         """

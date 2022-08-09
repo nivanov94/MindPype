@@ -35,6 +35,7 @@ class FiltFiltKernel(Kernel):
         self._init_outA = None
 
         self.graph = graph
+        self._labels = None
     
     def initialize(self):
         """

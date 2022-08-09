@@ -41,7 +41,7 @@ class CommonSpatialPatternKernel(Kernel):
         
         self._initialization_data = self._init_params['initialization_data']
 
-        
+
 
         self.graph = graph
 
@@ -87,9 +87,8 @@ class CommonSpatialPatternKernel(Kernel):
     def initialization_execution(self):
 
         if len(self._init_inA.shape) == 3:
-            
-            self._init_outA.shape = (self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1])
-            self._init_outA.data = np.zeros((self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1]))
+            self._init_outA.shape = (self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2])
+            self._init_outA.data = np.zeros((self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2]))
             print(f"{self._init_outA.shape}")
             #self._init_outA = Tensor.create_from_data( \
             #                                        self.session, 
@@ -103,10 +102,10 @@ class CommonSpatialPatternKernel(Kernel):
             if len(np.shape(input_data)) == 3:
                 input_data = np.squeeze(input_data)
 
-            output_data = np.matmul(input_data,self._W)
+            output_data = np.matmul(self._W.T, input_data)
             self._init_outA.data[i, :, :] = output_data
         
-        print(f"init_out ID: {self._init_outA._id}")
+        print(f"init_out shape: {self._init_outA.shape}")
         return BcipEnums.SUCCESS
 
         #except:
@@ -114,7 +113,8 @@ class CommonSpatialPatternKernel(Kernel):
         
 
     def process_data(self, input_data, output_data):
-        output_data.data = np.matmul(input_data.data,self._W) 
+        output_data.shape = (self._W.shape[1], input_data.shape[1])
+        output_data.data = np.matmul(self._W.T, input_data.data) 
 
         return BcipEnums.SUCCESS
 
@@ -144,10 +144,13 @@ class CommonSpatialPatternKernel(Kernel):
         if len(X.shape) == 2:
             X = X[np.newaxis, :, :]
 
+        if len(y.shape) == 2:
+            y = np.squeeze(y)
+
         if len(X.shape) != 3 or len(y.shape) != 1:
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if X.shape[0] != y.shape[0] and X.shape[1] != y.shape[0]:
+        if X.shape[0] != y.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
         
         # y must contain 2, and only 2, unique labels
@@ -157,13 +160,13 @@ class CommonSpatialPatternKernel(Kernel):
         
         
         # start by calculating the covariance matrix for each class
-        _ , Ns, Nc = X.shape
+        _ , Nc, Ns = X.shape
         C = np.zeros((2,Nc,Nc))
         for i in  range(len(labels)):
             l = labels[i]
             X_l = X[y==l,:,:]
             Nt = X_l.shape[0]
-            X_l = np.transpose(X_l,(2,1,0))
+            X_l = np.transpose(X_l,(1,2,0))
             X_l = np.reshape(X_l,(Nc,Ns*Nt))
             C[i,:,:] = np.cov(X_l)
             
@@ -204,6 +207,7 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
+
 
         if self._initialization_data == None:
             self.graph._missing_data = True

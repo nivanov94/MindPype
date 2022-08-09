@@ -35,12 +35,13 @@ class SVMClassifierKernel(Kernel):
         self._X = X
         self._y_bar = y_bar
         
-        self._initialize_params = init_params
+        self._init_params = init_params
 
         self._init_inA = None
         self._init_outA = None
 
         self.graph = graph
+        
         
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -73,8 +74,8 @@ class SVMClassifierKernel(Kernel):
 
         sts1, sts2 = BcipEnums.SUCCESS, BcipEnums.SUCCESS
 
-        if self._initialize_params['initialization_data'] == None:
-            self._initialize_params['initialization_data'] = self._init_inA
+        if self._init_params['initialization_data'] == None:
+            self._init_params['initialization_data'] = self._init_inA
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
             sts = self.train_classifier()
@@ -104,21 +105,21 @@ class SVMClassifierKernel(Kernel):
         classifier
         """
         
-        if (not (isinstance(self._initialize_params['initialization_data'],Tensor) or 
-                 isinstance(self._initialize_params['initialization_data'],Array)) or 
-            not isinstance(self._initialize_params['labels'],Tensor)):
+        if (not (isinstance(self._init_params['initialization_data'],Tensor) or 
+                 isinstance(self._init_params['initialization_data'],Array)) or 
+            not isinstance(self._init_params['labels'],Tensor)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialize_params['initialization_data'],Tensor): 
-            X = self._initialize_params['initialization_data'].data
+        if isinstance(self._init_params['initialization_data'],Tensor): 
+            X = self._init_params['initialization_data'].data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._initialize_params['initialization_data'])
+                X = extract_nested_data(self._init_params['initialization_data'])
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
-        y = self._initialize_params['labels'].data
+        y = self._init_params['labels'].data
         
         # ensure the shpaes are valid
         if len(X.shape) != 2 or len(y.shape) != 1:

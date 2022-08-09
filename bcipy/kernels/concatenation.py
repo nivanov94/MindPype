@@ -33,6 +33,8 @@ class ConcatenationKernel(Kernel):
         self._init_inB = None
         self._init_outA = None
 
+        self._labels = None
+
         self.graph = graph
 
     def initialize(self):

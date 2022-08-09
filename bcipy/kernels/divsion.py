@@ -34,6 +34,8 @@ class DivisionKernel(Kernel):
 
         self.graph = graph
 
+        self._labels = None
+
     def initialize(self):
         """
         This kernel has no internal state that must be initialized

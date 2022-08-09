@@ -34,6 +34,8 @@ class MultiplicationKernel(Kernel):
 
     
         self.graph = graph
+
+        self._labels = None
     
     def initialize(self):
         """

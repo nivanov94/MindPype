@@ -50,6 +50,8 @@ class CovarianceKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
 
+        self._labels = None
+
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
@@ -82,12 +84,13 @@ class CovarianceKernel(Kernel):
         elif input_rank == 1:
             output_shape = (1,)
         else:
-            output_shape = input_shape[:-2] + (input_shape[-1],input_shape[-1])
+            output_shape = (input_shape[-2],input_shape[-2])
         
         # if the output is virtual and has no defined shape, set the shape now
         if self._outputA.virtual and len(self._outputA.shape) == 0:
             self._outputA.shape = output_shape
         
+        print(input_shape, output_shape)
         # ensure the output tensor's shape equals the expected output shape
         if self._outputA.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
@@ -110,23 +113,23 @@ class CovarianceKernel(Kernel):
         
         
         if rank <= 2:
-            covmat = np.cov(input_data,rowvar=False)
+            covmat = np.cov(input_data)
             output_data1.data = 1/(1+self._r) * \
                                     (covmat + self._r*np.eye(covmat.shape[0]))
         else:
             # reshape the input data so it's rank 3
             input_data = np.reshape(input_data,(-1,) + shape[-2:])
-            output_data = np.zeros((input_data.shape[0],input_data.shape[2], \
-                                    input_data[2]))
+            output_data = np.zeros((input_data.shape[0],input_data.shape[1], \
+                                    input_data[1]))
             
             # calculate the covariance for each 'trial'
             for i in range(output_data.shape[0]):
-                covmat = np.cov(input_data,rowvar=False)
+                covmat = np.cov(input_data)
                 output_data[i,:,:] = 1/(1+self._r) * \
                                      (covmat + self._r*np.eye(covmat.shape[0]))
             
             # reshape the output
-            output_data1.data = np.reshape(output_data,self.outputA.shape)
+            output_data1.data = np.reshape(output_data,self._outputA.shape)
             
 #        # for debugging
 #        d = self._outputA.data

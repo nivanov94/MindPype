@@ -12,6 +12,17 @@ class Session(BCIP):
     """
     Session objects contain all other BCIP objects instances within a data
     capture session.
+
+    Parameters
+    ----------
+    None
+
+
+    Examples
+    --------
+    >>> from bcipy.classes import session as S
+    >>> S.session.create()
+
     """
     
     def __init__(self):
