@@ -20,8 +20,6 @@ class AbsoluteKernel(Kernel):
         self._in   = inA
         self._out  = outA
 
-        self.graph = graph
-
         self._labels = None
 
         self._init_inA = None

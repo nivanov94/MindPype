@@ -17,12 +17,36 @@ from classes.bcip_enums import BcipEnums
 import numpy as np
 
 class RunningAverageKernel(Kernel):
-    def __init__(self, graph, inA, outA, running_average_cap, axis):
+    """
+    Kernel to calculate running average across multiple trials in a session. Trials are automatically included into the next running average
+    calculation. 
+
+    Parameters
+    ----------
+    graph : graph object
+        - The graph where the RunningAverageKernel object should be added
+    
+    inA : Tensor object
+        - Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
+
+    outA : Tensor/Scalar object
+        - Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
+
+    running_average_cap : int
+        - Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
+
+    axis : None or 0:
+        - Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
+
+    
+    Examples
+    --------
+    """
+    def __init__(self, graph, inA, outA, running_average_cap, axis = 0):
         super().__init__('RunningAverage',BcipEnums.INIT_FROM_NONE,graph)
 
         self._graph = graph
         self._inA = inA 
-        
         
         self._running_average_cap = running_average_cap
         self._axis = axis
@@ -41,10 +65,12 @@ class RunningAverageKernel(Kernel):
         
         if self._axis == None:
             output_shape = (1,1)
-        else:
+        elif self._axis == 0:
             shape = [x for i,x in enumerate(input_shape) if i != self._axis]
             output_shape = tuple(shape * len(input_shape)) 
 
+        else:
+            return BcipEnums.INVALID_PARAMETERS
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
         if (self._outA.virtual and len(self._outA.shape) == 0):
@@ -74,21 +100,14 @@ class RunningAverageKernel(Kernel):
         
         return sts
 
-    def process_data(self, input_data, output_data, single_trial_mean = False):
+    def process_data(self, input_data, output_data):
         
         try:
             if isinstance(input_data, Tensor):
-                if single_trial_mean:
-                    output_data.data = input_data.data
+                if self._axis == None:
+                    output_data.data = np.mean(input_data.data)
                 else:
-                    #print(input_data.shape, output_data.shape, np.shape(np.mean(input_data.data,axis=self._axis)))
-                    output_data.data = np.mean(input_data.data,axis=self._axis)
-            
-            else:
-                if single_trial_mean:
-                    output_data.data = input_data.data
-                else:
-                    output_data.data = np.mean(input_data, self._axis)
+                    output_data.data = np.mean(input_data.data,axis=0)
 
             return BcipEnums.SUCCESS
 
@@ -98,7 +117,22 @@ class RunningAverageKernel(Kernel):
 
     def execute(self):
 
-        if self._prev_data.num_elements == 0:
+        stacked_data = np.zeros((self._prev_data.num_elements + 1, self._inA.shape[0], self._inA.shape[1]))
+        stacked_data[0,:,:] = self._inA.data
+
+        for i in range(1, self._prev_data.num_elements+1):
+            stacked_data[i, :, :] = self._prev_data.get_queued_element(i).data
+
+        if len(stacked_data.shape) == 2:
+            stacked_data = stacked_data[np.newaxis, :, :]
+        
+        stacked_tensor = Tensor.create_from_data(self.session, stacked_data.shape, stacked_data)
+
+        self._prev_data.enqueue(self._inA)
+
+        return self.process_data(stacked_tensor, self._outA)
+
+        """if self._prev_data.num_elements == 0:
             sts = self._prev_data.enqueue(self._inA)
             if sts == BcipEnums.SUCCESS:
                 return self.process_data(self._inA, self._outA, True)
@@ -117,17 +151,14 @@ class RunningAverageKernel(Kernel):
             for i in range(self._prev_data.num_elements-1, -1, -1):
                 stacked_data = np.dstack((self._prev_data.get_queued_element(i).data, stacked_data))
             
-            
             #Dealing with common dimension change issue with dstack
             if stacked_data.shape[0] == stacked_data.shape[1]:
                 stacked_data = np.moveaxis(stacked_data, (0,1,2),(2,1,0))
 
-
-
             stacked_tensor = Tensor.create_from_data(self.session, stacked_data.shape, stacked_data)
 
             self._prev_data.enqueue(self._inA)
-            return self.process_data(stacked_tensor, self._outA)
+            return self.process_data(stacked_tensor, self._outA)"""
 
 
 

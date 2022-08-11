@@ -31,8 +31,6 @@ class CDFKernel(Kernel):
         self._loc = loc
         self._scale = scale
         self._df = df        
-
-        self.graph = graph
     
         self._init_inA = None
         self._init_outA = None

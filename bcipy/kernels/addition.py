@@ -28,7 +28,6 @@ class AdditionKernel(Kernel):
         self._inB  = inB
         self._outA = outA
 
-        self.graph = graph
 
         self._init_inA = None
         self._init_inB = None

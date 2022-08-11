@@ -13,6 +13,11 @@ from .bcip_enums import BcipEnums
 class CircleBuffer(Array):
     """
     A circular buffer for BCIP objects
+
+    Parameters
+    ----------
+
+    
     """
     
     def __init__(self,sess,capacity,element_template):

@@ -31,7 +31,7 @@ class StdKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self.graph = graph
+        
 
         self._labels = None
     

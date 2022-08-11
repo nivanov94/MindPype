@@ -29,7 +29,7 @@ class FilterKernel(Kernel):
         self._outputA = outputA
         self._init_inA = None
         self._init_outA = None  
-        self.graph = graph
+        
 
         self._labels = None
     

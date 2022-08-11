@@ -15,6 +15,8 @@ from classes.bcip_enums import BcipEnums
 from .utils.data_extraction import extract_nested_data
 
 import numpy as np
+import pyriemann
+import scipy
 
 
 class CommonSpatialPatternKernel(Kernel):
@@ -41,9 +43,6 @@ class CommonSpatialPatternKernel(Kernel):
         
         self._initialization_data = self._init_params['initialization_data']
 
-
-
-        self.graph = graph
 
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -161,42 +160,50 @@ class CommonSpatialPatternKernel(Kernel):
         
         # start by calculating the covariance matrix for each class
         _ , Nc, Ns = X.shape
-        C = np.zeros((2,Nc,Nc))
+        """C = np.zeros((2,Nc,Nc))
         for i in  range(len(labels)):
             l = labels[i]
             X_l = X[y==l,:,:]
             Nt = X_l.shape[0]
             X_l = np.transpose(X_l,(1,2,0))
             X_l = np.reshape(X_l,(Nc,Ns*Nt))
-            C[i,:,:] = np.cov(X_l)
+            C[i,:,:] = np.cov(X_l)"""
             
-        
+        C = pyriemann.utils.covariance.covariances(X)
+
+        C_bar = np.zeros((2, Nc, Nc))
+        for i, label in enumerate(labels):
+            C_bar[i,:,:] = np.mean(C[y==label,:,:], axis=0)
+
+        C_total = np.sum(C_bar, axis = 0)
+
         # get the whitening matrix
-        d, V = np.linalg.eig(np.mean(C,axis=0))
+        d, V = np.linalg.eig(C_total)
         
-        # sort the eigenvalues in descending order
-        ix = np.flip(np.argsort(d))
-        d = d[ix]
-        V = V[:,ix]
         
         # construct the whitening matrix
-        M = np.matmul(V, np.diag(d ** (-1/2)))
+        P = np.matmul(V, np.diag(d ** (-1/2)))
 
-        # calculate the CSP filters in the whitened space
-        dC = C[0,:,:] - C[1,:,:]
-        S = np.matmul(M.T,np.matmul(dC,M)) # M' * (C1 - C2) * M
-        d, W = np.linalg.eig(S)
-        W = np.matmul(M,W) # project filters back into channel space
+        C_tot_white = np.matmul(P,np.matmul(C_total,P.T))
+
+         # apply the whitening transform to both class covariance matrices
+        C1_bar_white = np.matmul(P,np.matmul(C_bar[0,:,:],P.T))
+
+        l, V = scipy.linalg.eigh(C1_bar_white, C_tot_white)
+
+        # sort the eigenvalues and eigenvectors in order
+        ix = np.flip(np.argsort(l)) 
+
+        l = l[ix]
+        V = V[:,ix]
         
-        # sort the eigenvalues/vectors in descending over
-        ix = np.flip(np.argsort(d))
-        d = d[ix]
-        W = W[:,ix]
         
         # extract the specified number of filters
         m = self._num_filts // 2
         f_ix = [_ for _ in range(m)] + [_ for _ in range(d.shape[0]-1,d.shape[0]-(m+1),-1)]
-        self._W = W[:,f_ix]
+        W = V[:,f_ix]
+
+        self._W = np.matmul(P.T,W)
         
         self._initialized = True
         
@@ -207,10 +214,6 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
-
-
-        if self._initialization_data == None:
-            self.graph._missing_data = True
         
         # first ensure the input and output are tensors
         if (not isinstance(self._inA,Tensor) or 

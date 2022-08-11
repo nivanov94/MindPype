@@ -23,6 +23,9 @@ from pyriemann import classification
 class Classifier(BCIP):
     """
     A classifier that can be used by different BCIP kernels
+
+    Parameters
+    ----------
     """
     
     # these are the possible internal methods for storing the filter 

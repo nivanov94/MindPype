@@ -38,7 +38,7 @@ class LDAClassifierKernel(Kernel):
         self._conf = conf
         self._pred_proba = pred_proba
 
-        self.graph = graph
+        
         
         self._init_params = initialize_params
         self._init_inA = initialize_params['initialization_data']

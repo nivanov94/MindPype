@@ -29,7 +29,6 @@ from .riemann_ts_rLDA_classifier import RiemannTangentSpacerLDAClassifierKernel
 from .riemann_distance import RiemannDistanceKernel
 from .riemann_mean import RiemannMeanKernel
 from .riemann_potato import RiemannPotatoKernel
-from .rmean_by_label import RiemannMeanByLabelKernel
 from .set_data import SetKernel
 from .stack import StackKernel
 from .std import StdKernel

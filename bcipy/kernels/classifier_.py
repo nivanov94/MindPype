@@ -77,6 +77,8 @@ class ClassifierKernel(Kernel):
 
         if len(self._labels.shape) == 2:
             temp_labels = np.squeeze(self._labels.data)
+        else:
+            temp_labels = self._labels.data
 
         if (len(temp_tensor.shape) != 2 or len(temp_labels.shape) != 1):
             return BcipEnums.INITIALIZATION_FAILURE

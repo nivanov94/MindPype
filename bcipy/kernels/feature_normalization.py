@@ -35,7 +35,7 @@ class FeatureNormalizationKernel(Kernel):
         self._translate = 0
         self._scale = 1
 
-        self.graph = graph
+        
 
         self._labels = None
         

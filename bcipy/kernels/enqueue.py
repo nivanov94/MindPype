@@ -25,7 +25,7 @@ class EnqueueKernel(Kernel):
         self._inA  = inA
         self._circle_buff = queue
 
-        self.graph = graph
+        
 
         self._labels = None
     

@@ -9,6 +9,9 @@ class BCIP(object):
     It serves to define some attributes that will be shared across all
     other objects.
 
+    Parameters
+    ----------
+
     """
     def __init__(self,bcip_type,session):
         self._bcip_type = bcip_type

@@ -12,6 +12,9 @@ from .bcip_enums import BcipEnums
 class Array(BCIP):
     """
     Array containing instances of other BCIP classes
+
+    Parameters
+    ----------
     """
     
     def __init__(self,sess,capacity,element_template):

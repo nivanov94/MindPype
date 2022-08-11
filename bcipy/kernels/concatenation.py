@@ -35,7 +35,6 @@ class ConcatenationKernel(Kernel):
 
         self._labels = None
 
-        self.graph = graph
 
     def initialize(self):
         """

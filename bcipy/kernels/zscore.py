@@ -29,7 +29,7 @@ class ZScoreKernel(Kernel):
         self._sigma = 0
         self._initialized = False
 
-        self.graph = graph
+        
 
         self._labels = None
 

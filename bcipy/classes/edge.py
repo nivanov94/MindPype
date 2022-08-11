@@ -10,6 +10,9 @@ class Edge:
     Edge class used by BCIP block to schedule graphs. Each edge object
     represents a different BCIP data object and stores the nodes that produce
     and consume that data.
+
+    Parameters
+    ----------
     """
     
     def __init__(self,data):

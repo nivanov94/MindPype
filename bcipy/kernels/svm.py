@@ -40,7 +40,7 @@ class SVMClassifierKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self.graph = graph
+        
         
         
         if init_style == BcipEnums.INIT_FROM_DATA:
