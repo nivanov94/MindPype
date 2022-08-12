@@ -12,12 +12,18 @@ from .bcip_enums import BcipEnums
 
 class CircleBuffer(Array):
     """
-    A circular buffer for BCIP objects
+    A circular buffer/Array for BCIP/data objects. 
 
     Parameters
     ----------
+    sess : Session object
+        - Session where the Array object will exist
+    capacity : int
+        - Maximum number of elements to be stored within the array (for allocation purposes)
+    element_template : any
+        - The template BCIP element to populate the array (see Array examples)
 
-    
+
     """
     
     def __init__(self,sess,capacity,element_template):

@@ -110,7 +110,7 @@ class Tensor(BCIP):
         # only be set during creation and modifying could cause unintended
         # consequences
     
-    def poll_volatile_data(self,label):
+    def poll_volatile_data(self,label=None):
         
         # check if the data is actually volatile, if not just return
         if not self.volatile:

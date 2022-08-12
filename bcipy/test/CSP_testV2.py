@@ -14,7 +14,6 @@ from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.filter import Filter
-from classes.block import Block
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
 
@@ -31,7 +30,6 @@ def main():
     # create a session
     session = Session.create()
     trial_graph = Graph.create(session)
-    block = Block.create(session, 2, (4,4))
 
     #data
     training_data = np.random.random((120,12,500))
@@ -67,7 +65,7 @@ def main():
 
 
     # verify the session (i.e. schedule the nodes)
-    verify = session.verify()
+    verify = trial_graph.verify()
     print(trial_graph._missing_data)
 
     if verify != BcipEnums.SUCCESS:
@@ -75,7 +73,7 @@ def main():
         print("Test Failed D=")
         return verify
     
-    start = session.start_block(trial_graph)
+    start = trial_graph.initialize()
 
     print(trial_graph._nodes[1]._kernel._init_params['labels']._id)
     print(trial_graph._nodes[2].kernel._labels._id)
@@ -95,10 +93,10 @@ def main():
     sts = BcipEnums.SUCCESS
     correct_labels = 0
     
-    while sum(block.remaining_trials()) != 0 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
-        sts = session.execute_trial(y, trial_graph)
+        sts = trial_graph.execute(y)
         
         if sts == BcipEnums.SUCCESS:
             # print the value of the most recent trial

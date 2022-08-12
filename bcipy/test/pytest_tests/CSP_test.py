@@ -16,7 +16,6 @@ from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.filter import Filter
-from classes.block import Block
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
 from classes.source import BcipContinuousMat
@@ -38,7 +37,6 @@ def CSP_lib(file_data, init_data, init_labels):
     # create a session
     session = Session.create()
     trial_graph = Graph.create(session)
-    block = Block.create(session, 2, (4,4))
 
     X = Tensor.create_from_data(session,np.shape(init_data), init_data)
     y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
@@ -54,16 +52,15 @@ def CSP_lib(file_data, init_data, init_labels):
     # add the nodes
     CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph,input_data, t_out, X, y, 2)
     
-    
     # verify the session (i.e. schedule the nodes)
-    verify = session.verify()
+    verify = trial_graph.verify()
 
     if verify != BcipEnums.SUCCESS:
         print(verify)
         print("Test Failed D=")
         return verify
     
-    start = session.start_block(trial_graph)
+    start = trial_graph.initialize()
     #input_data = trial_graph._nodes[0].kernel._outputA.data
 
     if start != BcipEnums.SUCCESS:
@@ -77,18 +74,19 @@ def CSP_lib(file_data, init_data, init_labels):
     t_num = 0
     sts = BcipEnums.SUCCESS
     output_array = []
-    while sum(block.remaining_trials()) != 0 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
-        sts = session.execute_trial(y, trial_graph)
+        sts = trial_graph.execute(y)
         print(f"input data_point: {input_data.data[0,0]}")
-        output_array.append(t_out.data)
+                                
         if sts != BcipEnums.SUCCESS:
             print(f"Trial {t_num+1} raised error, status code: {sts}")
             break
-
+        
+        output_array.append(t_out.data)   
         t_num += 1
-    
+     
     return output_array
 
 def CSP_colab(trial_data, init_data, labels):
@@ -180,19 +178,21 @@ def _todict(matobj):
             dict[strg] = elem
     return dict
 
-if __name__ == "__main__":
-
+def main():
     file_data = loadmat("test_data\input_data.mat")['input_data']
     print(file_data[0,0])
     labels = loadmat("test_data\input_labels.mat")['input_labels']
     init_data = sio.loadmat('test_data\init_data.mat')['init_data']
     init_labels = sio.loadmat('test_data\init_labels.mat')['labels']
 
-    lib_data = CSP_lib(file_data, init_data, init_labels)
-    W_raw, raw_data, cov_raw = CSP_colab(file_data, init_data, init_labels)
+    print(CSP_lib(file_data, init_data, init_labels)[0][0][0], CSP_colab(file_data, init_data, init_labels)[1][0][0])
 
+def test():
+    file_data = loadmat("test_data\input_data.mat")['input_data']
+    print(file_data[0,0])
+    labels = loadmat("test_data\input_labels.mat")['input_labels']
+    init_data = sio.loadmat('test_data\init_data.mat')['init_data']
+    init_labels = sio.loadmat('test_data\init_labels.mat')['labels']
+    assert CSP_lib(file_data, init_data, init_labels)[0][0][0] == CSP_colab(file_data, init_data, init_labels)[1][0][0]
 
-
-    assert CSP_lib(file_data, init_data, init_labels) == CSP_colab(file_data, init_data, init_labels)
-
-
+main()

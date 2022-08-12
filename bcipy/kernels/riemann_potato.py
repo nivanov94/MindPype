@@ -38,7 +38,7 @@ def _filter(filt,X):
     return Y
 
 def _cov(X):
-    return np.cov(X,rowvar=False)
+    return np.cov(X)
 
 def _dist_mean(S, T, stats='arithmetic'):
     """

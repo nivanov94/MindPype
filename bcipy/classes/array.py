@@ -11,10 +11,22 @@ from .bcip_enums import BcipEnums
 
 class Array(BCIP):
     """
-    Array containing instances of other BCIP classes
+    Array containing instances of other BCIP classes. Each array can only hold one type of BCIP class.
 
     Parameters
     ----------
+    sess : Session object
+        - Session where the Array object will exist
+    capacity : int
+        - Maximum number of elements to be stored within the array (for allocation purposes)
+    element_template : any
+        - The template BCIP element to populate the array (see examples)
+
+    Examples
+    --------
+    
+    - Creating An Array
+        example = Array.create(example_session, example_capacity, Tensor.create(example_session, input_data.shape))
     """
     
     def __init__(self,sess,capacity,element_template):

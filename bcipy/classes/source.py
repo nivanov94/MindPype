@@ -56,18 +56,19 @@ class BcipMatFile(BCIP):
         self.num_classes = num_classes
         self.event_duration = event_duration
         self.dims = dims
+        self._file_data = None
         
         # check if the variable names exist in the file
         print("Setting up source from file: {}".format(self.filepath))
-        d = loadmat(self.filepath)
+        self._file_data = loadmat(self.filepath)
         for varname in label_varname_map.values():
-            if not varname in d:
+            if not varname in self._file_data:
                 # TODO log error
                 return
             
             if not self.dims == None:
                 # check that the data has the correct number of dimensions
-                data_dims = d[varname].shape
+                data_dims = self._file_data[varname].shape
                 for i in range(len(dims)):
                     min_channel = min(dims[i])
                     max_channel = max(dims[i])
@@ -95,11 +96,10 @@ class BcipMatFile(BCIP):
         
     def poll_data(self,label):
         """
-        Get the data from the file for the next trial of the input label
+        Poll the data for the next trial of the input label
         """
         
-        data = loadmat(self.filepath)
-        class_data = data[self.label_varname_map[label]]
+        class_data = self._file_data[self.label_varname_map[label]]
         if self.dims == None:
             # get all the dimensions
             trial_data = class_data[label,self.label_counters[label],:,:]

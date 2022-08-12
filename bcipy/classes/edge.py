@@ -13,6 +13,9 @@ class Edge:
 
     Parameters
     ----------
+    data : Data object
+        - The Data 
+
     """
     
     def __init__(self,data):

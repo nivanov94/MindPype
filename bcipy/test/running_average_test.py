@@ -14,7 +14,6 @@ from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.filter import Filter
-from classes.block import Block
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
 from classes.source import BcipContinuousMat
@@ -40,8 +39,6 @@ def main():
     trial_graph = Graph.create(session)
     trial_graph_2 = Graph.create(session)
     trial_graph_3 = Graph.create(session)
-    block = Block.create(session, 2, (4,4))
-    final_block = Block.create(session, 1, (1,))
 
     #data
     training_data = np.random.random((120,12,500))
@@ -95,27 +92,21 @@ def main():
         print("Test Failed D=")
         return verify
     
-    start = session.start_block(trial_graph)
+    start = trial_graph.initialize()
 
     if start != BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
         return start
     
-    start = session.initialize_graph(trial_graph_2)
+    start = trial_graph_2.initialize()
 
     if start != BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
         return start
 
-    start = final_block.initialize(trial_graph_3)
-    if start != BcipEnums.SUCCESS:
-        print(start)
-        print("Test Failed D=")
-        return start
-
-    start = session.initialize_graph(trial_graph_3)
+    start = trial_graph_3.initialize()
     if start != BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
@@ -130,17 +121,20 @@ def main():
 
     sts = BcipEnums.SUCCESS
     
-    while sum(block.remaining_trials()) != 0 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == BcipEnums.SUCCESS:
         print(f"t_num {t_num+1}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
         if y == 0:
-            sts = session.execute_trial(y, trial_graph)
+            sts = trial_graph.execute(y)
         else:
-            sts = session.execute_trial(y, trial_graph_2)
+            sts = trial_graph_2.execute(y)
 
         t_num += 1
         
-    sts = session.execute_trial(0, trial_graph_3)
+    sts = trial_graph_3.execute(0, False)
+
+    print(t_out.data)
+
     if sts != BcipEnums.SUCCESS:
         print(sts)
         print("Test Failed D=")

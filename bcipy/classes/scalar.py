@@ -112,13 +112,13 @@ class Scalar(BCIP):
         # should really be set during creation not later
     
     
-    def poll_volatile_data(self,label):
+    def poll_volatile_data(self,label=None):
         
         # check if the data is actually volatile, if not just return
         if not self.is_voltatile:
             return BcipEnums.SUCCESS
         
-        self.data = self.ext_src.pollData(label)
+        self.data = self.ext_src.poll_data(label)
         
         return BcipEnums.SUCCESS
         

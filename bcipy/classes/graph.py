@@ -6,6 +6,7 @@ graph.py - Defines the graph object
 
 @author: ivanovn
 """
+from asyncore import poll
 from .bcip import BCIP
 from .bcip_enums import BcipEnums
 from .tensor import Tensor
@@ -14,12 +15,16 @@ import copy
 
 class Graph(BCIP):
     """
-    Data processing flow graph
+    This class represents the data processing flow graph, or processing pipelines. Individual nodes, or processing steps, are added
+    to the graph to create the pipeline.
+
+    Parameters
+    ---------- 
     """
     
     def __init__(self, sess):
         """
-        Create a new graph within an existing block
+        Create a new graph
         """
 
         super().__init__(BcipEnums.GRAPH,sess)
@@ -30,11 +35,12 @@ class Graph(BCIP):
         self._verified = False
         self._missing_data = False
         self._sess = sess
+        self._volatile_sources = []
         
     
     def add_node(self,node):
         """
-        Append a node object to the block's list of nodes
+        Append a node object to the list of nodes
         """
         self._verified = False
         self._nodes.append(node)
@@ -62,6 +68,8 @@ class Graph(BCIP):
                 if not (n_i.session_id in edges):
                     # no edge created for this input yet, so create a new one
                     edges[n_i.session_id] = Edge(n_i)
+                    if n_i.volatile:
+                        self._volatile_sources.append(n_i)
                 
                 # now add the node the edge's list of consumers
                 edges[n_i.session_id].add_consumer(n)
@@ -277,7 +285,7 @@ class Graph(BCIP):
         return BcipEnums.SUCCESS
     
     
-    def execute(self):
+    def execute(self, label = None, poll_volatile_sources = True):
         """
         Execute the graph
         """
@@ -287,7 +295,12 @@ class Graph(BCIP):
             executable = self.verify()
             if executable != BcipEnums.SUCCESS:
                 return executable
+
+        if poll_volatile_sources:
+            self.poll_volatile_sources(label)
             
+        print("Executing trial with label: {}".format(label))
+        
         # iterate over all the nodes and execute the kernel
         for n in self._nodes:
             sts = n.kernel.execute()
@@ -296,7 +309,11 @@ class Graph(BCIP):
                 return sts
         
         return BcipEnums.SUCCESS
-            
+    
+    def poll_volatile_sources(self, label = None):
+        for datum in self._volatile_sources:
+            datum.poll_volatile_data(label)    
+    
     @classmethod
     def create(cls,sess):
         """

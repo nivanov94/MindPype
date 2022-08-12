@@ -29,23 +29,24 @@ class Session(BCIP):
         super().__init__(BcipEnums.SESSION,self)
         
         # define some private attributes
-        self._blocks = [] # queue of blocks to execute
+        # self._blocks = [] # queue of blocks to execute
         self._datum = {}
         self._misc_objs = {}
         self._ext_srcs = {}
         self._verified = False
+        self._trials_elapsed = 0
         
         
         self.graphs = []
 
     # API Getters
-    @property
-    def current_block(self):
-        return self._blocks[0]
-    
-    @property
-    def remaining_blocks(self):
-        return len(self._blocks)
+    #@property
+    #def current_block(self):
+    #    return self._blocks[0]
+    #
+    #@property
+    #def remaining_blocks(self):
+    #    return len(self._blocks)
     
     def verify(self):
         """
@@ -73,13 +74,13 @@ class Session(BCIP):
     def initialize_graph(self, graph):
         return graph.initialize()
 
-    def initialize_block(self):
-        """
-        Initialize the current block object for trial execution.
-        """
-        return self.current_block.initialize()
+    #def initialize_block(self):
+    #    """
+    #    Initialize the current block object for trial execution.
+    #    """
+    #    return self.current_block.initialize()
     
-    def poll_volatile_channels(self,label):
+    def poll_volatile_channels(self,label=None):
         """
         Update the contents of all volatile data streams
         
@@ -97,38 +98,38 @@ class Session(BCIP):
     #    queue.
     #    """
     #    print("Closing block...")
-        # get the current block
-     #   b = self.current_block
-        
-        # check if the block is finished
-   #     if sum(b.remaining_trials()) != 0:
-            # block not finished, don't close
-  #          return BcipEnums.FAILURE
+    #    # get the current block
+    #    b = self.current_block
+    #
+    #    # check if the block is finished
+    #    if sum(b.remaining_trials()) != 0:
+    #    # block not finished, don't close
+    #        return BcipEnums.FAILURE
     #    
-        # run postprocessing
+    #    # run postprocessing
     #    sts = b.close_block()
-   #     if sts != BcipEnums.SUCCESS:
-  #          return sts
-        
-        # if everything executed nicely, remove the block from the session queue
-   #     self.dequeue_block()
+    #    if sts != BcipEnums.SUCCESS:
+    #    #        return sts
+    #
+    #    # if everything executed nicely, remove the block from the session queue
+    #    self.dequeue_block()
     #    return BcipEnums.SUCCESS    
-    
-    def start_block(self, graph):
-        """
-        Initialize the block nodes and execute the preprocessing graph
-        """
-        print("Starting block...")
-        if len(self._blocks) == 0:
-            return BcipEnums.FAILURE
         
-        b = self.current_block
-        
-        # make sure we're not in the middle of a block
-        if b.remaining_trials() != b.n_class_trials:
-            return BcipEnums.FAILURE
-        
-        return b.initialize(graph)
+    #def start_block(self, graph):
+    #    """
+    #    Initialize the block nodes and execute the preprocessing graph
+    #    """
+    #    print("Starting block...")
+    #    if len(self._blocks) == 0:
+    #        return BcipEnums.FAILURE
+    #    
+    #    b = self.current_block
+    #    
+    #    # make sure we're not in the middle of a block
+    #    if b.remaining_trials() != b.n_class_trials:
+    #        return BcipEnums.FAILURE
+    #    
+    #    return b.initialize(graph)
     
     def execute_trial(self,label,graph):
         """
@@ -138,8 +139,8 @@ class Session(BCIP):
         """
         print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
-        sts = self.current_block.process_trial(label, graph)
-        
+        #sts = self.current_block.process_trial(label, graph)
+        sts = graph.execute(label)
         return sts
     
     def reject_trial(self):
@@ -152,12 +153,12 @@ class Session(BCIP):
         self._verified = False
         self.graphs.append(graph)
 
-    def enqueue_block(self,b):
-        # block added, so make sure verified is false -> not needed, graphs verified now
-        self._blocks.append(b)
-    
-    def dequeue_block(self):
-        return self._blocks.pop(0)
+    #def enqueue_block(self,b):
+    #    # block added, so make sure verified is false -> not needed, graphs verified now
+    #    self._blocks.append(b)
+    #
+    #def dequeue_block(self):
+    #    return self._blocks.pop(0)
     
     def add_data(self,data):
         self._datum[data.session_id] = data
@@ -179,9 +180,9 @@ class Session(BCIP):
             return self
         
         # check if its a block
-        for b in self._blocks:
-            if id_num == b.session_id:
-                return b
+        #for b in self._blocks:
+        #    if id_num == b.session_id:
+        #        return b
         
         # check if its a data obj
         if id_num in self._datum:

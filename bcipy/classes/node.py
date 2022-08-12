@@ -5,7 +5,6 @@ Node.py - Generic node class for BCIP
 @author: ivanovn
 """
 
-from numpy import block
 from .bcip import BCIP
 from .bcip_enums import BcipEnums
 

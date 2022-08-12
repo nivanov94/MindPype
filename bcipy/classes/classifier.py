@@ -26,6 +26,12 @@ class Classifier(BCIP):
 
     Parameters
     ----------
+    sess : Session object
+        - Session where the Array object will exist
+    ctype : str
+        - The name of the classifier to be created
+    classifier : Classifier object
+        - The classifier object to be used within the node (should be the return from a BCIP kernel)
     """
     
     # these are the possible internal methods for storing the filter 
@@ -39,7 +45,7 @@ class Classifier(BCIP):
         self._ctype = ctype
         self._classifier = classifier
 
-        super().__init__(BcipEnums.FILTER,sess)
+        super().__init__(BcipEnums.CLASSIFIER,sess)
         
         
     def __str__(self):

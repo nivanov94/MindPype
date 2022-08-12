@@ -12,7 +12,6 @@ sys.path.insert(0, os.getcwd())
 from classes.session import Session
 from classes.tensor import Tensor
 from classes.filter import Filter
-from classes.block import Block
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
 
@@ -27,7 +26,7 @@ def manual_computation(input_data):
     # first filter the data
     sos = signal.butter(4,(8,35),btype='bandpass',output='sos',fs=250)
     filtered_data = signal.sosfilt(sos,input_data,axis=0)
-    cov_mat = np.cov(filtered_data,rowvar=False)
+    cov_mat = np.cov(filtered_data)
     
     return cov_mat
 
@@ -35,13 +34,10 @@ def main():
     # create a session
     s = Session.create()
 
-    # add a block and some tensors
-    b = Block.create(s,2,(4,4))
-
     trial_graph = Graph.create(s)
 
-    input_data = np.random.randn(500,12)
-    t_in = Tensor.create_from_data(s,(500,12),input_data)
+    input_data = np.random.randn(12,500)
+    t_in = Tensor.create_from_data(s,(12,500),input_data)
     t_out = Tensor.create(s,(12,12))
     t_virt = Tensor.create_virtual(s)
 
@@ -52,21 +48,22 @@ def main():
     f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    cov_node  = CovarianceKernel.add_covariance_node(trial_graph,t_virt,t_out)
-    filt_node = FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt)
+    FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt)
+    CovarianceKernel.add_covariance_node(trial_graph,t_virt,t_out)
+    
 
     # verify the session (i.e. schedule the nodes)
-    sts = s.verify()
+    sts = trial_graph.verify()
 
     if sts != BcipEnums.SUCCESS:
         print(sts)
         return sts
     
-    # Starting the block initializes the graph
-    sts = s.start_block(trial_graph)
+    # initializing the graph
+    sts = trial_graph.initialize()
 
     # RUN!
-    sts = s.execute_trial(0, trial_graph)
+    sts = trial_graph.execute(0, poll_volatile_sources=False)
     
     
     # compare the output with manual calculation
