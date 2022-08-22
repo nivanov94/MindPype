@@ -12,7 +12,7 @@ from .feature_normalization import FeatureNormalizationKernel
 from .filter_ import FilterKernel
 from .filtfilt import FiltFiltKernel
 from .greater import GreaterKernel
-from .lda import LDAClassifierKernel
+from .lda_to_delete import LDAClassifierKernel
 from .less import LessKernel
 from .log import LogKernel
 from .logical_and import AndKernel
@@ -25,7 +25,6 @@ from .min_ import MinKernel
 from .multiplication import MultiplicationKernel
 from .reduced_sum import ReducedSumKernel
 from .riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
-from .riemann_ts_rLDA_classifier import RiemannTangentSpacerLDAClassifierKernel
 from .riemann_distance import RiemannDistanceKernel
 from .riemann_mean import RiemannMeanKernel
 from .riemann_potato import RiemannPotatoKernel

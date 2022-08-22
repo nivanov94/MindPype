@@ -17,8 +17,8 @@ class MaxKernel(Kernel):
     
     def __init__(self,graph,inA,outA):
         super().__init__('Max',BcipEnums.INIT_FROM_NONE,graph)
-        self._in   = inA
-        self._out  = outA
+        self._inA   = inA
+        self._outA  = outA
 
         self._init_inA = None
         self._init_outA = None
@@ -41,26 +41,26 @@ class MaxKernel(Kernel):
         """
         
         # input must be a tensor
-        if not isinstance(self._in,Tensor):
+        if not isinstance(self._inA,Tensor):
             return BcipEnums.INVALID_PARAMETERS
 
         # output must be a tensor or scalar
-        if not (isinstance(self._out,Tensor) or isinstance(self._out,Scalar)):
+        if not ((isinstance(self._outA,Tensor) or isinstance(self._outA,Scalar))):
             return BcipEnums.INVALID_PARAMETERS
 
         # input tensor must contain some values
-        if len(self._in.shape) == 0:
+        if len(self._inA.shape) == 0:
             return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._out,Tensor):
-            if self._out.virtual() and len(self._out.shape) == 0:
-                self._out.shape = (1,)
+        if isinstance(self._outA,Tensor):
+            if self._outA.virtual() and len(self._outA.shape) == 0:
+                self._outA.shape = (1,)
 
-            if self._out.shape != (1,):
+            if self._outA.shape != (1,):
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
-            if self._out.data_type != float:
+            if self._outA.data_type != float:
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
@@ -75,7 +75,7 @@ class MaxKernel(Kernel):
 
     def process_data(self, input_data, output_data):
         try:
-            if isinstance(self._out,Scalar):
+            if isinstance(self._outA,Scalar):
                 output_data.data = np.amax(input_data.data).item()
             else:
                 output_data.data = np.asarray([np.amax(input_data.data)])
@@ -89,7 +89,7 @@ class MaxKernel(Kernel):
         Execute the kernel function using numpy function
         """
         
-        return self.process_data(self._in, self._out)
+        return self.process_data(self._inA, self._outA)
     
     @classmethod
     def add_max_node(cls,graph,inA,outA):

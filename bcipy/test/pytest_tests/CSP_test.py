@@ -18,7 +18,7 @@ from classes.scalar import Scalar
 from classes.filter import Filter
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
-from classes.source import BcipContinuousMat
+from classes.source import BcipClassSeparated
 
 from kernels.csp import CommonSpatialPatternKernel
 from kernels.filter_ import FilterKernel
@@ -42,7 +42,7 @@ def CSP_lib(file_data, init_data, init_labels):
     y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
 
 
-    input_data = BcipContinuousMat.create_continuous(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
+    input_data = BcipClassSeparated.create_continuous(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
     input_data = Tensor.create_from_handle(session, (12, 500), input_data)
 
     t_out = Tensor.create_virtual(session)
@@ -126,11 +126,6 @@ def CSP_colab(trial_data, init_data, labels):
     l = l[ix]
     V = V[:,ix]
 
-    """# pretty print the eigenvalues, they are the same as the first class' eigenvalues from the first method
-    for ll, ll1 in zip(l,l1):
-        print("Generized Eig.: {:.2f}, Method 1: {:.2f}".format(ll,ll1))
-
-    # Step 3 - Select eigenvectors associated with highest and lowest eigenvalue as filters"""
     Phi = V[:,(0,-1)]
 
     # Rotate the filters back into the channel space

@@ -15,11 +15,38 @@ import copy
 
 class Graph(BCIP):
     """
-    This class represents the data processing flow graph, or processing pipelines. Individual nodes, or processing steps, are added
-    to the graph to create the pipeline.
+    This class represents the data processing flow graph, or processing pipelines. 
+    Individual nodes, or processing steps, are added to the graph to create the pipeline.
 
     Parameters
     ---------- 
+    sess : Session Object
+        - Session where the graph will exist
+
+    Attributes
+    ----------
+    _nodes : Array of Node objects
+        - List of Node objects within the graph
+    
+    initialization_edges : Array of Edge objects
+        - List of Edge objects used within the graph
+
+    _verified : bool
+        - True is graph has been verified, false otherwise
+
+    _missing_data : bool
+        - True if any nodes within the graph are missing initialization data, false otherwise
+
+    _sess : Session object
+        - Session where the Graph object exists
+
+    _volatile_sources : Array of data Source objects
+        - Data sources within this array will be polled/executed when the graph is executed.
+
+    Examples
+    --------
+
+
     """
     
     def __init__(self, sess):
@@ -41,6 +68,21 @@ class Graph(BCIP):
     def add_node(self,node):
         """
         Append a node object to the list of nodes
+
+        Parameters
+        ----------
+        node : Node object
+            - Adds the specified Node object to the referenced graph
+
+        Examples
+        --------
+        example_graph.add_node(example_node)
+        
+        Return
+        ------
+        None
+
+
         """
         self._verified = False
         self._nodes.append(node)
@@ -50,6 +92,22 @@ class Graph(BCIP):
         """
         Verify the processing graph is valid. This method orders the nodes
         for execution if the graph is valid
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        BCIP Status Code
+
+        Examples
+        --------
+        >>> status = example_graph.verify()
+        >>> print(status)
+            
+            SUCCESS
+
         """
         if self._verified:
             return BcipEnums.SUCCESS
@@ -170,6 +228,22 @@ class Graph(BCIP):
         return BcipEnums.SUCCESS
     
     def fill_initialization_links(self, n, edges):
+        """
+        Connect initialization input of nodes missing init_data to the output of producer nodes. 
+        Used recursively to ensure all nodes within a particular graph have the required initialization data.
+
+        Parameters
+        ----------
+        n : Node Object
+            - Node object which will have its initialization data filled
+
+        edges : list of Edge objects within a graph
+            - Edge object connections used to identify upstream/downstream nodes.
+
+        Return
+        ------
+        BCIP status code
+        """
         n_inputs = n.extract_inputs()
         if len(n_inputs) == 0 and n._kernel._init_inA == None:
             return BcipEnums.INVALID_GRAPH
@@ -275,6 +349,21 @@ class Graph(BCIP):
     def initialize(self):
         """
         Initialize each node within the graph for trial execution
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        BCIP Status Code
+
+        Examples
+        --------
+        >>> status = example_graph.initialize()
+        >>> print(status)
+
+            SUCCESS
         """
         for n in self._nodes:
             sts = n.initialize()
@@ -287,7 +376,28 @@ class Graph(BCIP):
     
     def execute(self, label = None, poll_volatile_sources = True):
         """
-        Execute the graph
+        Execute the graph by iterating over all the nodes within the graph and executing each one
+
+        Parameters
+        ----------
+        Label : int, default = None
+            - If the trial label is known, it can be passed when a trial is executed. This is required for 
+            epoched input data
+        
+        poll_volatile_sources : bool, default = True
+            - If true, volatile sources (ie. LSL input data), will be updated. If false, the input data will
+            not be updated
+
+        Return
+        ------
+        BCIP Status Code
+
+        Examples
+        -------
+        >>> status = example_graph.execute(0, True)
+        >>> print(status)
+
+            SUCCESS
         """
         # first ensure the block's processing graph has been verified,
         # if not, verify and schedule the nodes
@@ -311,6 +421,22 @@ class Graph(BCIP):
         return BcipEnums.SUCCESS
     
     def poll_volatile_sources(self, label = None):
+        """
+        Poll data (update input data) from volatile sources within the graph.
+
+        Parameters
+        ----------
+        label : int, default = None
+            - If the class label of the current trial is known, it can be passed to poll epoched data.
+
+        Return
+        ------
+        None
+
+        Example
+        -------
+        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data 
+        """
         for datum in self._volatile_sources:
             datum.poll_volatile_data(label)    
     

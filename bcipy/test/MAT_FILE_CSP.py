@@ -14,10 +14,9 @@ from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.filter import Filter
-from classes.block import Block
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
-from classes.source import BcipContinuousMat
+from classes.source import BcipClassSeparated
 
 from kernels.csp import CommonSpatialPatternKernel
 from kernels.filter_ import FilterKernel
@@ -33,7 +32,6 @@ def main():
     # create a session
     session = Session.create()
     trial_graph = Graph.create(session)
-    block = Block.create(session, 2, (4,4))
 
     #data
     training_data = np.random.random((120,12,500))
@@ -48,7 +46,7 @@ def main():
     y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
 
 
-    input_data = BcipContinuousMat.create_continuous(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
+    input_data = BcipClassSeparated.create_continuous(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
 
     input_data = Tensor.create_from_handle(session, (12, 500), input_data)
     
@@ -71,17 +69,15 @@ def main():
     ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, None)
 
     # verify the session (i.e. schedule the nodes)
-    verify = session.verify()
+    verify = trial_graph.verify()
 
     if verify != BcipEnums.SUCCESS:
         print(verify)
         print("Test Failed D=")
         return verify
     
-    start = session.start_block(trial_graph)
+    start = trial_graph.initialize()
 
-    print(trial_graph._nodes[1]._kernel._init_params['labels']._id)
-    print(trial_graph._nodes[2].kernel._labels._id)
 
     if start != BcipEnums.SUCCESS:
         print(start)
@@ -99,10 +95,10 @@ def main():
     correct_labels = 0
 
     
-    while sum(block.remaining_trials()) != 0 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
-        sts = session.execute_trial(y, trial_graph)
+        sts = trial_graph.execute(y)
         if sts == BcipEnums.SUCCESS:
             # print the value of the most recent trial
             y_bar = s_out.data

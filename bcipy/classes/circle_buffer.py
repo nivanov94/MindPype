@@ -23,6 +23,10 @@ class CircleBuffer(Array):
     element_template : any
         - The template BCIP element to populate the array (see Array examples)
 
+    Examples
+    --------
+    Creating a Circle Buffer
+        example_buffer = CircleBuffer.create(example_session, 5, Tensor.create(example_session, example_input_shape))
 
     """
     
@@ -35,7 +39,19 @@ class CircleBuffer(Array):
     @property
     def num_elements(self):
         """
-        return the number of elements currently in the buffer
+        Return the number of elements currently in the buffer.
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        int: Number of elements currently in the buffer
+
+        Examples
+        --------
+        example_num_elements = example_buffer.num_elements()
         """
         if self.is_empty():
             return 0
@@ -43,12 +59,48 @@ class CircleBuffer(Array):
             return ((self._tail - self._head) % self.capacity) + 1
     
     def is_empty(self):
+        """
+        Parameters
+        ----------
+
+        Return
+        ------
+        bool : True if circle buffer is empty, false otherwise
+
+
+        Examples
+        --------
+
+        >>> is_empty = example_buffer.is_empty()
+        >>> print(is_empty)
+            
+            True
+        """
+
         if self._head == None and self._tail == None:
             return True
         else:
             return False
         
     def is_full(self):
+        """
+        Parameters
+        ----------
+
+        Return
+        ------
+        bool : True if circle buffer is empty, false otherwise
+
+
+        Examples
+        --------
+
+        >>> is_empty = example_buffer.is_empty()
+        >>> print(is_empty)
+            
+            True
+        """
+
         if self._head == ((self._tail + 1) % self.capacity):
             return True
         else:
@@ -57,8 +109,20 @@ class CircleBuffer(Array):
     
     def get_queued_element(self,index):
         """
-        extract and return the element at the index relative to the current
-        head
+        Returns the element at a specific index within an Circle Buffer object.
+
+        Parameters
+        ----------
+        index : int
+            - Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
+
+        Return
+        ------
+        any : Data object at index index 
+        
+        Examples
+        --------
+        example_element = example_circle_buffer.get_element(0)
         """
         if index > self.num_elements:
             return None
@@ -68,6 +132,27 @@ class CircleBuffer(Array):
         return self.get_element(abs_index)
     
     def peek(self):
+        """
+        Returns the front element of a circle buffer
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        any : Data object at first index
+        
+        Examples
+        --------
+        >>> example_element = example_circle_buffer.peek()
+        >>> print(example_element)
+            
+            12
+
+
+        """   
+
         if self.is_empty():
             return None
         
@@ -160,6 +245,17 @@ class CircleBuffer(Array):
     def flush(self):
         """
         Empty the buffer of all elements
+
+        Parameters
+        ----------
+        None
+
+        Examples
+        --------
+        >>> status = example_buffer.flush()
+        >>> print(status)
+
+            SUCCESS
 
         Returns
         -------

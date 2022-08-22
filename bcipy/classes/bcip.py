@@ -11,6 +11,10 @@ class BCIP(object):
 
     Parameters
     ----------
+    bcip_type : Object type enum (int)
+        Indicates what type of object is being created
+    session : session object
+        The session where the object will exist
 
     """
     def __init__(self,bcip_type,session):

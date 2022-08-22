@@ -8,7 +8,21 @@ Parameter.py - General Parameter class for BCIP
 class Parameter:
     """
     Parameter class can be used to abstract data types as inputs and outputs 
-    to nodes
+    to nodes.
+
+    Parameters
+    ----------
+    data : any
+        - Reference to the data object represented by the parameter object
+    direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]
+        - Enum indicating whether this is an input-type or output-type parameter
+
+    Attributes
+    ----------
+    data : any
+        - Reference to the data object represented by the parameter object
+    direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]
+        - Enum indicating whether this is an input-type or output-type parameter
     """
     
     def __init__(self,data,direction):

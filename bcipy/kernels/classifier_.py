@@ -19,11 +19,11 @@ class ClassifierKernel(Kernel):
     Classify
     """
 
-    def __init__(self, graph, inputA, classifier, outputA, initialization_data, labels, conf = None, pred_proba = None):
+    def __init__(self, graph, inA, classifier, outA, initialization_data, labels, conf = None, pred_proba = None):
         super().__init__('Classifier', BcipEnums.INIT_FROM_DATA, graph)
-        self._inputA = inputA
+        self._inA = inA
         self._classifier = classifier
-        self._outputA = outputA
+        self._outA = outA
         self._initialization_data = initialization_data 
         self._labels = labels
 
@@ -31,8 +31,6 @@ class ClassifierKernel(Kernel):
         self._initialized = False
         self._init_inA = None
         self._init_outA = None
-
-        self._graph = graph
 
         if self._classifier._ctype == 'lda':
             self._conf = conf
@@ -60,8 +58,8 @@ class ClassifierKernel(Kernel):
             return BcipEnums.SUCCESS
         
     def train_classifier(self):
-        if self._initialization_data == None:
-            self._initialization_data = self._init_inA
+        # Setting temporary variables so initialization data not modified between kernels
+        temp_labels, temp_tensor = self._labels.data, self._initialization_data.data
         
         if (not (isinstance(self._initialization_data,Tensor) or 
                  isinstance(self._initialization_data, Array))) or \
@@ -102,14 +100,12 @@ class ClassifierKernel(Kernel):
     def verify(self):
         """similar verification process to individual classifier kernels"""
 
-        if self._initialization_data == None:
-            self._graph._missing_data = True
 
-        if (not isinstance(self._inputA, Tensor)) or \
-           (not isinstance(self._outputA, Scalar)) or \
+        if (not isinstance(self._inA, Tensor)) or \
+           (not isinstance(self._outA, Scalar)) or \
            (not isinstance(self._classifier, Classifier)):
             return BcipEnums.INVALID_PARAMETERS
-        input_shape = self._inputA.shape
+        input_shape = self._inA.shape
         input_rank = len(input_shape)
 
         if input_rank == 0:
@@ -121,13 +117,13 @@ class ClassifierKernel(Kernel):
     def execute(self):
         """execute the kernel function using the scipy predict function"""
         
-        if len(self._inputA.shape) == 2:
+        if len(self._inA.shape) == 2:
 
-            temp_input = np.reshape(self._inputA.data, (1, self._inputA.shape[0]*self._inputA.shape[1]))
+            temp_input = np.reshape(self._inA.data, (1, self._inA.shape[0]*self._inA.shape[1]))
             temp_tensor = Tensor.create_from_data(self._session, np.shape(temp_input), temp_input)
             print(temp_tensor.shape)
         
-        return self.process_data(temp_tensor, self._outputA)
+        return self.process_data(temp_tensor, self._outA)
 
 
     def initialization_execution(self):
@@ -159,14 +155,14 @@ class ClassifierKernel(Kernel):
 
 
     @classmethod
-    def add_classifier_node(cls, graph, inputA, classifier, outputA, initialization_data, labels):
+    def add_classifier_node(cls, graph, inA, classifier, outA, initialization_data, labels):
         """Factory method to create a classifier kernel and add it to a graph as a generic node object"""
 
         #create the kernel object
-        c = cls(graph, inputA, classifier, outputA, initialization_data, labels)
+        c = cls(graph, inA, classifier, outA, initialization_data, labels)
 
-        params = (Parameter(inputA, BcipEnums.INPUT),
-                  Parameter(outputA, BcipEnums.OUTPUT))
+        params = (Parameter(inA, BcipEnums.INPUT),
+                  Parameter(outA, BcipEnums.OUTPUT))
 
         node = Node(graph, c, params)
 

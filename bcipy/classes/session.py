@@ -17,6 +17,11 @@ class Session(BCIP):
     ----------
     None
 
+    Attributes
+    ----------
+    _datum : dict
+        - 
+
 
     Examples
     --------
@@ -54,7 +59,20 @@ class Session(BCIP):
         Execute this method prior data collection to mitigate potential
         crashes due to invalid processing graph construction.
         
-        Return true if the session has passed verification, false otherwise.
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        BCIP Status Code
+
+        Examples
+        --------
+        >>> status = session.verify()
+        >>> print(status)
+
+            SUCCESS
         """
         print("Verifying session...")
         graph_count = 1

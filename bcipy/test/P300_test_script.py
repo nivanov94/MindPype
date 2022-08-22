@@ -4,11 +4,9 @@ Created on Tues July 26 16:12:30 2022
 
 @author: aaronlio
 """
-# This test is broken, do not reference
-# TODO: Design this before building
-
 # For debugging 
 import sys, os
+from tkinter import N
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
@@ -17,34 +15,24 @@ from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.filter import Filter
-
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
-from classes.source import BcipContinuousMat
+from classes.source import BcipClassSeparated
 
-from kernels.csp import CommonSpatialPatternKernel
-from kernels.filter_ import FilterKernel
+from kernels.tangent_space import TangentSpaceKernel
+from kernels.xdawn_covariances import XDawnCovarianceKernel
 from kernels.classifier_ import ClassifierKernel
-from kernels.covariance import CovarianceKernel
-from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
-from kernels.riemann_distance import RiemannDistanceKernel
-from kernels.mean import MeanKernel
-from kernels.riemann_mean import RiemannMeanKernel
 
 import numpy as np
 import scipy.io as sio
-from random import shuffle
+from random import sample, shuffle
 
 def main():
     # create a session
     session = Session.create()
     trial_graph = Graph.create(session)
-    trial_graph_1b = Graph.create(session)
-    trial_graph_2 = Graph.create(session)
 
     #data
-    training_data = np.random.random((120,12,500))
-
     init_data = sio.loadmat('test_data\init_data.mat')['init_data']
     init_labels = sio.loadmat('test_data\init_labels.mat')['labels']
     
@@ -53,7 +41,7 @@ def main():
     y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
 
 
-    input_data = BcipContinuousMat.create_continuous(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
+    input_data = BcipClassSeparated.create_continuous(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
 
     input_data = Tensor.create_from_handle(session, (12, 500), input_data)
     
@@ -61,43 +49,30 @@ def main():
     s_out = Scalar.create_from_value(session,-1)
     t_virt = [Tensor.create_virtual(session), \
               Tensor.create_virtual(session)]
-
-
-    t_virt_1b = [Tensor.create_virtual(session), \
-              Tensor.create_virtual(session)
-              ]
     
-    t_out_1a = Tensor.create(session, (4,12,12))
-    t_out_1b = Tensor.create(session, (4,12,12))
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
     fs = 250
-    f = Filter.create_butter(session,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
+
+    classifier = Classifier.create_logistic_regression(session)
     
+    #TangentSpaceWeight = [None]*120
     # add the nodes
-    
-
-    FilterKernel.add_filter_node(trial_graph,input_data,f,t_virt[0])
-    CovarianceKernel.add_covariance_node(trial_graph, t_virt[0], t_virt[1], 0)
-    RiemannMeanKernel.add_riemann_mean_node(trial_graph, t_virt[1], t_out_1a)
-
-
-    FilterKernel.add_filter_node(trial_graph_1b,input_data,f,t_virt_1b[0])
-    CovarianceKernel.add_covariance_node(trial_graph_1b, t_virt_1b[0], t_virt_1b[1], 0)
-    RiemannMeanKernel.add_riemann_mean_node(trial_graph_1b, t_virt_1b[1], t_out_1b)
-    
-    RiemannDistanceKernel.add_riemann_distance_node(trial_graph_2, t_out_1a, t_out_1b, s_out)
+    XDawnCovarianceKernel.add_xdawn_covariance_kernel(trial_graph, input_data, t_virt[0], X, y, 4)
+    TangentSpaceKernel.add_tangent_space_kernel(trial_graph, t_virt[0], t_virt[1], None, metric='riemann', tsupdate=False, sample_weight=None)
+    ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, None)
 
     # verify the session (i.e. schedule the nodes)
-    verify = session.verify()
+    verify = trial_graph.verify()
 
     if verify != BcipEnums.SUCCESS:
         print(verify)
         print("Test Failed D=")
         return verify
     
-    start = session.start_block(trial_graph)
+    start = trial_graph.initialize()
+
 
     if start != BcipEnums.SUCCESS:
         print(start)
@@ -107,6 +82,7 @@ def main():
     # RUN!
     trial_seq = [0]*4 + [1]*4
     
+    
     shuffle(trial_seq)
 
     t_num = 0
@@ -114,10 +90,10 @@ def main():
     correct_labels = 0
 
     
-    while sum(block.remaining_trials()) != 0 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
-        sts = session.execute_trial(y, trial_graph)
+        sts = trial_graph.execute(y)
         if sts == BcipEnums.SUCCESS:
             # print the value of the most recent trial
             y_bar = s_out.data

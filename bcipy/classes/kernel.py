@@ -15,6 +15,20 @@ class Kernel(BCIP, ABC):
     """
     An abstract base class that defines the minimum set of kernel methods that
     must be defined
+
+    Parameters
+    ----------
+    name : str
+        - Name of the kernel
+    init_style : BcipEnums Object
+        - Kernel initialization style, according to BcipEnum class
+
+    Attributes
+    ----------
+    _name : str
+        - Name of the kernel
+    _init_style : BcipEnums Object
+        - Kernel initialization style, according to BcipEnum class
     """
     
     def __init__(self,name,init_style,graph):
@@ -34,12 +48,21 @@ class Kernel(BCIP, ABC):
     
     @abstractmethod
     def verify(self):
+        """
+        Generic verification abstract method to be defined by individual kernels.
+        """
         pass
     
     @abstractmethod
     def execute(self):
+        """
+        Generic execution abstract method to be defined by individual kernels.
+        """
         pass
     
     @abstractmethod
     def initialize(self):
+        """
+        Generic initialization abstract method to be defined by individual kernels.
+        """
         pass

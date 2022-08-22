@@ -20,7 +20,7 @@ from kernels.filter_ import FilterKernel
 from kernels.covariance import CovarianceKernel
 from kernels.csp import CommonSpatialPatternKernel
 from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
-from kernels.lda import LDAClassifierKernel
+from kernels.lda_to_delete import LDAClassifierKernel
 
 import numpy as np
 from scipy import signal

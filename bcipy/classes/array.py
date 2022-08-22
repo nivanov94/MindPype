@@ -22,11 +22,23 @@ class Array(BCIP):
     element_template : any
         - The template BCIP element to populate the array (see examples)
 
+    Attributes
+    ----------
+
     Examples
     --------
-    
     - Creating An Array
         example = Array.create(example_session, example_capacity, Tensor.create(example_session, input_data.shape))
+    
+    Return
+    ------
+    Array Object
+    
+    Notes
+    -----
+    - A single array object should only contain one BCIP/data object type.
+
+    
     """
     
     def __init__(self,sess,capacity,element_template):
@@ -45,6 +57,24 @@ class Array(BCIP):
     
     # Returns an element at a particular index
     def get_element(self,index):
+        """
+        Returns the element at a specific index within an array object.
+
+        Parameters
+        ----------
+        index : int
+            - Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
+
+        Return
+        ------
+        any : Data object at index index 
+        
+        Examples
+        --------
+        example_element = example_array.get_element(0)
+
+
+        """
         if index >= self.capacity or index < 0:
             return
         
@@ -52,6 +82,30 @@ class Array(BCIP):
     
     # Changes the element at a particular index to a specified value
     def set_element(self,index,element):
+
+        """
+        Changes the element at a particular index to a specified value
+
+        Parameters
+        ----------
+        index : int
+            - Index in the array where the element will changed. 0 <= Index < capacity
+
+        element : any
+            - specified value which will be set at index index
+
+        Examples
+        --------
+        >>> example_array.set_element(0, 12) # changes 0th element to 12 
+        >>> print(example_array.get_element(0), example_array.get_element(1))
+                (12, 5)
+            
+
+        Notes
+        -----
+        element must be the same type as the other elements within the array. 
+        """
+
         if index >= self.capacity or index < 0:
             return BcipEnums.FAILURE
         
@@ -90,6 +144,14 @@ class Array(BCIP):
         The copied array will maintain references to the same objects.
         If a copy of these is also desired, they will need to be copied
         separately.
+
+        Parameters
+        ----------
+        None
+
+        Examples
+        --------
+        new_array = old_array.make_copy()
         """
         cpy = Array(self.session,
                     self.capacity,
@@ -107,6 +169,16 @@ class Array(BCIP):
         """
         Copy all the attributes of the array to another array. Note
         these will reference the same objects within the element list
+
+        Parameters 
+        ----------
+        dest_array : Array object
+            - Array object where the attributes with the referenced array will copied to
+
+        Examples
+        --------
+        old_array.copy_to(copy_of_old_array) 
+
         """
         dest_array.capacity = self.capacity
         for i in range(self.capacity):
@@ -120,6 +192,11 @@ class Array(BCIP):
     # API constructor
     @classmethod
     def create(cls,sess,capacity,element_template):
+
+        """
+        Factory method to create array object
+        """
+
         a = cls(sess,capacity,element_template)
         
         # add the array to the session
