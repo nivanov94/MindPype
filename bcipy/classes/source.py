@@ -37,7 +37,7 @@ class BcipMatFile(BCIP):
 
     """
     
-    def __init__(self,sess,filename,path,label_varname_map, link_to_data, link_to_labels, num_classes, event_duration, dims=None):
+    def __init__(self,sess,filename,path,label_varname_map, dims=None):
         """
         Create a new mat file reader interface
         """
@@ -50,11 +50,6 @@ class BcipMatFile(BCIP):
             return
         
         self.filepath = f
-        self.continuous_data = None
-        self.link_to_data = link_to_data
-        self.link_to_labels = link_to_labels
-        self.num_classes = num_classes
-        self.event_duration = event_duration
         self.dims = dims
         self._file_data = None
         
@@ -127,7 +122,7 @@ class BcipMatFile(BCIP):
         
         return src
 
-class BcipClassSeparated(BCIP):
+class BcipClassSeparatedMat(BCIP):
     """
     Utility class for extracting continuous data from a mat file for BCIP. 
 
@@ -282,7 +277,7 @@ class BcipClassSeparated(BCIP):
         return [data, labels]
 
     @classmethod
-    def create_continuous(cls, sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels):
+    def create_class_separated(cls, sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels):
 
         src = cls(sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels)
 
@@ -290,9 +285,9 @@ class BcipClassSeparated(BCIP):
 
         return src
 
-class BcipContinuousMat2(BCIP):
+class BcipContinuousMat(BCIP):
     """
-    Utility class for extracting continuous data from a mat file for BCIP. 
+    Utility class for extracting class separated data from a mat file for BCIP. 
 
     Parameters
     ----------

@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(
-    name='bcipy',
+    name='bci_py',
     version='0.1.0',
-    description='A python library to assist with offline and online eeg session building and execution',
+    description='A python library to enhance BCI data processing pipeline design and development',
     author='Nicolas Ivanov and Aaron Lio',
     author_email='aaron.lio@mail.utoronto.ca',
     packages=['bcipy'],

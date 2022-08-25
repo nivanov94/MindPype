@@ -18,7 +18,7 @@ class ZScoreKernel(Kernel):
     
     def __init__(self,graph,inA,outA,init_data):
         super().__init__('Zscore',BcipEnums.INIT_FROM_DATA,graph)
-        self._in   = inA
+        self._inA   = inA
         self._out  = outA
         self.initialization_data = init_data
 
@@ -96,30 +96,30 @@ class ZScoreKernel(Kernel):
         
 
         # input must be scalar or tensor
-        if not (isinstance(self._in,Scalar) or isinstance(self._in,Tensor)):
+        if not (isinstance(self._inA,Scalar) or isinstance(self._inA,Tensor)):
             return BcipEnums.INVALID_PARAMETERS
 
         # output must be scalar or tensor
-        if not (isinstance(self._out,Scalar) or isinstance(self._in,Tensor)):
+        if not (isinstance(self._out,Scalar) or isinstance(self._inA,Tensor)):
             return BcipEnums.INVALID_PARAMETERS
 
 
-        if isinstance(self._in,Tensor):
+        if isinstance(self._inA,Tensor):
             # input tensor must contain some values
-            if len(self._in.shape) == 0:
+            if len(self._inA.shape) == 0:
                 return BcipEnums.INVALID_PARAMETERS
 
             # must contain only one non-singleton dimension
-            if len(self._in.data.squeeze().shape) > 1:
+            if len(self._inA.data.squeeze().shape) > 1:
                 return BcipEnums.INVALID_PARAMETERS
 
             # if output is a scalar, tensor must contain a single element
-            if isinstance(self._out,Scalar) and len(self._in.data.squeeze().shape) != 0:
+            if isinstance(self._out,Scalar) and len(self._inA.data.squeeze().shape) != 0:
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
             # input scalar must contain a number
-            if not self._in.data_type in Scalar.valid_numeric_types():
+            if not self._inA.data_type in Scalar.valid_numeric_types():
                 return BcipEnums.INVALID_PARAMETERS
 
             if isinstance(self._out,Scalar) and (self._out.data_type != float):
@@ -131,9 +131,9 @@ class ZScoreKernel(Kernel):
 
         if isinstance(self._out,Tensor):
             if self._out.virtual() and len(self._out.shape) == 0:
-                self._out.shape = self._in.shape
+                self._out.shape = self._inA.shape
 
-            if self._out.shape != self._in.shape:
+            if self._out.shape != self._inA.shape:
                 return BcipEnums.INVALID_PARAMETERS
 
 
@@ -192,7 +192,7 @@ class ZScoreKernel(Kernel):
         """
         Execute the kernel function using numpy function
         """
-        return self.process_data(self._in, self._out)
+        return self.process_data(self._inA, self._out)
     
     @classmethod
     def add_zscore_node(cls,graph,inA,outA,init_data):

@@ -8,6 +8,8 @@ from classes.scalar import Scalar
 from classes.tensor import Tensor
 from classes.bcip import BCIP
 
+from bcipy.classes import *
+
 import numpy as np
 
 class AbsoluteKernel(Kernel):

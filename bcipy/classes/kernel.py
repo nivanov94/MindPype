@@ -18,6 +18,7 @@ class Kernel(BCIP, ABC):
 
     Parameters
     ----------
+
     name : str
         - Name of the kernel
     init_style : BcipEnums Object
@@ -25,6 +26,7 @@ class Kernel(BCIP, ABC):
 
     Attributes
     ----------
+    
     _name : str
         - Name of the kernel
     _init_style : BcipEnums Object

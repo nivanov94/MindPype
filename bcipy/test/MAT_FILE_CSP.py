@@ -16,7 +16,7 @@ from classes.scalar import Scalar
 from classes.filter import Filter
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
-from classes.source import BcipClassSeparated
+from classes.source import BcipClassSeparatedMat
 
 from kernels.csp import CommonSpatialPatternKernel
 from kernels.filter_ import FilterKernel
@@ -33,34 +33,23 @@ def main():
     session = Session.create()
     trial_graph = Graph.create(session)
 
-    #data
-    training_data = np.random.random((120,12,500))
-
     init_data = sio.loadmat('test_data\init_data.mat')['init_data']
     init_labels = sio.loadmat('test_data\init_labels.mat')['labels']
-    
-
-    labels = np.asarray([0]*60 + [1]*60)
 
     X = Tensor.create_from_data(session,np.shape(init_data), init_data)
     y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
 
-
-    input_data = BcipClassSeparated.create_continuous(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
-
-    input_data = Tensor.create_from_handle(session, (12, 500), input_data)
+    input_data = BcipClassSeparatedMat.create_class_separated(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', \
+                                                              'test_data\input_data.mat', 'test_data\input_labels.mat')
     
-    #t_in = Tensor.create_from_data(session,(12,500),input_data)
+    input_data = Tensor.create_from_handle(session, (12, 500), input_data)
+
     s_out = Scalar.create_from_value(session,-1)
     t_virt = [Tensor.create_virtual(session), \
               Tensor.create_virtual(session)]
     
     # create a filter
-    order = 4
-    bandpass = (8,35) # in Hz
-    fs = 250
-    f = Filter.create_butter(session,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
-
+    f = Filter.create_butter(session,4,(8,35),btype='bandpass',fs=250,implementation='sos')
     classifier = Classifier.create_LDA(session)
     
     # add the nodes
@@ -78,7 +67,6 @@ def main():
     
     start = trial_graph.initialize()
 
-
     if start != BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
@@ -86,7 +74,6 @@ def main():
     
     # RUN!
     trial_seq = [0]*4 + [1]*4
-    
     
     shuffle(trial_seq)
 

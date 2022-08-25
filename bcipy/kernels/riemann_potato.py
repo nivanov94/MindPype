@@ -94,7 +94,7 @@ class RiemannPotatoKernel(Kernel):
         """
         super().__init__('RiemannPotato',BcipEnums.INIT_FROM_DATA,graph)
         self._inA  = inA
-        self._out_label = out_label
+        self._outA = out_label
         self._out_score = out_score
 
         self._labels = None
@@ -211,7 +211,7 @@ class RiemannPotatoKernel(Kernel):
             output_sz = 1
         
         
-        for output in (self._out_label,self._out_score):
+        for output in (self._outA,self._out_score):
             if output == None:
                 continue
             
@@ -299,11 +299,11 @@ class RiemannPotatoKernel(Kernel):
                                              alpha*(log(dt/self._mean)**2)))
         
         
-        if isinstance(self._out_label,Tensor):
+        if isinstance(self._outA,Tensor):
             data = np.asarray(labels)
-            self._out_label.data = data
-        elif isinstance(self._out_label,Scalar):
-            self._out_label.data = labels[0]
+            self._outA.data = data
+        elif isinstance(self._outA,Scalar):
+            self._outA.data = labels[0]
         
         if isinstance(self._out_score,Tensor):
             data = np.expand_dims(np.asarray(scores),axis=1)

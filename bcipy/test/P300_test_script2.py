@@ -7,6 +7,7 @@ Created on Tues July 26 16:12:30 2022
 
 """
 # For debugging 
+from logging import raiseExceptions
 import sys, os
 from tkinter import N
 sys.path.insert(0, os.getcwd())
@@ -19,7 +20,7 @@ from classes.scalar import Scalar
 from classes.filter import Filter
 from classes.bcip_enums import BcipEnums
 from classes.graph import Graph
-from classes.source import BcipContinuousMat2
+from classes.source import BcipContinuousMat
 
 from kernels.tangent_space import TangentSpaceKernel
 from kernels.xdawn_covariances import XDawnCovarianceKernel
@@ -43,7 +44,7 @@ def main():
     y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
 
 
-    input_data = BcipContinuousMat2.create_continuous(session, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
+    input_data = BcipContinuousMat.create_continuous(session, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
 
     input_data = Tensor.create_from_handle(session, (12, 500), input_data)
     
@@ -78,35 +79,30 @@ def main():
         return start
     
     # RUN!
-    trial_seq = [0]*4 + [1]*4
-    
-    
-    shuffle(trial_seq)
-
     t_num = 0
     sts = BcipEnums.SUCCESS
     correct_labels = 0
 
     
-    while t_num < 8 and sts == BcipEnums.SUCCESS:
-        print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
-        y = trial_seq[t_num]
-        sts = trial_graph.execute()
-        if sts == BcipEnums.SUCCESS:
-            # print the value of the most recent trial
-            y_bar = s_out.data
-            print("Trial {}: Label = {}, Predicted label = {}".format(t_num+1,y,y_bar))
-            
-            if y == y_bar:
-                correct_labels += 1
+    while sts == BcipEnums.SUCCESS:
+        try:
+            sts = trial_graph.execute()
+            if sts == BcipEnums.SUCCESS:
+                # print the value of the most recent trial
+                y_bar = s_out.data
+                print("Trial {}: Predicted label = {}".format(t_num+1,y_bar))
+                
+            else:
+                print(f"Trial {t_num+1} raised error, status code: {sts}")
+                break
         
-        else:
-            print(f"Trial {t_num+1} raised error, status code: {sts}")
+        except ValueError:
+            print("Trial Data completed")
             break
 
-        t_num += 1
         
-    print("Accuracy = {:.2f}%.".format(100 * correct_labels/len(trial_seq)))
+
+        t_num += 1
     
     print("Test Passed =D")
 

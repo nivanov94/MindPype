@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bcipy.classes.scalar &#8212; bcipy 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for bcipy.classes.scalar</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Nov 19 15:47:58 2019</span>
+
+<span class="sd">Scalar.py - Define the Scalar class for BCIP</span>
+
+<span class="sd">@author: ivanovn</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.bcip</span> <span class="kn">import</span> <span class="n">BCIP</span>
+<span class="kn">from</span> <span class="nn">.bcip_enums</span> <span class="kn">import</span> <span class="n">BcipEnums</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="Scalar"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar">[docs]</a><span class="k">class</span> <span class="nc">Scalar</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    BCIP Data type defining scalar-type data. The valid data types are int, float, complex, str, and bool.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sess : Session Object</span>
+<span class="sd">        - Session where the Scalar object will exist</span>
+
+<span class="sd">    value_type : one of [int, float, complex, str, bool]</span>
+<span class="sd">        - Indicates the type of data represented by the Scalar</span>
+
+<span class="sd">    val : value of type int, float, complex, str, or bool</span>
+<span class="sd">        - Data value represented by the Scalar object</span>
+
+<span class="sd">    is_virtual : bool</span>
+<span class="sd">        - If true, the Scalar object is virtual, non-virtual otherwise</span>
+
+<span class="sd">    ext_src : LSL data source input object, MAT data source, or None</span>
+<span class="sd">        - External data source represented by the scalar; this data will be polled/updated when trials are executed.</span>
+<span class="sd">        - If the data does not represent an external data source, set ext_src to None</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _data_type : one of [int, float, complex, str, bool]</span>
+<span class="sd">        - Indicates the type of data represented by the Scalar</span>
+
+<span class="sd">    data : value of type int, float, complex, str, or bool</span>
+<span class="sd">        - Data value represented by the Scalar object</span>
+
+<span class="sd">    is_virtual : bool</span>
+<span class="sd">        - If true, the Scalar object is virtual, non-virtual otherwise</span>
+
+<span class="sd">    _ext_src : LSL data source input object, MAT data source, or None</span>
+<span class="sd">        - External data source represented by the scalar; this data will be polled/updated when trials are executed.</span>
+<span class="sd">        - If the data does not represent an external data source, set ext_src to None</span>
+
+<span class="sd">    _volatile : bool</span>
+<span class="sd">        - True if source is volatile (needs to be updated/polled between trials), false otherwise</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; example_scalar = Scalar.create_from_value(example_session, 5)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_valid_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">value_type</span><span class="p">,</span><span class="n">val</span><span class="p">,</span><span class="n">is_virtual</span><span class="p">,</span><span class="n">ext_src</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">SCALAR</span><span class="p">,</span><span class="n">sess</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_type</span> <span class="o">=</span> <span class="n">value_type</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_src</span> <span class="o">=</span> <span class="n">ext_src</span>
+        
+        <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">elif</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">complex</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">elif</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">val</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_virtual</span> <span class="o">=</span> <span class="n">is_virtual</span>        
+        <span class="k">if</span> <span class="n">ext_src</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span> <span class="o">=</span> <span class="kc">True</span>
+            
+    <span class="c1"># API Getters</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volatile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">virtual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_virtual</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_type</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ext_src</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_src</span>
+    
+    
+    <span class="c1"># API Setters</span>
+    <span class="nd">@data</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the referenced Scalar&#39;s data field to the specified data</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : Python built-in data or numpy array</span>
+<span class="sd">            - Data to be represented by the Scalar object</span>
+<span class="sd">            - Data must be scalar (1x1 numerical, single string/bool, etc)</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        empty_scalar.data(5)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># if the data passed in is a numpy array, check if its a single value</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,):</span>
+            <span class="c1"># convert from the np type to native python type</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">complex</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;BCIP Scalar contains data of type </span><span class="si">{}</span><span class="s2">. Cannot&quot;</span> <span class="o">+</span>\
+                              <span class="s2">&quot; set data to type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+                                                             <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span> 
+    
+<div class="viewcode-block" id="Scalar.make_copy"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.make_copy">[docs]</a>    <span class="k">def</span> <span class="nf">make_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Produce and return a deep copy of the scalar</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        int</span>
+<span class="sd">            - Deep copy of referenced parameter</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; new_scalar = example_scalar.make_copy()</span>
+<span class="sd">        &gt;&gt;&gt; print(new_scalar.data)</span>
+
+<span class="sd">            12</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cpy</span> <span class="o">=</span> <span class="n">Scalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">virtual</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">ext_src</span><span class="p">)</span>
+        
+        <span class="c1"># add the copy to the session</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">cpy</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">cpy</span></div>
+    
+<div class="viewcode-block" id="Scalar.copy_to"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.copy_to">[docs]</a>    <span class="k">def</span> <span class="nf">copy_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dest_scalar</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copy all the elements of the scalar to another scalar</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dest_scalar : Scalar Object</span>
+<span class="sd">            - Scalar object which will represent the copy of the referenced Scalar&#39;s elements</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        example_scalar.copy_to(copy_of_example_scalar)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dest_scalar</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span></div>
+        
+        <span class="c1"># for now, don&#39;t copy the type, virtual and ext_src attributes because these</span>
+        <span class="c1"># should really be set during creation not later</span>
+    
+    
+<div class="viewcode-block" id="Scalar.poll_volatile_data"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.poll_volatile_data">[docs]</a>    <span class="k">def</span> <span class="nf">poll_volatile_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Polling/Updating volatile data within the scalar object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Label : int, default = None</span>
+<span class="sd">            - Class label corresponding to class data to poll. This is required for epoched data but should be set to None for LSL data</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Status Code</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; status = example_scalar.poll_data()</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+
+<span class="sd">            SUCCESS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># check if the data is actually volatile, if not just return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_voltatile</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext_src</span><span class="o">.</span><span class="n">poll_data</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+        
+    
+<div class="viewcode-block" id="Scalar.valid_numeric_types"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.valid_numeric_types">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">valid_numeric_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Valid numeric types for a BCIP Scalar object</span>
+<span class="sd">        </span>
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        [int, float, complex]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">,</span><span class="nb">complex</span><span class="p">]</span></div>
+    
+    <span class="c1"># Factory Methods</span>
+<div class="viewcode-block" id="Scalar.create"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.create">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">data_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a non-virtual, non-volatile Scalar object with an empty data field and add it to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sess : Session Object</span>
+<span class="sd">            - Session where the Scalar object will exist</span>
+
+<span class="sd">        data_type : Python built-in data type (int, float, complex, str, or bool)</span>
+<span class="sd">            - Data type of data represented by Scalar object</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Scalar object</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_type</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;int&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span><span class="s1">&#39;complex&#39;</span><span class="p">:</span><span class="nb">complex</span><span class="p">,</span>
+                      <span class="s1">&#39;str&#39;</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="s1">&#39;bool&#39;</span><span class="p">:</span><span class="nb">bool</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">data_type</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
+                <span class="n">data_type</span> <span class="o">=</span> <span class="n">dtypes</span><span class="p">[</span><span class="n">data_type</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">data_type</span> <span class="ow">in</span> <span class="n">Scalar</span><span class="o">.</span><span class="n">_valid_types</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="n">data_type</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+        
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+    
+<div class="viewcode-block" id="Scalar.create_virtual"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.create_virtual">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_virtual</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">data_type</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a virtual, non-volatile Scalar object with an empty data field and add it to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sess : Session Object</span>
+<span class="sd">            - Session where the Scalar object will exist</span>
+
+<span class="sd">        data_type : Python built-in data type (int, float, complex, str, or bool)</span>
+<span class="sd">            - Data type of data represented by Scalar object</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Scalar object</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_type</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="n">dtypes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;int&#39;</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span><span class="s1">&#39;complex&#39;</span><span class="p">:</span><span class="nb">complex</span><span class="p">,</span>
+                      <span class="s1">&#39;str&#39;</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="s1">&#39;bool&#39;</span><span class="p">:</span><span class="nb">bool</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">data_type</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">:</span>
+                <span class="n">data_type</span> <span class="o">=</span> <span class="n">dtypes</span><span class="p">[</span><span class="n">data_type</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">data_type</span> <span class="ow">in</span> <span class="n">Scalar</span><span class="o">.</span><span class="n">_valid_types</span><span class="p">):</span>
+            <span class="k">return</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">data_type</span> <span class="ow">in</span> <span class="n">Scalar</span><span class="o">.</span><span class="n">_valid_types</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="n">data_type</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">True</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+        
+        <span class="c1"># add the scalar to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+    
+<div class="viewcode-block" id="Scalar.create_from_value"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.create_from_value">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_from_value</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a non-virtual, non-volatile Scalar object with specified data and add it to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sess : Session Object</span>
+<span class="sd">            - Session where the Scalar object will exist</span>
+
+<span class="sd">        value : Value of type int, float, complex, str, or bool</span>
+<span class="sd">            - Data represented by Scalar object</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Scalar object</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">data_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">data_type</span> <span class="ow">in</span> <span class="n">Scalar</span><span class="o">.</span><span class="n">_valid_types</span><span class="p">):</span>
+            <span class="k">return</span>
+        
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="n">data_type</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+        
+        <span class="c1"># add the scalar to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+    
+<div class="viewcode-block" id="Scalar.create_from_handle"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.scalar.Scalar.create_from_handle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_from_handle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">data_type</span><span class="p">,</span><span class="n">src</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a non-virtual, volatile Scalar object with an empty data field and add it to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sess : Session Object</span>
+<span class="sd">            - Session where the Scalar object will exist</span>
+
+<span class="sd">        data_type : Python built-in data type (int, float, complex, str, or bool)</span>
+<span class="sd">            - Data type of data represented by Scalar object</span>
+
+<span class="sd">        src : Data Source object</span>
+<span class="sd">            - Data source object (LSL, continuousMat, or epochedMat) from which to poll data</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Scalar object</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">data_type</span> <span class="ow">in</span> <span class="n">Scalar</span><span class="o">.</span><span class="n">_valid_types</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="n">data_type</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span><span class="n">src</span><span class="p">)</span>
+        
+        <span class="c1"># add the scalar to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div></div>
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">bcipy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bcipy.html">bcipy package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">setup module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../test.html">test module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Nicolas Ivanov, Aaron Lio.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

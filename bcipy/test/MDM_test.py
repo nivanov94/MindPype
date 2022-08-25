@@ -12,8 +12,8 @@ from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.filter import Filter
-from classes.block import Block
 from classes.bcip_enums import BcipEnums
+from classes.graph import Graph
 
 from kernels.filter_ import FilterKernel
 from kernels.covariance import CovarianceKernel
@@ -25,9 +25,8 @@ import numpy as np
 def main():
     # create a session
     s = Session.create()
-
+    trial_graph = Graph.create(s)
     # add a block and some tensors
-    b = Block.create(s,3,(4,4,4))
 
     # initialize the classifier
     # fake data for training
@@ -53,14 +52,14 @@ def main():
     f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    CovarianceKernel.add_covariance_node(b.trial_processing_graph,t_virt[0],t_virt[1])
-    FilterKernel.add_filter_node(b.trial_processing_graph,t_in,f,t_virt[0])
-    RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node(b.trial_processing_graph,
+    CovarianceKernel.add_covariance_node(trial_graph,t_virt[0],t_virt[1])
+    FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
+    RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node(trial_graph,
                                                               t_virt[1],
                                                               s_out,X,y)
 
     # verify the session (i.e. schedule the nodes)
-    sts = s.verify()
+    sts = trial_graph.verify()
 
     if sts != BcipEnums.SUCCESS:
         print(sts)
@@ -68,14 +67,14 @@ def main():
         return sts
     
 
-    sts = s.start_block()
+    sts = trial_graph.initialize()
     if sts != BcipEnums.SUCCESS:
         print(sts)
         print("Test Failed D=")
         return sts
     
     # RUN!
-    sts = s.execute_trial(0)
+    sts = trial_graph.execute(0)
     
     print(s_out.data)
     

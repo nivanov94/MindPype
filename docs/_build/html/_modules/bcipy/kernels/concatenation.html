@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bcipy.kernels.concatenation &#8212; bcipy 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for bcipy.kernels.concatenation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Dec 10 10:52:43 2019</span>
+
+<span class="sd">concate.py  - Defines a concatenation kernel that concatenates multiple tensors</span>
+<span class="sd">into a single tensor</span>
+
+<span class="sd">@author: ivanovn</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">NoneType</span>
+<span class="kn">from</span> <span class="nn">classes.kernel</span> <span class="kn">import</span> <span class="n">Kernel</span>
+<span class="kn">from</span> <span class="nn">classes.node</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">classes.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">classes.tensor</span> <span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span> <span class="nn">classes.scalar</span> <span class="kn">import</span> <span class="n">Scalar</span>
+<span class="kn">from</span> <span class="nn">classes.bcip_enums</span> <span class="kn">import</span> <span class="n">BcipEnums</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="ConcatenationKernel"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel">[docs]</a><span class="k">class</span> <span class="nc">ConcatenationKernel</span><span class="p">(</span><span class="n">Kernel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Kernel to concatenate multiple tensors into a single tensor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">inB</span><span class="p">,</span><span class="n">axis</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Concatenation&#39;</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_NONE</span><span class="p">,</span><span class="n">graph</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span>  <span class="o">=</span> <span class="n">inA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inB</span>  <span class="o">=</span> <span class="n">inB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span> <span class="o">=</span> <span class="n">outA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span> <span class="o">=</span> <span class="n">axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="ConcatenationKernel.initialize"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This kernel has no internal state that must be initialized</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">!=</span> <span class="n">NoneType</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialization_execution</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+<div class="viewcode-block" id="ConcatenationKernel.verify"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the inputs and outputs are appropriately sized</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>            
+            <span class="n">concat_axis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">concat_axis</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># default axis</span>
+        
+        
+        <span class="c1"># inA and inB must be a tensor</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="p">,</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inB</span><span class="p">,</span><span class="n">Tensor</span><span class="p">)</span> \
+                <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">,</span><span class="n">Tensor</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+            
+        <span class="c1"># the dimensions along the catcat axis must be equal</span>
+        <span class="n">sz_A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">sz_B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inB</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz_A</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz_B</span><span class="p">):</span>
+            <span class="n">noncat_sz_A</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sz_A</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">!=</span><span class="n">concat_axis</span><span class="p">]</span>
+            <span class="n">noncat_sz_B</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sz_B</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">!=</span><span class="n">concat_axis</span><span class="p">]</span>
+            <span class="n">output_sz</span> <span class="o">=</span> <span class="n">noncat_sz_A</span><span class="p">[:]</span>
+            <span class="n">output_sz</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">concat_axis</span><span class="p">,</span><span class="n">sz_A</span><span class="p">[</span><span class="n">concat_axis</span><span class="p">]</span><span class="o">+</span><span class="n">sz_B</span><span class="p">[</span><span class="n">concat_axis</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz_A</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz_B</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># appending B to A</span>
+            <span class="n">noncat_sz_A</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sz_A</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">!=</span><span class="n">concat_axis</span><span class="p">]</span>
+            <span class="n">noncat_sz_B</span> <span class="o">=</span> <span class="n">sz_B</span>
+            <span class="n">output_sz</span> <span class="o">=</span> <span class="n">noncat_sz_A</span><span class="p">[:]</span>
+            <span class="n">output_sz</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">concat_axis</span><span class="p">,</span><span class="n">sz_A</span><span class="p">[</span><span class="n">concat_axis</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz_A</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz_B</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">noncat_sz_B</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sz_B</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">!=</span><span class="n">concat_axis</span><span class="p">]</span>
+            <span class="n">noncat_sz_A</span> <span class="o">=</span> <span class="n">sz_A</span>
+            <span class="n">output_sz</span> <span class="o">=</span> <span class="n">noncat_sz_B</span><span class="p">[:]</span>
+            <span class="n">output_sz</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">concat_axis</span><span class="p">,</span><span class="n">sz_B</span><span class="p">[</span><span class="n">concat_axis</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="c1"># check if the remaining dimensions are the same</span>
+        <span class="k">if</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">noncat_sz_A</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">noncat_sz_B</span><span class="p">))</span> <span class="ow">or</span> 
+            <span class="nb">len</span><span class="p">(</span><span class="n">noncat_sz_A</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sum</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> 
+                                     <span class="nb">zip</span><span class="p">(</span><span class="n">noncat_sz_A</span><span class="p">,</span><span class="n">noncat_sz_B</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="n">j</span><span class="p">])):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        
+        <span class="n">output_sz</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">output_sz</span><span class="p">)</span>
+        <span class="c1"># check the output dimensions are valid</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">virtual</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">output_sz</span>
+        
+        <span class="c1"># ensure the output shape equals the expected output shape</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">output_sz</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+
+<div class="viewcode-block" id="ConcatenationKernel.initialization_execution"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.initialization_execution">[docs]</a>    <span class="k">def</span> <span class="nf">initialization_execution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inB</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">sts</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+        
+        <span class="k">return</span> <span class="n">sts</span></div>
+
+<div class="viewcode-block" id="ConcatenationKernel.process_data"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.process_data">[docs]</a>    <span class="k">def</span> <span class="nf">process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data1</span><span class="p">,</span> <span class="n">input_data2</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+        <span class="n">concat_axis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+        
+        <span class="n">inA_data</span> <span class="o">=</span> <span class="n">input_data1</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">inB_data</span> <span class="o">=</span> <span class="n">input_data2</span><span class="o">.</span><span class="n">data</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inA_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">inB_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># add a leading dimension for input B</span>
+            <span class="n">inB_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">inB_data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">inB_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">inA_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">inA_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">inA_data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out_tensor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">inA_data</span><span class="p">,</span>
+                                         <span class="n">inB_data</span><span class="p">),</span>
+                                        <span class="n">axis</span><span class="o">=</span><span class="n">concat_axis</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c1"># dimensions are invalid</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">EXE_FAILURE</span>
+        
+        <span class="c1"># set the data in the output tensor</span>
+        <span class="n">output_data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">out_tensor</span>
+        
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+
+<div class="viewcode-block" id="ConcatenationKernel.execute"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the kernel function using numpy functions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">process_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inB</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">)</span></div>
+    
+    
+<div class="viewcode-block" id="ConcatenationKernel.add_concatenation_node"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.add_concatenation_node">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">add_concatenation_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">inB</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a concatenation kernel and add it to a graph</span>
+<span class="sd">        as a generic node object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># create the kernel object</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">inB</span><span class="p">,</span><span class="n">axis</span><span class="p">)</span>
+        
+        <span class="c1"># create parameter objects for the input and output</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">outA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">),</span>
+                  <span class="n">Parameter</span><span class="p">(</span><span class="n">inA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
+                  <span class="n">Parameter</span><span class="p">(</span><span class="n">inB</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">))</span>
+        
+    
+        <span class="c1"># add the kernel to a generic node object</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">params</span><span class="p">)</span>
+        
+        <span class="c1"># add the node to the graph</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">node</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">bcipy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bcipy.html">bcipy package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">setup module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../test.html">test module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Nicolas Ivanov, Aaron Lio.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

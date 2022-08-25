@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bcipy.classes.bcip_enums &#8212; bcipy 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for bcipy.classes.bcip_enums</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Nov 20 09:58:54 2019</span>
+
+<span class="sd">BcipEnums - Define a class of enums used by BCIP</span>
+
+<span class="sd">@author: ivanovn</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">IntEnum</span>
+
+<div class="viewcode-block" id="BcipEnums"><a class="viewcode-back" href="../../../bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums">[docs]</a><span class="k">class</span> <span class="nc">BcipEnums</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines a class of enums used by BCIP</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Object Type Enums - Have a leading &#39;1&#39;</span>
+    <span class="n">BCIP</span>    <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">SESSION</span> <span class="o">=</span> <span class="mi">101</span>
+    <span class="n">BLOCK</span>   <span class="o">=</span> <span class="mi">102</span>
+    <span class="n">GRAPH</span>   <span class="o">=</span> <span class="mi">103</span>
+    <span class="n">NODE</span>    <span class="o">=</span> <span class="mi">104</span>
+    <span class="n">KERNEL</span>  <span class="o">=</span> <span class="mi">105</span>
+    <span class="n">PARAMETER</span> <span class="o">=</span> <span class="mi">106</span>
+    <span class="n">TENSOR</span>  <span class="o">=</span> <span class="mi">107</span>
+    <span class="n">SCALAR</span>  <span class="o">=</span> <span class="mi">108</span>
+    <span class="n">ARRAY</span>   <span class="o">=</span> <span class="mi">109</span>
+    <span class="n">FILTER</span>  <span class="o">=</span> <span class="mi">110</span>
+    <span class="n">SRC</span>     <span class="o">=</span> <span class="mi">111</span>
+    <span class="n">CLASSIFIER</span> <span class="o">=</span> <span class="mi">112</span>
+    
+    <span class="c1"># Status Codes - Leading &#39;2&#39;</span>
+    <span class="n">SUCCESS</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="n">FAILURE</span> <span class="o">=</span> <span class="mi">201</span>
+    <span class="n">INVALID_BLOCK</span> <span class="o">=</span> <span class="mi">202</span>
+    <span class="n">INVALID_NODE</span>  <span class="o">=</span> <span class="mi">203</span>
+    <span class="n">INVALID_PARAMETERS</span> <span class="o">=</span> <span class="mi">204</span>
+    <span class="n">EXCEED_TRIAL_LIMIT</span> <span class="o">=</span> <span class="mi">205</span>
+    <span class="n">NOT_SUPPORTED</span> <span class="o">=</span> <span class="mi">206</span>
+    <span class="n">INITIALIZATION_FAILURE</span> <span class="o">=</span> <span class="mi">207</span>
+    <span class="n">EXE_FAILURE_UNINITIALIZED</span> <span class="o">=</span> <span class="mi">208</span>
+    <span class="n">EXE_FAILURE</span> <span class="o">=</span> <span class="mi">209</span>
+    <span class="n">NOT_YET_IMPLEMENTED</span> <span class="o">=</span> <span class="mi">210</span>
+    <span class="n">INVALID_GRAPH</span> <span class="o">=</span> <span class="mi">211</span>
+    
+    <span class="c1"># Parameter Directions - Leading &#39;3&#39;</span>
+    <span class="n">INPUT</span>  <span class="o">=</span> <span class="mi">300</span>
+    <span class="n">OUTPUT</span> <span class="o">=</span> <span class="mi">301</span>
+    <span class="n">INOUT</span>  <span class="o">=</span> <span class="mi">302</span>
+    
+    <span class="c1"># Kernel Initialization types - leading &#39;4&#39;</span>
+    <span class="n">INIT_FROM_NONE</span> <span class="o">=</span> <span class="mi">400</span>
+    <span class="n">INIT_FROM_DATA</span> <span class="o">=</span> <span class="mi">401</span>
+    <span class="n">INIT_FROM_COPY</span> <span class="o">=</span> <span class="mi">402</span>
+    
+    <span class="c1"># Block graph identifiers - leading &#39;5&#39;</span>
+    <span class="n">ON_BEGIN</span> <span class="o">=</span> <span class="mi">500</span> <span class="c1"># graph executes when block begins</span>
+    <span class="n">ON_CLOSE</span> <span class="o">=</span> <span class="mi">501</span> <span class="c1"># graph executes when block ends</span>
+    <span class="n">ON_TRIAL</span> <span class="o">=</span> <span class="mi">502</span> <span class="c1"># graph executes when a new trial is recorded</span>
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
+    
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">bcipy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bcipy.html">bcipy package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">setup module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../test.html">test module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Nicolas Ivanov, Aaron Lio.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

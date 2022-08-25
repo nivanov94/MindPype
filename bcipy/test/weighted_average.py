@@ -114,7 +114,7 @@ def main():
     correct_labels = 0
 
     
-    while sum(block.remaining_trials()) != 0 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
         sts = session.execute_trial(y, trial_graph)

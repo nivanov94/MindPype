@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bcipy.kernels.riemann_potato &#8212; bcipy 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for bcipy.kernels.riemann_potato</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Jan 17 12:14:43 2020</span>
+
+<span class="sd">@author: ivanovn</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">classes.kernel</span> <span class="kn">import</span> <span class="n">Kernel</span>
+<span class="kn">from</span> <span class="nn">classes.node</span> <span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span> <span class="nn">classes.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">classes.tensor</span> <span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span> <span class="nn">classes.scalar</span> <span class="kn">import</span> <span class="n">Scalar</span>
+<span class="kn">from</span> <span class="nn">classes.array</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">classes.bcip_enums</span> <span class="kn">import</span> <span class="n">BcipEnums</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">sqrt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span><span class="p">,</span> <span class="n">linalg</span><span class="p">,</span> <span class="n">dot</span>
+
+<span class="kn">from</span> <span class="nn">pyriemann.utils.mean</span> <span class="kn">import</span> <span class="n">mean_covariance</span>
+<span class="kn">from</span> <span class="nn">pyriemann.utils.distance</span> <span class="kn">import</span> <span class="n">distance_riemann</span>
+
+<span class="c1"># TODO - this may belong within a utils library as it will be used by more than</span>
+<span class="c1"># one kernel</span>
+<span class="k">def</span> <span class="nf">_filter</span><span class="p">(</span><span class="n">filt</span><span class="p">,</span><span class="n">X</span><span class="p">):</span>
+    
+    <span class="n">axis</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ex</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">if</span> <span class="n">ex</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">filt</span><span class="o">.</span><span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;ba&#39;</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">filtfilt</span><span class="p">(</span><span class="n">filt</span><span class="o">.</span><span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">],</span>
+                            <span class="n">filt</span><span class="o">.</span><span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">],</span>
+                            <span class="n">X</span><span class="p">,</span>
+                            <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">sosfiltfilt</span><span class="p">(</span><span class="n">filt</span><span class="o">.</span><span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;sos&#39;</span><span class="p">],</span>
+                               <span class="n">X</span><span class="p">,</span>
+                               <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">Y</span>
+
+<span class="k">def</span> <span class="nf">_cov</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_dist_mean</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">stats</span><span class="o">=</span><span class="s1">&#39;arithmetic&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the mean distance of covariance matrices within T and the </span>
+<span class="sd">    covariance matrix in S using arithmetic or geometric statistics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    
+    <span class="k">if</span> <span class="n">stats</span> <span class="o">==</span> <span class="s1">&#39;arithmetic&#39;</span><span class="p">:</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">([</span><span class="n">distance_riemann</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:])</span> 
+                                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mu</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="nb">sum</span><span class="p">([</span><span class="n">log</span><span class="p">(</span><span class="n">distance_riemann</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]))</span>
+                                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]))</span>
+
+    <span class="k">return</span> <span class="n">mu</span>
+
+<span class="k">def</span> <span class="nf">_dist_std</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">stats</span><span class="o">=</span><span class="s1">&#39;arithmetic&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the standard deviation of the distance of covariance matrices </span>
+<span class="sd">    within T and the covariance matrix in S</span>
+<span class="sd">    using arithmetic or geometric statistics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="n">distance_riemann</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">_dist_mean</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">T</span><span class="p">,</span><span class="n">stats</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">stats</span> <span class="o">==</span> <span class="s1">&#39;arithmetic&#39;</span><span class="p">:</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">([(</span><span class="n">di</span><span class="o">-</span><span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">di</span> <span class="ow">in</span> <span class="n">d</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">([</span><span class="n">log</span><span class="p">(</span><span class="n">di</span><span class="o">/</span><span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">di</span> <span class="ow">in</span> <span class="n">d</span><span class="p">])))</span>
+        
+    <span class="k">return</span> <span class="n">sigma</span>
+
+<span class="k">def</span> <span class="nf">_z_score</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">mu</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="n">stats</span><span class="o">=</span><span class="s1">&#39;arithmetic&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">stats</span> <span class="o">==</span> <span class="s1">&#39;arithmetic&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">log</span><span class="p">(</span><span class="n">d</span><span class="o">/</span><span class="n">mu</span><span class="p">)</span> <span class="o">/</span> <span class="n">log</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
+    
+
+<div class="viewcode-block" id="RiemannPotatoKernel"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel">[docs]</a><span class="k">class</span> <span class="nc">RiemannPotatoKernel</span><span class="p">(</span><span class="n">Kernel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Riemannian potato artifact detection detector</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">out_label</span><span class="p">,</span><span class="n">out_score</span><span class="p">,</span><span class="n">thresh</span><span class="p">,</span><span class="n">update</span><span class="p">,</span><span class="n">alpha</span><span class="p">,</span>
+                 <span class="n">initialization_data</span><span class="p">,</span><span class="n">filt</span><span class="p">,</span>
+                 <span class="n">stats_type</span><span class="p">,</span><span class="n">init_stopping_crit</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kernel takes Tensor input and produces scalar label representing</span>
+<span class="sd">        the predicted class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;RiemannPotato&#39;</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">,</span><span class="n">graph</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span>  <span class="o">=</span> <span class="n">inA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span> <span class="o">=</span> <span class="n">out_label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_out_score</span> <span class="o">=</span> <span class="n">out_score</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thresh</span> <span class="o">=</span> <span class="n">thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span>  <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref</span>  <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_q</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span> <span class="o">=</span> <span class="n">initialization_data</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filt</span> <span class="o">=</span> <span class="n">filt</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stats_type</span> <span class="o">=</span> <span class="n">stats_type</span>
+        
+        <span class="k">if</span> <span class="n">init_stopping_crit</span> <span class="o">==</span> <span class="s1">&#39;iterative&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_stop_mode</span> <span class="o">=</span> <span class="s1">&#39;iterative&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># do not apply multiple passes. Same as iterative with k=1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_stop_mode</span> <span class="o">=</span> <span class="s1">&#39;iterative&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_k</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        <span class="k">if</span> <span class="n">update</span> <span class="o">==</span> <span class="s1">&#39;static&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update</span> <span class="o">=</span> <span class="s1">&#39;static&#39;</span>
+        <span class="k">elif</span> <span class="n">update</span> <span class="o">==</span> <span class="s1">&#39;moving_avg&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update</span> <span class="o">=</span> <span class="s1">&#39;moving_avg&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update</span> <span class="o">=</span> <span class="s1">&#39;cumulative&#39;</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+          
+    
+<div class="viewcode-block" id="RiemannPotatoKernel.initialize"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set reference covariance matrix, mean, and standard deviation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span><span class="p">,</span><span class="n">Tensor</span><span class="p">))</span> <span class="ow">and</span> \
+        <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span><span class="p">,</span><span class="n">Array</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span><span class="p">,</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span><span class="o">.</span><span class="n">get_element</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">data</span> 
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span><span class="o">.</span><span class="n">capacity</span><span class="p">)]</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+        
+        
+        <span class="n">XXt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="c1"># filter the data</span>
+            <span class="n">Xfilt</span> <span class="o">=</span> <span class="n">_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filt</span><span class="p">,</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:])</span>
+        
+            <span class="c1"># calculate the covariance matrices</span>
+            <span class="n">Xcov</span> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">Xfilt</span><span class="p">)</span>
+            
+            <span class="c1"># regularize the cov mat</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="mf">0.01</span>
+            <span class="n">XXt</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">r</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Xcov</span> <span class="o">+</span> <span class="n">r</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">Xcov</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_k</span><span class="p">):</span>
+            <span class="n">X_clean</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># compute the mean covariance matrix</span>
+            <span class="n">S</span>  <span class="o">=</span> <span class="n">mean_covariance</span><span class="p">(</span><span class="n">XXt</span><span class="p">)</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">_dist_mean</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">XXt</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_type</span><span class="p">)</span>
+            <span class="n">sigma</span> <span class="o">=</span> <span class="n">_dist_std</span><span class="p">(</span><span class="n">S</span><span class="p">,</span><span class="n">XXt</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_type</span><span class="p">)</span>
+                
+            <span class="bp">self</span><span class="o">.</span><span class="n">_q</span> <span class="o">=</span> <span class="n">XXt</span>
+            
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">XXt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">_z_score</span><span class="p">(</span><span class="n">distance_riemann</span><span class="p">(</span><span class="n">XXt</span><span class="p">[</span><span class="n">j</span><span class="p">,:,:],</span> <span class="n">S</span><span class="p">),</span>
+                                <span class="n">mu</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_type</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thresh</span><span class="p">:</span>
+                    <span class="n">X_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XXt</span><span class="p">[</span><span class="n">j</span><span class="p">,:,:])</span>
+            
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_clean</span><span class="p">)</span> <span class="o">==</span> <span class="n">XXt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">break</span>
+            
+            <span class="n">XXt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">X_clean</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref</span> <span class="o">=</span> <span class="n">S</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="n">mu</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">sigma</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+        
+    
+    
+<div class="viewcode-block" id="RiemannPotatoKernel.verify"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the inputs and outputs are appropriately sized and typed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># first ensure the input is a tensor</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="p">,</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="n">input_rank</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">input_rank</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">input_rank</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="k">if</span> <span class="n">input_rank</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">output_sz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_sz</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        
+        <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_out_score</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">output</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="n">Tensor</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="n">Scalar</span><span class="p">))):</span>
+            
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+            
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="n">Tensor</span><span class="p">):</span>
+                
+                <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">virtual</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">output_sz</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            
+                <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">output_sz</span><span class="p">,</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+            
+            <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span><span class="n">Scalar</span><span class="p">)</span>
+                  <span class="ow">and</span> <span class="p">(</span><span class="n">output_sz</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span>
+                  <span class="ow">not</span> <span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">data_type</span> <span class="ow">in</span> <span class="n">Scalar</span><span class="o">.</span><span class="n">valid_numeric_types</span><span class="p">()))):</span>
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+            
+        
+        <span class="c1"># do not support filtering directly with zpk filter repesentation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filt</span><span class="o">.</span><span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;zpk&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">NOT_SUPPORTED</span>
+        
+        
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+        
+<div class="viewcode-block" id="RiemannPotatoKernel.execute"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the kernel by classifying the input trials</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">EXE_FAILURE_UNINITIALIZED</span>
+        
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">in_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">in_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">data</span>
+        
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">in_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filt</span><span class="p">,</span><span class="n">in_data</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:])</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">_cov</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            
+            <span class="c1"># regularize</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="mf">0.01</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="n">r</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">distance_riemann</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ref</span><span class="p">,</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_z_score</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_stats_type</span><span class="p">))</span>
+            
+            <span class="k">if</span> <span class="n">scores</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thresh</span><span class="p">:</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># artifact</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                
+                <span class="c1"># update the potato</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update</span> <span class="o">!=</span> <span class="s1">&#39;static&#39;</span><span class="p">:</span>
+                    <span class="n">inv_sqrt_ref</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">fractional_matrix_power</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ref</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+                    
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">X</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_q</span><span class="p">))</span>
+                    <span class="n">mean_cov</span> <span class="o">=</span> <span class="n">mean_covariance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_q</span><span class="p">)</span>
+                    
+                    <span class="n">A</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">inv_sqrt_ref</span><span class="p">,</span><span class="n">dot</span><span class="p">(</span><span class="n">mean_cov</span><span class="p">,</span><span class="n">inv_sqrt_ref</span><span class="p">))</span>
+                    
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update</span> <span class="o">==</span> <span class="s1">&#39;moving_avg&#39;</span><span class="p">:</span>
+                        <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        
+                    <span class="n">A</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">fractional_matrix_power</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">alpha</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ref</span> <span class="o">=</span> <span class="n">dot</span><span class="p">(</span><span class="n">inv_sqrt_ref</span><span class="p">,</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">inv_sqrt_ref</span><span class="p">))</span>
+                    
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stats_type</span> <span class="o">==</span> <span class="s1">&#39;arithmetic&#39;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">alpha</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="n">dt</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">alpha</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> 
+                                         <span class="n">alpha</span><span class="o">*</span><span class="p">((</span><span class="n">dt</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="n">exp</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">alpha</span><span class="p">)</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="p">)</span> <span class="o">+</span> 
+                                         <span class="n">alpha</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_std</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">sqrt</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">alpha</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> 
+                                             <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="n">dt</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_mean</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)))</span>
+        
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">,</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">,</span><span class="n">Scalar</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out_score</span><span class="p">,</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">scores</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out_score</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out_score</span><span class="p">,</span><span class="n">Scalar</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out_score</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    
+            
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+    
+<div class="viewcode-block" id="RiemannPotatoKernel.add_riemann_potato_node"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.add_riemann_potato_node">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">add_riemann_potato_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">filt</span><span class="p">,</span><span class="n">initialization_data</span><span class="p">,</span>
+                                <span class="n">out_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">out_scores</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">thresh</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span><span class="n">update</span><span class="o">=</span><span class="s1">&#39;static&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                                <span class="n">stats_type</span><span class="o">=</span><span class="s1">&#39;geometric&#39;</span><span class="p">,</span>
+                                <span class="n">init_stopping_crit</span><span class="o">=</span><span class="s1">&#39;iterative&#39;</span><span class="p">,</span><span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a riemann potato artifact detector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># create the kernel object            </span>
+
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">out_labels</span><span class="p">,</span><span class="n">out_scores</span><span class="p">,</span><span class="n">thresh</span><span class="p">,</span><span class="n">update</span><span class="p">,</span><span class="n">alpha</span><span class="p">,</span>
+                <span class="n">initialization_data</span><span class="p">,</span><span class="n">filt</span><span class="p">,</span><span class="n">stats_type</span><span class="p">,</span>
+                <span class="n">init_stopping_crit</span><span class="p">,</span><span class="n">k</span><span class="p">)</span>
+        
+        <span class="c1"># create parameter objects for the input and output</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">inA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),)</span>
+        
+        <span class="k">if</span> <span class="n">out_labels</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">out_labels</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">),)</span>
+        
+        <span class="k">if</span> <span class="n">out_scores</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">out_scores</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">),)</span>
+        
+        <span class="c1"># add the kernel to a generic node object</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">params</span><span class="p">)</span>
+        
+        <span class="c1"># add the node to the graph</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">node</span></div></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">bcipy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../bcipy.html">bcipy package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">setup module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../test.html">test module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Nicolas Ivanov, Aaron Lio.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

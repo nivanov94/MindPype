@@ -25,11 +25,11 @@ class SetKernel(Kernel):
         super().__init__('Extract',BcipEnums.INIT_FROM_NONE,graph)
         self._container = container
         self._out = out
-        self._data = data
+        self._inA = data
         self._axis = axis
         self._index  = index
 
-        self._init_in_Data = None
+        self._init_in_inA = None
         self._init_container = None
 
         self._labels = None
@@ -50,10 +50,10 @@ class SetKernel(Kernel):
         # additionally, if the input is a tensor, the output should also be a
         # tensor
         if (not (isinstance(self._container,Tensor) and \
-                 isinstance(self._data,Tensor) and \
+                 isinstance(self._inA,Tensor) and \
                  isinstance(self._out,Tensor)))\
         and (not (isinstance(self._container,Array) \
-                  and isinstance(self._data,BCIP) \
+                  and isinstance(self._inA,BCIP) \
                   and isinstance(self._out,Array))):
             return BcipEnums.INVALID_PARAMETERS
         
@@ -107,7 +107,7 @@ class SetKernel(Kernel):
             
             ixgrid = np.ix_(ix_grid)
             set_shape = self._out.data[ixgrid].shape
-            if set_shape != self._data.shape:
+            if set_shape != self._inA.shape:
                 return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
@@ -117,12 +117,12 @@ class SetKernel(Kernel):
         Execute the kernel function using numpy function
         """
         
-        if isinstance(self._data, Array):
+        if isinstance(self._inA, Array):
             # copy all the elements of the input container except the the 
             # data to set
             for i in range(self._out.capacity):
                 if i == self._index:
-                    self._out.set_element(i,self._data)
+                    self._out.set_element(i,self._inA)
                 else:
                     self._out.set_element(i,self._container.get_element(i))
         else:
@@ -136,7 +136,7 @@ class SetKernel(Kernel):
             
             ixgrid = np.ix_(ix_grid)
             out_data = self._container.data
-            out_data[ixgrid] = self._data
+            out_data[ixgrid] = self._inA
             self._out.data = out_data
         
         return BcipEnums.SUCCESS

@@ -11,7 +11,6 @@ from classes.session import Session
 from classes.tensor import Tensor
 from classes.scalar import Scalar
 from classes.filter import Filter
-from classes.block import Block
 from classes.source import BcipMatFile
 from classes.bcip_enums import BcipEnums
 
@@ -60,11 +59,6 @@ def main():
     fs = 250
     f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
-
-    # add a block and some tensors
-    num_classes = 3
-    trials_per_class = (4,4,4)
-    b = Block.create(s,num_classes,trials_per_class)
 
     # add the nodes to the block
     CovarianceKernel.add_covariance_node(b.trial_processing_graph,t_virt[0],t_virt[1])

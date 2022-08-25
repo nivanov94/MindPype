@@ -12,7 +12,6 @@ from .feature_normalization import FeatureNormalizationKernel
 from .filter_ import FilterKernel
 from .filtfilt import FiltFiltKernel
 from .greater import GreaterKernel
-from .lda_to_delete import LDAClassifierKernel
 from .less import LessKernel
 from .log import LogKernel
 from .logical_and import AndKernel
