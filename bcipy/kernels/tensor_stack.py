@@ -12,6 +12,24 @@ import numpy as np
 class TensorStackKernel(Kernel):
     """
     Kernel to stack 2 tensors into a single tensor
+
+    Parameters
+    ----------
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial data
+
+    inB : Tensor or Scalar object
+        - Second input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    axis : int, default=None
+        - Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
     """
     
     def __init__(self,graph,inA,inB,outA,axis=None):
@@ -30,7 +48,7 @@ class TensorStackKernel(Kernel):
     
     def initialize(self):
         """
-        This kernel has no internal state that must be initialized
+        This kernel has no internal state that must be initialized. 
         """
         if self._init_outA.__class__ != NoneType:
             return self.initialization_execution()
@@ -71,6 +89,9 @@ class TensorStackKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -79,6 +100,9 @@ class TensorStackKernel(Kernel):
         return sts
 
     def process_data(self, input_data1, input_data2, output_data):
+        """
+        Process data according to outlined kernel function.
+        """
         stack_axis = self._axis
         
         try:
@@ -94,7 +118,7 @@ class TensorStackKernel(Kernel):
 
     def execute(self):
         """
-        Execute the kernel function using numpy functions
+        Execute a single trial
         """
         
         return self.process_data(self._inA, self._inB, self._outA)
@@ -105,6 +129,25 @@ class TensorStackKernel(Kernel):
         """
         Factory method to create a tensor stack kernel and add it to a graph
         as a generic node object.
+
+        Parameters
+        ----------
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial data
+
+        inB : Tensor or Scalar object
+            - Second input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        axis : int, default=None
+            - Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
+        
         """
         
         # create the kernel object

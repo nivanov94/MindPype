@@ -13,6 +13,17 @@ import numpy as np
 class MaxKernel(Kernel):
     """
     Kernel to extract maximum value within a Tensor
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - Input data (max value will be extracted from here)
+
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,outA):
@@ -66,6 +77,8 @@ class MaxKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+
+
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -96,6 +109,17 @@ class MaxKernel(Kernel):
         """
         Factory method to create a maximum value kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the node should be added to
+
+        inA : Tensor object
+            - Input data (max value will be extracted from here)
+
+        outA : Tensor or Scalar object
+            - Output trial data
         """
         
         # create the kernel object

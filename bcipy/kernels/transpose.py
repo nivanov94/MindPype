@@ -18,6 +18,21 @@ import numpy as np
 class TransposeKernel(Kernel):
     """
     Kernel to compute the tensor transpose
+    
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inputA : Tensor or Scalar object
+        - Input trial data
+
+    outputA : Tensor or Scalar object
+        - Output trial data
+
+    axes : tuple or list of ints, optional
+        - If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
+    
     """
     
     def __init__(self,graph,inputA,outputA,axes):
@@ -77,6 +92,9 @@ class TransposeKernel(Kernel):
             return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data. Called when downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -85,6 +103,9 @@ class TransposeKernel(Kernel):
         return sts
     
     def process_data(self, input_data, output_data):
+        """
+        Process data according to outlined kernel function
+        """
         output_data.data = np.transpose(input_data.data,axes=self._axes)
 
         return BcipEnums.SUCCESS
@@ -102,6 +123,22 @@ class TransposeKernel(Kernel):
         """
         Factory method to create a transpose kernel and add it to a graph
         as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inputA : Tensor or Scalar object
+            - Input trial data
+
+        outputA : Tensor or Scalar object
+            - Output trial data
+
+        axes : tuple or list of ints, default = None
+            - If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
+        
+
         """
         
         # create the kernel object

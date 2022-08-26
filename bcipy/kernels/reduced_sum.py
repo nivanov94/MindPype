@@ -19,6 +19,24 @@ class ReducedSumKernel(Kernel):
     """
     Kernel to compute the sum of the input tensor's 
     element along the provided axis
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - Input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    axis : int or tuple of ints, default = None
+        - What is this for
+
+    keep_dims : bool, default = False
+        - Or this
+
     """
     
     def __init__(self,graph,inA,outA,axis=None,keep_dims=False):
@@ -117,6 +135,24 @@ class ReducedSumKernel(Kernel):
         """
         Factory method to create a reduced sum kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor object
+            - Input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        axis : int or tuple of ints, default = None
+            - What is this for
+
+        keep_dims : bool, default = False
+            - Or this
+
         """
         
         # create the kernel object

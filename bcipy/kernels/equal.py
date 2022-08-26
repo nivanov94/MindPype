@@ -21,6 +21,18 @@ class EqualKernel(Kernel):
     two BCIPP data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial data
+
+    inB : Tensor or Scalar object
+        - Second input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,inB,outA):

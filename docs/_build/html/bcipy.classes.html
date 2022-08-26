@@ -158,6 +158,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with BCIPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#basic-setup">Basic Setup</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="bcipy.html">bcipy package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">bcipy.classes package</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="bcipy.kernels.html">bcipy.kernels package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -262,6 +263,23 @@ these will reference the same objects within the element list</p>
 <dt class="sig sig-object py" id="bcipy.classes.array.Array.create">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_template</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/array.html#Array.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.array.Array.create" title="Permalink to this definition">#</a></dt>
 <dd><p>Factory method to create array object</p>
+<blockquote>
+<div><p>Parameters</p>
+</div></blockquote>
+<dl class="simple">
+<dt>sess<span class="classifier">Session object</span></dt><dd><ul class="simple">
+<li><p>Session where the Array object will exist</p></li>
+</ul>
+</dd>
+<dt>capacity<span class="classifier">int</span></dt><dd><ul class="simple">
+<li><p>Maximum number of elements to be stored within the array (for allocation purposes)</p></li>
+</ul>
+</dd>
+<dt>element_template<span class="classifier">any</span></dt><dd><ul class="simple">
+<li><p>The template BCIP element to populate the array (see examples)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -585,6 +603,23 @@ these will reference the same objects within the element list</p>
 <dt class="sig sig-object py" id="bcipy.classes.circle_buffer.CircleBuffer.create">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_template</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/circle_buffer.html#CircleBuffer.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.circle_buffer.CircleBuffer.create" title="Permalink to this definition">#</a></dt>
 <dd><p>Factory method to create array object</p>
+<blockquote>
+<div><p>Parameters</p>
+</div></blockquote>
+<dl class="simple">
+<dt>sess<span class="classifier">Session object</span></dt><dd><ul class="simple">
+<li><p>Session where the Array object will exist</p></li>
+</ul>
+</dd>
+<dt>capacity<span class="classifier">int</span></dt><dd><ul class="simple">
+<li><p>Maximum number of elements to be stored within the array (for allocation purposes)</p></li>
+</ul>
+</dd>
+<dt>element_template<span class="classifier">any</span></dt><dd><ul class="simple">
+<li><p>The template BCIP element to populate the array (see examples)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -1948,7 +1983,7 @@ crashes due to invalid processing graph construction.</p>
 <dt class="sig sig-object py" id="bcipy.classes.source.BcipClassSeparatedMat">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.classes.source.</span></span><span class="sig-name descname"><span class="pre">BcipClassSeparatedMat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_data_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_labels_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipClassSeparatedMat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipClassSeparatedMat" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bcipy.classes.bcip.BCIP" title="bcipy.classes.bcip.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
-<p>Utility class for extracting continuous data from a mat file for BCIP.</p>
+<p>Utility class for extracting class separated data from a mat file for BCIP.</p>
 <dl class="simple">
 <dt>sess<span class="classifier">Session Object</span></dt><dd><p>Session where the BcipClassSeparated data source will exist.</p>
 </dd>
@@ -1981,25 +2016,7 @@ crashes due to invalid processing graph construction.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.source.BcipClassSeparatedMat.create_class_separated">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_class_separated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_data_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_labels_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipClassSeparatedMat.create_class_separated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipClassSeparatedMat.create_class_separated" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bcipy.classes.source.BcipClassSeparatedMat.format_continuous_data">
-<span class="sig-name descname"><span class="pre">format_continuous_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipClassSeparatedMat.format_continuous_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipClassSeparatedMat.format_continuous_data" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bcipy.classes.source.BcipClassSeparatedMat.poll_data">
-<span class="sig-name descname"><span class="pre">poll_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipClassSeparatedMat.poll_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipClassSeparatedMat.poll_data" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="bcipy.classes.source.BcipContinuousMat">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.classes.source.</span></span><span class="sig-name descname"><span class="pre">BcipContinuousMat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_data_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_labels_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipContinuousMat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipContinuousMat" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#bcipy.classes.bcip.BCIP" title="bcipy.classes.bcip.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
-<p>Utility class for extracting class separated data from a mat file for BCIP.</p>
+<dd><p>Factory Method for creating class separated MAT File input source.</p>
 <dl class="simple">
 <dt>sess<span class="classifier">Session Object</span></dt><dd><p>Session where the BcipClassSeparated data source will exist.</p>
 </dd>
@@ -2029,10 +2046,72 @@ crashes due to invalid processing graph construction.</p>
 <div><p>and the second column is the class label of each trial 
 –&gt; The class label of each trial should be numeric.</p>
 </div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.classes.source.BcipClassSeparatedMat.format_continuous_data">
+<span class="sig-name descname"><span class="pre">format_continuous_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipClassSeparatedMat.format_continuous_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipClassSeparatedMat.format_continuous_data" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.classes.source.BcipClassSeparatedMat.poll_data">
+<span class="sig-name descname"><span class="pre">poll_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipClassSeparatedMat.poll_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipClassSeparatedMat.poll_data" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="bcipy.classes.source.BcipContinuousMat">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.classes.source.</span></span><span class="sig-name descname"><span class="pre">BcipContinuousMat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_data_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_labels_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipContinuousMat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipContinuousMat" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#bcipy.classes.bcip.BCIP" title="bcipy.classes.bcip.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
+<p>Utility class for extracting continuous from a mat file for BCIP.</p>
+<dl class="simple">
+<dt>sess<span class="classifier">Session Object</span></dt><dd><p>Session where the BcipClassSeparated data source will exist.</p>
+</dd>
+<dt>event_duration<span class="classifier">int</span></dt><dd><p>Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials</p>
+</dd>
+<dt>start_index<span class="classifier">int</span></dt><dd><p>Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.</p>
+</dd>
+<dt>end_index<span class="classifier">int</span></dt><dd><p>Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored</p>
+</dd>
+<dt>relative_start<span class="classifier">int</span></dt><dd><p>Shift the beginning of each trial start by relative_start samples/</p>
+</dd>
+<dt>mat_data_var_name<span class="classifier">str</span></dt><dd><p>Name of the mat data array within the .mat file.</p>
+</dd>
+<dt>mat_labels_var_name<span class="classifier">str</span></dt><dd><p>Name of the labels array within the .mat file.</p>
+</dd>
+<dt>link_to_data<span class="classifier">str</span></dt><dd><p>Relative path of the mat data to be stored within the created object</p>
+</dd>
+<dt>link_to_labels<span class="classifier">str</span></dt><dd><p>Relative path of the labels data to be stored within the created object.</p>
+</dd>
+</dl>
+<p>–&gt; Add traceback example with keyerror when mat_data_var_name is incorrect</p>
+<p>–&gt; The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.source.BcipContinuousMat.create_continuous">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_continuous</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_data_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mat_labels_var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link_to_labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/source.html#BcipContinuousMat.create_continuous"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.source.BcipContinuousMat.create_continuous" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Factory Method for creating continuous MAT File input source.</p>
+<dl class="simple">
+<dt>sess<span class="classifier">Session Object</span></dt><dd><p>Session where the BcipClassSeparated data source will exist.</p>
+</dd>
+<dt>event_duration<span class="classifier">int</span></dt><dd><p>Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials</p>
+</dd>
+<dt>relative_start<span class="classifier">int</span></dt><dd><p>Shift the beginning of each trial start by relative_start samples/</p>
+</dd>
+<dt>start_index<span class="classifier">int</span></dt><dd><p>Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.</p>
+</dd>
+<dt>end_index<span class="classifier">int</span></dt><dd><p>Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored</p>
+</dd>
+<dt>mat_data_var_name<span class="classifier">str</span></dt><dd><p>Name of the mat data array within the .mat file.</p>
+</dd>
+<dt>mat_labels_var_name<span class="classifier">str</span></dt><dd><p>Name of the labels array within the .mat file.</p>
+</dd>
+<dt>link_to_data<span class="classifier">str</span></dt><dd><p>Relative path of the mat data to be stored within the created object</p>
+</dd>
+<dt>link_to_labels<span class="classifier">str</span></dt><dd><p>Relative path of the labels data to be stored within the created object.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.source.BcipContinuousMat.poll_data">
@@ -2098,31 +2177,114 @@ channel.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.classes.tensor.</span></span><span class="sig-name descname"><span class="pre">Tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_virtual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#bcipy.classes.bcip.BCIP" title="bcipy.classes.bcip.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
 <p>Tensor data</p>
+<p>Tensor (or n-dimensional matrices), are defined by the tensor class. 
+BCIP tensors can either be volatile (are updated/change each trial, generally reserved for tensors containing current trial data), virtual (empty, dimensionless tensor object). Like scalars and array, tensors can be created from data, copied from a different variable, or created virtually, so they don’t initially contain a value. 
+Each of the scalars, tensors and array data containers also have an external source (_ext_src) attribute, which indicates, if necessary, the source from which the data is being pulled from. This is especially important if trial/training data is loaded into a tensor each trial from an LSL stream or MAT file.</p>
+<dl class="simple">
+<dt>sess<span class="classifier">Session object</span></dt><dd><ul class="simple">
+<li><p>Session where Tensor will exist</p></li>
+</ul>
+</dd>
+<dt>shape<span class="classifier">shape_like</span></dt><dd><ul class="simple">
+<li><p>Shape of the Tensor</p></li>
+</ul>
+</dd>
+<dt>data<span class="classifier">ndarray</span></dt><dd><ul class="simple">
+<li><p>Data to be stored within the array</p></li>
+</ul>
+</dd>
+<dt>is_virtual<span class="classifier">bool</span></dt><dd><ul class="simple">
+<li><p>If False, the Tensor is non-virtual</p></li>
+</ul>
+</dd>
+<dt>ext_src<span class="classifier">BCIPy input Source</span></dt><dd><ul class="simple">
+<li><p>Data source the tensor pulls data from (only applies to Tensors created from a handle)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.copy_to">
 <span class="sig-name descname"><span class="pre">copy_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dest_tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor.copy_to"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor.copy_to" title="Permalink to this definition">#</a></dt>
 <dd><p>Copy the attributes of the tensor to another tensor object</p>
+<dl class="simple">
+<dt>dest_tensor<span class="classifier">Tensor object</span></dt><dd><ul class="simple">
+<li><p>Tensor object where the attributes with the referenced Tensor will copied to</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.create">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor.create" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Factory Method to create a generic, non-virtual, Tensor object. The shape must be known to create this object</p>
+<dl class="simple">
+<dt>sess<span class="classifier">Session object</span></dt><dd><ul class="simple">
+<li><p>Session where Tensor will exist</p></li>
+</ul>
+</dd>
+<dt>shape<span class="classifier">shape_like</span></dt><dd><ul class="simple">
+<li><p>Shape of the Tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.create_from_data">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor.create_from_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor.create_from_data" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Factory method to create a Tensor from data</p>
+<dl class="simple">
+<dt>sess<span class="classifier">Session object</span></dt><dd><ul class="simple">
+<li><p>Session where Tensor will exist</p></li>
+</ul>
+</dd>
+<dt>shape<span class="classifier">shape_like</span></dt><dd><ul class="simple">
+<li><p>Shape of the Tensor</p></li>
+</ul>
+</dd>
+<dt>data<span class="classifier">ndarray</span></dt><dd><ul class="simple">
+<li><p>Data to be stored within the array</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.create_from_handle">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor.create_from_handle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor.create_from_handle" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Factory method to create a Tensor from a handle/external source</p>
+<dl class="simple">
+<dt>sess<span class="classifier">Session object</span></dt><dd><ul class="simple">
+<li><p>Session where Tensor will exist</p></li>
+</ul>
+</dd>
+<dt>shape<span class="classifier">shape_like</span></dt><dd><ul class="simple">
+<li><p>Shape of the Tensor</p></li>
+</ul>
+</dd>
+<dt>ext_src<span class="classifier">BCIPy input Source</span></dt><dd><ul class="simple">
+<li><p>Data source the tensor pulls data from (only applies to Tensors created from a handle)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.create_virtual">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_virtual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor.create_virtual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor.create_virtual" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Factory method to create a virtual Tensor</p>
+<dl class="simple">
+<dt>sess<span class="classifier">Session object</span></dt><dd><ul class="simple">
+<li><p>Session where Tensor will exist</p></li>
+</ul>
+</dd>
+<dt>shape<span class="classifier">shape_like, default = ()</span></dt><dd><ul class="simple">
+<li><p>Shape of the Tensor, can be changed for virtual tensors</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.data">
@@ -2143,7 +2305,8 @@ channel.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.poll_volatile_data">
 <span class="sig-name descname"><span class="pre">poll_volatile_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor.poll_volatile_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor.poll_volatile_data" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Pull data from external sources or BCIPy input data sources.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.shape">
@@ -2153,7 +2316,8 @@ channel.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.validate_data">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classes/tensor.html#Tensor.validate_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classes.tensor.Tensor.validate_data" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Method that returns True if  the data within the tensor is the right shape and is a numpy ndarray. False otherwise.</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="bcipy.classes.tensor.Tensor.virtual">

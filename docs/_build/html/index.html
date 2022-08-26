@@ -158,6 +158,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with BCIPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#basic-setup">Basic Setup</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="bcipy.html">bcipy package</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="bcipy.classes.html">bcipy.classes package</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="bcipy.kernels.html">bcipy.kernels package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -205,7 +206,24 @@
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with BCIPy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#setup-guide">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="README.html#basic-structure-of-bcipy">Basic Structure of BCIPy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#basic-setup">Basic Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="README.html#creating-a-session">Creating a Session</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#creating-a-graph">Creating a Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#creating-input-data">Creating input data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#converting-data-to-bcipy-type">Converting data to BCIPy type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#defining-outputs">Defining outputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#creating-nodes">Creating Nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#verifying-a-graph">Verifying a graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#initializing-the-graph">Initializing the graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#executing-a-graph">Executing a graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#execution-with-epochs-known-labels">Execution with epochs, known labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#execution-with-continuous-data-unknown-labels">Execution with continuous data, unknown labels</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="bcipy.html">bcipy package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="bcipy.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="bcipy.classes.html">bcipy.classes package</a><ul>
@@ -231,55 +249,55 @@
 <li class="toctree-l3"><a class="reference internal" href="bcipy.kernels.html">bcipy.kernels package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-absolute-module">bcipy.kernels.absolute module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-addition-module">bcipy.kernels.addition module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-cdf-module">bcipy.kernels.cdf module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-classifier-module">bcipy.kernels.classifier_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-concatenation-module">bcipy.kernels.concatenation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-covariance-module">bcipy.kernels.covariance module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-csp-module">bcipy.kernels.csp module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-divsion-module">bcipy.kernels.divsion module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-enqueue-module">bcipy.kernels.enqueue module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-equal-module">bcipy.kernels.equal module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-extract-module">bcipy.kernels.extract module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-feature-normalization-module">bcipy.kernels.feature_normalization module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-filter-module">bcipy.kernels.filter_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-filtfilt-module">bcipy.kernels.filtfilt module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-greater-module">bcipy.kernels.greater module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-less-module">bcipy.kernels.less module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-log-module">bcipy.kernels.log module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-logical-and-module">bcipy.kernels.logical_and module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-logical-not-module">bcipy.kernels.logical_not module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-logical-or-module">bcipy.kernels.logical_or module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-logical-xor-module">bcipy.kernels.logical_xor module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-max-module">bcipy.kernels.max_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-mean-module">bcipy.kernels.mean module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-min-module">bcipy.kernels.min_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-multiplication-module">bcipy.kernels.multiplication module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-reduced-sum-module">bcipy.kernels.reduced_sum module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-riemann-distance-module">bcipy.kernels.riemann_distance module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-riemann-mdm-classifier-kernel-module">bcipy.kernels.riemann_mdm_classifier_kernel module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-riemann-mean-module">bcipy.kernels.riemann_mean module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-riemann-potato-module">bcipy.kernels.riemann_potato module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-running-average-module">bcipy.kernels.running_average module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-set-data-module">bcipy.kernels.set_data module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-stack-module">bcipy.kernels.stack module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-std-module">bcipy.kernels.std module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-subtraction-module">bcipy.kernels.subtraction module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-svm-module">bcipy.kernels.svm module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-tangent-space-module">bcipy.kernels.tangent_space module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-tensor-stack-module">bcipy.kernels.tensor_stack module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-threshold-module">bcipy.kernels.threshold module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-transpose-module">bcipy.kernels.transpose module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-var-module">bcipy.kernels.var module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-xdawn-covariances-module">bcipy.kernels.xdawn_covariances module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#bcipy-kernels-zscore-module">bcipy.kernels.zscore module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.absolute">bcipy.kernels.absolute module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.addition">bcipy.kernels.addition module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.cdf">bcipy.kernels.cdf module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.classifier_">bcipy.kernels.classifier_ module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.concatenation">bcipy.kernels.concatenation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.covariance">bcipy.kernels.covariance module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.csp">bcipy.kernels.csp module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.divsion">bcipy.kernels.divsion module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.enqueue">bcipy.kernels.enqueue module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.equal">bcipy.kernels.equal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.extract">bcipy.kernels.extract module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.feature_normalization">bcipy.kernels.feature_normalization module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.filter_">bcipy.kernels.filter_ module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.filtfilt">bcipy.kernels.filtfilt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.greater">bcipy.kernels.greater module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.less">bcipy.kernels.less module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.log">bcipy.kernels.log module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_and">bcipy.kernels.logical_and module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_not">bcipy.kernels.logical_not module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_or">bcipy.kernels.logical_or module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_xor">bcipy.kernels.logical_xor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.max_">bcipy.kernels.max_ module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.mean">bcipy.kernels.mean module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.min_">bcipy.kernels.min_ module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.multiplication">bcipy.kernels.multiplication module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.reduced_sum">bcipy.kernels.reduced_sum module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_distance">bcipy.kernels.riemann_distance module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_mdm_classifier_kernel">bcipy.kernels.riemann_mdm_classifier_kernel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_mean">bcipy.kernels.riemann_mean module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_potato">bcipy.kernels.riemann_potato module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.running_average">bcipy.kernels.running_average module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.set_data">bcipy.kernels.set_data module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.stack">bcipy.kernels.stack module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.std">bcipy.kernels.std module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.subtraction">bcipy.kernels.subtraction module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.svm">bcipy.kernels.svm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.tangent_space">bcipy.kernels.tangent_space module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.tensor_stack">bcipy.kernels.tensor_stack module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.threshold">bcipy.kernels.threshold module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.transpose">bcipy.kernels.transpose module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.var">bcipy.kernels.var module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.xdawn_covariances">bcipy.kernels.xdawn_covariances module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.zscore">bcipy.kernels.zscore module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-bcipy">Module contents</a></li>
 </ul>
 </li>
 </ul>

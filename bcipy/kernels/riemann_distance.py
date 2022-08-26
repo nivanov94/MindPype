@@ -13,7 +13,22 @@ from pyriemann.utils.distance import distance_riemann
 
 class RiemannDistanceKernel(Kernel):
     """
-    Calculates the Riemann mean of covariances contained in a tensor
+    Calculates the Riemann mean of covariances contained in a tensor. Kernel computes pairwise distances between 2D tensors
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Array object
+        - First input data
+
+    inB : Tensor or Array object
+        - Second Input data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -35,7 +50,7 @@ class RiemannDistanceKernel(Kernel):
     
     def initialize(self):
         """
-        This kernel has no internal state that must be initialized
+        This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data
         """
         if self._init_outA.__class__ != NoneType:
             return self.initialization_execution()
@@ -123,6 +138,9 @@ class RiemannDistanceKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -186,12 +204,29 @@ class RiemannDistanceKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def execute(self):
+        """
+        Execute the kernel
+        """
         return self.process_data(self._inA, self._inB, self._outA)
     
     @classmethod
     def add_riemann_distance_node(cls,graph,inA,inB,outA):
         """
         Factory method to create a Riemann mean calculating kernel
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Array object
+            - First input data
+
+        inB : Tensor or Array object
+            - Second Input data
+
+        outA : Tensor or Scalar object
+            - Output trial data
         """
         
         # create the kernel object

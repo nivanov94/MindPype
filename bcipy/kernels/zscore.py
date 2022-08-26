@@ -14,6 +14,18 @@ import numpy as np
 class ZScoreKernel(Kernel):
     """
     Calculate a z-score for an tensor or scalar input
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - Input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    init_data: Tensor or Array object
+        - Initialization data (n_trials, n_channels, n_samples)
     """
     
     def __init__(self,graph,inA,outA,init_data):
@@ -35,7 +47,7 @@ class ZScoreKernel(Kernel):
 
     def initialize(self):
         """
-        Initialize the mean and std
+        Initialize the mean and std. Call initialization_execution if downstream nodes are missing training data
         """
         if self.initialization_data == None:
             self.initialization_data = self._init_inA
@@ -158,6 +170,9 @@ class ZScoreKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data. Called if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -166,6 +181,9 @@ class ZScoreKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
+        """
+        Process data according to outlined kernel function
+        """
         if not self._initialized:
             return BcipEnums.EXE_FAILURE
 
@@ -199,6 +217,18 @@ class ZScoreKernel(Kernel):
         """
         Factory method to create a z-score value kernel 
         and add it to a graph as a generic node object.
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - Input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        init_data: Tensor or Array object
+            - Initialization data (n_trials, n_channels, n_samples)
         """
         
         # create the kernel object

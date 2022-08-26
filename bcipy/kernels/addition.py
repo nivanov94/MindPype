@@ -18,8 +18,19 @@ import numpy as np
 
 class AdditionKernel(Kernel):
     """
-    Kernel to add two BCIPP data containers (i.e. tensor or scalar)
-    together
+    Kernel to add two BCIPP data containers (i.e. tensor or scalar) together
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial data
+
+    inB : Tensor or Scalar object
+        - Second input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -116,6 +127,9 @@ class AdditionKernel(Kernel):
             return BcipEnums.SUCCESS
     
     def initialization_execution(self):
+        """
+        Process initialization data. Called if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -124,6 +138,9 @@ class AdditionKernel(Kernel):
         return sts
 
     def process_data(self, input_data1, input_data2, output_data):
+        """
+        Calculate the absolute value of the input data, and assign it to the output data
+        """
         try:
             output_data.data = input_data1.data + input_data2.data
 
@@ -144,6 +161,18 @@ class AdditionKernel(Kernel):
         """
         Factory method to create an addition kernel and add it to a graph
         as a generic node object.
+
+        graph : Graph Object
+        - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial data
+
+        inB : Tensor or Scalar object
+            - Second input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
         """
         
         # create the kernel object

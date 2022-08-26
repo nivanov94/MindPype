@@ -26,6 +26,22 @@ class CovarianceKernel(Kernel):
     highest order dimension will be treated as variables and the second
     highest order dimension will be treated as observations. 
     
+    Parameters
+    ----------
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    regularization : float, 0 < r < 1
+        - Regularization parameter
+
+
     Tensor size examples:
         Input:  A (kxmxn)
         Output: B (kxnxn)
@@ -53,7 +69,7 @@ class CovarianceKernel(Kernel):
 
     def initialize(self):
         """
-        This kernel has no internal state that must be initialized
+        Initialize internal state and initialization output of the kernel
         """
         if self._init_outA.__class__ != NoneType:
             return self.initialization_execution()
@@ -97,6 +113,9 @@ class CovarianceKernel(Kernel):
             return BcipEnums.SUCCESS
         
     def initialization_execution(self):
+        """
+        Process initialization data. Called if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -105,6 +124,9 @@ class CovarianceKernel(Kernel):
         return sts
 
     def process_data(self, input_data1, output_data1):
+        """
+        Process input data according to outlined kernel function
+        """
         shape = input_data1.shape
         rank = len(shape)
         
@@ -141,7 +163,7 @@ class CovarianceKernel(Kernel):
     
     def execute(self):
         """
-        Execute the kernel function using the numpy cov function
+        Execute the kernel function
         """
         
         return self.process_data(self._inputA, self._outputA)
@@ -151,6 +173,34 @@ class CovarianceKernel(Kernel):
         """
         Factory method to create a covariance kernel and add it to a graph
         as a generic node object.
+        
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        regularization : float, 0 < r < 1
+            - Regularization parameter
+
+
+        Tensor size examples:
+            Input:  A (kxmxn)
+            Output: B (kxnxn)
+            
+            Input:  A (m)
+            Output: B (1)
+            
+            Input:  A (mxn)
+            Output: B (nxn)
+            
+            Input:  A (hxkxmxn)
+            Output: B (hxkxnxn)
         """
         
         # create the kernel object

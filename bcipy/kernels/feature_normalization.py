@@ -21,6 +21,23 @@ from mpl_toolkits.mplot3d import axes3d
 class FeatureNormalizationKernel(Kernel):
     """
     Normalizes the values within a feature vector
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - Input trial data
+
+    outA : Tensor object
+        - Extracted trial data
+
+    init_data : Tensor object
+        - Initialization data
+
+    method : {'min-max', 'mean-norm', 'zscore-norm'}
+        - Feature normalization method
     """
     
     def __init__(self,graph,inA,outA,init_data,method):

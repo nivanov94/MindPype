@@ -124,7 +124,7 @@ class BcipMatFile(BCIP):
 
 class BcipClassSeparatedMat(BCIP):
     """
-    Utility class for extracting continuous data from a mat file for BCIP. 
+    Utility class for extracting class separated data from a mat file for BCIP. 
 
     Parameters
     ----------
@@ -278,7 +278,55 @@ class BcipClassSeparatedMat(BCIP):
 
     @classmethod
     def create_class_separated(cls, sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels):
+        """
+        Factory Method for creating class separated MAT File input source. 
 
+        Parameters
+        ----------
+
+        sess : Session Object
+            Session where the BcipClassSeparated data source will exist.
+
+        num_classes : int
+            Number of classes within the MAT data
+
+        event_duration : int
+            Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
+
+        start_index : int
+            Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.
+
+        end_index : int
+            Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored
+
+        relative_start : int
+            Shift the beginning of each trial start by relative_start samples/
+
+        mat_data_var_name : str
+            Name of the mat data array within the .mat file.
+
+        mat_labels_var_name : str
+            Name of the labels array within the .mat file.
+
+        link_to_data : str
+            Relative path of the mat data to be stored within the created object
+
+        link_to_labels : str
+            Relative path of the labels data to be stored within the created object.
+
+        Examples
+        --------
+        --> Add traceback example with keyerror when mat_data_var_name is incorrect
+
+        Notes
+        -----
+        --> The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
+        --> The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial 
+            and the second column is the class label of each trial 
+            --> The class label of each trial should be numeric.
+        
+        
+        """
         src = cls(sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels)
 
         sess.add_ext_src(src)
@@ -287,16 +335,13 @@ class BcipClassSeparatedMat(BCIP):
 
 class BcipContinuousMat(BCIP):
     """
-    Utility class for extracting class separated data from a mat file for BCIP. 
+    Utility class for extracting continuous from a mat file for BCIP. 
 
     Parameters
     ----------
 
     sess : Session Object
         Session where the BcipClassSeparated data source will exist.
-
-    num_classes : int
-        Number of classes within the MAT data
 
     event_duration : int
         Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
@@ -329,9 +374,6 @@ class BcipContinuousMat(BCIP):
     Notes
     -----
     --> The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
-    --> The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial 
-        and the second column is the class label of each trial 
-        --> The class label of each trial should be numeric.
     """
 
     def __init__(self,sess, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels = None):
@@ -400,6 +442,39 @@ class BcipContinuousMat(BCIP):
 
     @classmethod
     def create_continuous(cls, sess, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels):
+        """
+        Factory Method for creating continuous MAT File input source. 
+
+        Parameters
+        ---------
+        sess : Session Object
+            Session where the BcipClassSeparated data source will exist.
+
+        event_duration : int
+            Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
+
+        relative_start : int
+            Shift the beginning of each trial start by relative_start samples/
+        
+        start_index : int
+            Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.
+
+        end_index : int
+            Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored
+
+        mat_data_var_name : str
+            Name of the mat data array within the .mat file.
+
+        mat_labels_var_name : str
+            Name of the labels array within the .mat file.
+
+        link_to_data : str
+            Relative path of the mat data to be stored within the created object
+
+        link_to_labels : str
+            Relative path of the labels data to be stored within the created object.
+        
+        """
 
         src = cls(sess, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels)
 

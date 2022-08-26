@@ -21,6 +21,20 @@ class GreaterKernel(Kernel):
     two BCIPP data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial data
+
+    inB : Tensor or Scalar object
+        - Second input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    Note: The calculation is _inA .> _inB
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -146,6 +160,22 @@ class GreaterKernel(Kernel):
         """
         Factory method to create a greater than comparison kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial data
+
+        inB : Tensor or Scalar object
+            - Second input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        Note: The calculation is _inA .> _inB
         """
         
         # create the kernel object

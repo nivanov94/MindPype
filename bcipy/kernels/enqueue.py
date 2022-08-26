@@ -18,6 +18,16 @@ from classes.tensor import Tensor
 class EnqueueKernel(Kernel):
     """
     Kernel to enqueue a BCIP object into a BCIP circle buffer
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : BCIP Object
+        - Input data to enqueue into circle buffer
+
+    queue : Circle Buffer object
+        - Circle buffer to have data enqueud to
+
     """
     
     def __init__(self,graph,inA,queue):
@@ -67,8 +77,16 @@ class EnqueueKernel(Kernel):
     @classmethod
     def add_enqueue_node(cls,graph,inA,queue):
         """
-        Factory method to create a enqueue kernel 
-        and add it to a graph as a generic node object.
+        Factory method to create a enqueue kernel and add it to a graph as a generic node object.
+
+        graph : Graph Object
+        - Graph that the kernel should be added to
+
+        inA : BCIP Object
+            - Input data to enqueue into circle buffer
+
+        queue : Circle Buffer object
+            - Circle buffer to have data enqueud to
         """
         
         # create the kernel object

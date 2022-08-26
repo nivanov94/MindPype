@@ -21,6 +21,17 @@ class NotKernel(Kernel):
     one BCIPP data container (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First Input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,outA):

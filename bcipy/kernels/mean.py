@@ -22,6 +22,20 @@ import numpy as np
 class MeanKernel(Kernel):
     """
     Calculates the mean of values in a tensor
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - Input data
+
+    outA : Tensor object
+        - Output trial data
+
+    axis : int
+        - Axis over which the mean should be calculated (see np.mean for more info)
     """
     
     def __init__(self,graph,inA,outA,axis):
@@ -104,6 +118,22 @@ class MeanKernel(Kernel):
     def add_mean_node(cls,graph,inA,outA,axis=None):
         """
         Factory method to create a Riemann mean calculating kernel
+
+        Calculates the mean of values in a tensor
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor object
+            - Input data
+
+        outA : Tensor object
+            - Output trial data
+
+        axis : int
+            - Axis over which the mean should be calculated (see np.mean for more info)
         """
         
         # create the kernel object

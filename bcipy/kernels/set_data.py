@@ -19,6 +19,27 @@ import numpy as np
 class SetKernel(Kernel):
     """
     Kernel to set a portion of a tensor or array
+
+    Parameters
+    ----------
+    graph : graph object
+        - The graph where the RunningAverageKernel object should be added
+    
+    container : Tensor or Array object
+        - Container where specified data will be added to
+
+    data : Tensor/Scalar/Array object
+        - Data to add to container
+
+    axis : int
+        - Axis over which to set the data
+
+    index : array_like
+        - Indices of where to change the data within the Container object
+
+    out : Tensor/Array object
+        - Output data
+
     """
     
     def __init__(self,graph,container,data,axis,index,out):
@@ -146,6 +167,26 @@ class SetKernel(Kernel):
         """
         Factory method to create a set kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+        graph : graph object
+            - The graph where the RunningAverageKernel object should be added
+        
+        container : Tensor or Array object
+            - Container where specified data will be added to
+
+        data : Tensor/Scalar/Array object
+            - Data to add to container
+
+        axis : int
+            - Axis over which to set the data
+
+        index : array_like
+            - Indices of where to change the data within the Container object
+
+        out : Tensor/Array object
+            - Output data
         """
         
         # create the kernel object

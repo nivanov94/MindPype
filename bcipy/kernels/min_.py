@@ -13,6 +13,17 @@ import numpy as np
 class MinKernel(Kernel):
     """
     Kernel to extract minimum value within a Tensor
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - Input data (min value will be extracted from here)
+
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,outA):
@@ -97,6 +108,19 @@ class MinKernel(Kernel):
         """
         Factory method to create a minimum value kernel 
         and add it to a graph as a generic node object.
+
+        Calculates the mean of values in a tensor
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the node should be added to
+
+        inA : Tensor object
+            - Input data (min value will be extracted from here)
+
+        outA : Tensor object
+            - Output trial data
         """
         
         # create the kernel object

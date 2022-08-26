@@ -21,6 +21,20 @@ import numpy as np
 class StackKernel(Kernel):
     """
     Kernel to stack multiple tensors into a single tensor
+
+    Parameters
+    ----------
+    graph : graph object
+        - The graph where the RunningAverageKernel object should be added
+    
+    inA : Array object
+        - Container where specified data will be added to
+
+    outA : Tensor object
+        - Tensor of stacked tensors
+
+    axis : int or None, default = None
+        - The axis in the result array along which the input arrays are stacked.
     """
     
     def __init__(self,graph,inA,outA,axis=None):
@@ -82,6 +96,9 @@ class StackKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -90,6 +107,10 @@ class StackKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
+        """
+        Process data according to kernel function
+        """
+
         stack_axis = self._axis.data if self._axis != None else 0
         
         try:

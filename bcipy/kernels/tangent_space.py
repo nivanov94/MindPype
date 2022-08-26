@@ -21,14 +21,28 @@ from pyriemann.tangentspace import TangentSpace
 
 class TangentSpaceKernel(Kernel):
     """
-    Kernel to estimate Tangent Space
-    
+    Kernel to estimate Tangent Space. Applies Pyriemann.tangentspace method
 
     Paramters
     ---------
+    inA : Tensor object
+        - Input data
 
-    Examples
-    --------
+    outA : Tensor object
+        - Output data
+
+    initialization_data : Tensor object
+        - Data to initialize the estimator with (n_trials, n_channels, n_samples)
+
+    metric : str, default = 'riemann'
+        - See pyriemann.tangentspace for more info
+
+    metric : bool, default = False
+        - See pyriemann.tangentspace for more info
+
+    sample_weight : ndarray, or None, default = None
+        - sample of each weight. If none, all samples have equal weight
+
     """
 
 
@@ -48,6 +62,9 @@ class TangentSpaceKernel(Kernel):
         self._tangent_space = TangentSpace(metric, tsupdate)
 
     def verify(self):
+        """
+        Verify inputs and outputs are appropriate shape and type
+        """
         if not isinstance(self._inA, Tensor):
             return BcipEnums.INVALID_PARAMETERS
 
@@ -66,7 +83,9 @@ class TangentSpaceKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialize(self):
-        
+        """
+        Initialize internal state of the kernel and update initialization data if downstream nodes are missing data
+        """
         sts1, sts2 = BcipEnums.SUCCESS, BcipEnums.SUCCESS
         if self._initialization_data == None:
             self._initialization_data = self._init_inA
@@ -88,9 +107,15 @@ class TangentSpaceKernel(Kernel):
             return BcipEnums.SUCCESS
     
     def execute(self):
+        """
+        Execute single trial processing
+        """
         return self.process_data(self._inA, self._outA)
 
     def process_data(self, input_data, output_data):
+        """
+        Process data according to outlined kernel function
+        """
         try:  
             result = self._tangent_space.transform(input_data.data)
             if output_data.shape != result.shape:
@@ -102,6 +127,9 @@ class TangentSpaceKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initilization_execution(self):
+        """
+        If downstream nodes are missing training data, this method will call to process the initialization data
+        """
         sts = self.process_data(self._initialization_data, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -111,6 +139,29 @@ class TangentSpaceKernel(Kernel):
 
     @classmethod
     def add_tangent_space_kernel(cls, graph, inA, outA, initialization_data, metric = 'riemann', tsupdate = False, sample_weight = None):
+        """
+        Factory method to create a tangent_space_kernel, add it to a node, and add the node to a specified graph
+
+        Paramters
+        ---------
+        inA : Tensor object
+            - Input data
+
+        outA : Tensor object
+            - Output data
+
+        initialization_data : Tensor object
+            - Data to initialize the estimator with (n_trials, n_channels, n_samples)
+
+        metric : str, default = 'riemann'
+            - See pyriemann.tangentspace for more info
+
+        metric : bool, default = False
+            - See pyriemann.tangentspace for more info
+
+        sample_weight : ndarray, or None, default = None
+            - sample of each weight. If none, all samples have equal weight
+        """
 
         kernel = cls(graph, inA, outA, initialization_data, metric, tsupdate, sample_weight)
         

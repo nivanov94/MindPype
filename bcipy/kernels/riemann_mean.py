@@ -18,6 +18,23 @@ from pyriemann.utils.mean import mean_riemann
 class RiemannMeanKernel(Kernel):
     """
     Calculates the Riemann mean of covariances contained in a tensor
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - Input data
+
+    outA : Tensor object
+        - Output trial data
+
+    axis : int
+        - Axis over which the mean should be calculated (see np.mean for more info)
+
+    weights : array_like
+        - Weights for each sample
     """
     
     def __init__(self,graph,inA,outA,weights):

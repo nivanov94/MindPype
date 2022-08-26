@@ -20,6 +20,20 @@ class DivisionKernel(Kernel):
     together
     
     Note: This is element-wise division
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial data
+
+    inB : Tensor or Scalar object
+        - Second input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    Note: The calculation is _inA ./ _inB
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -139,8 +153,21 @@ class DivisionKernel(Kernel):
     @classmethod
     def add_division_node(cls,graph,inA,inB,outA):
         """
-        Factory method to create a divsion kernel and add it to a graph
+        Factory method to create a element-wise divsion kernel and add it to a graph
         as a generic node object.
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial data
+
+        inB : Tensor or Scalar object
+            - Second input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
         """
         
         # create the kernel object

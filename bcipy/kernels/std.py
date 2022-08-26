@@ -16,6 +16,21 @@ import numpy as np
 class StdKernel(Kernel):
     """
     Calculates the standard deviation of values in a tensor
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - First input trial data
+
+    outA : Tensor object
+        - Output trial data
+
+    axis : None or int or tuple of ints, optional
+        - Axis or axes along which the standard deviation is computed. The default is to compute the standard deviation of the flattened array.
+
+    ddof : int, optional
+        - Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
     """
     
     def __init__(self,graph,inA,outA,axis,ddof):
@@ -30,8 +45,6 @@ class StdKernel(Kernel):
         
         self._init_inA = None
         self._init_outA = None
-
-        
 
         self._labels = None
     
@@ -73,6 +86,9 @@ class StdKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -81,6 +97,9 @@ class StdKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
+        """
+        Process data according to outlined kernel function
+        """
         try:
             output_data.data = np.std(input_data.data,
                                       axis=self._axis,

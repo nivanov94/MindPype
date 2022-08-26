@@ -21,6 +21,20 @@ class OrKernel(Kernel):
     two BCIPP data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First Input trial data
+
+    inB : Tensor or Scalar object
+        - Second Input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -149,6 +163,20 @@ class OrKernel(Kernel):
         """
         Factory method to create a logical OR kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the node should be added to
+
+        inA : Tensor or Scalar object
+            - First Input trial data
+
+        inB : Tensor or Scalar object
+            - Second Input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
         """
         
         # create the kernel object

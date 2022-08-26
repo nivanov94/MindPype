@@ -26,7 +26,7 @@ class RunningAverageKernel(Kernel):
     graph : graph object
         - The graph where the RunningAverageKernel object should be added
     
-    inA : Tensor object
+    inA : Tensor or Scalar object
         - Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
 
     outA : Tensor/Scalar object
@@ -39,8 +39,6 @@ class RunningAverageKernel(Kernel):
         - Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
 
     
-    Examples
-    --------
     """
     def __init__(self, graph, inA, outA, running_average_cap, axis = 0):
         super().__init__('RunningAverage',BcipEnums.INIT_FROM_NONE,graph)
@@ -87,12 +85,18 @@ class RunningAverageKernel(Kernel):
 
 
     def initialize(self):
+        """
+        This kernel has no internal state to be initialized. Call initialization_execution if downstream nodes are missing training data.
+        """
         if self._init_outA.__class__ != NoneType:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -101,7 +105,9 @@ class RunningAverageKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
-        
+        """
+        Process data according to the outlined kernel function
+        """
         try:
             if isinstance(input_data, Tensor):
                 if self._axis == None:
@@ -116,7 +122,9 @@ class RunningAverageKernel(Kernel):
      
 
     def execute(self):
-
+        """
+        Add input data to data object storing previous trials and process the stacked data
+        """
         stacked_data = np.zeros((self._prev_data.num_elements + 1, self._inA.shape[0], self._inA.shape[1]))
         stacked_data[0,:,:] = self._inA.data
 
@@ -131,47 +139,35 @@ class RunningAverageKernel(Kernel):
         self._prev_data.enqueue(self._inA)
 
         return self.process_data(stacked_tensor, self._outA)
-
-        """if self._prev_data.num_elements == 0:
-            sts = self._prev_data.enqueue(self._inA)
-            if sts == BcipEnums.SUCCESS:
-                return self.process_data(self._inA, self._outA, True)
-            else:
-                return BcipEnums.EXE_FAILURE
-
-        elif self._prev_data.num_elements == 1:
-            stacked_data = np.array(self._inA.data)
-            stacked_data = np.stack((self._prev_data.get_queued_element(0).data, stacked_data))
-            stacked_tensor = Tensor.create_from_data(self.session, stacked_data.shape, stacked_data)
-            self._prev_data.enqueue(self._inA)
-            return self.process_data(stacked_tensor, self._outA, False)
-        
-        else:
-            stacked_data = np.array(self._inA.data)
-            for i in range(self._prev_data.num_elements-1, -1, -1):
-                stacked_data = np.dstack((self._prev_data.get_queued_element(i).data, stacked_data))
-            
-            #Dealing with common dimension change issue with dstack
-            if stacked_data.shape[0] == stacked_data.shape[1]:
-                stacked_data = np.moveaxis(stacked_data, (0,1,2),(2,1,0))
-
-            stacked_tensor = Tensor.create_from_data(self.session, stacked_data.shape, stacked_data)
-
-            self._prev_data.enqueue(self._inA)
-            return self.process_data(stacked_tensor, self._outA)"""
-
-
-
-            #except:
-            #    return BcipEnums.EXE_FAILURE
-
-            
+          
             
             
 
 
     @classmethod
     def add_running_average_node(cls, graph, inA, outA, running_average_cap, axis):
+        """
+        Factory method to create running average node and add it to the specified graph
+
+        Parameters
+        ----------
+        graph : graph object
+            - The graph where the node object should be added
+        
+        inA : Tensor or scalar object
+            - Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
+
+        outA : Tensor/Scalar object
+            - Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
+
+        running_average_cap : int
+            - Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
+
+        axis : None or 0:
+            - Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
+
+    
+    """
         kernel = cls(graph, inA, outA, running_average_cap, axis)
 
         params = (Parameter(inA,BcipEnums.INPUT), \

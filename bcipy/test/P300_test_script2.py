@@ -3,8 +3,6 @@
 Created on Tues July 26 16:12:30 2022
 
 @author: aaronlio
-
-
 """
 # For debugging 
 from logging import raiseExceptions
@@ -45,18 +43,14 @@ def main():
 
 
     input_data = BcipContinuousMat.create_continuous(session, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
-
     input_data = Tensor.create_from_handle(session, (12, 500), input_data)
     
-    #t_in = Tensor.create_from_data(session,(12,500),input_data)
     s_out = Scalar.create_from_value(session,-1)
     t_virt = [Tensor.create_virtual(session), \
               Tensor.create_virtual(session)]
-    
 
     classifier = Classifier.create_logistic_regression(session)
     
-    #TangentSpaceWeight = [None]*120
     # add the nodes
     XDawnCovarianceKernel.add_xdawn_covariance_kernel(trial_graph, input_data, t_virt[0], X, y, 4)
     TangentSpaceKernel.add_tangent_space_kernel(trial_graph, t_virt[0], t_virt[1], None, metric='riemann', tsupdate=False, sample_weight=None)
@@ -72,7 +66,6 @@ def main():
     
     start = trial_graph.initialize()
 
-
     if start != BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
@@ -81,8 +74,6 @@ def main():
     # RUN!
     t_num = 0
     sts = BcipEnums.SUCCESS
-    correct_labels = 0
-
     
     while sts == BcipEnums.SUCCESS:
         try:
@@ -99,8 +90,6 @@ def main():
         except ValueError:
             print("Trial Data completed")
             break
-
-        
 
         t_num += 1
     

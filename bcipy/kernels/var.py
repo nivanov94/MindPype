@@ -18,6 +18,24 @@ import numpy as np
 class VarKernel(Kernel):
     """
     Calculates the variance of values in a tensor
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - Input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    axis : None or int or tuple of ints, optional
+        - Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
+
+    ddof : int, optional
+        - "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
+    
+    keepdims : bool, optional
+        - If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
     """
     
     def __init__(self,graph,inA,outA,axis,ddof,keep_dims):
@@ -83,6 +101,9 @@ class VarKernel(Kernel):
         return BcipEnums.SUCCESS
         
     def initialization_execution(self):
+        """
+        Process initialization data. Called if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -91,6 +112,10 @@ class VarKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
+        """
+        Process data according to outlined kernel function.
+        """
+
         try:
             output_data.data = np.var(input_data.data,
                                       axis=self._axis,
@@ -113,6 +138,25 @@ class VarKernel(Kernel):
     def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keep_dims=False):
         """
         Factory method to create a variance kernel
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - Input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        axis : None or int or tuple of ints, optional
+            - Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
+
+        ddof : int, optional
+            - "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
+        
+        keepdims : bool, optional
+            - If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
+            
         """
         
         # create the kernel object

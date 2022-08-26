@@ -17,8 +17,10 @@ class Array(BCIP):
     ----------
     sess : Session object
         - Session where the Array object will exist
+    
     capacity : int
         - Maximum number of elements to be stored within the array (for allocation purposes)
+    
     element_template : any
         - The template BCIP element to populate the array (see examples)
 
@@ -31,7 +33,7 @@ class Array(BCIP):
         example = Array.create(example_session, example_capacity, Tensor.create(example_session, input_data.shape))
     
     Return
-    ------
+    ======
     Array Object
     
     Notes
@@ -195,6 +197,16 @@ class Array(BCIP):
 
         """
         Factory method to create array object
+
+         Parameters
+        ----------
+        sess : Session object
+            - Session where the Array object will exist
+        capacity : int
+            - Maximum number of elements to be stored within the array (for allocation purposes)
+        element_template : any
+            - The template BCIP element to populate the array (see examples)
+
         """
 
         a = cls(sess,capacity,element_template)

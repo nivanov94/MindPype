@@ -13,6 +13,22 @@ import numpy as np
 class ThresholdKernel(Kernel):
     """
     Determine if scalar or tensor data elements are above or below threshold
+    
+    Parameters
+    ----------
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - Input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    thresh : float
+        - Threshold value 
+
     """
     
     def __init__(self,graph,inA,outA,thresh):
@@ -74,6 +90,9 @@ class ThresholdKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def initialization_execution(self):
+        """
+        Process initialization data if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -82,6 +101,9 @@ class ThresholdKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
+        """
+        Process data according to outlined kernel method
+        """
         try:
             if isinstance(input_data,Tensor):
                 output_data.data = input_data.data > self._thresh.data
@@ -109,6 +131,21 @@ class ThresholdKernel(Kernel):
         """
         Factory method to create a threshold value kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - Input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        thresh : float
+            - Threshold value
         """
         
         # create the kernel object

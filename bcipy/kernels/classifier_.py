@@ -16,10 +16,33 @@ import numpy as np
 
 class ClassifierKernel(Kernel):
     """
-    Classify
+    Classify data using BCIP Classifier Object
+
+    Parameters
+    ----------
+    
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object (n_channels, n_samples)
+        - Input trial data
+
+    classifier : Classifier object
+        - BCIP Classifier object to be used for classification
+
+    outA : Scalar object
+        - Output trial data
+
+    initialization_data : Tensor object, (n_trials, n_channels, n_samples)
+        - Initialization data to train the classifier
+    
+    labels : Tensor object, (n_trials, )
+        - Labels corresponding to initialization data class labels 
+        - (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
+
     """
 
-    def __init__(self, graph, inA, classifier, outA, initialization_data, labels, conf = None, pred_proba = None):
+    def __init__(self, graph, inA, classifier, outA, initialization_data, labels):
         super().__init__('Classifier', BcipEnums.INIT_FROM_DATA, graph)
         self._inA = inA
         self._classifier = classifier
@@ -31,10 +54,6 @@ class ClassifierKernel(Kernel):
         self._initialized = False
         self._init_inA = None
         self._init_outA = None
-
-        if self._classifier._ctype == 'lda':
-            self._conf = conf
-            self._pred_proba = pred_proba
 
 
     def initialize(self):
@@ -115,7 +134,9 @@ class ClassifierKernel(Kernel):
         
 
     def execute(self):
-        """execute the kernel function using the scipy predict function"""
+        """
+        Execute single trial classification
+        """
         
         if len(self._inA.shape) == 2:
 
@@ -127,6 +148,9 @@ class ClassifierKernel(Kernel):
 
 
     def initialization_execution(self):
+        """
+        Process initialization data. Called if downstream nodes are missing training data
+        """
 
         sts = self.process_data(self._init_inA, self._init_outA)
         
@@ -136,14 +160,14 @@ class ClassifierKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
-        # fix
+        """
+        Process data according to outlined kernel function
+        """
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         
 
         out = self._classifier._classifier.predict(input_data.data)
-
-        
 
         if isinstance(output_data,Scalar):
             #output_data.data = int(out)
@@ -156,7 +180,31 @@ class ClassifierKernel(Kernel):
 
     @classmethod
     def add_classifier_node(cls, graph, inA, classifier, outA, initialization_data, labels):
-        """Factory method to create a classifier kernel and add it to a graph as a generic node object"""
+        """
+        Factory method to create a classifier kernel and add it to a graph as a generic node object
+        
+        Parameters
+        ----------
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor object (n_channels, n_samples)
+            - Input trial data
+
+        classifier : Classifier object
+            - BCIP Classifier object to be used for classification
+
+        outA : Scalar object
+            - Output trial data
+
+        initialization_data : Tensor object, (n_trials, n_channels, n_samples)
+            - Initialization data to train the classifier
+        
+        labels : Tensor object, (n_trials, )
+            - Labels corresponding to initialization data class labels 
+            - (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
+        """
 
         #create the kernel object
         c = cls(graph, inA, classifier, outA, initialization_data, labels)

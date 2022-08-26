@@ -21,15 +21,24 @@ import scipy
 
 class CommonSpatialPatternKernel(Kernel):
     """
-    CSP Filter Kernel
+    CSP Filter Kernel that applies a set of common spatial patter filters to tensors of covariance matrices
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial dat
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
     """
     
     def __init__(self,graph,inA,outA,
                  init_style,init_params,
                  num_filts):
         """
-        Kernel applies a set of common spatial pattern filters to tensor of 
-        covariance matrices
+        Kernel applies a set of common spatial pattern filters to tensor of covariance matrices
         """
         super().__init__('CSP',init_style,graph)
         self._inA = inA
@@ -84,6 +93,9 @@ class CommonSpatialPatternKernel(Kernel):
 
     
     def initialization_execution(self):
+        """
+        Process initialization data. Called if downstream nodes are missing training data
+        """
 
         if len(self._init_inA.shape) == 3:
             self._init_outA.shape = (self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2])
@@ -112,6 +124,9 @@ class CommonSpatialPatternKernel(Kernel):
         
 
     def process_data(self, input_data, output_data):
+        """
+        Process input data according to outlined kernel function
+        """
         output_data.shape = (self._W.shape[1], input_data.shape[1])
         output_data.data = np.matmul(self._W.T, input_data.data) 
 
@@ -257,6 +272,28 @@ class CommonSpatialPatternKernel(Kernel):
         
         Note that the node will have to be initialized prior 
         to execution of the kernel.
+
+        Parameters
+        ----------
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial dat
+
+        outA : Tensor or Scalar object
+            - Output trial data
+        
+        initialization_data : Tensor object, (n_trials, n_channels, n_samples)
+            - Initialization data to train the classifier
+    
+        labels : Tensor object, (n_trials, )
+            - Labels corresponding to initialization data class labels 
+
+        num_filts : int
+            - Number of spatial filters to apply to trial data.        
+        
         """
         
         # create the kernel object            
@@ -283,6 +320,20 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Factory method to create a pre-initialized CSP filter node
 
+        Parameters
+        ----------
+        
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial dat
+
+        outA : Tensor or Scalar object
+            - Output trial data
+        
+        filters : Tensor Object
+            - Tensor containing precalculated spatial filters to be applied to input trial data      
         """
         
         # create the kernel object

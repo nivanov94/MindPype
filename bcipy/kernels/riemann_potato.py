@@ -83,6 +83,22 @@ def _z_score(d,mu,sigma,stats='arithmetic'):
 class RiemannPotatoKernel(Kernel):
     """
     Riemannian potato artifact detection detector
+
+    Parameters
+    ----------
+   
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inputA : Tensor or Array object
+        - First input data
+
+    outputA : Tensor or Scalar object
+        - Output trial data
+
+    out_score : 
+
+
     """
     
     def __init__(self,graph,inA,out_label,out_score,thresh,update,alpha,

@@ -23,6 +23,20 @@ import matplotlib.pyplot as plt
 class FiltFiltKernel(Kernel):
     """
     Zero phase filter a tensor along the first non-singleton dimension
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inputA : Tensor or Scalar object
+        - Input trial data
+
+    filt : Filter object
+        - BCIP Filter object outputted by bcipy.classes
+
+    outputA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inputA,filt,outputA):
@@ -129,6 +143,18 @@ class FiltFiltKernel(Kernel):
         """
         Factory method to create a filtfilt kernel and add it to a graph
         as a generic node object.
+
+        graph : Graph Object
+            - Graph that the node should be added to
+
+        inputA : Tensor or Scalar object
+            - Input trial data
+
+        filt : Filter object
+            - BCIP Filter object outputted by bcipy.classes
+
+        outputA : Tensor or Scalar object
+            - Output trial data
         """
         
         # create the kernel object

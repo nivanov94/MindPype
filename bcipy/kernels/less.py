@@ -21,6 +21,23 @@ class LessKernel(Kernel):
     two BCIPP data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
+
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - First input trial data
+
+    inB : Tensor or Scalar object
+        - Second input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    Note: The calculation is _inA .< _inB
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -125,6 +142,7 @@ class LessKernel(Kernel):
         return sts
 
     def process_data(self, input_data1, input_data2, output_data):
+        """Process data according to the kernel function using numpy data"""
         try:
             output_data.data = input_data1.data < input_data2.data
 
@@ -135,7 +153,7 @@ class LessKernel(Kernel):
 
     def execute(self):
         """
-        Execute the kernel function using numpy function
+        Execute processing on a single trial
         """
         
         return self.process_data(self._inA, self._inB, self._outA)
@@ -145,6 +163,20 @@ class LessKernel(Kernel):
         """
         Factory method to create a less than comparison kernel 
         and add it to a graph as a generic node object.
+
+        graph : Graph Object
+            - Graph that the node should be added to
+
+        inA : Tensor or Scalar object
+            - First input trial data
+
+        inB : Tensor or Scalar object
+            - Second input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+
+        Note: The calculation is _inA .> _inB
         """
         
         # create the kernel object

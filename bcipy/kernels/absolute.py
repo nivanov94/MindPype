@@ -15,12 +15,24 @@ import numpy as np
 class AbsoluteKernel(Kernel):
     """
     Calculate the element-wise absolute value of Tensor elements
+
+    Parameters
+    ----------
+
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Scalar object
+        - Input trial data
+
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,outA):
         super().__init__('Absolute',BcipEnums.INIT_FROM_NONE,graph)
-        self._in   = inA
-        self._out  = outA
+        self._inA   = inA
+        self._outA  = outA
 
         self._labels = None
 
@@ -29,7 +41,7 @@ class AbsoluteKernel(Kernel):
     
     def initialize(self):
         """
-        This kernel has no internal state that must be initialized
+        Initialize the kernel if there is an internal state to initialize, including downstream initialization data
         """
         if self._init_outA.__class__ != NoneType:
             return self.initialization_execution()
@@ -43,33 +55,35 @@ class AbsoluteKernel(Kernel):
         """
         
         # input/output must be a tensor or scalar
-        if not ((isinstance(self._in,Tensor) and isinstance(self._out,Tensor)) or \
-                (isinstance(self._in,Scalar) and isinstance(self._out,Scalar))):
+        if not ((isinstance(self._inA,Tensor) and isinstance(self._outA,Tensor)) or \
+                (isinstance(self._inA,Scalar) and isinstance(self._outA,Scalar))):
             return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._in,Tensor):
+        if isinstance(self._inA,Tensor):
             # input tensor must contain some values
-            if len(self._in.shape) == 0:
+            if len(self._inA.shape) == 0:
                 return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._out,Tensor):
-            if self._out.virtual() and len(self._out.shape) == 0:
-                self._out.shape = self._in.shape
+        if isinstance(self._outA,Tensor):
+            if self._outA.virtual() and len(self._outA.shape) == 0:
+                self._outA.shape = self._inA.shape
 
-            if self._out.shape != self._in.shape:
+            if self._outA.shape != self._inA.shape:
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
-            if not (self._in.data_type in Scalar.valid_numeric_types()):
+            if not (self._inA.data_type in Scalar.valid_numeric_types()):
                 return BcipEnums.INVALID_PARAMETERS
 
-            if self._out.data_type != self._in.data_type:
+            if self._outA.data_type != self._inA.data_type:
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
     
     def initialization_execution(self):
-        """Process initialization data"""
+        """
+        Process initialization data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         if sts != BcipEnums.SUCCESS:
             return BcipEnums.INITIALIZATION_FAILURE
@@ -77,6 +91,9 @@ class AbsoluteKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
+        """
+        Calculate the absolute value of the input data, and assign it to the output data
+        """
         try:
             if isinstance(input_data, Tensor):
                 output_data.data = np.absolute(input_data.data)
@@ -89,9 +106,9 @@ class AbsoluteKernel(Kernel):
 
     def execute(self):
         """
-        Execute the kernel function using numpy function
+        Execute the kernel function with the input trial data
         """
-        return self.process_data(self._in, self._out)
+        return self.process_data(self._inA, self._outA)
         
     
     @classmethod
@@ -99,6 +116,18 @@ class AbsoluteKernel(Kernel):
         """
         Factory method to create an absolute value kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+        
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - Input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
         """
         
         # create the kernel object

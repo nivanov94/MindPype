@@ -47,7 +47,25 @@ def _extract_nested_data(bcip_obj):
 
 class RiemannMDMClassifierKernel(Kernel):
     """
-    Riemannian Minimum Distance to the Mean Classifier
+    Riemannian Minimum Distance to the Mean Classifier. Kernel takes Tensor input and produces scalar label representing
+    the predicted class. Review classmethods for specific input parameters
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Array object
+        - First input data
+
+    outA : Tensor or Scalar object
+        - Output trial data
+
+    init_style : BcipEnums Object
+        - Indicates the type of classifier kernel (based by class functions)
+
+    initialize_params : dict
+        - Object passed by classmethods that contains training data and training labels 
     """
     
     def __init__(self,graph,inputA,outputA,init_style,initialize_params):
@@ -211,6 +229,23 @@ class RiemannMDMClassifierKernel(Kernel):
         
         Note that the node will have to be initialized (i.e. trained) prior 
         to execution of the kernel.
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inputA : Tensor or Array object
+            - First input data
+
+        outputA : Tensor or Scalar object
+            - Output trial data
+
+        initialization_data : BCIPy Tensor Object
+            - Initialization data to train the classifier with (n_trials, n_channels, n_samples)
+
+        labels : BCIPy Tensor Object
+            - Class labels for initialization data (n_trials,)
         """
         
         # create the kernel object            
@@ -242,6 +277,20 @@ class RiemannMDMClassifierKernel(Kernel):
         The kernel will contain a reference to the model rather than making a 
         deep-copy. Therefore any changes to the classifier object outside
         will effect the classifier here.
+
+        Parameters
+        ----------
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inputA : Tensor or Array object
+            - First input data
+
+        outputA : Tensor or Scalar object
+            - Output trial data
+
+        model : MDM Classifier object
+            - Existing MDM Classifier object that will be added to the node (must be pre-trained)
         """
 
         # sanity check that the input is actually an MDM model

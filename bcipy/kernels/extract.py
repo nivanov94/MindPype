@@ -19,6 +19,23 @@ import numpy as np
 class ExtractKernel(Kernel):
     """
     Kernel to extract a portion of a tensor or array
+
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor or Array object
+        - Input trial data
+
+    Indicies : list slices, list of ints
+        - Indicies within inA from which to extract data
+
+    outA : Tensor object
+        - Extracted trial data
+
+    reduce_dims : bool, default = False
+        - Remove singleton dimensions if true, don't squeeze otherwise
     """
     
     def __init__(self,graph,inA,indices,outA,reduce_dims):
@@ -139,6 +156,9 @@ class ExtractKernel(Kernel):
         return BcipEnums.SUCCESS
         
     def initialization_execution(self):
+        """
+        Update initialization output if downstream nodes are missing training data
+        """
         sts = self.process_data(self._init_inA, self._init_outA)
         
         if sts != BcipEnums.SUCCESS:
@@ -147,6 +167,9 @@ class ExtractKernel(Kernel):
         return sts
 
     def process_data(self, input_data, output_data):
+        """
+        Process trial data according to the Numpy function
+        """
         
         if isinstance(input_data, Array):
             # extract the elements and set in the output array
@@ -181,7 +204,7 @@ class ExtractKernel(Kernel):
 
     def execute(self):
         """
-        Execute the kernel function using numpy function
+        Execute the kernel function
         """
         
         return self.process_data(self._in, self._out)
@@ -191,6 +214,21 @@ class ExtractKernel(Kernel):
         """
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
+
+         graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Array object
+            - Input trial data
+
+        Indicies : list slices, list of ints
+            - Indicies within inA from which to extract data
+
+        outA : Tensor object
+            - Extracted trial data
+
+        reduce_dims : bool, default = False
+            - Remove singleton dimensions if true, don't squeeze otherwise
         """
         
         # create the kernel object

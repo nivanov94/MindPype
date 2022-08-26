@@ -15,9 +15,28 @@ from scipy.stats import norm, chi2
 
 class CDFKernel(Kernel):
     """
-    Calculates the CDF for a distribution given a RV as input
+    Calculates the CDF for a distribution given a RV as input. Currently supports normal and chi2 distributions
     
-    current support normal and chi2 distributions
+    graph : Graph Object
+        - Graph that the kernel should be added to
+
+    inA : Tensor object
+        - First input trial data
+
+    outA : Tensor object
+        - Output trial data
+
+    dist : str, {'norm', 'chi2'}
+        - Distribution type
+    
+    df : shape_like
+        - The shape parameter(s) for the distribution. See scipy.stats.chi2 docstring for more detailed information
+    
+    loc : array_like, default = 0
+        - Location Parameter 
+    
+    scale : array_like, default = 1
+        - Scale Parameter
     """
     
     def __init__(self,graph,inA,outA,dist,df,loc,scale):
