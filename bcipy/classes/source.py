@@ -8,19 +8,17 @@ Currently supported sources:
     - Lab Streaming Layer
     - mat files
 
-@author: ivanovn
+@author: Nicolas Ivanov, Aaron Lio
 """
 
-# TODO: Enhance file based classes to enable bulk read (i.e. multiple trial)
-# capabilities
-
-from re import L
 from .bcip import BCIP
 from .bcip_enums import BcipEnums
 from scipy.io import loadmat
 import numpy as np
 import pylsl
 import os
+import re
+
 ##for debugging
 import matplotlib
 import matplotlib.pyplot as plt
@@ -488,8 +486,8 @@ class LSLStream(BCIP):
     An object for maintaining an LSL inlet
     """
 
-    def __init__(self,sess,prop,prop_value,Ns,labels,channels=None,
-                 marker=True,marker_fmt="T{},L{},LN{}"):
+    def __init__(self,sess,prop,prop_value,channels=None,
+                 marker=True,marker_fmt=None):
         """
         Create a new LSL inlet stream object
 
@@ -498,19 +496,21 @@ class LSLStream(BCIP):
         sess : session object
             Session object where the data source will exist
 
-        prop :
+        prop : str
+            Name of the property to be used to resolve the LSL stream
 
-        prop_value :
+        prop_value : str
+            Property value of the target stream
 
-        Ns :
+        channels : tuple of ints
+            Index value of channels to poll from the stream, if None all channels will be polled
 
-        labels :
+        marker : bool
+            true if there is an associated marker to indicate relative time where data should begin to be polled
 
-        channels :
+        marker_fmt : str
+            Regular expression template of the marker to be matched, if none all markers will be matched
 
-        marker :
-
-        marker_fmt : 
         """
         super().__init__(BcipEnums.SRC,sess)
         
@@ -523,96 +523,96 @@ class LSLStream(BCIP):
         
         # TODO - Warn about more than one available stream
         
-        self.data_inlet = pylsl.StreamInlet(available_streams[0])
-        self.Ns = Ns
+        self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
         self.marker_inlet = None
-        self.marker_fmt = marker_fmt
-        self.trial_cnt = 0
-        
+        self.marker_pattern = None
         
         # TODO - check if the stream has enough input channels to match the
         # channels parameter
-        self.channels = channels
+        if channels:
+            self.channels = channels
+        else:
+            self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
         
         if marker:
             marker_streams = pylsl.resolve_stream('type','Markers')
-            self.marker_inlet = pylsl.StreamInlet(marker_streams[0])
+            self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
             # open the inlet
             self.marker_inlet.open_stream()
         
-        # initialize the label counters
-        self.label_counters = {}
-        for label in labels:
-            self.label_counters[label] = 0
-        
+            if marker_fmt:
+                self.marker_pattern = re.compile(marker_fmt)
+
     
-    def poll_data(self,label):
+    def poll_data(self, Ns):
         """
         Pull data from the inlet stream until we have Ns data points for each
         channel.
+
+        Parameters
+        ----------
+        Ns: int
+            number of samples to collect
         """
         
-        if not self.marker_inlet == None:
-            # get the timestamp for this trial's 
-            target_marker = self.marker_fmt.format(self.trial_cnt,label,
-                                                   self.label_counters[label])
-            
-            # pull the marker sample
-            marker = None
-            while marker != target_marker:
-                marker, t_begin = self.marker_inlet.pull_sample()
+        if self.marker_inlet != None:
+            # start by getting the timestamp for this trial's marker
+            t_begin = None
+            while t_begin == None:
+                marker, t = self.marker_inlet.pull_sample()
                 if marker != None:
-                    marker = marker[0]
-        
+                    marker = marker[0] # extract the string portion of the marker
+                    
+                    if (self.marker_pattern == None) or self.marker_pattern.match(marker):
+                        t_begin = t
+                    
         else:
             t_begin = 0 # i.e. all data is valid
         
         # pull the data in chunks until we get the total number of samples
-        trial_data = np.array(()) # create an empty array
-        
-        while trial_data.shape == (0,) or trial_data.shape[1] < self.Ns:
+        trial_data = np.array((len(self.channels), Ns)) # allocate the array
+        samples_polled = 0        
+
+        while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk()
             
             if len(timestamps) != 0:
                 # convert data to numpy arrays
-                data = np.asarray(data)
+                data = np.asarray(data).T
                 timestamps = np.asarray(timestamps)
                 # throw away data that comes after t_begin
-                data = data[timestamps > t_begin, :]
-            
+                data = data[:, timestamps > t_begin]
+                chunk_sz = data.shape[1]            
+
                 # append the latest chunk to the trial_data array
-                if trial_data.shape == (0,):
-                    trial_data = data
+                if samples_polled + chunk_sz > Ns:
+                    dest_end_index = Ns
+                    src_end_index = Ns - samples_polled
                 else:
-                    trial_data = np.append(trial_data,data,axis=0)
+                    dest_end_index = samples_polled + chunk_sz
+                    src_end_index = chunk_sz
+
+                trial_data[:,samples_polled:dest_end_index] = data[self.channels,:src_end_index]
+                samples_polled += chunk_sz
         
-        # Remove any excess data pts from the end of the array and extract the
-        # channels of interest
-        if self.channels == None:
-            channels = [i for i in range(trial_data.shape[0])] 
-        else:
-            channels = self.channels
-        
-        indices = np.ix_(channels, tuple([i for i in range(self.Ns)]))
-        trial_data = trial_data[indices]
         
         # for debugging
-        x = [_  for _ in range(self.Ns)]
-        fig, ax = plt.subplots()
-        plot_data = []
-        for i in range(len(self.channels)):
-            plot_data.append(x)
-            plot_data.append(trial_data[i,:]+i*15)
-        plot_data = tuple(plot_data)
-        ax.plot(*plot_data)
-        plt.show()
+        #x = [_  for _ in range(self.Ns)]
+        #fig, ax = plt.subplots()
+        #plot_data = []
+        #for i in range(len(self.channels)):
+        #    plot_data.append(x)
+        #    plot_data.append(trial_data[i,:]+i*15)
+        #plot_data = tuple(plot_data)
+        #ax.plot(*plot_data)
+        #plt.show()
         
         return trial_data
     
     @classmethod
-    def create_marker_coupled_data_stream(cls,sess,prop,prop_value,Ns,labels,
+    def create_marker_coupled_data_stream(cls,sess,prop,prop_value,
                                           channels=None,
-                                          marker_fmt="T{},L{},LN{}"):
+                                          marker_fmt=None):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
@@ -623,13 +623,13 @@ class LSLStream(BCIP):
         Examples
         --------
         """
-        src = cls(sess,prop,prop_value,Ns,labels,channels,True,marker_fmt)
+        src = cls(sess,prop,prop_value,channels,True,marker_fmt)
         sess.add_ext_src(src)
         
         return src
     
     @classmethod
-    def create_marker_uncoupled_data_stream(cls,sess,prop,prop_value,Ns,labels,
+    def create_marker_uncoupled_data_stream(cls,sess,prop,prop_value,
                                             channels=None,
                                             marker_fmt="T{},L{},LN{}"):
         """
@@ -645,7 +645,7 @@ class LSLStream(BCIP):
 
 
         """
-        src = cls(sess,prop,prop_value,Ns,labels,channels,False)
+        src = cls(sess,prop,prop_value,channels,False)
         sess.add_ext_src(src)
         
         return src
