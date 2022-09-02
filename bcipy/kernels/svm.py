@@ -5,7 +5,6 @@ Created on Tue Mar 31 16:22:02 2020
 @author: Nick
 """
 
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -88,7 +87,7 @@ class SVMClassifierKernel(Kernel):
             #return BcipEnums.SUCCESS
 
                
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             sts2 = self.initialization_execution()
         
         if sts == BcipEnums.SUCCESS and sts2 == BcipEnums.SUCCESS:

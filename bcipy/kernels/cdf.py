@@ -4,7 +4,6 @@ Created on Wed Mar 11 10:38:01 2020
 @author: ivanovn
 """
 
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -60,7 +59,7 @@ class CDFKernel(Kernel):
         """
         No internal state to setup
         """
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS
@@ -72,8 +71,8 @@ class CDFKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (not isinstance(self._inA,Tensor)) or \
-            (not isinstance(self._outA,Tensor)):
+        if ((not isinstance(self._inA,Tensor)) or 
+            (not isinstance(self._outA,Tensor))):
                 return BcipEnums.INVALID_PARAMETERS
         
         input_shape = self._inA.shape        
@@ -138,7 +137,7 @@ class CDFKernel(Kernel):
         k = cls(graph,inA,outA,dist,df,loc,scale)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT), \
+        params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object

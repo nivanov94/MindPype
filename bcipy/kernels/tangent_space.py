@@ -6,11 +6,6 @@ tangent_space.py
 @author: aaronlio
 """
 
-from pickle import NONE
-from random import sample
-from types import NoneType
-
-from requests import session
 from classes.kernel import Kernel
 from classes.bcip_enums import BcipEnums
 from classes.parameter import Parameter

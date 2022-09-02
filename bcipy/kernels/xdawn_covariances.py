@@ -6,10 +6,6 @@ xdawn_covariances.py - Calculates the Xdawn covariances
 @author: aaronlio
 """
 
-from pickle import NONE
-from types import NoneType
-
-from requests import session
 from classes.kernel import Kernel
 from classes.bcip_enums import BcipEnums
 from classes.parameter import Parameter
@@ -106,7 +102,7 @@ class XDawnCovarianceKernel(Kernel):
             print("XDawnCovarianceKernel could not be properly fitted. Please check the shape of your initialization data and labels")
             sts1 = BcipEnums.INITIALIZATION_FAILURE
         
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             sts2 = self.initilization_execution()
         
         if sts1 != BcipEnums.SUCCESS:

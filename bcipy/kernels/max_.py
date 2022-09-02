@@ -1,4 +1,3 @@
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -41,7 +40,7 @@ class MaxKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS

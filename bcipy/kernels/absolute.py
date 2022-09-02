@@ -1,5 +1,3 @@
-from concurrent.futures import process
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -7,8 +5,6 @@ from classes.bcip_enums import BcipEnums
 from classes.scalar import Scalar
 from classes.tensor import Tensor
 from classes.bcip import BCIP
-
-from bcipy.classes import *
 
 import numpy as np
 
@@ -43,7 +39,7 @@ class AbsoluteKernel(Kernel):
         """
         Initialize the kernel if there is an internal state to initialize, including downstream initialization data
         """
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS

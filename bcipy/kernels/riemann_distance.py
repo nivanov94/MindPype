@@ -1,4 +1,3 @@
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -52,7 +51,7 @@ class RiemannDistanceKernel(Kernel):
         """
         This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data
         """
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS

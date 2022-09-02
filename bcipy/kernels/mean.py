@@ -1,16 +1,9 @@
 """
-Created on Fri Mar  6 10:55:07 2020
-
-@author: ivanovn
-"""
-
-"""
 Created on Mon Dec  9 16:15:12 2019
 
 @author: ivanovn
 """
 
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -57,7 +50,7 @@ class MeanKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS
