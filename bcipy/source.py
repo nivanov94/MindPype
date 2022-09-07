@@ -14,7 +14,7 @@ Currently supported sources:
 # TODO: Enhance file based classes to enable bulk read (i.e. multiple trial)
 # capabilities
 
-from .bcipy_core import BCIP, BcipEnums
+from .core import BCIP, BcipEnums
 from scipy.io import loadmat
 import numpy as np
 import pylsl

@@ -7,7 +7,7 @@ Kernel.py - Defines a generic kernel class
 @author: ivanovn
 """
 
-from .bcipy_core import BCIP, BcipEnums
+from .core import BCIP, BcipEnums
 from abc import ABC, abstractmethod
 
 class Kernel(BCIP, ABC):

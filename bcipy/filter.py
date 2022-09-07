@@ -7,7 +7,7 @@ filter.py - Defines the filter Class for BCIP
 @author: ivanovn
 """
 
-from .bcipy_core import BCIP, BcipEnums
+from .core import BCIP, BcipEnums
 from scipy import signal
 
 class Filter(BCIP):

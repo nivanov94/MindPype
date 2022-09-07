@@ -6,7 +6,7 @@ Creating a kernel to handle verification and execution should be straight-foward
 Create a classifier object and enter
 """
 
-from .bcipy_core import BCIP, BcipEnums
+from .core import BCIP, BcipEnums
 from pyriemann import classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis

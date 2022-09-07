@@ -3,7 +3,7 @@ Defines data container classes for <name>
 @author: Nicolas Ivanov, Aaron Lio
 """
 
-from .bcipy_core import BCIP, BcipEnums
+from .core import BCIP, BcipEnums
 
 import numpy as np
 

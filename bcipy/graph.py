@@ -1,5 +1,5 @@
-from .bcipy_core import BCIP, BcipEnums
-from .data_containers import Tensor
+from .core import BCIP, BcipEnums
+from .containers import Tensor
 
 class Graph(BCIP):
     """
