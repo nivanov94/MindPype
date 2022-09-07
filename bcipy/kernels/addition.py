@@ -6,7 +6,6 @@ addition.py - Define kernel for adding scalars and tensors
 @author: ivanovn
 """
 
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -50,7 +49,7 @@ class AdditionKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS
@@ -77,16 +76,16 @@ class AdditionKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         
         # if the inputs are scalars, ensure they are numeric
-        if isinstance(self._inA,Scalar) and \
-           not self._inA.data_type in Scalar.valid_numeric_types():
+        if (isinstance(self._inA,Scalar) and 
+            not self._inA.data_type in Scalar.valid_numeric_types()):
             return BcipEnums.INVALID_PARAMETERS
         
-        if isinstance(self._inB,Scalar) and \
-           not self._inB.data_type in Scalar.valid_numeric_types():
+        if (isinstance(self._inB,Scalar) and 
+            not self._inB.data_type in Scalar.valid_numeric_types()):
             return BcipEnums.INVALID_PARAMETERS
         
-        if isinstance(self._outA,Scalar) and \
-           not self._outA.data_type in Scalar.valid_numeric_types():
+        if (isinstance(self._outA,Scalar) and
+            not self._outA.data_type in Scalar.valid_numeric_types()):
             return BcipEnums.INVALID_PARAMETERS
         
         # check the shapes
@@ -114,8 +113,8 @@ class AdditionKernel(Kernel):
         out_shape = phony_out.shape
         
         # if the output is a virtual tensor and has no defined shape, set the shape now
-        if isinstance(self._outA,Tensor) and self._outA.virtual \
-           and len(self._outA.shape) == 0:
+        if (isinstance(self._outA,Tensor) and self._outA.virtual 
+            and len(self._outA.shape) == 0):
             self._outA.shape = out_shape
         
         # ensure the output shape equals the expected output shape
@@ -179,8 +178,8 @@ class AdditionKernel(Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT), \
-                  Parameter(inB,BcipEnums.INPUT), \
+        params = (Parameter(inA,BcipEnums.INPUT),
+                  Parameter(inB,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object

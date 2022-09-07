@@ -6,7 +6,6 @@ Covariance.py - Define the Covariance kernel for BCIP
 @author: ivanovn
 """
 
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -71,7 +70,7 @@ class CovarianceKernel(Kernel):
         """
         Initialize internal state and initialization output of the kernel
         """
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
 
         return BcipEnums.SUCCESS

@@ -109,6 +109,7 @@ class Graph(BCIP):
             SUCCESS
 
         """
+        print("\tVerifying graph...")
         if self._verified:
             return BcipEnums.SUCCESS
         
@@ -339,9 +340,12 @@ class Graph(BCIP):
             
              # recurse process on up-stream nodes
             if producer._kernel._init_inA == None:
-                sts = self.fill_initialization_links(producer, edges)
-                if sts != BcipEnums.SUCCESS:
-                    return BcipEnums.INVALID_GRAPH
+                if (not hasattr(producer._kernel,"_initialization_data") or 
+                    (hasattr(producer._kernel,"_initialization_data") and 
+                     producer._kernel._initialization_data == None)):
+                    sts = self.fill_initialization_links(producer, edges)
+                    if sts != BcipEnums.SUCCESS:
+                        return BcipEnums.INVALID_GRAPH
         
         return BcipEnums.SUCCESS
 
@@ -409,7 +413,7 @@ class Graph(BCIP):
         if poll_volatile_sources:
             self.poll_volatile_sources(label)
             
-        print("Executing trial with label: {}".format(label))
+        #print("Executing trial with label: {}".format(label))
         
         # iterate over all the nodes and execute the kernel
         for n in self._nodes:

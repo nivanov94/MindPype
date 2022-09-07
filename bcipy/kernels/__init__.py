@@ -23,6 +23,7 @@ from .mean import MeanKernel
 from .min_ import MinKernel
 from .multiplication import MultiplicationKernel
 from .reduced_sum import ReducedSumKernel
+from .resample import ResampleKernel
 from .riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
 from .riemann_distance import RiemannDistanceKernel
 from .riemann_mean import RiemannMeanKernel

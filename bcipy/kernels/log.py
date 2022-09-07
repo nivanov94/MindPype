@@ -5,7 +5,6 @@ Created on Sun Apr  5 19:50:46 2020
 @author: Nick
 """
 
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -52,7 +51,7 @@ class LogKernel(Kernel):
         This kernel has no internal state that must be initialized
         """
 
-        if self._init_outA.__class__ != NoneType:
+        if self._init_outA != None:
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS

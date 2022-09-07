@@ -11,6 +11,9 @@ Currently supported sources:
 @author: Nicolas Ivanov, Aaron Lio
 """
 
+# TODO: Enhance file based classes to enable bulk read (i.e. multiple trial)
+# capabilities
+
 from .bcip import BCIP
 from .bcip_enums import BcipEnums
 from scipy.io import loadmat
@@ -20,8 +23,8 @@ import os
 import re
 
 ##for debugging
-import matplotlib
-import matplotlib.pyplot as plt
+#import matplotlib
+#import matplotlib.pyplot as plt
 
 class BcipMatFile(BCIP):
     """
@@ -66,7 +69,6 @@ class BcipMatFile(BCIP):
                     min_channel = min(dims[i])
                     max_channel = max(dims[i])
                     
-                    # ignore the first data dimension b/c its the trial number
                     if min_channel < 0 or min_channel >= data_dims[i+1] \
                        or max_channel < 0 or max_channel >= data_dims[i+1]:
                            # TODO log error
@@ -92,7 +94,6 @@ class BcipMatFile(BCIP):
         Poll the data for the next trial of the input label
         """
         
-        class_data = self._file_data[self.label_varname_map[label]]
         if self.dims == None:
             # get all the dimensions
             trial_data = class_data[label,self.label_counters[label],:,:]
@@ -101,7 +102,7 @@ class BcipMatFile(BCIP):
                              self.dims[0],
                              self.dims[1])
 
-            trial_data = class_data[indices]
+            trial_data = self._file_data[self.label_varname_map[label]][indices]
         
         # increment the label counter for this class
         self.label_counters[label] += 1
@@ -359,10 +360,10 @@ class BcipContinuousMat(BCIP):
     mat_labels_var_name : str
         Name of the labels array within the .mat file.
 
-    link_to_data : str
+    data_filename : str
         Relative path of the mat data to be stored within the created object
 
-    link_to_labels : str
+    label_filename : str
         Relative path of the labels data to be stored within the created object.
 
     Examples
@@ -374,72 +375,75 @@ class BcipContinuousMat(BCIP):
     --> The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
     """
 
-    def __init__(self,sess, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels = None):
+    def __init__(self, sess, event_duration, start_index, end_index, relative_start, channels, mat_data_var_name, mat_labels_var_name ,data_filename, label_filename = None):
         """
         Create a new mat file reader interface
         """
         super().__init__(BcipEnums.SRC,sess)
         
-        self.continuous_data = None
-        self.link_to_data = link_to_data
-        self.link_to_labels = link_to_labels
-        self.event_duration = event_duration
+        self.data_filename = data_filename
+        self.label_filename = label_filename
+        self.event_duration = int(event_duration)
         self.mat_data_var_name = mat_data_var_name
         self.mat_labels_var_name = mat_labels_var_name
-        self.relative_start = relative_start
+        self.relative_start = int(relative_start)
 
-        if link_to_labels != None:
-            raw_data = loadmat(link_to_data, mat_dtype = True, struct_as_record = True)
-            raw_data = raw_data[mat_data_var_name]
-            self.continuous_data = raw_data
-            try:
-                raw_data = raw_data[:, start_index:end_index]
-            except:
-                print("Start and/or End index incorrect.")
+        self.data = loadmat(data_filename, mat_dtype = True, struct_as_record = True)[mat_data_var_name]
+        
+        if channels == None:
+            self.channels = tuple([_ for _ in range(self.data.shape[0])])
+        else:
+            self.channels = channels
+            
+        self.data = self.data[self.channels,:]
+        Nc, Ns = self.data.shape
 
-            labels = loadmat(link_to_labels, mat_dtype = True, struct_as_record = True)
-            labels = labels[mat_labels_var_name]
-        if link_to_labels == None:
-            raw_data = loadmat(link_to_data, mat_dtype = True, struct_as_record = True)
-            labels = np.array(raw_data[mat_labels_var_name])
-            raw_data = raw_data[mat_data_var_name]
-            try:
-                raw_data = raw_data[:, start_index:end_index]
-            except:
-                print("Start and/or End index incorrect.")
-      
-        i = 0
-        first_row = 0
-        last_row = np.size(labels, 0)
-        while i < np.size(labels, 0):
-            if labels[i][1] <= start_index:
-                first_row = i
-                i += 1
-            elif labels[i][1] >= end_index:
-                last_row = i
-                i += 1
-            else:
-                i+=1
+        if end_index < 0:
+            end_index = Ns + end_index + 1
 
+        # extract the segment defined by the start and end indices
+        try:
+            self.data = self.data[:, start_index:end_index]
+        except:
+            print("Start and/or End index invalid.")
+            # TODO error log, should probably raise an error here too
+            return
 
-        labels = labels[first_row:last_row, :]
+        if label_filename != None:
+            # labels should be 2D array, first column contain the label, second column contain the timestamp of the label
+            self.labels = loadmat(label_filename, mat_dtype = True, struct_as_record = True)[mat_labels_var_name]
+        else:
+            # labels assumed to be in the same file as data
+            self.labels = loadmat(data_filename, mat_dtype = True, struct_as_record = True)[mat_labels_var_name]
+
+        # remove labels that are not within the start and end indices
+        self.labels = self.labels.astype(int)
+        self.labels = self.labels[self.labels[:,1]<end_index, :]
+        self.labels = self.labels[self.labels[:,1]>=start_index, :]
 
         self._trial_counter = 0
-        self.raw_data = raw_data
-        self.labels = labels
 
     def poll_data(self, label = None):
         try:
-            trial_data = self.raw_data[:,int(self.labels[self._trial_counter][1] + self.relative_start) : int(self.labels[self._trial_counter][1] + self.event_duration)]
+            start = self.labels[self._trial_counter, 1] + self.relative_start
+            end = start + self.event_duration
+            trial_data = self.data[:, start : end]
             self._trial_counter += 1
             return trial_data
 
         except IndexError:
+            # TODO fix bad return type format, log error, raise exception
             print("Trial data does not exist here. Please ensure you are not polling at time samples outside the provided data's region.")
             return BcipEnums.EXE_FAILURE
 
+    def get_next_label(self):
+        return self.labels[self._trial_counter, 0]
+
     @classmethod
-    def create_continuous(cls, sess, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels):
+    def create_continuous(cls, sess, data_filename, event_duration = None, start_index = 0, 
+                          end_index = -1, relative_start = 0, channels = None,
+                          mat_data_var_name = None, 
+                          mat_labels_var_name = None, label_filename = None):
         """
         Factory Method for creating continuous MAT File input source. 
 
@@ -460,21 +464,26 @@ class BcipContinuousMat(BCIP):
         end_index : int
             Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored
 
+        channels : tuple of ints
+            Channel indices to sample
+
         mat_data_var_name : str
             Name of the mat data array within the .mat file.
 
         mat_labels_var_name : str
             Name of the labels array within the .mat file.
 
-        link_to_data : str
+        data_filename : str
             Relative path of the mat data to be stored within the created object
 
-        link_to_labels : str
+        label_filename : str
             Relative path of the labels data to be stored within the created object.
         
         """
 
-        src = cls(sess, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels)
+        src = cls(sess, event_duration, start_index, end_index, 
+                  relative_start, channels, mat_data_var_name, 
+                  mat_labels_var_name, data_filename, label_filename)
 
         sess.add_ext_src(src)
 

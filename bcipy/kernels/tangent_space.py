@@ -6,11 +6,6 @@ tangent_space.py
 @author: aaronlio
 """
 
-from pickle import NONE
-from random import sample
-from types import NoneType
-
-from requests import session
 from classes.kernel import Kernel
 from classes.bcip_enums import BcipEnums
 from classes.parameter import Parameter
@@ -18,6 +13,7 @@ from classes.node import Node
 from classes.tensor import Tensor
 
 from pyriemann.tangentspace import TangentSpace
+import numpy as np
 
 class TangentSpaceKernel(Kernel):
     """
@@ -65,80 +61,86 @@ class TangentSpaceKernel(Kernel):
         """
         Verify inputs and outputs are appropriate shape and type
         """
-        if not isinstance(self._inA, Tensor):
+        if (self._inA._bcip_type != BcipEnums.TENSOR or
+            self._outA._bcip_type != BcipEnums.TENSOR):
             return BcipEnums.INVALID_PARAMETERS
 
         if len(self._inA.shape) not in (2, 3):
             return BcipEnums.INVALID_PARAMETERS
 
-        if len(self._inA.shape) == 3:
-            if self._inA.shape[1] != self._inA.shape[2]:
-                return BcipEnums.INVALID_PARAMETERS
-        else:
-            if self._inA.shape[1] != self._inA.shape[0]:
-                return BcipEnums.INVALID_PARAMETERS
+        if self._inA.shape[-1] != self._inA.shape[-2]:
+            return BcipEnums.INVALID_PARAMETERS
+    
 
-        #change output dims
-        self._outA.shape = (self._inA.shape[0], 2)
+        # if output is virtual, set the output dims 
+        Nc = self._inA.shape[-1]
+        ts_vect_len = Nc*(Nc+1)//2
+        if self._outA._virtual and len(self._outA.shape) == 0:
+            if len(self._inA.shape) == 3:
+                self._outA.shape = (self._inA.shape[0], ts_vect_len)
+            else:
+                self._outA.shape = (1, ts_vect_len)
+
+        # verify the output dimensions
+        if len(self._inA.shape) == 2:
+            out_shape = (1,ts_vect_len)
+        else:
+            out_shape = (self._inA.shape[0], ts_vect_len)
+            
+        if self._outA.shape != out_shape:
+            return BcipEnums.INVALID_PARAMETERS
+            
+                
         return BcipEnums.SUCCESS
 
     def initialize(self):
         """
         Initialize internal state of the kernel and update initialization data if downstream nodes are missing data
         """
-        sts1, sts2 = BcipEnums.SUCCESS, BcipEnums.SUCCESS
+        sts = BcipEnums.SUCCESS
         if self._initialization_data == None:
             self._initialization_data = self._init_inA
         
-        #try:
-        self._tangent_space = self._tangent_space.fit(self._initialization_data.data, None, sample_weight=self._sample_weight)
-        #except:
-        #    print("Tangent Space could not be properly fitted. Please check the shape of your initialization data")
-        #    return BcipEnums.INITIALIZATION_FAILURE
+        try:
+            self._tangent_space = self._tangent_space.fit(self._initialization_data.data, None, sample_weight=self._sample_weight)
+        except:
+            sts = BcipEnums.INITIALIZATION_FAILURE
         
-        if self._init_outA.__class__ != NoneType:
-            sts2 = self.initilization_execution()
         
-        if sts1 != BcipEnums.SUCCESS:
-            return sts1
-        elif sts2 != BcipEnums.SUCCESS:
-            return sts2
-        else:
-            return BcipEnums.SUCCESS
+        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+            Nt, Nc, _ = self._initialization_data.shape
+            self._init_outA.shape = (Nt, Nc*(Nc+1)//2)
+            sts = self._process_data(self._initialization_data, self._init_outA)
+        
+        return sts
     
     def execute(self):
         """
         Execute single trial processing
         """
-        return self.process_data(self._inA, self._outA)
+        return self._process_data(self._inA, self._outA)
 
-    def process_data(self, input_data, output_data):
+    def _process_data(self, input_data, output_data):
         """
         Process data according to outlined kernel function
         """
-        try:  
-            result = self._tangent_space.transform(input_data.data)
-            if output_data.shape != result.shape:
-                output_data.shape = result.shape
-            output_data.data = result.data
+        
+        if len(input_data.shape) == 2:
+            local_input_data = np.expand_dims(input_data.data,0)
+        else:
+            local_input_data = input_data.data
+            
+        try:
+            result = self._tangent_space.transform(local_input_data)
+            output_data.data = result
         except:
             return BcipEnums.EXE_FAILURE
         
         return BcipEnums.SUCCESS
 
-    def initilization_execution(self):
-        """
-        If downstream nodes are missing training data, this method will call to process the initialization data
-        """
-        sts = self.process_data(self._initialization_data, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
 
     @classmethod
-    def add_tangent_space_kernel(cls, graph, inA, outA, initialization_data, metric = 'riemann', tsupdate = False, sample_weight = None):
+    def add_tangent_space_node(cls, graph, inA, outA, initialization_data = None, metric = 'riemann', tsupdate = False, sample_weight = None):
         """
         Factory method to create a tangent_space_kernel, add it to a node, and add the node to a specified graph
 

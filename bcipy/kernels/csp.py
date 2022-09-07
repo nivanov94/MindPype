@@ -5,7 +5,6 @@ Created on Fri Apr  3 15:03:27 2020
 @author: Nick
 """
 
-from types import NoneType
 from classes.kernel import Kernel
 from classes.node import Node
 from classes.parameter import Parameter
@@ -68,29 +67,21 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Set the filter values
         """
-        sts1, sts2 = BcipEnums.SUCCESS, BcipEnums.SUCCESS
+        sts = BcipEnums.SUCCESS
         if self._initialization_data == None:
             self._initialization_data = self._init_inA
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            sts1 = self.extract_filters()
-            
-
+            sts = self.extract_filters()
         else:
             # kernel contains a reference to a pre-existing MDM object, no
             # need to train here
             self._initialized = True
         
-        if self._init_outA.__class__ != NoneType:
-            sts2 = self.initialization_execution()
+        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+            sts = self.initialization_execution()
         
-        if sts1 != BcipEnums.SUCCESS:
-            return sts1
-        elif sts2 != BcipEnums.SUCCESS:
-            return sts2
-        else:
-            return BcipEnums.SUCCESS
-
+        return sts
     
     def initialization_execution(self):
         """
@@ -100,7 +91,6 @@ class CommonSpatialPatternKernel(Kernel):
         if len(self._init_inA.shape) == 3:
             self._init_outA.shape = (self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2])
             self._init_outA.data = np.zeros((self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2]))
-            print(f"{self._init_outA.shape}")
             #self._init_outA = Tensor.create_from_data( \
             #                                        self.session, 
             #                                        (self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1]), 
@@ -116,7 +106,6 @@ class CommonSpatialPatternKernel(Kernel):
             output_data = np.matmul(self._W.T, input_data)
             self._init_outA.data[i, :, :] = output_data
         
-        print(f"init_out shape: {self._init_outA.shape}")
         return BcipEnums.SUCCESS
 
         #except:

@@ -33,9 +33,7 @@ class EnqueueKernel(Kernel):
     def __init__(self,graph,inA,queue):
         super().__init__('Enqueue',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
-        self._circle_buff = queue
-
-        
+        self._outA = queue
 
         self._labels = None
     
@@ -69,7 +67,7 @@ class EnqueueKernel(Kernel):
         """
         
         # need to make a deep copy of the object to enqueue
-        cpy = self._inA.copy()
+        cpy = self._inA.make_copy()
         self._outA.enqueue(cpy)
             
         return BcipEnums.SUCCESS
