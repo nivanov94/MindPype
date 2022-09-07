@@ -1,10 +1,7 @@
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.bcip_enums import BcipEnums
-from classes.scalar import Scalar
-from classes.tensor import Tensor
-from classes.bcip import BCIP
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
+from ..containers import Scalar
 
 import numpy as np
 
@@ -39,10 +36,16 @@ class AbsoluteKernel(Kernel):
         """
         Initialize the kernel if there is an internal state to initialize, including downstream initialization data
         """
+        sts = BcipEnums.SUCCESS
+
         if self._init_outA != None:
-            return self.initialization_execution()
+            # set the output size, as needed
+            if len(self._init_outA.shape) == 0:
+                self._init_outA.shape = self._init_inA.shape
+
+            sts = _process_data(self._init_inA, self._init_outA)
         
-        return BcipEnums.SUCCESS
+        return sts
         
     
     def verify(self):
@@ -51,17 +54,17 @@ class AbsoluteKernel(Kernel):
         """
         
         # input/output must be a tensor or scalar
-        if not ((isinstance(self._inA,Tensor) and isinstance(self._outA,Tensor)) or \
-                (isinstance(self._inA,Scalar) and isinstance(self._outA,Scalar))):
+        if not ((self._inA._bcip_type == BcipEnums.TENSOR and self._outA._bcip_type == BcipEnums.TENSOR) or 
+                (self._inA._bcip_type == BcipEnums.SCALAR and self._outA._bcip_type == BcipEnums.SCALAR)):
             return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._inA,Tensor):
+        if self._inA._bcip_type == BcipEnums.TENSOR:
             # input tensor must contain some values
             if len(self._inA.shape) == 0:
                 return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._outA,Tensor):
-            if self._outA.virtual() and len(self._outA.shape) == 0:
+        if self._outA._bcip_type == BcipEnums.TENSOR:
+            if self._outA.virtual and len(self._outA.shape) == 0:
                 self._outA.shape = self._inA.shape
 
             if self._outA.shape != self._inA.shape:
@@ -76,22 +79,12 @@ class AbsoluteKernel(Kernel):
 
         return BcipEnums.SUCCESS
     
-    def initialization_execution(self):
-        """
-        Process initialization data
-        """
-        sts = self.process_data(self._init_inA, self._init_outA)
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
-
-    def process_data(self, input_data, output_data):
+    def _process_data(self, input_data, output_data):
         """
         Calculate the absolute value of the input data, and assign it to the output data
         """
         try:
-            if isinstance(input_data, Tensor):
+            if input_data._bcip_type == BcipEnums.TENSOR:
                 output_data.data = np.absolute(input_data.data)
             else:
                 output_data.data = abs(input_data.data)
@@ -104,7 +97,7 @@ class AbsoluteKernel(Kernel):
         """
         Execute the kernel function with the input trial data
         """
-        return self.process_data(self._inA, self._outA)
+        return self._process_data(self._inA, self._outA)
         
     
     @classmethod
