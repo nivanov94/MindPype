@@ -132,9 +132,11 @@ class Scalar(BCIP):
         """
 
         # if the data passed in is a numpy array, check if its a single value
-        if type(data) == np.ndarray and data.shape == (1,):
-            # convert from the np type to native python type
-            data = data[0]
+        if type(data).__module__ == np.__name__:    
+            if type(data) == np.ndarray and data.shape == (1,):
+                # convert from the np type to native python type
+                data = data[0]
+        
             if isinstance(data, np.integer):
                 data = int(data)
             elif isinstance(data, np.float):

@@ -57,52 +57,55 @@ class ClassifierKernel(Kernel):
             self._initialization_data = self._init_inA
 
         sts = BcipEnums.SUCCESS
-
-        sts = self.train_classifier()
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
-            sts = self.initialization_execution()
         
-        return sts        
-
-    def train_classifier(self):
-        # Setting temporary variables so initialization data not modified between kernels
-        temp_labels, temp_tensor = self._labels.data, self._initialization_data.data
+        if ((self._initialization_data._bcip_type != BcipEnums.TENSOR and 
+             self._initialization_data._bcip_tpe != BcipEnums.ARRAY and
+             self._initialization_data.bcip_type != BcipEnums.CIRCLE_BUFFER) or
+            (self._labels._bcip_type != BcipEnums.TENSOR and 
+             self._labels._bcip_type != BcipEnums.ARRAY and
+             self._labels.bcip_type != BcipEnums.CIRCLE_BUFFER)):
+            return BcipEnums.INITIALIZATION_FAILURE
         
-        if ((not (isinstance(self._initialization_data,Tensor) or 
-            isinstance(self._initialization_data, Array))) or 
-            (not isinstance(self._labels,Tensor) or 
-            isinstance(self._labels, Array))):
-                return BcipEnums.INITIALIZATION_FAILURE
-        
-        # ensure the shpaes are valid
-        if len(self._initialization_data.shape) == 3:
-            temp_tensor = self._initialization_data.data
-            index1, index2, index3 = self._initialization_data.shape
-            temp_tensor = np.reshape(temp_tensor, (index1, index2 * index3))
-
-        if len(self._labels.shape) == 2:
-            temp_labels = np.squeeze(self._labels.data)
+        # if data or labels are in an array, extract them to a tensor
+        if self._initialization_data._bcip_type == BcipEnums.TENSOR:
+            local_init_data = self._initialization_data.data
         else:
-            temp_labels = self._labels.data
+            local_init_tensor = self._initialization_data.to_tensor()
+            local_init_data = local_init_tensor.data
 
-        if (len(temp_tensor.shape) != 2 or len(temp_labels.shape) != 1):
+        if self._labels._bcip_type == BcipEnums.TENSOR:
+            local_init_labels = self._labels.data
+        else:
+            local_init_labels = self._labels.to_tensor().data
+        
+        # ensure the shapes are valid
+        if len(local_init_data.shape) == 3:
+            index1, index2, index3 = local_init_data.shape
+            local_init_data = np.reshape(local_init_data, (index1, index2 * index3))
+
+        if len(local_init_labels.shape) == 2:
+            local_init_labels = np.squeeze(local_init_labels)
+
+
+        if (len(local_init_data.shape) != 2 or len(local_init_labels.shape) != 1):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if temp_tensor.shape[0] != temp_labels.shape[0]:
+        if local_init_data.shape[0] != local_init_labels.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
 
-        #print(self._initialization_data.shape, self._labels.shape)
-        #print(self._initialization_data.data)
-        #all_zeros = not np.any(self._initialization_data.data)
-        #print(all_zeros)
+
         try:
-            self._classifier._classifier.fit(temp_tensor, temp_labels)
+            self._classifier._classifier.fit(local_init_data, local_init_labels)
         except:
             return BcipEnums.INITIALIZATION_FAILURE
 
         self._initialized = True
-        return BcipEnums.SUCCESS
-
+        
+        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+            sts = self._process_data(local_init_tensor, self._init_outA)
+        
+        return sts
+        
 
     def verify(self):
         """similar verification process to individual classifier kernels"""
@@ -129,22 +132,10 @@ class ClassifierKernel(Kernel):
             temp_input = np.reshape(self._inA.data, (1, self._inA.shape[0]*self._inA.shape[1]))
             temp_tensor = Tensor.create_from_data(self._session, np.shape(temp_input), temp_input)
         
-        return self.process_data(temp_tensor, self._outA)
+        return self._process_data(temp_tensor, self._outA)
 
 
-    def initialization_execution(self):
-        """
-        Process initialization data. Called if downstream nodes are missing training data
-        """
-
-        sts = self.process_data(self._init_inA, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
-
-    def process_data(self, input_data, output_data):
+    def _process_data(self, input_data, output_data):
         """
         Process data according to outlined kernel function
         """
@@ -162,7 +153,7 @@ class ClassifierKernel(Kernel):
 
 
     @classmethod
-    def add_classifier_node(cls, graph, inA, classifier, outA, initialization_data, labels):
+    def add_classifier_node(cls, graph, inA, classifier, outA, initialization_data = None, labels = None):
         """
         Factory method to create a classifier kernel and add it to a graph as a generic node object
         

@@ -8,6 +8,10 @@ Array.py - Defines class of array objects that contain other BCIP objects
 
 from .bcip import BCIP
 from .bcip_enums import BcipEnums
+from .tensor import Tensor
+from .scalar import Scalar
+
+import numpy as np
 
 class Array(BCIP):
     """
@@ -190,6 +194,28 @@ class Array(BCIP):
                 return sts
         
         return BcipEnums.SUCCESS
+
+    def to_tensor(self):
+        """
+        Stack the elements of the array into a Tensor object.
+        """
+        element = self.get_element(0)
+
+        if not (element._bcip_type == BcipEnums.TENSOR or
+                (element._bcip_type == BcipEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
+            return None
+
+        # extract elements and stack into numpy array
+        elements = [self.get_element(i).data for i in range(self.capacity)]
+        stacked_elements = np.stack(elements)
+        
+        if element._bcip_type == BcipEnums.TENSOR:
+            shape = (self.capacity,) + element.shape
+        else:
+            shape = (self.capacity,)
+
+        # create tensor
+        return Tensor.create_from_data(self._session,shape,stacked_elements)
     
     # API constructor
     @classmethod
