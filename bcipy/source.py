@@ -658,4 +658,3 @@ class LSLStream(BCIP):
         sess.add_ext_src(src)
         
         return src
->>>>>>> module_rearrange:bcipy/source.py
