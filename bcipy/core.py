@@ -39,19 +39,19 @@ class BcipEnums(IntEnum):
     """
 
     # Object Type Enums - Have a leading '1'
-    BCIP    = 100
-    SESSION = 101
-    BLOCK   = 102
-    GRAPH   = 103
-    NODE    = 104
-    KERNEL  = 105
-    PARAMETER = 106
-    TENSOR  = 107
-    SCALAR  = 108
-    ARRAY   = 109
-    FILTER  = 110
-    SRC     = 111
-    CLASSIFIER = 112
+    BCIP          = 100
+    SESSION       = 101
+    GRAPH         = 102
+    NODE          = 103
+    KERNEL        = 104
+    PARAMETER     = 105
+    TENSOR        = 106
+    SCALAR        = 107
+    ARRAY         = 108
+    CIRCLE_BUFFER = 109
+    FILTER        = 110
+    SRC           = 111
+    CLASSIFIER    = 112
     
     # Status Codes - Leading '2'
     SUCCESS = 200

@@ -20,3 +20,5 @@ from .filters import (FilterKernel, FiltFiltKernel)
 
 from .datamgmt import (SetKernel, StackKernel, TensorStackKernel, 
                        ExtractKernel, EnqueueKernel, ConcatenationKernel)
+
+from .classifier import ClassifierKernel
