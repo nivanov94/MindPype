@@ -1,14 +1,8 @@
-# -*- coding: utf-8 -*-
 """
-Created on Wed Dec  4 10:31:35 2019
-
-sources.py - Defines classes for getting data generated outside of BCIP
-
 Currently supported sources:
     - Lab Streaming Layer
     - mat files
 
-@author: Nicolas Ivanov, Aaron Lio
 """
 
 # TODO: Enhance file based classes to enable bulk read (i.e. multiple trial)
