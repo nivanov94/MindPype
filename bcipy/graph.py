@@ -29,9 +29,6 @@ class Graph(BCIP):
     _verified : bool
         - True is graph has been verified, false otherwise
 
-    _missing_data : bool
-        - True if any nodes within the graph are missing initialization data, false otherwise
-
     _sess : Session object
         - Session where the Graph object exists
 
@@ -55,7 +52,6 @@ class Graph(BCIP):
         self._nodes = []
         self.initialization_edges = []
         self._verified = False
-        self._missing_data = False
         self._sess = sess
         self._volatile_sources = []
         
@@ -197,22 +193,26 @@ class Graph(BCIP):
         
         
         # now all the nodes are in execution order, validate each node
+        missing_data = False # flag to indicate if any nodes are missing init data connections
         for n in self._nodes:
             valid = n.verify()
-            
-            if hasattr(n._kernel, "_initialization_data"):
-                if n._kernel._initialization_data == None:
-                    self._missing_data = True
-                    
             if valid != BcipEnums.SUCCESS:
                 print("Node {} failed verification".format(n.kernel.name))
-                return valid
-        
-        if self._missing_data:         
+                return valid           
+
+            # check for missing init data
+            if n._kernel.init_style == BcipEnums.INIT_FROM_DATA:
+                if (n._kernel._init_inA == None or # TODO replace with a kernel method
+                    (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None)):
+                    missing_data = True
+
+        # fill in missing init data links
+        if missing_data:         
             for n in self._nodes:
-                if hasattr(n._kernel, "_initialization_data"):
-                    if n._kernel._initialization_data == None:
-                        
+                if n._kernel.init_style == BcipEnums.INIT_FROM_DATA:
+                    if (n._kernel._init_inA == None or # TODO replace with a kernel method
+                        (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None)):
+
                         sts = self.fill_initialization_links(n, edges)
                         if sts != BcipEnums.SUCCESS:
                             return BcipEnums.INVALID_GRAPH
@@ -247,7 +247,7 @@ class Graph(BCIP):
             try:
                 producer = edges[n_i.session_id].producers[0]
             except:
-                continue
+                continue # TODO resolve this??
             # TODO: need to more robustly identify the correct initialization output
             # may require modification of the node/parameter data structures.
 
@@ -258,20 +258,9 @@ class Graph(BCIP):
                     
                     n._kernel._init_inB = producer._kernel._init_outA
 
-                    if hasattr(n._kernel, "_labels"): 
-                        if n._kernel._labels == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._labels = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._labels = producer._kernel._init_params['labels']
+                    if n._kernel._labels == None:
+                        n._kernel._labels = producer._kernel._labels
 
-                    elif hasattr(n._kernel, "_init_params"):
-                        if n._kernel._init_params['labels'] == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._init_params['labels'] = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
-                
                 if (not hasattr(n._kernel, "_init_inB")) and n._kernel._init_inA != None:
                     return BcipEnums.INVALID_GRAPH
 
@@ -279,19 +268,9 @@ class Graph(BCIP):
 
                     n._kernel._init_inA = producer._kernel._init_outA
                     
-                    if hasattr(n._kernel, "_labels"): 
-                        if n._kernel._labels == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._labels = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._labels = producer._kernel._init_params['labels']
+                    if n._kernel._labels == None:
+                        n._kernel._labels = producer._kernel._labels
 
-                    elif hasattr(n._kernel, "_init_params"):
-                        if n._kernel._init_params['labels'] == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._init_params['labels'] = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
             else:
                 producer._kernel._init_outA = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
                 
@@ -300,43 +279,19 @@ class Graph(BCIP):
                         return BcipEnums.INVALID_GRAPH
                     n._kernel._init_inB = producer._kernel._init_outA
 
-                    if hasattr(n._kernel, "_labels"): 
-                        if n._kernel._labels == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._labels = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._labels = producer._kernel._init_params['labels']
+                    if n._kernel._labels == None:
+                        n._kernel._labels = producer._kernel._labels
 
-                    elif hasattr(n._kernel, "_init_params"):
-                        if n._kernel._init_params['labels'] == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._init_params['labels'] = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
-                
                 else:
                     n._kernel._init_inA = producer._kernel._init_outA
                     
-                    if hasattr(n._kernel, "_labels"): 
-                        if n._kernel._labels == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._labels = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._labels = producer._kernel._init_params['labels']
+                    if n._kernel._labels == None:
+                        n._kernel._labels = producer._kernel._labels
 
-                    elif hasattr(n._kernel, "_init_params"):
-                        if n._kernel._init_params['labels'] == None:
-                            if hasattr(producer._kernel, "_labels"):
-                                n._kernel._init_params['labels'] = producer._kernel._labels
-                            elif hasattr(producer._kernel, "_init_params"):
-                                n._kernel._init_params['labels'] = producer._kernel._init_params['labels']
-                    
-            
             # recurse process on up-stream nodes
             if producer._kernel._init_inA == None:
-                if (not hasattr(producer._kernel,"_initialization_data") or 
-                    (hasattr(producer._kernel,"_initialization_data") and 
-                     producer._kernel._initialization_data == None)):
+                if (producer._kernel._init_inA == None or # TODO kernel method
+                    (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None)):
                     sts = self.fill_initialization_links(producer, edges)
         
         return BcipEnums.SUCCESS

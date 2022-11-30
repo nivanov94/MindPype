@@ -1,14 +1,7 @@
-"""
-Created on Mon Dec  9 16:15:12 2019
-
-@author: ivanovn
-"""
-
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.tensor import Tensor
-from classes.bcip_enums import BcipEnums
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
+from ..containers import Scalar
 
 import numpy as np
 
@@ -48,8 +41,6 @@ class RiemannMeanKernel(Kernel):
         self._init_outA = None
         
         self._w = weights
-    
-        
 
         self._labels = None
     
@@ -57,22 +48,20 @@ class RiemannMeanKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
+        sts = BcipEnums.SUCCESS
+
         if self._init_outA != None:
-            return self.initialization_execution()
+            # update output size, as needed
+            if len(self._init_outA.shape) == 0:
+                self._init_outA.shape = self._init_inA.shape[-2:] # TODO what are the expected inputs? will we ever compute more than one mean here?
+
+            sts = self._process_data(self._init_inA, self._init_outA)
         
         return BcipEnums.SUCCESS
         
-    def initialization_execution(self):
-        sts = self.process_data(self._init_inA, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
 
-    def process_data(self, input_data, output_data):
+    def _process_data(self, input_data, output_data):
         output_data.data = mean_riemann(input_data.data,sample_weight=self._w)
-        
         return BcipEnums.SUCCESS
 
     def verify(self):
@@ -81,9 +70,9 @@ class RiemannMeanKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if ((not isinstance(self._inA,Tensor)) or 
-            (not isinstance(self._outA,Tensor))):
-                return BcipEnums.INVALID_PARAMETERS
+        if (self._inA._bcip_type != BcipEnums.TENSOR or 
+            self._outA._bcip_type != BcipEnums.TENSOR):
+            return BcipEnums.INVALID_PARAMETERS
         
         input_shape = self._inA.shape
         input_rank = len(input_shape)
@@ -120,7 +109,7 @@ class RiemannMeanKernel(Kernel):
         """
         
         # calculate the mean using pyRiemann
-        return self.process_data(self._inA, self._outA)
+        return self._process_data(self._inA, self._outA)
     
     @classmethod
     def add_riemann_mean_node(cls,graph,inA,outA,weights=None):

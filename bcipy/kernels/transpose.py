@@ -1,16 +1,6 @@
-"""
-Created on Thu Nov 20 18:20:03 2019
-
-Transpose.py - Define the transpose kernel for BCIP
-
-@author: ivanovn
-"""
-
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.tensor import Tensor
-from classes.bcip_enums import BcipEnums
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
 
 import numpy as np
 
@@ -42,18 +32,49 @@ class TransposeKernel(Kernel):
 
         self._init_inA = None
         self._init_outA = None
-        
 
         self._labels = None
     
+
+    def _compute_output_shape(self, inA, axes):
+        # check the shape
+        input_shape = inA.shape
+        input_rank = len(input_shape)
+        
+        # determine what the output shape should be
+        if input_rank == 0:
+            return ()
+
+        if axes == None:
+            output_shape = reversed(input_shape)
+        else:
+            output_shape = input_shape[self._axes]
+
+        return tuple(output_shape)
+
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
-        if self._init_outA != None:
-            return self.initialization_execution()
+        sts = BcipEnums.SUCCESS
         
-        return BcipEnums.SUCCESS
+        if self._init_outA != None:
+            
+            if len(self._init_outA.shape) == 0:
+                if self._axes == None:
+                    init_axes = [_ for _ in range(len(self._init_inA.shape))]
+                    init_axes[-2:] = [init_axes[-1], init_axes[-2]]
+                elif len(self._init_inA)+1 == len(self._axes):
+                    init_axes = [0] + [a+1 for a in self._axes]
+                else:
+                    init_axes = self._axes
+                    
+                self._init_outA.shape = self._compute_output_shape(self._init_inA, init_axes)
+            
+            sts = self._process_data(self._init_inA, self._init_outA)
+        
+        return sts
+
     
     def verify(self):
         """
@@ -61,24 +82,24 @@ class TransposeKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (not isinstance(self._inputA,Tensor)) or \
-            (not isinstance(self._outputA,Tensor)) or \
-            (self._axes != None and ((not isinstance(self._axes,tuple)) or \
-            (len(self._axes) != len(self._inputA.shape)))):
+        for param in (self._inA, self._outA):
+            if param._bcip_type != BcipEnums.TENSOR:
                 return BcipEnums.INVALID_PARAMETERS
+
+        # check axes
+        if (self._axes != None and
+            len(self._axes) != len(self._inputA.shape)):
+            return BcipEnums.INVALID_PARAMETERS
         
         # check the shape
         input_shape = self._inputA.shape
         input_rank = len(input_shape)
         
-        # determine what the output shape should be
-        if input_rank == 0:
+        if self._axes == None and input_rank != 2:
             return BcipEnums.INVALID_PARAMETERS
-        
-        if self._axes == None:
-            output_shape = reversed(input_shape)
-        else:
-            output_shape = input_shape[self._axes]
+
+        # determine what the output shape should be
+        output_shape = self._compute_output_shape(self._inA, self._axes)
                
         # if the output is virtual and has no defined shape, set the shape now
         if self._outputA.virtual and len(self._outputA.shape) == 0:
@@ -90,18 +111,7 @@ class TransposeKernel(Kernel):
         else:
             return BcipEnums.SUCCESS
 
-    def initialization_execution(self):
-        """
-        Process initialization data. Called when downstream nodes are missing training data
-        """
-        sts = self.process_data(self._init_inA, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
-    
-    def process_data(self, input_data, output_data):
+    def _process_data(self, input_data, output_data):
         """
         Process data according to outlined kernel function
         """
@@ -113,8 +123,7 @@ class TransposeKernel(Kernel):
         """
         Execute the kernel function using the numpy transpose function
         """
-        
-        return self.process_data(self._inputA, self._outputA)
+        return self._process_data(self._inputA, self._outputA)
 
 
     @classmethod
@@ -144,7 +153,7 @@ class TransposeKernel(Kernel):
         k = cls(graph,inputA,outputA,axes)
         
         # create parameter objects for the input and output
-        params = (Parameter(inputA,BcipEnums.INPUT), \
+        params = (Parameter(inputA,BcipEnums.INPUT),
                   Parameter(outputA,BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object

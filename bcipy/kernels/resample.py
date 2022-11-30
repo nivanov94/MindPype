@@ -1,14 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Sep  6 21:52:23 2022
-
-@author: Nicolas Ivnanov
-"""
-
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.bcip_enums import BcipEnums
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
 
 from scipy import signal
 
@@ -53,9 +45,11 @@ class ResampleKernel(Kernel):
         sts = BcipEnums.SUCCESS
         
         if self._init_outA != None:
-            output_shape = list(self._init_inA.shape)
-            output_shape[self._axis] = int(output_shape[self._axis] * self._factor)
-            self._init_outA.shape = output_shape
+            # set the output size, as needed
+            if len(self._init_outA.shape) == 0:
+                output_shape = list(self._init_inA.shape)
+                output_shape[self._axis] = int(output_shape[self._axis] * self._factor)
+                self._init_outA.shape = output_shape
             
             sts = self._process_data(self._init_inA, self._init_outA)
         

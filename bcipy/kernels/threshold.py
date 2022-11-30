@@ -1,10 +1,7 @@
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.bcip_enums import BcipEnums
-from classes.tensor import Tensor
-from classes.bcip import BCIP
-from classes.scalar import Scalar
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
+from ..containers import Scalar
 
 import numpy as np
 
@@ -39,67 +36,63 @@ class ThresholdKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
         
-
         self._labels = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
+        sts = BcipEnums.SUCCESS
+
         if self._init_outA != None:
-            return self.initialization_execution()
+            # set the output size, as needed
+            if len(self._init_outA.shape) == 0:
+                self._init_outA.shape = self._init_inA.shape
+
+            sts = self._process_data(self._init_inA, self._init_outA)
         
-        return BcipEnums.SUCCESS
-    
+        return sts
+        
     def verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
-        
+
         # input/output must be a tensor or scalar
-        if not ((isinstance(self._in,Tensor) and isinstance(self._out,Tensor)) or \
-                (isinstance(self._in,Scalar) and isinstance(self._out,Scalar))):
+        if not ((self._inA._bcip_type == BcipEnums.TENSOR and self._outA._bcip_type == BcipEnums.TENSOR) or 
+                (self._inA._bcip_type == BcipEnums.SCALAR and self._outA._bcip_type == BcipEnums.SCALAR)):
             return BcipEnums.INVALID_PARAMETERS
 
-        if not isinstance(self._thresh,Scalar):
+        if self._inA._bcip_type == BcipEnums.TENSOR:
+            # input tensor must contain some values
+            if len(self._inA.shape) == 0:
+                return BcipEnums.INVALID_PARAMETERS
+
+        if self._thresh._bcip_type != BcipEnums.SCALAR:
             return BcipEnums.INVALID_PARAMETERS
 
         if not self._thresh.data_type in Scalar.valid_numeric_types():
             return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._in,Tensor):
-            # input tensor must contain some values
-            if len(self._in.shape) == 0:
-                return BcipEnums.INVALID_PARAMETERS
 
-        if isinstance(self._out,Tensor):
-            if self._out.virtual() and len(self._out.shape) == 0:
-                self._out.shape = self._in.shape
+        if self._outA._bcip_type == BcipEnums.TENSOR:
+            if self._outA.virtual and len(self._outA.shape) == 0:
+                self._outA.shape = self._inA.shape
 
-            if self._out.shape != self._in.shape:
+            if self._outA.shape != self._inA.shape:
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
-            if not (self._in.data_type in Scalar.valid_numeric_types()):
+            if not (self._inA.data_type in Scalar.valid_numeric_types()):
                 return BcipEnums.INVALID_PARAMETERS
 
-            if self._out.data_type != bool and self._out.data_type != int:
+            if self._outA.data_type != self._inA.data_type:
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
 
-    def initialization_execution(self):
-        """
-        Process initialization data if downstream nodes are missing training data
-        """
-        sts = self.process_data(self._init_inA, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
 
-    def process_data(self, input_data, output_data):
+    def _process_data(self, input_data, output_data):
         """
         Process data according to outlined kernel method
         """
@@ -122,8 +115,7 @@ class ThresholdKernel(Kernel):
         """
         Execute the kernel function using numpy function
         """
-        
-        return self.process_data(self._inA, self._inB, self._outA)
+        return self._process_data(self._inA, self._inB, self._outA)
     
     @classmethod
     def add_threshold_node(cls,graph,inA,outA,thresh):

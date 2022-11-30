@@ -1,10 +1,7 @@
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.array import Array
-from classes.bcip_enums import BcipEnums
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
+from ..containers import Scalar
 
 import numpy as np
 
@@ -42,53 +39,42 @@ class RiemannDistanceKernel(Kernel):
         self._init_inA = None
         self._init_inB = None
         self._init_outA = None
-        
-        
 
         self._labels = None
     
     def initialize(self):
         """
         This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data
+        
         """
+
+        sts = BcipEnums.SUCCESS
+
         if self._init_outA != None:
-            return self.initialization_execution()
+            # update output size, as needed
+            if len(self._init_outA.shape) == 0:
+                output_sz = self._compute_output_shape(self._init_inA, self._init_inB)
+                self._init_outA.shape = output_sz
+
+            sts = self._process_data(self._init_inA, self._init_inB, self._init_outA)
         
-        return BcipEnums.SUCCESS
+        return sts
         
-    
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized and typed
-        """
-        
-        # first ensure the input and output are tensors or Arrays of Tensors
-        if (not isinstance(self._inA,Tensor)) and \
-            (not isinstance(self._inA,Array)):
-                return BcipEnums.INVALID_PARAMETERS
-        
-        if (not isinstance(self._inB,Tensor)) and \
-            (not isinstance(self._inB,Array)):
-                return BcipEnums.INVALID_PARAMETERS
-        
-        if (not isinstance(self._outA,Tensor)) and \
-            (not isinstance(self._outA,Array)):
-                return BcipEnums.INVALID_PARAMETERS
-        
+    def _compute_output_shape(self, inA, inB):
         out_sz = []
         mat_sz = None
-        for param in (self._inA,self._inB):
-            if isinstance(param,Tensor):
+        for param in (inA,inB):
+            if param._bcip_type == BcipEnums.TENSOR:
                 # ensure it is 3D or 2D
                 param_rank = len(param.shape)
                 if param_rank != 2 and param_rank != 3:
                     print("Both inputs must be either 2D or 3D")
-                    return BcipEnums.INVALID_PARAMETERS
+                    return ()
                 
                 if mat_sz == None:
                     mat_sz = param.shape[-2:]
                 elif param.shape[-2:] != mat_sz:
-                    return BcipEnums.INVALID_PARAMETERS
+                    return ()
                 
                 if param_rank == 3:
                     out_sz.append(param.shape[0])
@@ -105,12 +91,24 @@ class RiemannDistanceKernel(Kernel):
                     if mat_sz == None:
                         mat_sz = e.shape
                     elif mat_sz != e.shape:
-                        return BcipEnums.INVALID_PARAMETERS
+                        return ()
                     
                 out_sz.append(param_rank)
             
+        return tuple(out_sz)
+ 
+    def verify(self):
+        """
+        Verify the inputs and outputs are appropriately sized and typed
+        """
         
-        out_sz = tuple(out_sz)
+        # first ensure the input and output are tensors or Arrays of Tensors
+        for param in (self._inA, self._inB, self._outA):
+            if (param._bcip_type != BcipEnums.TENSOR and
+                param._bcip_type != BcipEnums.ARRAY):
+                return BcipEnums.INVALID_PARAMETERS
+
+        out_sz = self._compute_output_shape(self._inA, self._inB)
         num_combos = out_sz[0]*out_sz[1]
         
         # if the output is a virtual tensor and dimensionless, 
@@ -119,20 +117,20 @@ class RiemannDistanceKernel(Kernel):
             self._outA.shape = out_sz
         
         
-        if isinstance(self._outA,Tensor) and \
-           self._outA.shape != out_sz:
+        if (self._outA._bcip_type != BcipEnums.TENSOR and
+            self._outA.shape != out_sz):
             return BcipEnums.INVALID_PARAMETERS
-        elif isinstance(self._outA,Array):
+        elif self._outA._bcip_type == BcipEnums.ARRAY:
             if self._outA.capacity != num_combos:
                 return BcipEnums.INVALID_PARAMETERS
             
             for i in range(self._outA.capacity):
                 e = self._outA.get_element(i)
-                if not (isinstance(e,Tensor) or isinstance(e,Scalar)) or \
-                (isinstance(e,Tensor) and e.shape != (1,1)) or \
-                (isinstance(e,Scalar) and e.data_type != float):
+                if ((e._bcip_type != BcipEnums.TENSOR and
+                     e._bcip_type != BcipEnums.SCALAR) or 
+                    (e._bcip_type == BcipEnums.TENSOR and e.shape != (1,1)) or
+                    (e._bcip_type == BcipEnums.SCALAR and e.data_type != float)):
                     return BcipEnums.INVALID_PARAMETERS
-                
   
         return BcipEnums.SUCCESS
 
@@ -147,12 +145,12 @@ class RiemannDistanceKernel(Kernel):
         
         return sts
         
-    def process_data(self, input_data1, input_data2, output_data1):
+    def _process_data(self, inputA, inputB, outputA):
         """
         Execute the kernel and calculate the mean
         """
         def get_obj_data_at_index(obj,index,rank):
-            if isinstance(obj,Tensor):
+            if obj._bcip_type == BcipEnums.TENSOR:
                 if rank == 1 and len(obj.shape) == 2:
                     return obj.data
                 else:
@@ -161,20 +159,20 @@ class RiemannDistanceKernel(Kernel):
                 return obj.get_element(index).data
             
         def set_obj_data_at_index(obj,index,data):
-            if isinstance(obj,Tensor):
+            if obj._bcip_type == BcipEnums.TENSOR:
                 tensor_data = obj.data # need to extract and edit numpy array b/c tensor currently does not allow sliced modifications
                 tensor_data[index] = data
                 obj.data = tensor_data
             else:
                 e = obj.get_element(index[0]*index[1])
-                if isinstance(e,Tensor):
+                if e._bcip_type == BcipEnums.TENSOR:
                     e.data = np.asarray([[data]])
                 else:
                     e.data = data
         
         out_sz = []
-        for in_param in (self._inA,self._inB):
-            if isinstance(in_param,Tensor):
+        for in_param in (inputA,inputB):
+            if in_param._bcip_type == BcipEnums.TENSOR:
                 if len(in_param.shape) == 3:
                     m = in_param.shape[0]
                 else:
@@ -187,14 +185,14 @@ class RiemannDistanceKernel(Kernel):
         
         for i in range(out_sz[0]):
             # extract the ith element from inA
-            x = get_obj_data_at_index(input_data1,i,out_sz[0])
+            x = get_obj_data_at_index(inputA,i,out_sz[0])
             
             for j in range(out_sz[1]):
                 # extract the jth element from inB
-                y = get_obj_data_at_index(input_data2,j,out_sz[1])
+                y = get_obj_data_at_index(inputB,j,out_sz[1])
                 
                 try:
-                    set_obj_data_at_index(output_data1,(i,j),
+                    set_obj_data_at_index(outputA,(i,j),
                                           distance_riemann(x,y))
                 
                 except:

@@ -1,21 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr  3 15:03:27 2020
-
-@author: Nick
-"""
-
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.tensor import Tensor
-from classes.array import Array
-from classes.bcip_enums import BcipEnums
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
 from .utils.data_extraction import extract_nested_data
 
 import numpy as np
 import pyriemann
-import scipy
+from scipy.linalg import eigh
+from scipy.special import binom
+from itertools import combinations as iter_combs
 
 
 class CommonSpatialPatternKernel(Kernel):
@@ -35,7 +27,7 @@ class CommonSpatialPatternKernel(Kernel):
     
     def __init__(self,graph,inA,outA,
                  init_style,init_params,
-                 num_filts):
+                 num_filts,multi_class_mode='OVA'):
         """
         Kernel applies a set of common spatial pattern filters to tensor of covariance matrices
         """
@@ -45,13 +37,20 @@ class CommonSpatialPatternKernel(Kernel):
         
         self._num_filts = num_filts
         self._init_params = init_params
+        self.multi_class_mode = multi_class_mode
 
-        self._init_inA = init_params['initialization_data']
+        if 'initialization_data' in init_params:
+            self._init_inA = init_params['initialization_data']
+        else:
+            self._init_inA = None
+
+        if 'labels' in init_params:
+            self._labels = init_params['labels']
+        else:
+            self._labels = None
+
         self._init_outA = None
         
-        self._initialization_data = self._init_params['initialization_data']
-
-
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
             self._initialized = False
@@ -68,82 +67,59 @@ class CommonSpatialPatternKernel(Kernel):
         Set the filter values
         """
         sts = BcipEnums.SUCCESS
-        if self._initialization_data == None:
-            self._initialization_data = self._init_inA
         
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            sts = self.extract_filters()
-        else:
-            # kernel contains a reference to a pre-existing MDM object, no
-            # need to train here
-            self._initialized = True
+            self._initialized = False # clear initialized flag
+            sts = self._compute_filters()
         
+        # compute init output
         if sts == BcipEnums.SUCCESS and self._init_outA != None:
-            sts = self.initialization_execution()
+            # adjust the shape of init output tensor
+            if len(self._init_inA.shape) == 3:
+                self._init_outA.shape = (self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2])
+ 
+            sts = self._process_data(self._init_inA, self._init_outA)
+
+        if sts == BcipEnums.SUCCESS:
+            self._initialized = True
         
         return sts
     
-    def initialization_execution(self):
-        """
-        Process initialization data. Called if downstream nodes are missing training data
-        """
 
-        if len(self._init_inA.shape) == 3:
-            self._init_outA.shape = (self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2])
-            self._init_outA.data = np.zeros((self._init_inA.shape[0], self._W.shape[1], self._init_inA.shape[2]))
-            #self._init_outA = Tensor.create_from_data( \
-            #                                        self.session, 
-            #                                        (self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1]), 
-            #                                        np.zeros((self._init_inA.shape[0], self._init_inA.shape[1], self._W.shape[1])))
-            
-        #try:   
-        for i in range(self._init_inA.shape[0]):
-            input_data = np.array(self._init_inA.data[i,:,:])
-
-            if len(np.shape(input_data)) == 3:
-                input_data = np.squeeze(input_data)
-
-            output_data = np.matmul(self._W.T, input_data)
-            self._init_outA.data[i, :, :] = output_data
-        
-        return BcipEnums.SUCCESS
-
-        #except:
-        #    return BcipEnums.INITIALIZATION_FAILURE
-        
-
-    def process_data(self, input_data, output_data):
+    def _process_data(self, input_data, output_data):
         """
         Process input data according to outlined kernel function
         """
-        output_data.shape = (self._W.shape[1], input_data.shape[1])
-        output_data.data = np.matmul(self._W.T, input_data.data) 
 
-        return BcipEnums.SUCCESS
+        try:
+            output_data.data = np.matmul(self._W.T, input_data.data) 
+            return BcipEnums.SUCCESS
+        except:
+            return BcipEnums.EXE_FAILURE
 
 
-    def extract_filters(self):
+    def _compute_filters(self):
         """
-        Determine the filter values using the training data
+        Compute CSP filters
         """
 
-        if (not (isinstance(self._initialization_data,Tensor) or 
-                 isinstance(self._initialization_data,Array)) or 
-            not isinstance(self._init_params['labels'],Tensor)):
-                return BcipEnums.INITIALIZATION_FAILURE
+        if (self._init_inA._bcip_type != BcipEnums.TENSOR or 
+            self._init_inA._bcip_type != BcipEnums.ARRAY or
+            self._labels._bcip_type != BcipEnums.TENSOR):
+            return BcipEnums.INITIALIZATION_FAILURE
         
         if isinstance(self._initialization_data,Tensor): 
-            X = self._initialization_data.data
+            X = self._init_inA.data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._initialization_data)
+                X = extract_nested_data(self._init_inA)
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
             
-        y = self._init_params['labels'].data
+        y = self._labels.data
         
-        # ensure the shpaes are valid
+        # ensure the shapes are valid
         if len(X.shape) == 2:
             X = X[np.newaxis, :, :]
 
@@ -155,24 +131,57 @@ class CommonSpatialPatternKernel(Kernel):
         
         if X.shape[0] != y.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
-        
-        # y must contain 2, and only 2, unique labels
-        labels = np.unique(y)
-        if labels.shape[0] != 2:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        
-        # start by calculating the covariance matrix for each class
+
+        unique_labels = np.unique(y)
+        Nl = unique_labels.shape[0]
+        if Nl == 2:
+            self._W = self._compute_binary_filters(X,y)
+
+        else:
+
+            if self.multi_class_mode not in ('OVA', 'PW'):
+                return BcipEnums.INITIALIZATION_FAILURE
+
+            _, Nc, Ns = X.shape 
+
+            if self.multi_class_mode == 'OVA':
+                # one vs. all
+                self._W = np.zeros((Nl*self.num_filts, Nc))
+
+                for il, l in enumerate(unique_labels):
+                    yl = np.copy(y)
+                    yl[y==l] = 1 # target
+                    yl[y!=l] = 0 # non-target
+                    self._W[il*self.num_filts:(il+1)*self.num_filts, :] = self._compute_binary_filters(X,yl)
+
+            else:
+                # pairwise 
+                Nf = int(binom(Nl,2)) # number of pairs
+                self._W = np.zeros((Nf*self.num_filts,Nc))
+
+                for il, (l1,l2) in enumerate(iter_combs(labels,2)):
+                    # get trials from each label
+                    Xl1 = X[y==l1,:,:]
+                    Xl2 = X[y==l2,:,:]
+
+                    # create feature and label matrices using the current label pair
+                    yl = np.concatenate((l1 * np.ones(Xl1.shape[0],),
+                                         l2 * np.ones(Xl2.shape[0])),
+                                        axis=0)
+                    Xl = np.concatenate((Xl1,Xl2),
+                                        axis=0)
+
+                    self._W[il*self._num_filts:(il+1)*self.num_filts, :] = self.compute_binary_filters(Xl, yl)
+    
+        return BcipEnums.SUCCESS
+
+    def _compute_binary_filters(self, X, y):
+        """
+        Compute binary CSP filters
+        """
         _ , Nc, Ns = X.shape
-        """C = np.zeros((2,Nc,Nc))
-        for i in  range(len(labels)):
-            l = labels[i]
-            X_l = X[y==l,:,:]
-            Nt = X_l.shape[0]
-            X_l = np.transpose(X_l,(1,2,0))
-            X_l = np.reshape(X_l,(Nc,Ns*Nt))
-            C[i,:,:] = np.cov(X_l)"""
-            
+
+        # start by calculating the mean covariance matrix for each class
         C = pyriemann.utils.covariance.covariances(X)
 
         C_bar = np.zeros((2, Nc, Nc))
@@ -184,7 +193,6 @@ class CommonSpatialPatternKernel(Kernel):
         # get the whitening matrix
         d, V = np.linalg.eig(C_total)
         
-        
         # construct the whitening matrix
         P = np.matmul(V, np.diag(d ** (-1/2)))
 
@@ -193,25 +201,20 @@ class CommonSpatialPatternKernel(Kernel):
          # apply the whitening transform to both class covariance matrices
         C1_bar_white = np.matmul(P,np.matmul(C_bar[0,:,:],P.T))
 
-        l, V = scipy.linalg.eigh(C1_bar_white, C_tot_white)
+        l, V = eigh(C1_bar_white, C_tot_white)
 
-        # sort the eigenvalues and eigenvectors in order
+        # sort the eigenvectors in order of eigenvalues
         ix = np.flip(np.argsort(l)) 
-
-        l = l[ix]
         V = V[:,ix]
-        
         
         # extract the specified number of filters
         m = self._num_filts // 2
-        f_ix = [_ for _ in range(m)] + [_ for _ in range(d.shape[0]-1,d.shape[0]-(m+1),-1)]
-        W = V[:,f_ix]
+        W = np.concatenate((V[:,:m], V[:,-m:]), axis=1)
 
-        self._W = np.matmul(P.T,W)
+        # rotate the filters back into the channel space
+        W = np.matmul(P.T,W)
         
-        self._initialized = True
-        
-        return BcipEnums.SUCCESS
+        return W
     
     
     def verify(self):
@@ -220,10 +223,9 @@ class CommonSpatialPatternKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (not isinstance(self._inA,Tensor) or 
-            not (isinstance(self._outA,Tensor))):
+        if (self._inA._bcip_type != BcipEnums.TENSOR or 
+            self._outA._bcip_type != BcipEnums.TENSOR):
             return BcipEnums.INVALID_PARAMETERS
-                
         
         # input tensor should be two- or three-dimensional
         if len(self._inA.shape) != 2 and len(self._inA.shape) != 3:
@@ -233,9 +235,9 @@ class CommonSpatialPatternKernel(Kernel):
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
         if len(self._inA.shape) == 2:
-            out_sz = (self._inA.shape[0],self._num_filts)
+            out_sz = (self._num_filts,self._inA.shape[0])
         else:
-            out_sz = self._inA.shape[0:2] + (self._num_filts,)
+            out_sz =  (self._inA.shape[0], self._num_filts, self._inA.shape[2])
         
         if self._outA.virtual and len(self._outA.shape) == 0:
             self._outA.shape = out_sz
@@ -249,8 +251,7 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Execute the kernel by classifying the input trials
         """
-        #TODO: add
-        return self.process_data(self._inA, self._outA)
+        return self._process_data(self._inA, self._outA)
     
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
@@ -287,7 +288,7 @@ class CommonSpatialPatternKernel(Kernel):
         
         # create the kernel object            
         init_params = {'initialization_data' : initialization_data, 
-                       'labels'        : labels}
+                       'labels'              : labels}
         
         k = cls(graph,inA,outA,BcipEnums.INIT_FROM_DATA,init_params,num_filts)
         

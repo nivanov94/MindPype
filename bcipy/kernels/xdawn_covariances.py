@@ -1,11 +1,3 @@
-"""
-Created on Fri Aug 12 14:53:29 2022
-
-xdawn_covariances.py - Calculates the Xdawn covariances 
-
-@author: aaronlio
-"""
-
 from classes.kernel import Kernel
 from classes.bcip_enums import BcipEnums
 from classes.parameter import Parameter
@@ -63,11 +55,20 @@ class XDawnCovarianceKernel(Kernel):
         self._inA = inA
         self._outA = outA
 
-        self._initialization_data = initialization_data
-        self._labels = labels
-        self._init_inA = None
-        self._init_outA = None
+        self._init_params = initialize_params
 
+        if 'initialization_data' in init_params:
+            self._init_inA = init_params['initialization_data']
+        else:
+            self._init_inA = None
+
+        if 'labels' in init_params:
+            self._labels = init_params['labels']
+        else:
+            self._labels = None
+
+        self._init_outA = None
+ 
         self._xdawn_estimator = XdawnCovariances(num_filters, applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
 
     def verify(self):
@@ -96,15 +97,11 @@ class XDawnCovarianceKernel(Kernel):
 
         sts = BcipEnums.SUCCESS
         
-        # if no initialization data was provided, get in from the upstream node
-        if self._initialization_data == None:
-            self._initialization_data = self._init_inA
-       
         # check if the initialization data is in a Tensor, if not convert it
-        if self._initialization_data._bcip_type != BcipEnums.TENSOR:
-            local_init_tensor = self._initialization_data.to_tensor()
+        if self._init_inA._bcip_type != BcipEnums.TENSOR:
+            local_init_tensor = self._init_inA.to_tensor()
         else:
-            local_init_tensor = self._initialization_data
+            local_init_tensor = self._init_inA
  
         # check if the labels are in a tensor
         if self._labels._bcip_type != BcipEnums.TENSOR:
@@ -118,7 +115,7 @@ class XDawnCovarianceKernel(Kernel):
         try:
             self._xdawn_estimator = self._xdawn_estimator.fit(local_init_tensor.data, local_labels.data)
         except:
-            print("XDawnCovarianceKernel could not be properly fitted. Please check the shape of your initialization data and labels")
+            #print("XDawnCovarianceKernel could not be properly fitted. Please check the shape of your initialization data and labels")
             sts = BcipEnums.INITIALIZATION_FAILURE
         
         if sts == BcipEnums.SUCCESS and self._init_outA != None:

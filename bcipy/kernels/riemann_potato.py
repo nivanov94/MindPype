@@ -1,84 +1,15 @@
-"""
-Created on Fri Jan 17 12:14:43 2020
+from ..core import BCIP, BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
+from .utils.data_extraction import extract_nested_data
 
-@author: ivanovn
-"""
-
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.tensor import Tensor
 from classes.scalar import Scalar
-from classes.array import Array
-from classes.bcip_enums import BcipEnums
 
-from math import exp, log, sqrt
 import numpy as np
-from scipy import signal, linalg, dot
 
-from pyriemann.utils.mean import mean_covariance
-from pyriemann.utils.distance import distance_riemann
+from pyriemann.clustering import Potato
+import numpy as np
 
-# TODO - this may belong within a utils library as it will be used by more than
-# one kernel
-def _filter(filt,X):
-    
-    axis = next((i for i, ex in enumerate(X.shape) if ex != 1))
-
-    if filt.implementation == 'ba':
-        Y = signal.filtfilt(filt.coeffs['b'],
-                            filt.coeffs['a'],
-                            X,
-                            axis=axis)
-    else:
-        Y = signal.sosfiltfilt(filt.coeffs['sos'],
-                               X,
-                               axis=axis)
-    
-    return Y
-
-def _cov(X):
-    return np.cov(X)
-
-def _dist_mean(S, T, stats='arithmetic'):
-    """
-    Calculate the mean distance of covariance matrices within T and the 
-    covariance matrix in S using arithmetic or geometric statistics.
-    """
-    
-    
-    if stats == 'arithmetic':
-        mu = 1/T.shape[0] * sum([distance_riemann(S,T[i,:,:]) 
-                                      for i in range(T.shape[0])])
-    else:
-        mu = exp(1/T.shape[0]*sum([log(distance_riemann(S,T[i,:,:]))
-                                        for i in range(T.shape[0])]))
-
-    return mu
-
-def _dist_std(S, T, stats='arithmetic'):
-    """
-    Calculate the standard deviation of the distance of covariance matrices 
-    within T and the covariance matrix in S
-    using arithmetic or geometric statistics.
-    """
-
-    d = [distance_riemann(S,T[i,:,:]) for i in range(T.shape[0])]
-    mu = _dist_mean(S,T,stats)
-
-    if stats == 'arithmetic':
-        sigma = sqrt(1/T.shape[0] * sum([(di-mu)**2 for di in d]))
-    else:
-        sigma = exp(sqrt(1/T.shape[0] * sum([log(di/mu)**2 for di in d])))
-        
-    return sigma
-
-def _z_score(d,mu,sigma,stats='arithmetic'):
-    if stats == 'arithmetic':
-        return (d - mu) / sigma
-    else:
-        return log(d/mu) / log(sigma)
-    
 
 class RiemannPotatoKernel(Kernel):
     """
@@ -101,260 +32,198 @@ class RiemannPotatoKernel(Kernel):
 
     """
     
-    def __init__(self,graph,inA,out_label,out_score,thresh,update,alpha,
-                 initialization_data,filt,
-                 stats_type,init_stopping_crit,k):
+    def __init__(self,graph,inA,out_label,thresh,max_iter,init_style,
+                 initialization_data):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
-        super().__init__('RiemannPotato',BcipEnums.INIT_FROM_DATA,graph)
+        super().__init__('RiemannPotato',init_style,graph)
         self._inA  = inA
         self._outA = out_label
-        self._out_score = out_score
 
-        self._labels = None
-        
         self._thresh = thresh
-        self._mean = None
-        self._std  = None
-        self._ref  = None
-        self._q = None
-        self.initialization_data = initialization_data
+        self._max_iter = max_iter
         
-        self._filt = filt
-        
-        self._stats_type = stats_type
-        
-        if init_stopping_crit == 'iterative':
-            self._init_stop_mode = 'iterative'
-            self._k = k
+        self._init_params = initialize_params
+
+        if 'initialization_data' in init_params:
+            self._init_inA = init_params['initialization_data']
         else:
-            # do not apply multiple passes. Same as iterative with k=1
-            self._init_stop_mode = 'iterative'
-            self._k = 1
-        
-        if update == 'static':
-            self._alpha = 0
-            self._update = 'static'
-        elif update == 'moving_avg':
-            self._alpha = alpha
-            self._update = 'moving_avg'
+            self._init_inA = None
+
+        if 'labels' in init_params:
+            self._labels = init_params['labels']
         else:
-            self._update = 'cumulative'
-            
-        self._initialized = False
-          
+            self._labels = None
+
+        self._init_outA = None
+ 
+        if init_style == BcipEnums.INIT_FROM_DATA:
+            # model will be trained using data in tensor object at later time
+            self._initialized = False
+            self._potato_filter = None
+        elif init_style == BcipEnums.INIT_FROM_COPY:
+            # model is copy of predefined MDM model object
+            self._pototo_filter = initialize_params['potato_filter']
+            self._initialized = True
+        
     
     def initialize(self):
         """
         Set reference covariance matrix, mean, and standard deviation
         """
+        sts = BcipEnums.SUCCESS
         
-        if (not isinstance(self.initialization_data,Tensor)) and \
-        (not isinstance(self.initialization_data,Array)):
+        if self.init_style == BcipEnums.INIT_FROM_DATA:
+            self._initialized = False # clear initialized flag
+            sts = self._fit_filter()
+
+        # compute init output
+        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+            # adjust the shape of init output tensor
+            if len(self._init_inA.shape) == 3:
+                self._init_outA.shape = (self._init_inA.shape[0],)
+ 
+            sts = self._process_data(self._init_inA, self._init_outA)
+
+        if sts == BcipEnums.SUCCESS:
+            self._initialized = True
+        
+        return sts
+        
+       
+    def _fit_filter(self):
+        """
+        fit the potato filter using the initialization data
+        """
+
+        if (self._init_inA._bcip_type != BcipEnums.TENSOR and
+            self._init_inA._bcip_type != BcipEnums.ARRAY):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self.initialization_data,Tensor):
-            X = self.initialization_data.data
+        if self._init_inA._bcip_type == BcipEnums.TENSOR: 
+            X = self._init_params['initialization_data'].data
         else:
-            X = [self.initialization_data.get_element(i).data 
-                        for i in range(self.initialization_data.capacity)]
-            X = np.stack(X,axis=0)
-        
+            try:
+                # extract the data from a potentially nested array of tensors
+                X = extract_nested_data(self._init_inA)
+            except:
+                return BcipEnums.INITIALIZATION_FAILURE
+            
         if len(X.shape) != 3:
             return BcipEnums.INITIALIZATION_FAILURE
         
-        
-        XXt = np.zeros((X.shape[0],X.shape[1],X.shape[1]))
-        
-        for i in range(X.shape[0]):
-            # filter the data
-            Xfilt = _filter(self._filt,X[i,:,:])
-        
-            # calculate the covariance matrices
-            Xcov = _cov(Xfilt)
-            
-            # regularize the cov mat
-            r = 0.01
-            XXt[i,:,:] = 1/(1+r)*(Xcov + r*np.eye(Xcov.shape[0]))
+        self._potato_filter = Potato(thresh=self._thresh, n_iter_max=self._max_iter)
+        self._potato_filter.fit(X)
 
-        
-        for i in range(self._k):
-            X_clean = []
-            # compute the mean covariance matrix
-            S  = mean_covariance(XXt)
-            mu = _dist_mean(S,XXt,self._stats_type)
-            sigma = _dist_std(S,XXt,self._stats_type)
-                
-            self._q = XXt
-            
-            for j in range(XXt.shape[0]):
-                if _z_score(distance_riemann(XXt[j,:,:], S),
-                                mu,sigma,self._stats_type) < self._thresh:
-                    X_clean.append(XXt[j,:,:])
-            
-            if len(X_clean) == XXt.shape[0]:
-                break
-            
-            XXt = np.stack(X_clean)
-            
-        self._ref = S
-        self._mean = mu
-        self._std = sigma
-        
-        self._initialized = True
         return BcipEnums.SUCCESS
-        
-    
+
     
     def verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
-        
         # first ensure the input is a tensor
-        if not isinstance(self._inA,Tensor):
+        if self._inA._bcip_type != BcipEnums.TENSOR:
             return BcipEnums.INVALID_PARAMETERS
+
+        # ensure the output is a tensor or scalar
+        if (self._outA._bcip_type != BcipEnums.TENSOR and
+            self._outA._bcip_type != BcipEnums.SCALAR):
+            return BcipEnums.INVALID_PARAMETERS
+
+        # check thresh and max iterations
+        if thresh < 0 or max_iterations < 0:
+            return BcipEnums.INVALID_PARAMETERS
+
+        # check in/out dimensions        
+        input_shape = self._inA.shape
+        input_rank = len(input_shape)
         
-        input_rank = len(self._inA.shape)
+        # input tensor should not be greater than rank 3
         if input_rank > 3 or input_rank < 2:
             return BcipEnums.INVALID_PARAMETERS
         
-        if input_rank == 3:
-            output_sz = self._inA.shape[0]
-        else:
-            output_sz = 1
+        # if the output is a virtual tensor and dimensionless, 
+        # add the dimensions now
+        if (self._outA._bcip_type == BcipEnums.TENSOR and 
+            self._outA.virtual and
+            len(self._outA.shape) == 0):
+            if input_rank == 2:
+                self._outA.shape = (1,)
+            else:
+                self._outA.shape = (input_shape[0],)
         
-        
-        for output in (self._outA,self._out_score):
-            if output == None:
-                continue
-            
-            if not (isinstance(output,Tensor)
-                or (isinstance(output,Scalar))):
-            
-                return BcipEnums.INVALID_PARAMETERS
-            
-            if isinstance(output,Tensor):
-                
-                if output.virtual and len(output.shape) == 0:
-                    output.shape = (output_sz,1)
-            
-                if output.shape != (output_sz,1):
+        # check for dimensional alignment
+        if self._outA._bcip_type == BcipEnums.SCALAR:
+            # input tensor should only be a single trial
+            if len(self._inA.shape) == 3:
+                # first dimension must be equal to one
+                if self._inA.shape[0] != 1:
                     return BcipEnums.INVALID_PARAMETERS
-            
-            elif (isinstance(output,Scalar)
-                  and (output_sz > 1 or
-                  not (output.data_type in Scalar.valid_numeric_types()))):
+        else:
+            # check that the dimensions of the output match the dimensions of
+            # input
+            if self._inA.shape[0] != self._outA.shape[0]:
                 return BcipEnums.INVALID_PARAMETERS
-            
-        
-        # do not support filtering directly with zpk filter repesentation
-        if self._filt.implementation == 'zpk':
-            return BcipEnums.NOT_SUPPORTED
-        
+
+            # output tensor should be one dimensional
+            if len(self._outA.shape) > 1:
+                return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
+
+
+
+    def _process_data(self, inA, outA):
+        input_data = inA.data
+        if len(inA.shape) == 2:
+            # pyriemann library requires input data to have 3 dimensions with the 
+            # first dimension being 1
+            input_data = input_data[np.newaxis,:,:]
+
+        try:
+            output = self._potato_filter.predict(input_data)
+
+            if outA._bcip_type == BcipEnums.SCALAR:
+                outA.data = int(output)
+            else:
+                outA.data = output
+
+            return BcipEnums.SUCCESS
+
+        except:
+            return BcipEnums.EXE_FAILURE
         
+   
+ 
     def execute(self):
         """
         Execute the kernel by classifying the input trials
         """
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
-        
-        if len(self._inA.shape) == 2:
-            in_data = np.expand_dims(self._inA.data,axis=0)
         else:
-            in_data = self._inA.data
-        
-        scores = []
-        labels = []
-        for i in range(in_data.shape[0]):
-            X = _filter(self._filt,in_data[i,:,:])
-            X = _cov(X)
-            
-            # regularize
-            r = 0.01
-            X = 1/(1+r) * (X + r*np.eye(X.shape[0]))
-            
-            dt = distance_riemann(self._ref,X)
-            scores.append(_z_score(dt,self._mean,self._std,self._stats_type))
-            
-            if scores[-1] > self._thresh:
-                labels.append(1) # artifact
-            else:
-                labels.append(0)
-                
-                # update the potato
-                if self._update != 'static':
-                    inv_sqrt_ref = linalg.fractional_matrix_power(self._ref,-1/2)
-                    
-                    self._q = np.stack((X,self._q))
-                    mean_cov = mean_covariance(self._q)
-                    
-                    A = dot(inv_sqrt_ref,dot(mean_cov,inv_sqrt_ref))
-                    
-                    if self._update == 'moving_avg':
-                        alpha = self._alpha
-                    else:
-                        alpha = 1/self._q.shape[0]
-                        
-                    A = linalg.fractional_matrix_power(A,alpha)
-                    self._ref = dot(inv_sqrt_ref,dot(A,inv_sqrt_ref))
-                    
-                    if self._stats_type == 'arithmetic':
-                        self._mean = (1-alpha)*self._mean + alpha*dt
-                        self._std = sqrt((1-alpha)*(self._std**2) + 
-                                         alpha*((dt - self._mean)**2))
-                    else:
-                        self._mean = exp((1-alpha)*log(self._mean) + 
-                                         alpha*log(dt))
-                        self._std = exp(sqrt((1-alpha)*(log(self._std)**2) + 
-                                             alpha*(log(dt/self._mean)**2)))
-        
-        
-        if isinstance(self._outA,Tensor):
-            data = np.asarray(labels)
-            self._outA.data = data
-        elif isinstance(self._outA,Scalar):
-            self._outA.data = labels[0]
-        
-        if isinstance(self._out_score,Tensor):
-            data = np.expand_dims(np.asarray(scores),axis=1)
-            self._out_score.data = data
-        elif isinstance(self._out_score,Scalar):
-            self._out_score.data = scores[0]
-                    
-            
-        return BcipEnums.SUCCESS
-    
-    
+            return self._process_data(self._inA, self._outA)
+
+       
     @classmethod
     def add_riemann_potato_node(cls,graph,inA,filt,initialization_data,
-                                out_labels=None,out_scores=None,
-                                thresh=2.5,update='static',alpha=0.1,
-                                stats_type='geometric',
-                                init_stopping_crit='iterative',k=3):
+                                out_label,
+                                thresh=3,max_iter=100):
         """
         Factory method to create a riemann potato artifact detector
         """
         
         # create the kernel object            
 
-        k = cls(graph,inA,out_labels,out_scores,thresh,update,alpha,
-                initialization_data,filt,stats_type,
-                init_stopping_crit,k)
+        k = cls(graph,inA,out_labels,out_scores,thresh,max_iter,
+                initialization_data)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),)
-        
-        if out_labels != None:
-            params += (Parameter(out_labels,BcipEnums.OUTPUT),)
-        
-        if out_scores != None:
-            params += (Parameter(out_scores,BcipEnums.OUTPUT),)
+        params = (Parameter(inA,BcipEnums.INPUT),
+                  Parameter(out_label, BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
