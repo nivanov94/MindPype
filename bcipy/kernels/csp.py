@@ -1,7 +1,7 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .utils.data_extraction import extract_nested_data
+from .kernel_utils import extract_nested_data
 
 import numpy as np
 import pyriemann
@@ -103,12 +103,16 @@ class CommonSpatialPatternKernel(Kernel):
         Compute CSP filters
         """
 
-        if (self._init_inA._bcip_type != BcipEnums.TENSOR or 
-            self._init_inA._bcip_type != BcipEnums.ARRAY or
-            self._labels._bcip_type != BcipEnums.TENSOR):
+        if ((self._init_inA._bcip_type != BcipEnums.TENSOR and
+             self._init_inA._bcip_type != BcipEnums.ARRAY  and
+             self._init_inA._bcip_type != BcipEnums.CIRCLE_BUFFER) or
+            (self._labels._bcip_type != BcipEnums.TENSOR and
+             self._labels._bcip_type != BcipEnums.ARRAY  and
+             self._labels._bcip_type != BcipEnums.CIRCLE_BUFFER)):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if isinstance(self._initialization_data,Tensor): 
+        
+        if self._init_inA._bcip_type == BcipEnums.TENSOR: 
             X = self._init_inA.data
         else:
             try:
@@ -116,8 +120,14 @@ class CommonSpatialPatternKernel(Kernel):
                 X = extract_nested_data(self._init_inA)
             except:
                 return BcipEnums.INITIALIZATION_FAILURE    
-            
-        y = self._labels.data
+        
+        if self._labels._bcip_type == BcipEnums.TENSOR:    
+            y = self._labels.data
+        else:
+            try:
+                y = extract_nested_data(self._labels)
+            except:
+                return BcipEnums.INITIALIZATION_FAILURE
         
         # ensure the shapes are valid
         if len(X.shape) == 2:
@@ -159,7 +169,7 @@ class CommonSpatialPatternKernel(Kernel):
                 Nf = int(binom(Nl,2)) # number of pairs
                 self._W = np.zeros((Nf*self.num_filts,Nc))
 
-                for il, (l1,l2) in enumerate(iter_combs(labels,2)):
+                for il, (l1,l2) in enumerate(iter_combs(unique_labels,2)):
                     # get trials from each label
                     Xl1 = X[y==l1,:,:]
                     Xl2 = X[y==l2,:,:]
@@ -185,6 +195,7 @@ class CommonSpatialPatternKernel(Kernel):
         C = pyriemann.utils.covariance.covariances(X)
 
         C_bar = np.zeros((2, Nc, Nc))
+        labels = np.unique(y)
         for i, label in enumerate(labels):
             C_bar[i,:,:] = np.mean(C[y==label,:,:], axis=0)
 

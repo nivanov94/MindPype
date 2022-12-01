@@ -1,7 +1,9 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar
+from ..containers import Tensor
+from .kernel_utils import extract_nested_data
+
 
 import numpy as np
 
@@ -38,66 +40,70 @@ class ClassifierKernel(Kernel):
         self._inA = inA
         self._classifier = classifier
         self._outA = outA
-        self._initialization_data = initialization_data 
-        self._labels = labels
-
+        
         self._initialized = False
-        self._init_inA = None
+        self._init_inA = initialization_data
         self._init_outA = None
+        self._labels = labels
 
 
     def initialize(self):
 
-        if self._initialization_data == None:
-            self._initialization_data = self._init_inA
-
         sts = BcipEnums.SUCCESS
         
-        if ((self._initialization_data._bcip_type != BcipEnums.TENSOR and 
-             self._initialization_data._bcip_tpe != BcipEnums.ARRAY and
-             self._initialization_data.bcip_type != BcipEnums.CIRCLE_BUFFER) or
-            (self._labels._bcip_type != BcipEnums.TENSOR and 
-             self._labels._bcip_type != BcipEnums.ARRAY and
-             self._labels.bcip_type != BcipEnums.CIRCLE_BUFFER)):
+        if ((self._init_inA._bcip_type != BcipEnums.TENSOR and
+             self._init_inA._bcip_type != BcipEnums.ARRAY  and
+             self._init_inA._bcip_type != BcipEnums.CIRCLE_BUFFER) or
+            (self._labels._bcip_type != BcipEnums.TENSOR and
+             self._labels._bcip_type != BcipEnums.ARRAY  and
+             self._labels._bcip_type != BcipEnums.CIRCLE_BUFFER)):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        # if data or labels are in an array, extract them to a tensor
-        if self._initialization_data._bcip_type == BcipEnums.TENSOR:
-            local_init_data = self._initialization_data.data
+        
+        if self._init_inA._bcip_type == BcipEnums.TENSOR: 
+            X = self._init_inA.data
         else:
-            local_init_tensor = self._initialization_data.to_tensor()
-            local_init_data = local_init_tensor.data
-
-        if self._labels._bcip_type == BcipEnums.TENSOR:
-            local_init_labels = self._labels.data
+            try:
+                # extract the data from a potentially nested array of tensors
+                X = extract_nested_data(self._init_inA)
+            except:
+                return BcipEnums.INITIALIZATION_FAILURE    
+        
+        if self._labels._bcip_type == BcipEnums.TENSOR:    
+            y = self._labels.data
         else:
-            local_init_labels = self._labels.to_tensor().data
+            try:
+                y = extract_nested_data(self._labels)
+            except:
+                return BcipEnums.INITIALIZATION_FAILURE
+        
         
         # ensure the shapes are valid
-        if len(local_init_data.shape) == 3:
-            index1, index2, index3 = local_init_data.shape
-            local_init_data = np.reshape(local_init_data, (index1, index2 * index3))
+        if len(X.shape) == 3:
+            index1, index2, index3 = X.shape
+            X = np.reshape(X, (index1, index2 * index3))
 
-        if len(local_init_labels.shape) == 2:
-            local_init_labels = np.squeeze(local_init_labels)
+        if len(y.shape) == 2:
+            y = np.squeeze(y)
 
 
-        if (len(local_init_data.shape) != 2 or len(local_init_labels.shape) != 1):
+        if (len(X.shape) != 2 or len(y.shape) != 1):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if local_init_data.shape[0] != local_init_labels.shape[0]:
+        if X.shape[0] != y.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
 
 
         try:
-            self._classifier._classifier.fit(local_init_data, local_init_labels)
+            self._classifier._classifier.fit(X, y)
         except:
             return BcipEnums.INITIALIZATION_FAILURE
 
         self._initialized = True
         
         if sts == BcipEnums.SUCCESS and self._init_outA != None:
-            sts = self._process_data(local_init_tensor, self._init_outA)
+            init_tensor = Tensor.create_from_data(self.session, X.shape, X)
+            sts = self._process_data(init_tensor, self._init_outA)
         
         return sts
         
@@ -118,7 +124,7 @@ class ClassifierKernel(Kernel):
 
         # output must be scalar, tensor
         if (self._outA._bcip_type != BcipEnums.TENSOR and
-            self._outA._bcip_type != BcipEnums.SCALAR)
+            self._outA._bcip_type != BcipEnums.SCALAR):
             return BcipEnums.INVALID_PARAMETERS
 
         if (self._classifier._bcip_type != BcipEnums.CLASSIFIER):
@@ -175,7 +181,7 @@ class ClassifierKernel(Kernel):
         else:
             input_tensor = self._inA
 
-        return self._process_data(temp_tensor, self._outA)
+        return self._process_data(input_tensor, self._outA)
 
 
     def _process_data(self, input_data, output_data):
