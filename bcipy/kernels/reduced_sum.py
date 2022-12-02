@@ -1,9 +1,9 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .utils.data_extraction import extract_nested_data
+from .kernel_utils import extract_nested_data
 
-from classes.scalar import Scalar
+from ..containers import Scalar
 
 import numpy as np
 
@@ -52,12 +52,12 @@ class ReducedSumKernel(Kernel):
         
         if self._keep_dims:
             # all reduced dimensions will be '1'
-            out_shape = tuple([1 if i in axis else inA_shape[i] 
-                                          for i in range(len(inA_shape))])
+            out_shape = tuple([1 if i in axis else input_sz[i] 
+                                          for i in range(len(input_sz))])
         elif axis == ():
             out_shape = (1,)
         else:
-            out_shape = tuple([inA_shape[i] for i in range(len(inA_shape))
+            out_shape = tuple([input_sz[i] for i in range(len(input_sz))
                                                    if i not in axis])
         
         return out_shape
@@ -69,7 +69,8 @@ class ReducedSumKernel(Kernel):
         This kernel has no internal state that must be initialized
         """
 
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        sts = BcipEnums.SUCCESS
+        if self._init_outA != None:
             # adjust the shape of init output tensor, as needed
             if len(self._init_outA.shape) == 0:
                 input_sz = list(self._init_inA.shape)

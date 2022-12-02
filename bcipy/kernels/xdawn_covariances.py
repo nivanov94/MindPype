@@ -1,8 +1,8 @@
-from classes.kernel import Kernel
-from classes.bcip_enums import BcipEnums
-from classes.parameter import Parameter
-from classes.node import Node
-from classes.tensor import Tensor
+from ..core import BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
+from .kernel_utils import extract_nested_data
+from ..containers import Tensor
 
 from pyriemann.estimation import XdawnCovariances
 import numpy as np
@@ -55,18 +55,8 @@ class XDawnCovarianceKernel(Kernel):
         self._inA = inA
         self._outA = outA
 
-        self._init_params = initialize_params
-
-        if 'initialization_data' in init_params:
-            self._init_inA = init_params['initialization_data']
-        else:
-            self._init_inA = None
-
-        if 'labels' in init_params:
-            self._labels = init_params['labels']
-        else:
-            self._labels = None
-
+        self._init_inA = initialization_data
+        self._labels = labels
         self._init_outA = None
  
         self._xdawn_estimator = XdawnCovariances(num_filters, applyfilters, classes, estimator, xdawn_estimator, baseline_cov)

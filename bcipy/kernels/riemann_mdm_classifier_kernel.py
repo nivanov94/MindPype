@@ -1,9 +1,9 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .utils.data_extraction import extract_nested_data
+from .kernel_utils import extract_nested_data
 
-from classes.scalar import Scalar
+from ..containers import Scalar
 
 import numpy as np
 
@@ -33,7 +33,7 @@ class RiemannMDMClassifierKernel(Kernel):
         - Object passed by classmethods that contains training data and training labels 
     """
     
-    def __init__(self,graph,inA,outA,init_style,initialize_params):
+    def __init__(self,graph,inA,outA,init_style,init_params):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
@@ -42,7 +42,7 @@ class RiemannMDMClassifierKernel(Kernel):
         self._inA  = inA
         self._outA = outA
 
-        self._init_params = initialize_params
+        self._init_params = init_params
 
         if 'initialization_data' in init_params:
             self._init_inA = init_params['initialization_data']
@@ -62,7 +62,7 @@ class RiemannMDMClassifierKernel(Kernel):
             self._classifier = None
         elif init_style == BcipEnums.INIT_FROM_COPY:
             # model is copy of predefined MDM model object
-            self._classifier = initialize_params['model']
+            self._classifier = init_params['model']
             self._initialized = True
         
     

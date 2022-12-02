@@ -338,13 +338,21 @@ class Descriptive:
 
         if self._init_outA != None:
             # update the output shape
-            if len(self._out_initA.shape) == 0:
-                phony_out = np.mean(self._init_inA,
+            if (len(self._inA.shape) != len(self._init_inA.shape) and
+                self._axis >= 0):
+                self._axis += 1 # adjust axis assuming stacked data
+                
+            if len(self._init_outA.shape) == 0:
+                phony_out = np.mean(self._init_inA.data,
                                     axis=self._axis,
                                     keepdims=self._keepdims)
                 self._init_outA.shape = phony_out.shape
             
             sts = self._process_data(self._init_inA,self._init_outA)
+            
+            if (len(self._inA.shape) != len(self._init_inA.shape) and
+                self._axis > 0):
+                self._axis -= 1 # re-adjust axis
                 
         return sts
  
@@ -834,7 +842,7 @@ class VarKernel(Descriptive, Kernel):
         self._outA = outA
         self._axis = axis
         self._ddof = ddof
-        self._keep_dims = keep_dims
+        self._keepdims = keep_dims
         
         self._init_inA = None
         self._init_outA = None

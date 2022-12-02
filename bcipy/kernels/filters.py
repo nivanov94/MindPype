@@ -38,7 +38,7 @@ class Filter:
             return BcipEnums.NOT_SUPPORTED
         
         # check the shape
-        input_shape = self._inputA.shape
+        input_shape = self._inA.shape
         input_rank = len(input_shape)
 
         if self._axis < 0 or self._axis >= input_rank:
@@ -51,11 +51,11 @@ class Filter:
             output_shape = input_shape
         
         # if the output is virtual and has no defined shape, set the shape now
-        if self._outputA.virtual and len(self._outputA.shape) == 0:
-            self._outputA.shape = output_shape
+        if self._outA.virtual and len(self._outA.shape) == 0:
+            self._outA.shape = output_shape
         
         # ensure the output tensor's shape equals the expected output shape
-        if self._outputA.shape != output_shape:
+        if self._outA.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
@@ -64,7 +64,7 @@ class Filter:
         """
         Execute the kernel function using the scipy module function
         """
-        return self._process_data(self._inputA, self._outputA)
+        return self._process_data(self._inA, self._outA)
  
 
 class FilterKernel(Filter, Kernel):
@@ -91,9 +91,9 @@ class FilterKernel(Filter, Kernel):
     
     def __init__(self,graph,inputA,filt,outputA,axis=0):
         super().__init__('Filter',BcipEnums.INIT_FROM_COPY,graph)
-        self._inputA  = inputA
+        self._inA  = inputA
         self._filt = filt
-        self._outputA = outputA
+        self._outA = outputA
         
         self._init_inA = None
         self._init_outA = None  
@@ -179,9 +179,9 @@ class FiltFiltKernel(Filter, Kernel):
     
     def __init__(self,graph,inputA,filt,outputA,axis=0):
         super().__init__('FiltFilt',BcipEnums.INIT_FROM_COPY,graph)
-        self._inputA  = inputA
+        self._inA  = inputA
         self._filt = filt
-        self._outputA = outputA
+        self._outA = outputA
 
         self._init_inA = None
         self._init_outA = None

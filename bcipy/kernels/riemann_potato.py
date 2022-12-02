@@ -1,9 +1,9 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .utils.data_extraction import extract_nested_data
+from .kernel_utils import extract_nested_data
 
-from classes.scalar import Scalar
+from ..containers import Scalar
 
 import numpy as np
 
@@ -45,28 +45,15 @@ class RiemannPotatoKernel(Kernel):
         self._thresh = thresh
         self._max_iter = max_iter
         
-        self._init_params = initialize_params
 
-        if 'initialization_data' in init_params:
-            self._init_inA = init_params['initialization_data']
-        else:
-            self._init_inA = None
-
-        if 'labels' in init_params:
-            self._labels = init_params['labels']
-        else:
-            self._labels = None
-
+        self._init_inA = initialization_data
+        self._labels = None
         self._init_outA = None
  
-        if init_style == BcipEnums.INIT_FROM_DATA:
-            # model will be trained using data in tensor object at later time
-            self._initialized = False
-            self._potato_filter = None
-        elif init_style == BcipEnums.INIT_FROM_COPY:
-            # model is copy of predefined MDM model object
-            self._pototo_filter = initialize_params['potato_filter']
-            self._initialized = True
+        # model will be trained using data in tensor object at later time
+        self._initialized = False
+        self._potato_filter = None
+
         
     
     def initialize(self):
@@ -134,7 +121,7 @@ class RiemannPotatoKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
 
         # check thresh and max iterations
-        if thresh < 0 or max_iterations < 0:
+        if self._thresh < 0 or self._max_iter < 0:
             return BcipEnums.INVALID_PARAMETERS
 
         # check in/out dimensions        
@@ -209,7 +196,7 @@ class RiemannPotatoKernel(Kernel):
 
        
     @classmethod
-    def add_riemann_potato_node(cls,graph,inA,filt,initialization_data,
+    def add_riemann_potato_node(cls,graph,inA,initialization_data,
                                 out_label,
                                 thresh=3,max_iter=100):
         """

@@ -60,6 +60,7 @@ class ConcatenationKernel(Kernel):
     def _resolve_dims(self, inA, inB):
         sz_A = inA.shape
         sz_B = inB.shape
+        concat_axis = self._axis
         
         if len(sz_A) == len(sz_B):
             noncat_sz_A = [d for i,d in enumerate(sz_A) if i!=concat_axis]
@@ -91,14 +92,11 @@ class ConcatenationKernel(Kernel):
         
         # inA, inB, and outA must be a tensor
         for param in (self._inA, self._inB, self._outA):
-            if param._bcip_type != BcipEnums.TENSOR
+            if param._bcip_type != BcipEnums.TENSOR:
                 return BcipEnums.INVALID_PARAMETERS
         
             
         # the dimensions along the catcat axis must be equal
-        sz_A = self._inA.shape
-        sz_B = self._inB.shape
-        
         output_sz, noncat_sz_A, noncat_sz_B = self._resolve_dims(self._inA,self._inB)
         if len(output_sz) == 0:
             return BcipEnums.INVALID_PARAMETERS
@@ -325,11 +323,11 @@ class ExtractKernel(Kernel):
 
         if self._init_outA != None:
             if len(self._init_outA.shape) == 0:
-                if len(self._init_inA.shape) == (len(self._inA.shape)+1):
-                    self._init_outA.shape = (self._init_inA.shape[0],) + self._outA.shape
+                if len(self._init_inA.shape) == (len(self._in.shape)+1):
+                    self._init_outA.shape = (self._init_inA.shape[0],) + self._out.shape
                 
                     # TODO a lot of repeated code from execute below, determine how best to refactor
-                    ix_grid = [[_ for _ in range(self._init_inA.shape[0]]
+                    ix_grid = [[_ for _ in range(self._init_inA.shape[0])]]
                     for axis in range(len(self._indices)):
                         axis_indices = self._indices[axis]
                         if axis_indices == ":":
@@ -474,31 +472,31 @@ class ExtractKernel(Kernel):
         """
         Execute the kernel function
         """
-        if self._inA._bcip_type != BcipEnums.TENSOR:
+        if self._in._bcip_type != BcipEnums.TENSOR:
             # extract the elements and set in the output array
-            if (self._outA._bcip_type == BcipEnums.ARRAY or
-                self._outA._bcip_type == BcipEnums.CIRCLE_BUFFER):
+            if (self._out._bcip_type == BcipEnums.ARRAY or
+                self._out._bcip_type == BcipEnums.CIRCLE_BUFFER):
                 for dest_index, src_index in enumerate(self._indices):
-                    elem = self._inA.get_element(src_index) # extract from input
-                    self._outA.set_element(dest_index,elem) # set to output
+                    elem = self._in.get_element(src_index) # extract from input
+                    self._out.set_element(dest_index,elem) # set to output
 
-            elif self._outA._bcip_type == BcipEnums.SCALAR:
-                self._outA.data = self._inA.get_element(self._indices[0])
+            elif self._out._bcip_type == BcipEnums.SCALAR:
+                self._out.data = self._in.get_element(self._indices[0])
 
             else:
                 # tensor output
-                out_array = self._outA.data
+                out_array = self._out.data
                 for dest_index, src_index in enumerate(self._indices):
-                    elem_data = self._inA.get_element(src_index).data
+                    elem_data = self._in.get_element(src_index).data
                     out_array[dest_index] = elem_data
-                self._outA.data = out_array
+                self._out.data = out_array
         else:
             # tensor input 
             ix_grid = []
             for axis in range(len(self._indices)):
                 axis_indices = self._indices[axis]
                 if axis_indices == ":":
-                    ix_grid.append([_ for _ in range(self._inA.shape[axis])])
+                    ix_grid.append([_ for _ in range(self._in.shape[axis])])
                 else:
                     if isinstance(axis_indices,int):
                         ix_grid.append([axis_indices])
@@ -511,7 +509,7 @@ class ExtractKernel(Kernel):
             if self._reduce_dims:
                 extr_data = np.squeeze(extr_data)
                 
-            self._outA.data = extr_data
+            self._out.data = extr_data
         
         return BcipEnums.SUCCESS
     

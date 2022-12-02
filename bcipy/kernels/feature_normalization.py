@@ -1,7 +1,7 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .utils.data_extraction import extract_nested_data
+from .kernel_utils import extract_nested_data
 
 import numpy as np
 
