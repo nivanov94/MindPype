@@ -73,7 +73,7 @@ class ReducedSumKernel(Kernel):
         sts = BcipEnums.SUCCESS
         if self._init_outA != None:
             # adjust the shape of init output tensor, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 input_sz = list(self._init_inA.shape)
                 output_sz = self._compute_output_sz(input_sz)
                 self._outA.shape = output_sz

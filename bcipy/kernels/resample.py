@@ -47,7 +47,7 @@ class ResampleKernel(Kernel):
         
         if self._init_outA != None:
             # set the output size, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 output_shape = list(self._init_inA.shape)
                 output_shape[self._axis] = int(output_shape[self._axis] * self._factor)
                 self._init_outA.shape = output_shape

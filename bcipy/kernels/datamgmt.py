@@ -58,7 +58,7 @@ class ConcatenationKernel(Kernel):
                 self._axis += 1
                 axis_adjusted = True
 
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 output_sz, _, _ = self._resolve_dims(self._init_inA, self._init_inB)
                 self._init_outA.shape = output_sz
 
@@ -344,7 +344,7 @@ class ExtractKernel(Kernel):
 
         if self._init_outA != None:
             init_output_shape = (self._init_inA.shape[0],) + self._out.shape
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 if len(self._init_inA.shape) == (len(self._in.shape)+1):
                     self._init_outA.shape = init_output_shape
 
@@ -930,7 +930,7 @@ class TensorStackKernel(Kernel):
         sts = BcipEnums.SUCCESS
 
         if self._init_outA != None:
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 self._init_outA.shape = self._int_inA.shape[:self._axis+1] + (2,) + self._init_inA.shape[self._axis+1:]
 
             self._axis += 1 # adjust for batch processing in init TODO will this always be the case?

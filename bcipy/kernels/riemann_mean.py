@@ -53,7 +53,7 @@ class RiemannMeanKernel(Kernel):
 
         if self._init_outA != None:
             # update output size, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape[-2:] # TODO what are the expected inputs? will we ever compute more than one mean here?
 
             sts = self._process_data(self._init_inA, self._init_outA)

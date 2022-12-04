@@ -95,7 +95,7 @@ class FeatureNormalizationKernel(Kernel):
         # process initialization data
         if sts == BcipEnums.SUCCESS and self._init_outA != None:
             # adjust the shape of init output tensor, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
 
             sts = self._process_data(self._init_inA, self._init_outA)

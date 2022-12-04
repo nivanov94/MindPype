@@ -53,7 +53,7 @@ class RiemannDistanceKernel(Kernel):
 
         if self._init_outA != None:
             # update output size, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 output_sz = self._compute_output_shape(self._init_inA, self._init_inB)
                 self._init_outA.shape = output_sz
 

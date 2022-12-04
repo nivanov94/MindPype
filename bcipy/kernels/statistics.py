@@ -56,7 +56,7 @@ class CDFKernel(Kernel):
 
         if self._init_outA != None:
             # update output size, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
 
             sts = self._process_data(self._init_inA, self._init_outA)
@@ -204,7 +204,7 @@ class CovarianceKernel(Kernel):
 
         if self._init_outA != None:
             # update output size, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 shape = list(self._init_inA.shape)
                 shape[-1] = shape[-2]
                 self._init_outA.shape = tuple(shape)
@@ -360,7 +360,7 @@ class Descriptive:
                 self._axis += 1 # adjust axis assuming stacked data
                 axis_adjusted = True
                 
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 phony_out = np.mean(self._init_inA.data,
                                     axis=self._axis,
                                     keepdims=self._keepdims)
@@ -1047,7 +1047,7 @@ class ZScoreKernel(Kernel):
         sts = BcipEnums.SUCCESS
         if self._init_outA != None:
             # set output size, as needed
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
 
             sts = self._process_data(self._init_inA, self._init_outA)

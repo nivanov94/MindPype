@@ -61,7 +61,7 @@ class TransposeKernel(Kernel):
         
         if self._init_outA != None:
             
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 if self._axes == None:
                     init_axes = [_ for _ in range(len(self._init_inA.shape))]
                     init_axes[-2:] = [init_axes[-1], init_axes[-2]]

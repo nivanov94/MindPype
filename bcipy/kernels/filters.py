@@ -15,7 +15,7 @@ class Filter:
         
         if self._init_outA != None:
             
-            if len(self._init_outA.shape) == 0:
+            if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
             
             sts = self._process_data(self._init_inA, self._init_outA)
