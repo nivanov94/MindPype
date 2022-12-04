@@ -18,6 +18,13 @@ class Unary:
                 self._init_outA.shape = self._init_inA.shape
 
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return sts
         
@@ -82,7 +89,8 @@ class AbsoluteKernel(Unary, Kernel):
         self._inA   = inA
         self._outA  = outA
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
         self._init_inA = None
         self._init_outA = None
@@ -166,7 +174,8 @@ class LogKernel(Unary,Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
 
     def _process_data(self, input_data,output_data):
@@ -330,7 +339,8 @@ class AdditionKernel(Binary, Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
  
     def _process_data(self, input_data1, input_data2, output_data):
         """
@@ -411,7 +421,8 @@ class DivisionKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data1, input_data2, output_data):
         try:
@@ -492,7 +503,8 @@ class MultiplicationKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
  
     def _process_data(self, input_data1, input_data2, output_data):
         """
@@ -571,7 +583,8 @@ class SubtractionKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
         
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data1, input_data2, output_data):
         """

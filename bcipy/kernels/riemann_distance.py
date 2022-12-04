@@ -40,7 +40,8 @@ class RiemannDistanceKernel(Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
     def initialize(self):
         """
@@ -57,6 +58,13 @@ class RiemannDistanceKernel(Kernel):
                 self._init_outA.shape = output_sz
 
             sts = self._process_data(self._init_inA, self._init_inB, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return sts
         

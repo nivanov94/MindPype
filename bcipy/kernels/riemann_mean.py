@@ -42,7 +42,8 @@ class RiemannMeanKernel(Kernel):
         
         self._w = weights
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
     def initialize(self):
         """
@@ -56,6 +57,13 @@ class RiemannMeanKernel(Kernel):
                 self._init_outA.shape = self._init_inA.shape[-2:] # TODO what are the expected inputs? will we ever compute more than one mean here?
 
             sts = self._process_data(self._init_inA, self._init_outA)
+            
+            # pass on the labels - TODO would there be a reduction in dimensionality resulting in reduction in labels?
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return BcipEnums.SUCCESS
         

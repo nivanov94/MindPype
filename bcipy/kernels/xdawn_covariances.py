@@ -56,8 +56,12 @@ class XDawnCovarianceKernel(Kernel):
         self._outA = outA
 
         self._init_inA = initialization_data
-        self._labels = labels
+        self._init_labels_in = labels
+
         self._init_outA = None
+        self._init_labels_out = None
+
+        self._itialized = False
  
         self._xdawn_estimator = XdawnCovariances(num_filters, applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
 
@@ -94,10 +98,10 @@ class XDawnCovarianceKernel(Kernel):
             local_init_tensor = self._init_inA
  
         # check if the labels are in a tensor
-        if self._labels._bcip_type != BcipEnums.TENSOR:
-            local_labels = self._labels.to_tensor()
+        if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+            local_labels = self._init_labels_in.to_tensor()
         else:
-            local_labels = self._labels
+            local_labels = self._init_labels_in
 
         if len(local_labels.shape) == 2:
             local_labels.data = np.squeeze(local_labels.data)
@@ -117,7 +121,17 @@ class XDawnCovarianceKernel(Kernel):
                 self._init_outA.shape = (Nt,Nc,Nc)
             # process the initialization data
             sts = self._process_data(local_init_tensor, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
+        if sts == BcipEnums.SUCCESS:
+            self._initialzed = True
+
         return sts
     
     def execute(self):

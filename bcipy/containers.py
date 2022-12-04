@@ -1050,7 +1050,7 @@ class CircleBuffer(Array):
             self._head = (self._head + 1) % self.capacity
         
         self._tail = (self._tail + 1) % self.capacity
-        return super(CircleBuffer,self).set_element(self._tail,obj)
+        return super().set_element(self._tail,obj)
         
     def enqueue_chunk(self,cb):
         """
@@ -1072,7 +1072,7 @@ class CircleBuffer(Array):
         if self.is_empty():
             return None
         
-        ret = super(CircleBuffer,self).get_element(self._head)
+        ret = super().get_element(self._head)
         
         if self._head == self._tail:
             self._head = None
@@ -1118,7 +1118,7 @@ class CircleBuffer(Array):
             if sts != BcipEnums.SUCCESS:
                 return sts
         
-        if isinstance(dest_array,CircleBuffer):
+        if dest_array._bcip_type == BcipEnums.CIRCLE_BUFFER:
             # copy the head and tail as well
             dest_array._tail = self._tail
             dest_array._head = self._head
@@ -1149,6 +1149,26 @@ class CircleBuffer(Array):
             self.dequeue()
         
         return BcipEnums.SUCCESS
+    
+    
+    def to_tensor(self):
+        """
+        Copy the elements of the buffer to a Tensor and return the tensor
+
+        """
+        if self.is_empty():
+            return Tensor.create(self.session, (0,))
+        
+        t = super().to_tensor()
+        
+        # remove data from tensor that is outside the range of the cb's head and tail
+        if self._head < self._tail:
+            valid_data = t.data[self._head:self._tail+1]
+        else:
+            valid_data = np.concatenate((t.data[self._head:], t.data[:self._tail+1]),
+                                        axis=0)
+        
+        return Tensor.create_from_data(self.session, valid_data.shape, valid_data)
         
     @classmethod
     def create(cls,sess,capacity,element_template):

@@ -48,7 +48,8 @@ class CDFKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
         
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def initialize(self):
         sts = BcipEnums.SUCCESS
@@ -59,6 +60,13 @@ class CDFKernel(Kernel):
                 self._init_outA.shape = self._init_inA.shape
 
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return BcipEnums.SUCCESS
         
@@ -185,7 +193,8 @@ class CovarianceKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def initialize(self):
         """
@@ -201,6 +210,13 @@ class CovarianceKernel(Kernel):
                 self._init_outA.shape = tuple(shape)
 
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
 
         return BcipEnums.SUCCESS
 
@@ -338,9 +354,11 @@ class Descriptive:
 
         if self._init_outA != None:
             # update the output shape
+            axis_adjusted = False
             if (len(self._inA.shape) != len(self._init_inA.shape) and
                 self._axis >= 0):
                 self._axis += 1 # adjust axis assuming stacked data
+                axis_adjusted = True
                 
             if len(self._init_outA.shape) == 0:
                 phony_out = np.mean(self._init_inA.data,
@@ -350,9 +368,16 @@ class Descriptive:
             
             sts = self._process_data(self._init_inA,self._init_outA)
             
-            if (len(self._inA.shape) != len(self._init_inA.shape) and
-                self._axis > 0):
+            if axis_adjusted:
                 self._axis -= 1 # re-adjust axis
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
+
                 
         return sts
  
@@ -444,7 +469,8 @@ class MaxKernel(Descriptive, Kernel):
         self._init_inA = None
         self._init_outA = None
         
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
    
     def _process_data(self, input_data, output_data):
         try:
@@ -534,7 +560,8 @@ class MinKernel(Descriptive, Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data, output_data):
         try:
@@ -629,8 +656,8 @@ class MeanKernel(Descriptive, Kernel):
         self._init_inA = None
         self._init_outA = None
         
-
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data, output_data):
         try:
@@ -725,7 +752,8 @@ class StdKernel(Descriptive, Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
  
     def verify(self):
         sts = super().verify()
@@ -847,7 +875,8 @@ class VarKernel(Descriptive, Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
 
     def verify(self):
@@ -962,7 +991,8 @@ class ZScoreKernel(Kernel):
         self._sigma = 0
         self._initialized = False
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def initialize(self):
         """
@@ -1021,6 +1051,13 @@ class ZScoreKernel(Kernel):
                 self._init_outA.shape = self._init_inA.shape
 
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return sts
 

@@ -50,11 +50,12 @@ class RiemannMDMClassifierKernel(Kernel):
             self._init_inA = None
 
         if 'labels' in init_params:
-            self._labels = init_params['labels']
+            self._init_labels_in = init_params['labels']
         else:
-            self._labels = None
+            self._init_labels_in = None
 
         self._init_outA = None
+        self._init_labels_out = None
  
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
@@ -84,6 +85,13 @@ class RiemannMDMClassifierKernel(Kernel):
  
             sts = self._process_data(self._init_inA, self._init_outA)
 
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
+
         if sts == BcipEnums.SUCCESS:
             self._initialized = True
         
@@ -100,8 +108,8 @@ class RiemannMDMClassifierKernel(Kernel):
         
         if ((self._init_inA._bcip_type != BcipEnums.TENSOR and
              self._init_inA._bcip_type != BcipEnums.ARRAY)  or
-            (self._labels._bcip_type != BcipEnums.TENSOR and
-             self._labels._bcip_type != BcipEnums. ARRAY)):
+            (self._init_labels_in._bcip_type != BcipEnums.TENSOR and
+             self._init_labels_in._bcip_type != BcipEnums. ARRAY)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
         if self._init_inA._bcip_type == BcipEnums.TENSOR: 
@@ -113,10 +121,10 @@ class RiemannMDMClassifierKernel(Kernel):
             except:
                 return BcipEnums.INITIALIZATION_FAILURE
             
-        if self._labels._bcip_type == BcipEnums.TENSOR:
-            y = self._labels.data
+        if self._init_labels_in._bcip_type == BcipEnums.TENSOR:
+            y = self._init_labels_in.data
         else:
-            y = extract_nested_data(self._labels)
+            y = extract_nested_data(self._init_labels_in)
         
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:

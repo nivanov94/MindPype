@@ -47,7 +47,8 @@ class RiemannPotatoKernel(Kernel):
         
 
         self._init_inA = initialization_data
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
         self._init_outA = None
  
         # model will be trained using data in tensor object at later time
@@ -73,6 +74,13 @@ class RiemannPotatoKernel(Kernel):
                 self._init_outA.shape = (self._init_inA.shape[0],)
  
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
 
         if sts == BcipEnums.SUCCESS:
             self._initialized = True

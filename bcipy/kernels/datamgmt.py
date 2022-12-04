@@ -39,7 +39,8 @@ class ConcatenationKernel(Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
 
     def initialize(self):
@@ -49,11 +50,29 @@ class ConcatenationKernel(Kernel):
         sts = BcipEnums.SUCCESS
 
         if self._init_outA != None:
+            axis_adjusted = False
+            if (len(self._inA.shape)+1 == len(self._init_inA.shape) and
+                len(self._inB.shape)+1 == len(self._init_inB.shape) and
+                self._axis >= 0):
+                # adjust axis to accomodate stack of input data
+                self._axis += 1
+                axis_adjusted = True
+
             if len(self._init_outA.shape) == 0:
                 output_sz, _, _ = self._resolve_dims(self._init_inA, self._init_inB)
                 self._init_outA.shape = output_sz
 
             sts = self._process_data(self._init_inA, self._init_inB, self._init_outA)
+
+            if axis_adjusted:
+                self._axis -= 1
+
+            # pass on labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return sts
     
@@ -137,7 +156,7 @@ class ConcatenationKernel(Kernel):
             out_tensor = np.concatenate((inA_data,
                                          inB_data),
                                         axis=concat_axis)
-        except ValueError:
+        except:
             # dimensions are invalid
             return BcipEnums.EXE_FAILURE
         
@@ -215,7 +234,8 @@ class EnqueueKernel(Kernel):
         self._inA  = inA
         self._outA = queue
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
     def initialize(self):
         """
@@ -313,7 +333,8 @@ class ExtractKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
     def initialize(self):
         """
@@ -322,32 +343,34 @@ class ExtractKernel(Kernel):
         sts = BcipEnums.SUCCESS
 
         if self._init_outA != None:
+            init_output_shape = (self._init_inA.shape[0],) + self._out.shape
             if len(self._init_outA.shape) == 0:
                 if len(self._init_inA.shape) == (len(self._in.shape)+1):
-                    self._init_outA.shape = (self._init_inA.shape[0],) + self._out.shape
-                
-                    # TODO a lot of repeated code from execute below, determine how best to refactor
-                    ix_grid = [[_ for _ in range(self._init_inA.shape[0])]]
-                    for axis in range(len(self._indices)):
-                        axis_indices = self._indices[axis]
-                        if axis_indices == ":":
-                            ix_grid.append([_ for _ in range(self._init_inA.shape[axis])])
-                        else:
-                            if isinstance(axis_indices,int):
-                                ix_grid.append([axis_indices])
-                            else:
-                                ix_grid.append(list(axis_indices))
+                    self._init_outA.shape = init_output_shape
 
-                    npixgrid = np.ix_(*ix_grid)
-                    extr_data = self._in.data[npixgrid]
-                    
-                    if self._reduce_dims:
-                        extr_data = np.squeeze(extr_data)
-                        
-                    self._init_outA.data = extr_data
-
-                else:
+                if self._init_outA.shape != init_output_shape:
                     sts = BcipEnums.INITIALIZATION_FAILURE
+
+                if sts == BcipEnums.SUCCESS:
+                    # TODO a lot of repeated code from execute below, determine how best to refactor
+                    if (self._init_inA._bcip_type != BcipEnums.TENSOR and
+                        self._inA._bcip_type == BcipEnums.TENSOR):
+                        self._init_inA = self._init_inA.to_tensor()
+
+                    if (self._init_inA._bcip_type == BcipEnums.TENSOR):
+                        self._indices.insert(0, ":")
+
+                    self._process_data(self._init_inA, self._init_outA)
+
+                    if (self._init_inA._bcip_type == BcipEnums.TENSOR):
+                        self._indices.pop(0)
+
+                    # pass on the labels
+                    if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                        input_labels = self._init_labels_in.to_tensor()
+                    else:
+                        input_labels = self._init_labels_in
+                    input_labels.copy_to(self._init_labels_out)
 
         return sts
     
@@ -456,47 +479,33 @@ class ExtractKernel(Kernel):
                 return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
-        
-    def initialization_execution(self):
-        """
-        Update initialization output if downstream nodes are missing training data
-        """
-        sts = self.process_data(self._init_inA, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
 
-    def execute(self):
-        """
-        Execute the kernel function
-        """
+    def _process_data(self, inA, outA):
         if self._in._bcip_type != BcipEnums.TENSOR:
             # extract the elements and set in the output array
-            if (self._out._bcip_type == BcipEnums.ARRAY or
-                self._out._bcip_type == BcipEnums.CIRCLE_BUFFER):
+            if (outA._bcip_type == BcipEnums.ARRAY or
+                outA._bcip_type == BcipEnums.CIRCLE_BUFFER):
                 for dest_index, src_index in enumerate(self._indices):
-                    elem = self._in.get_element(src_index) # extract from input
-                    self._out.set_element(dest_index,elem) # set to output
+                    elem = inA.get_element(src_index) # extract from input
+                    outA.set_element(dest_index,elem) # set to output
 
-            elif self._out._bcip_type == BcipEnums.SCALAR:
-                self._out.data = self._in.get_element(self._indices[0])
+            elif outA._bcip_type == BcipEnums.SCALAR:
+                outA.data = self._in.get_element(self._indices[0])
 
             else:
                 # tensor output
-                out_array = self._out.data
+                out_array = outA.data
                 for dest_index, src_index in enumerate(self._indices):
-                    elem_data = self._in.get_element(src_index).data
+                    elem_data = inA.get_element(src_index).data
                     out_array[dest_index] = elem_data
-                self._out.data = out_array
+                outA.data = out_array
         else:
             # tensor input 
             ix_grid = []
             for axis in range(len(self._indices)):
                 axis_indices = self._indices[axis]
                 if axis_indices == ":":
-                    ix_grid.append([_ for _ in range(self._in.shape[axis])])
+                    ix_grid.append([_ for _ in range(inA.shape[axis])])
                 else:
                     if isinstance(axis_indices,int):
                         ix_grid.append([axis_indices])
@@ -504,15 +513,22 @@ class ExtractKernel(Kernel):
                         ix_grid.append(list(axis_indices))
 
             npixgrid = np.ix_(*ix_grid)
-            extr_data = self._in.data[npixgrid]
+            extr_data = inA.data[npixgrid]
             
             if self._reduce_dims:
                 extr_data = np.squeeze(extr_data)
                 
-            self._out.data = extr_data
+            outA.data = extr_data
         
         return BcipEnums.SUCCESS
-    
+       
+
+    def execute(self):
+        """
+        Execute the kernel function
+        """
+        return self._process_data(self._in, self._out)
+            
     @classmethod
     def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False):
         """
@@ -776,8 +792,8 @@ class StackKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
         
-
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
     def initialize(self):
         """
@@ -904,7 +920,8 @@ class TensorStackKernel(Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
     def initialize(self):
         """
@@ -965,7 +982,7 @@ class TensorStackKernel(Kernel):
             
             output_data.data = np.stack(input_tensors,axis=stack_axis)
         
-        except ValueError:
+        except:
             return BcipEnums.EXE_FAILURE
     
         

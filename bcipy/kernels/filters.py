@@ -19,6 +19,13 @@ class Filter:
                 self._init_outA.shape = self._init_inA.shape
             
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return sts
     
@@ -98,7 +105,8 @@ class FilterKernel(Filter, Kernel):
         self._init_inA = None
         self._init_outA = None  
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
     def _process_data(self, input_data, output_data):
         try:
@@ -188,7 +196,8 @@ class FiltFiltKernel(Filter, Kernel):
 
         self._axis = axis
         
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
  
     def _process_data(self, input_data, output_data):
 

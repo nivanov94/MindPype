@@ -41,7 +41,8 @@ class ReducedSumKernel(Kernel):
         self._init_inA = None
         self._init_outA = None
     
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
     
 
     def _compute_output_sz(self, input_sz):
@@ -78,6 +79,13 @@ class ReducedSumKernel(Kernel):
                 self._outA.shape = output_sz
 
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
 
         return sts
     

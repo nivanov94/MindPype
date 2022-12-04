@@ -239,6 +239,9 @@ class Graph(BCIP):
         ------
         BCIP status code
         """
+        
+        sts = BcipEnums.SUCCESS
+        
         n_inputs = n.extract_inputs()
         if len(n_inputs) == 0 and n._kernel._init_inA == None:
             return BcipEnums.INVALID_GRAPH
@@ -258,35 +261,35 @@ class Graph(BCIP):
                     
                     n._kernel._init_inB = producer._kernel._init_outA
 
-                    if n._kernel._labels == None:
-                        n._kernel._labels = producer._kernel._labels
+                    if n._kernel._init_labels_in == None:
+                        n._kernel._init_labels_in = producer._kernel._init_labels_out
 
                 if (not hasattr(n._kernel, "_init_inB")) and n._kernel._init_inA != None:
                     return BcipEnums.INVALID_GRAPH
 
                 else:
-
                     n._kernel._init_inA = producer._kernel._init_outA
                     
-                    if n._kernel._labels == None:
-                        n._kernel._labels = producer._kernel._labels
+                    if n._kernel._init_labels_in == None:
+                        n._kernel._labels = producer._kernel._init_labels_out
 
             else:
                 producer._kernel._init_outA = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
+                producer._kernel._init_labels_out = Tensor.create_virtual(sess=self._sess)
                 
                 if hasattr(n._kernel, "_init_inB") and n._kernel._init_inA != None:
                     if n._kernel._init_inB != None:
                         return BcipEnums.INVALID_GRAPH
                     n._kernel._init_inB = producer._kernel._init_outA
 
-                    if n._kernel._labels == None:
-                        n._kernel._labels = producer._kernel._labels
+                    if n._kernel._init_labels_in == None:
+                        n._kernel._init_labels_in = producer._kernel._init_labels_out
 
                 else:
                     n._kernel._init_inA = producer._kernel._init_outA
                     
-                    if n._kernel._labels == None:
-                        n._kernel._labels = producer._kernel._labels
+                    if n._kernel._init_labels_in == None:
+                        n._kernel._init_labels_in = producer._kernel._init_labels_out
 
             # recurse process on up-stream nodes
             if producer._kernel._init_inA == None:
@@ -294,7 +297,7 @@ class Graph(BCIP):
                     (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None)):
                     sts = self.fill_initialization_links(producer, edges)
         
-        return BcipEnums.SUCCESS
+        return sts
 
 
     def initialize(self):

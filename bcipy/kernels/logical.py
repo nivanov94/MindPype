@@ -18,6 +18,13 @@ class Unary:
                 self._init_outA.shape = self._init_inA.shape
 
             sts = self._process_data(self._init_inA, self._init_outA)
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out) 
         
         return sts
 
@@ -98,7 +105,8 @@ class NotKernel(Unary, Kernel):
         self._init_inA = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
  
     def _process_data(self, input_data, output_data):
         try:
@@ -151,7 +159,14 @@ class Binary:
                 self._init_outA.shape = phony_out.shape
                 sts = self._process_data(self._init_inA,self._init_inB,self._init_outA)
             except:
-                sts = BcipEnums.INIT_FAILURE    
+                sts = BcipEnums.INIT_FAILURE
+
+            # pass on the labels
+            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
+                input_labels = self._init_labels_in.to_tensor()
+            else:
+                input_labels = self._init_labels_in
+            input_labels.copy_to(self._init_labels_out)
         
         return sts
 
@@ -257,7 +272,8 @@ class AndKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data1, input_data2, output_data):
         """
@@ -345,7 +361,8 @@ class OrKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
 
     def _process_data(self, input_data1, input_data2, output_data):
@@ -430,7 +447,8 @@ class XorKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
  
     def process_data(self, input_data1, input_data2, output_data):
@@ -517,13 +535,14 @@ class GreaterKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data1, input_data2, output_data):
         try:
             output_data.data = input_data1.data > input_data2.data
 
-        except ValueError:
+        except:
             return BcipEnums.EXE_FAILURE
             
         return BcipEnums.SUCCESS
@@ -602,14 +621,15 @@ class LessKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
         
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data1, input_data2, output_data):
         """Process data according to the kernel function using numpy data"""
         try:
             output_data.data = input_data1.data < input_data2.data
 
-        except ValueError:
+        except:
             return BcipEnums.EXE_FAILURE
             
         return BcipEnums.SUCCESS
@@ -681,13 +701,14 @@ class EqualKernel(Binary,Kernel):
         self._init_inB = None
         self._init_outA = None
 
-        self._labels = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def _process_data(self, input_data1, input_data2, output_data):
         try:
             output_data.data = input_data1.data == input_data2.data
 
-        except ValueError:
+        except:
             return BcipEnums.EXE_FAILURE
             
         return BcipEnums.SUCCESS
