@@ -490,16 +490,17 @@ class LSLStream(BCIP):
     An object for maintaining an LSL inlet
     """
 
-    def __init__(self,sess,prop,prop_value,channels=None,
-                 marker=True,marker_fmt=None):
+    def __init__(self,sess,pred,channels=None,
+                 marker=True,marker_fmt=None,marker_pred=None):
         """
         Create a new LSL inlet stream object
         Parameters
         ----------
         sess : session object
             Session object where the data source will exist
-        prop : str
-            Name of the property to be used to resolve the LSL stream
+        pred : str
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and 
+            count(description/desc/channels/channel)=32"
         prop_value : str
             Property value of the target stream
         channels : tuple of ints
@@ -508,11 +509,13 @@ class LSLStream(BCIP):
             true if there is an associated marker to indicate relative time where data should begin to be polled
         marker_fmt : str
             Regular expression template of the marker to be matched, if none all markers will be matched
+        marker_pred : str
+            The predicate string for the marker stream
         """
         super().__init__(BcipEnums.SRC,sess)
         
         # resolve the stream on the LSL network
-        available_streams = pylsl.resolve_byprop(prop,prop_value)
+        available_streams = pylsl.resolve_bypred(pred)
         
         if len(available_streams) == 0:
             # TODO log error
@@ -532,7 +535,7 @@ class LSLStream(BCIP):
             self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
         
         if marker:
-            marker_streams = pylsl.resolve_stream('type','Markers')
+            marker_streams = pylsl.resolve_bypred(marker_pred)
             self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
             # open the inlet
             self.marker_inlet.open_stream()
