@@ -569,16 +569,16 @@ class LSLStream(BCIP):
             t_begin = 0 # i.e. all data is valid
         
         # pull the data in chunks until we get the total number of samples
-        trial_data = np.array((len(self.channels), Ns)) # allocate the array
+        trial_data = np.zeros((len(self.channels), Ns)) # allocate the array
         samples_polled = 0        
 
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk()
-            
-            if len(timestamps) != 0:
+            timestamps = np.asarray(timestamps)
+
+            if len(timestamps) != 0 and np.any(timestamps > t_begin):
                 # convert data to numpy arrays
                 data = np.asarray(data).T
-                timestamps = np.asarray(timestamps)
                 # throw away data that comes after t_begin
                 data = data[:, timestamps > t_begin]
                 chunk_sz = data.shape[1]            

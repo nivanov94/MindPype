@@ -535,7 +535,7 @@ class Tensor(BCIP):
         if not self.volatile:
             return BcipEnums.SUCCESS
         
-        data = self.ext_src.poll_data(label)
+        data = self.ext_src.poll_data(label=label, Ns=self.shape[1])
         try:
             # if we only pulled one trial, remove the first dimension
             data = np.squeeze(data)
