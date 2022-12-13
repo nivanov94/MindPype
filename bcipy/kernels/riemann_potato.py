@@ -8,6 +8,7 @@ from ..containers import Scalar
 import numpy as np
 
 from pyriemann.clustering import Potato
+from pyriemann.utils.covariance import covariances
 import numpy as np
 
 
@@ -32,18 +33,19 @@ class RiemannPotatoKernel(Kernel):
 
     """
     
-    def __init__(self,graph,inA,out_label,thresh,max_iter,init_style,
+    def __init__(self,graph,inA,out_label,thresh,max_iter,regulization,
                  initialization_data):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
-        super().__init__('RiemannPotato',init_style,graph)
+        super().__init__('RiemannPotato',BcipEnums.INIT_FROM_DATA,graph)
         self._inA  = inA
         self._outA = out_label
 
         self._thresh = thresh
         self._max_iter = max_iter
+        self._r = regulization
         
 
         self._init_inA = initialization_data
@@ -94,7 +96,8 @@ class RiemannPotatoKernel(Kernel):
         """
 
         if (self._init_inA._bcip_type != BcipEnums.TENSOR and
-            self._init_inA._bcip_type != BcipEnums.ARRAY):
+            self._init_inA._bcip_type != BcipEnums.ARRAY  and
+            self._init_inA._bcip_type != BcipEnums.CIRCLE_BUFFER):
             return BcipEnums.INITIALIZATION_FAILURE
         
         if self._init_inA._bcip_type == BcipEnums.TENSOR: 
@@ -109,7 +112,12 @@ class RiemannPotatoKernel(Kernel):
         if len(X.shape) != 3:
             return BcipEnums.INITIALIZATION_FAILURE
         
-        self._potato_filter = Potato(thresh=self._thresh, n_iter_max=self._max_iter)
+        if X.shape[-2] != X.shape[-1]:
+            # convert to covs
+            X = covariances(X)
+            X = (1-self._r)*X + self._r*np.eye(X.shape[-1])
+        
+        self._potato_filter = Potato(threshold=self._thresh, n_iter_max=self._max_iter)
         self._potato_filter.fit(X)
 
         return BcipEnums.SUCCESS
@@ -138,6 +146,10 @@ class RiemannPotatoKernel(Kernel):
         
         # input tensor should not be greater than rank 3
         if input_rank > 3 or input_rank < 2:
+            return BcipEnums.INVALID_PARAMETERS
+        
+        # input should be a covariance matrix
+        if input_shape[-2] != input_shape[-1]:
             return BcipEnums.INVALID_PARAMETERS
         
         # if the output is a virtual tensor and dimensionless, 
@@ -179,6 +191,7 @@ class RiemannPotatoKernel(Kernel):
             input_data = input_data[np.newaxis,:,:]
 
         try:
+            input_data = (1-self._r)*input_data + self._r*np.eye(inA.shape[-1])
             output = self._potato_filter.predict(input_data)
 
             if outA._bcip_type == BcipEnums.SCALAR:
@@ -206,14 +219,14 @@ class RiemannPotatoKernel(Kernel):
     @classmethod
     def add_riemann_potato_node(cls,graph,inA,initialization_data,
                                 out_label,
-                                thresh=3,max_iter=100):
+                                thresh=3,max_iter=100,regulization=0.01):
         """
         Factory method to create a riemann potato artifact detector
         """
         
         # create the kernel object            
 
-        k = cls(graph,inA,out_labels,out_scores,thresh,max_iter,
+        k = cls(graph,inA,out_label,thresh,max_iter,regulization,
                 initialization_data)
         
         # create parameter objects for the input and output
