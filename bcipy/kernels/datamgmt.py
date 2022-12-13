@@ -229,10 +229,16 @@ class EnqueueKernel(Kernel):
 
     """
     
-    def __init__(self,graph,inA,queue):
+    def __init__(self,graph,inA,queue,enqueue_flag):
         super().__init__('Enqueue',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._outA = queue
+
+        self._enqueue_flag = enqueue_flag
+        if self._enqueue_flag != None:
+            self._gated = True
+        else:
+            self._gated = False
 
         self._init_labels_in = None
         self._init_labels_out = None
@@ -259,6 +265,12 @@ class EnqueueKernel(Kernel):
         if self._outA.capacity <= 1:
             return BcipEnums.INVALID_PARAMETERS
         
+        # if gated, check that the flag is a scalar
+        if self._gated:
+            if (self._enqueue_flag.bcip_type != BcipEnums.SCALAR or
+                self._enqueue_flag.data_type not in (int, bool)):
+                return BcipEnums.INVALID_PARAMETERS
+            
         return BcipEnums.SUCCESS
     
     def execute(self):
@@ -266,13 +278,14 @@ class EnqueueKernel(Kernel):
         Execute the kernel function using numpy function
         """
         # need to make a deep copy of the object to enqueue
-        cpy = self._inA.make_copy()
-        self._outA.enqueue(cpy)
+        if not self._gated or self._enqueue_flag.data:
+            cpy = self._inA.make_copy()
+            self._outA.enqueue(cpy)
             
         return BcipEnums.SUCCESS
     
     @classmethod
-    def add_enqueue_node(cls,graph,inA,queue):
+    def add_enqueue_node(cls,graph,inA,queue,enqueue_flag=None):
         """
         Factory method to create a enqueue kernel and add it to a graph as a generic node object.
 
@@ -284,14 +297,20 @@ class EnqueueKernel(Kernel):
 
         queue : Circle Buffer object
             - Circle buffer to have data enqueud to
+            
+        enqueue_flag : (optional) Scalar boolean used to determine if the input
+                        is to be added to the queue
         """
         
         # create the kernel object
-        k = cls(graph,inA,queue)
+        k = cls(graph,inA,queue,enqueue_flag)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(queue,BcipEnums.INOUT))
+        
+        if enqueue_flag != None:
+            params += (Parameter(enqueue_flag, BcipEnums.INPUT),)
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
