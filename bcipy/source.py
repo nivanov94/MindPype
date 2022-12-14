@@ -14,9 +14,7 @@ from scipy.io import loadmat
 import numpy as np
 import pylsl
 import os
-##for debugging
-#import matplotlib
-#import matplotlib.pyplot as plt
+import re
 
 class BcipMatFile(BCIP):
     """
@@ -594,17 +592,6 @@ class LSLStream(BCIP):
                 trial_data[:,samples_polled:dest_end_index] = data[self.channels,:src_end_index]
                 samples_polled += chunk_sz
         
-        
-        # for debugging
-        #x = [_  for _ in range(self.Ns)]
-        #fig, ax = plt.subplots()
-        #plot_data = []
-        #for i in range(len(self.channels)):
-        #    plot_data.append(x)
-        #    plot_data.append(trial_data[i,:]+i*15)
-        #plot_data = tuple(plot_data)
-        #ax.plot(*plot_data)
-        #plt.show()
         
         return trial_data
     
