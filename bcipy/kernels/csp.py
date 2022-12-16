@@ -171,7 +171,7 @@ class CommonSpatialPatternKernel(Kernel):
             if self.multi_class_mode not in ('OVA', 'PW'):
                 return BcipEnums.INITIALIZATION_FAILURE
 
-            _, Nc, Ns = X.shape 
+            _, Nc, Ns = X.shape
 
             if self.multi_class_mode == 'OVA':
                 # one vs. all
@@ -249,7 +249,7 @@ class CommonSpatialPatternKernel(Kernel):
         # rotate the filters back into the channel space
         W = np.matmul(P.T,W)
         
-        return np.real(W)
+        return W
     
     
     def verify(self):

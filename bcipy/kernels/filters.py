@@ -96,7 +96,7 @@ class FilterKernel(Filter, Kernel):
         - axis along which to apply the filter
     """
     
-    def __init__(self,graph,inputA,filt,outputA,axis=0):
+    def __init__(self,graph,inputA,filt,outputA,axis):
         super().__init__('Filter',BcipEnums.INIT_FROM_COPY,graph)
         self._inA  = inputA
         self._filt = filt
@@ -185,7 +185,7 @@ class FiltFiltKernel(Filter, Kernel):
         - axis along which to apply the filter
     """
     
-    def __init__(self,graph,inputA,filt,outputA,axis=0):
+    def __init__(self,graph,inputA,filt,outputA,axis):
         super().__init__('FiltFilt',BcipEnums.INIT_FROM_COPY,graph)
         self._inA  = inputA
         self._filt = filt
@@ -240,7 +240,7 @@ class FiltFiltKernel(Filter, Kernel):
         """
         
         # create the kernel object
-        k = cls(graph,inputA,filt,outputA)
+        k = cls(graph,inputA,filt,outputA,axis)
         
         # create parameter objects for the input and output
         params = (Parameter(inputA,BcipEnums.INPUT),
