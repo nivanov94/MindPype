@@ -213,6 +213,11 @@ class CommonSpatialPatternKernel(Kernel):
         # start by calculating the mean covariance matrix for each class
         C = pyriemann.utils.covariance.covariances(X)
 
+        # remove any trials that are not positive definite
+        pd = np.asarray([np.all(np.linalg.eigvals(Ci)) for Ci in C])
+        C = C[pd==1]
+        y = y[pd==1]
+
         C_bar = np.zeros((2, Nc, Nc))
         labels = np.unique(y)
         for i, label in enumerate(labels):
