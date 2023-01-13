@@ -219,14 +219,14 @@ class RiemannPotatoKernel(Kernel):
     @classmethod
     def add_riemann_potato_node(cls,graph,inA,initialization_data,
                                 out_label,
-                                thresh=3,max_iter=100,regulization=0.01):
+                                thresh=3,max_iter=100,regularization=0.01):
         """
         Factory method to create a riemann potato artifact detector
         """
         
         # create the kernel object            
 
-        k = cls(graph,inA,out_label,thresh,max_iter,regulization,
+        k = cls(graph,inA,out_label,thresh,max_iter,regularization,
                 initialization_data)
         
         # create parameter objects for the input and output
