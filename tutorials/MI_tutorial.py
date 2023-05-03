@@ -286,12 +286,9 @@ def main():
                 else:
                     outlet_marker = f"Block:{i_b+1}_Trial:{i_t+1}_Pred:{-2}"
         
-                
-                if not args.LSL_DISABLED:
-                    # push predicated label to marker outlet
-                    lsl_marker_outlet.push_sample([outlet_marker])
-                else:
-                    print(outlet_marker)
+                # push predicated label to marker outlet
+                lsl_marker_outlet.push_sample([outlet_marker])
+
 
 
     input("Session complete. Please Enter to terminate program...")

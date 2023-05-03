@@ -9,30 +9,14 @@ import sys, os
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
-from classes.classifier import Classifier
-from classes.session import Session
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.circle_buffer import CircleBuffer
-from classes.filter import Filter
-from classes.bcip_enums import BcipEnums
-from classes.graph import Graph
-from classes.source import BcipContinuousMat
-
-from kernels.filter_ import FilterKernel
-from kernels.extract import ExtractKernel
-from kernels.resample import ResampleKernel
-from kernels.enqueue import EnqueueKernel
-from kernels.tangent_space import TangentSpaceKernel
-from kernels.xdawn_covariances import XDawnCovarianceKernel
-from kernels.classifier_ import ClassifierKernel
+from bcipy import bcipy
 
 
 def main():
     # create a session
-    sess = Session.create()
-    offline_graph = Graph.create(sess)
-    online_graph = Graph.create(sess)
+    sess = bcipy.Session.create()
+    offline_graph = bcipy.Graph.create(sess)
+    online_graph = bcipy.Graph.create(sess)
 
     offline_trials = 252
     online_trials = 202
@@ -46,12 +30,12 @@ def main():
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
-    f = Filter.create_butter(sess,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
+    f = bcipy.Filter.create_butter(sess,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
 
     channels = tuple([_ for _ in range(3,17)])
 
     # Data sources from MAT files
-    offline_data_src = BcipContinuousMat.create_continuous(sess,
+    offline_data_src = bcipy.source.BcipContinuousMat.create_continuous(sess,
                                                            '../data/p300_offline.mat',
                                                            Fs*trial_len, 
                                                            relative_start=t_start*Fs,
@@ -61,7 +45,7 @@ def main():
 
 
 
-    online_data_src = BcipContinuousMat.create_continuous(sess,
+    online_data_src = bcipy.source.BcipContinuousMat.create_continuous(sess,
                                                           '../data/p300_online.mat',
                                                           Fs*trial_len, 
                                                           relative_start=t_start*Fs,
@@ -70,23 +54,23 @@ def main():
                                                           mat_labels_var_name='labels')
 
     # Data input tensors
-    online_input_data = Tensor.create_from_handle(sess, (len(channels), int(trial_len*Fs)), online_data_src)
-    offline_input_data = Tensor.create_from_handle(sess, (len(channels), int(trial_len*Fs)), offline_data_src)
+    online_input_data = bcipy.Tensor.create_from_handle(sess, (len(channels), int(trial_len*Fs)), online_data_src)
+    offline_input_data = bcipy.Tensor.create_from_handle(sess, (len(channels), int(trial_len*Fs)), offline_data_src)
     
     # offline graph data containers
-    label_input = Scalar.create(sess, int)
-    training_data = {'data'   : CircleBuffer.create(sess, offline_trials, Tensor(sess, (offline_input_data.shape[0],resample_fs),None,False,None)),
-                     'labels' : CircleBuffer.create(sess, offline_trials, label_input)}
+    label_input = bcipy.Scalar.create(sess, int)
+    training_data = {'data'   : bcipy.CircleBuffer.create(sess, offline_trials, bcipy.Tensor(sess, (offline_input_data.shape[0],resample_fs),None,False,None)),
+                     'labels' : bcipy.CircleBuffer.create(sess, offline_trials, label_input)}
 
     # online graph data containers (i.e. graph edges)
-    pred_label = Scalar.create_from_value(sess,-1) 
-    t_virt = [Tensor.create_virtual(sess), # output of filter, input to resample
-              Tensor.create_virtual(sess), # output of resample, input to extract
-              Tensor.create_virtual(sess), # output of extract, input to xdawn
-              Tensor.create_virtual(sess), # output of xdawn, input to tangent space
-              Tensor.create_virtual(sess)] # output of tangent space, input to classifier
+    pred_label = bcipy.Scalar.create_from_value(sess,-1) 
+    t_virt = [bcipy.Tensor.create_virtual(sess), # output of filter, input to resample
+              bcipy.Tensor.create_virtual(sess), # output of resample, input to extract
+              bcipy.Tensor.create_virtual(sess), # output of extract, input to xdawn
+              bcipy.Tensor.create_virtual(sess), # output of xdawn, input to tangent space
+              bcipy.Tensor.create_virtual(sess)] # output of tangent space, input to classifier
     
-    classifier = Classifier.create_logistic_regression(sess)
+    classifier = bcipy.Classifier.create_logistic_regression(sess)
     
     # extraction indices
     start_time = 0.25
@@ -96,27 +80,27 @@ def main():
                       ]
     
     # offline graph nodes
-    FilterKernel.add_filter_node(offline_graph, offline_input_data, f, t_virt[0])
-    ResampleKernel.add_resample_node(offline_graph, t_virt[0], resample_fs/Fs, t_virt[1])
-    ExtractKernel.add_extract_node(offline_graph, t_virt[1], extract_indices, t_virt[2])
-    EnqueueKernel.add_enqueue_node(offline_graph, t_virt[2], training_data['data'])
-    EnqueueKernel.add_enqueue_node(offline_graph, label_input, training_data['labels'])
+    bcipy.kernels.FilterKernel.add_filter_node(offline_graph, offline_input_data, f, t_virt[0])
+    bcipy.kernels.ResampleKernel.add_resample_node(offline_graph, t_virt[0], resample_fs/Fs, t_virt[1])
+    bcipy.kernels.ExtractKernel.add_extract_node(offline_graph, t_virt[1], extract_indices, t_virt[2])
+    bcipy.kernels.EnqueueKernel.add_enqueue_node(offline_graph, t_virt[2], training_data['data'])
+    bcipy.kernels.EnqueueKernel.add_enqueue_node(offline_graph, label_input, training_data['labels'])
 
     # online graph nodes
-    FilterKernel.add_filter_node(online_graph, online_input_data, f, t_virt[0])
-    ResampleKernel.add_resample_node(online_graph, t_virt[0], resample_fs/Fs, t_virt[1])
-    ExtractKernel.add_extract_node(online_graph, t_virt[1], extract_indices, t_virt[2])
-    XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[2], 
+    bcipy.kernels.FilterKernel.add_filter_node(online_graph, online_input_data, f, t_virt[0])
+    bcipy.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[0], resample_fs/Fs, t_virt[1])
+    bcipy.kernels.ExtractKernel.add_extract_node(online_graph, t_virt[1], extract_indices, t_virt[2])
+    bcipy.kernels.XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[2], 
                                                     t_virt[3], training_data['data'], 
                                                     training_data['labels'])
-    TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[3], t_virt[4])
-    ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_label)
+    bcipy.kernels.TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[3], t_virt[4])
+    bcipy.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_label)
 
     # verify the session (i.e. schedule the nodes)
     for g in (offline_graph, online_graph):
         verify_sts = g.verify()
 
-        if verify_sts != BcipEnums.SUCCESS:
+        if verify_sts != bcipy.BcipEnums.SUCCESS:
             print("Test Failed D=")
             return verify_sts
     
@@ -132,18 +116,18 @@ def main():
     # initialize the classifiers (i.e., train the classifier)
     init_sts = online_graph.initialize()
 
-    if init_sts != BcipEnums.SUCCESS:
+    if init_sts != bcipy.BcipEnums.SUCCESS:
         print("Test Failed D=")
         return init_sts
     
     # Run the online trials
-    sts = BcipEnums.SUCCESS
+    sts = bcipy.BcipEnums.SUCCESS
     online_trials = 202
     
     for t_num in range(online_trials):
         print(f"Running trial {t_num+1} of {online_trials}...")
         sts = online_graph.execute()
-        if sts == BcipEnums.SUCCESS:
+        if sts == bcipy.BcipEnums.SUCCESS:
             # print the value of the most recent trial
             y_bar = pred_label.data
             print(f"\tTrial {t_num+1}: Predicted label = {y_bar}")
