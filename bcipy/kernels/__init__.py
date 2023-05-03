@@ -21,3 +21,4 @@ from .riemann_potato import RiemannPotatoKernel
 from .threshold import ThresholdKernel
 from .transpose import TransposeKernel
 from .xdawn_covariances import XDawnCovarianceKernel
+from .tangent_space import TangentSpaceKernel

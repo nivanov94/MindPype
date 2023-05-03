@@ -250,7 +250,7 @@ class Binary:
         
         # first ensure the inputs and outputs are the appropriate type
         for operand in (self._inA, self._inB):
-            if not (operand._bcip_type == BcipEnums.TENSOR or operand._bcip_type == SCALAR):
+            if not (operand._bcip_type == BcipEnums.TENSOR or operand._bcip_type == BcipEnums.SCALAR):
                 return BcipEnums.INVALID_PARAMETERS
         
         if (self._inA._bcip_type == BcipEnums.TENSOR or 

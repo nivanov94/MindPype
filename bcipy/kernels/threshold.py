@@ -1,7 +1,7 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar
+from ..containers import Scalar, Tensor
 
 import numpy as np
 

@@ -5,14 +5,10 @@ Created on Thurs Aug 8 14:13:13 2022
 @author: aaronlio
 """
 
-from classes.kernel import Kernel
-from classes.node import Node
-from classes.parameter import Parameter
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.array import Array
-from classes.circle_buffer import CircleBuffer
-from classes.bcip_enums import BcipEnums
+from ..kernel import Kernel
+from ..graph import Node, Parameter
+from ..containers import Tensor, Scalar, Array, CircleBuffer
+from ..core import BcipEnums
 import numpy as np
 
 class RunningAverageKernel(Kernel):
