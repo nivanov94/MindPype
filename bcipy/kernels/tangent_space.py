@@ -38,30 +38,12 @@ class TangentSpaceKernel(Kernel):
         self._inA = inA
         self._outA = outA
 
-        if 'initialization_data' in init_params:
-            self._init_inA = init_params['initialization_data']
-        else:
-            self._init_inA = None
-
-        if 'labels' in init_params:
-            self._init_labels_in = init_params['labels']
-        else:
-            self._init_labels_in = None
-
+        self._init_inA = initialization_data
         self._init_outA = None
+        self._init_labels_in = None
         self._init_labels_out = None
         
-        if init_style == BcipEnums.INIT_FROM_DATA:
-            # model will be trained using data in tensor object at later time
-            self._initialized = False
-            self._tangent_space = None
-            
-        elif init_style == BcipEnums.INIT_FROM_COPY:
-            # model is copy of predefined MDM model object
-            self._tangent_space = init_params['tangent_space']
-            self._initialized = True
-
-
+        
     def verify(self):
         """
         Verify inputs and outputs are appropriate shape and type
