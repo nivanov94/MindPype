@@ -115,7 +115,7 @@ class TangentSpaceKernel(Kernel):
         """
         return self._process_data(self._inA, self._outA)
 
-    def _process_data(self, inA, output_data):
+    def _process_data(self, inA, outA):
         """
         Process data according to outlined kernel function
         """
