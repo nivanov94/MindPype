@@ -56,7 +56,7 @@ class FeatureNormalizationKernel(Kernel):
 
         sts = BcipEnums.SUCCESS
 
-        if self.init_inA._bcip_type == BcipEnums.TENSOR:
+        if self._init_inA._bcip_type == BcipEnums.TENSOR:
             X = self.initialization_data.data
         elif self._init_inA._bcip_type == BcipEnums.ARRAY:
             try:
@@ -73,7 +73,7 @@ class FeatureNormalizationKernel(Kernel):
             self._scale = np.max(X,axis=self._axis) - np.min(X,axis=self._axis)
         
         elif self._method == 'mean-norm':
-            self._translate = np.mean(X,axis=init_axis)
+            self._translate = np.mean(X,axis=self._axis) #changed from init_axis, confirm it should be self._axis 
             self._scale = np.max(X,axis=self._axis) - np.min(X,axis=self._axis)
         
         elif self._method == 'zscore-norm':
