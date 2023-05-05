@@ -669,8 +669,8 @@ class SetKernel(Kernel):
 
         # SCALAR INPUT/OUTPUT
         elif self._inA._bcip_type == BcipEnums.SCALAR:
-            if (data._bcip_type != BcipEnums.SCALAR or
-                data.data_type != self._out.data_type):
+            if (self._data._bcip_type != BcipEnums.SCALAR or
+                self._data.data_type != self._out.data_type):
                 return BcipEnums.INVALID_PARAMETERS
 
         # TENSOR INPUT/OUTPUT
@@ -770,7 +770,7 @@ class SetKernel(Kernel):
         k = cls(graph,inA,data,axis,index,out)
         
         # create parameter objects for the input and output
-        params = (Parameter(container,BcipEnums.INPUT),
+        params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(data,BcipEnums.INPUT),
                   Parameter(index,BcipEnums.INPUT),
                   Parameter(out,BcipEnums.OUTPUT))

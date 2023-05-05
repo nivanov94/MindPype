@@ -43,16 +43,8 @@ class FeatureNormalizationKernel(Kernel):
         self._scale = 1
         
 
-        if init_data != None and 'initialization_data' in init_params:
-            self._init_inA = init_params['initialization_data']
-        else:
-            self._init_inA = None
-
-        if 'labels' in init_params:
-            self._init_labels_in = init_params['labels']
-        else:
-            self._init_labels_in = None
-
+        self._init_inA = init_data
+        self._init_labels_in = None
         self._init_outA = None
         self._init_labels_out = None
 
@@ -145,7 +137,7 @@ class FeatureNormalizationKernel(Kernel):
 
     def _process_data(self, inA, outA):
         try:
-            self._outA.data = (X - self._translate) / self._scale
+            outA.data = (inA - self._translate) / self._scale
             return BcipEnums.SUCCESS
         except:
             return BcipEnums.EXE_FAILURE
