@@ -9,58 +9,46 @@ import sys, os
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
-from classes.classifier import Classifier
-from classes.session import Session
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.filter import Filter
-from classes.bcip_enums import BcipEnums
-from classes.graph import Graph
-
-from kernels.csp import CommonSpatialPatternKernel
-from kernels.filter_ import FilterKernel
-from kernels.classifier_ import ClassifierKernel
-from kernels.covariance import CovarianceKernel
-from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
+from bcipy import bcipy
 
 import numpy as np
 from random import shuffle
 
 def main():
     # create a session
-    session = Session.create()
-    trial_graph = Graph.create(session)
+    session = bcipy.Session.create()
+    trial_graph = bcipy.Graph.create(session)
 
     #data
     training_data = np.random.random((120,12,500))
         
     labels = np.asarray([0]*60 + [1]*60)
 
-    X = Tensor.create_from_data(session,training_data.shape,training_data)
-    y = Tensor.create_from_data(session,labels.shape,labels)
+    X = bcipy.Tensor.create_from_data(session,training_data.shape,training_data)
+    y = bcipy.Tensor.create_from_data(session,labels.shape,labels)
 
     y_LDA = Tensor.create_from_data(session, labels.shape, labels)
 
 
     input_data = np.random.randn(12, 500)
 
-    t_in = Tensor.create_from_data(session,(12,500),input_data)
-    s_out = Scalar.create_from_value(session,-1)
-    t_virt = [Tensor.create_virtual(session), \
-              Tensor.create_virtual(session)]
+    t_in = bcipy.Tensor.create_from_data(session,(12,500),input_data)
+    s_out = bcipy.Scalar.create_from_value(session,-1)
+    t_virt = [bcipy.Tensor.create_virtual(session), \
+              bcipy.Tensor.create_virtual(session)]
     
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
     fs = 250
-    f = Filter.create_butter(session,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
+    f = bcipy.Filter.create_butter(session,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
-    classifier = Classifier.create_LDA(session)
+    classifier = bcipy.Classifier.create_LDA(session)
     
     # add the nodes
-    FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
-    CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph, t_virt[0], t_virt[1], X, y, 2)
-    ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, None)
+    bcipy.kernels.FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
+    bcipy.kernels.CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph, t_virt[0], t_virt[1], X, y, 2)
+    bcipy.kernels.ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, None)
     
 
 
@@ -78,7 +66,7 @@ def main():
     print(trial_graph._nodes[1]._kernel._init_params['labels']._id)
     print(trial_graph._nodes[2].kernel._labels._id)
 
-    if start != BcipEnums.SUCCESS:
+    if start != bcipy.BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
         return start
@@ -90,15 +78,15 @@ def main():
     shuffle(trial_seq)
 
     t_num = 0
-    sts = BcipEnums.SUCCESS
+    sts = bcipy.BcipEnums.SUCCESS
     correct_labels = 0
     
-    while t_num < 8 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == bcipy.BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
         sts = trial_graph.execute(y)
         
-        if sts == BcipEnums.SUCCESS:
+        if sts == bcipy.BcipEnums.SUCCESS:
             # print the value of the most recent trial
             y_bar = s_out.data
             print("Trial {}: Label = {}, Predicted label = {}".format(t_num+1,y,y_bar))

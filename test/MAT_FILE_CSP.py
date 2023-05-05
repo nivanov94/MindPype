@@ -9,20 +9,7 @@ import sys, os
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
-from classes.classifier import Classifier
-from classes.session import Session
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.filter import Filter
-from classes.bcip_enums import BcipEnums
-from classes.graph import Graph
-from classes.source import BcipClassSeparatedMat
-
-from kernels.csp import CommonSpatialPatternKernel
-from kernels.filter_ import FilterKernel
-from kernels.classifier_ import ClassifierKernel
-from kernels.covariance import CovarianceKernel
-from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
+from bcipy import bcipy
 
 import numpy as np
 import scipy.io as sio
@@ -30,44 +17,44 @@ from random import shuffle
 
 def main():
     # create a session
-    session = Session.create()
-    trial_graph = Graph.create(session)
+    session = bcipy.Session.create()
+    trial_graph = bcipy.Graph.create(session)
 
     init_data = sio.loadmat('test_data\init_data.mat')['init_data']
     init_labels = sio.loadmat('test_data\init_labels.mat')['labels']
 
-    X = Tensor.create_from_data(session,np.shape(init_data), init_data)
-    y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
+    X = bcipy.Tensor.create_from_data(session,np.shape(init_data), init_data)
+    y = bcipy.Tensor.create_from_data(session,np.shape(init_labels),init_labels)
 
-    input_data = BcipClassSeparatedMat.create_class_separated(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', \
+    input_data = bcipy.source.BcipClassSeparatedMat.create_class_separated(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', \
                                                               'test_data\input_data.mat', 'test_data\input_labels.mat')
     
-    input_data = Tensor.create_from_handle(session, (12, 500), input_data)
+    input_data = bcipy.Tensor.create_from_handle(session, (12, 500), input_data)
 
-    s_out = Scalar.create_from_value(session,-1)
-    t_virt = [Tensor.create_virtual(session), \
-              Tensor.create_virtual(session)]
+    s_out = bcipy.Scalar.create_from_value(session,-1)
+    t_virt = [bcipy.Tensor.create_virtual(session), \
+              bcipy.Tensor.create_virtual(session)]
     
     # create a filter
-    f = Filter.create_butter(session,4,(8,35),btype='bandpass',fs=250,implementation='sos')
-    classifier = Classifier.create_LDA(session)
+    f = bcipy.Filter.create_butter(session,4,(8,35),btype='bandpass',fs=250,implementation='sos')
+    classifier = bcipy.Classifier.create_LDA(session)
     
     # add the nodes
-    FilterKernel.add_filter_node(trial_graph,input_data,f,t_virt[0])
-    CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph, t_virt[0], t_virt[1], X, y, 2)
-    ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, None)
+    bcipy.kernels.FilterKernel.add_filter_node(trial_graph,input_data,f,t_virt[0])
+    bcipy.kernels.CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph, t_virt[0], t_virt[1], X, y, 2)
+    bcipy.kernels.ClassifierKernel.add_classifier_node(trial_graph, t_virt[1], classifier, s_out, None, None)
 
     # verify the session (i.e. schedule the nodes)
     verify = trial_graph.verify()
 
-    if verify != BcipEnums.SUCCESS:
+    if verify != bcipy.BcipEnums.SUCCESS:
         print(verify)
         print("Test Failed D=")
         return verify
     
     start = trial_graph.initialize()
 
-    if start != BcipEnums.SUCCESS:
+    if start != bcipy.BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
         return start
@@ -78,15 +65,15 @@ def main():
     shuffle(trial_seq)
 
     t_num = 0
-    sts = BcipEnums.SUCCESS
+    sts = bcipy.BcipEnums.SUCCESS
     correct_labels = 0
 
     
-    while t_num < 8 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == bcipy.BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
         sts = trial_graph.execute(y)
-        if sts == BcipEnums.SUCCESS:
+        if sts == bcipy.BcipEnums.SUCCESS:
             # print the value of the most recent trial
             y_bar = s_out.data
             print("Trial {}: Label = {}, Predicted label = {}".format(t_num+1,y,y_bar))

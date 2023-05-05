@@ -9,14 +9,7 @@ Created on Thu Nov 21 16:30:09 2019
 import sys, os
 sys.path.insert(0, os.getcwd())
 
-from classes.session import Session
-from classes.tensor import Tensor
-from classes.filter import Filter
-from classes.bcip_enums import BcipEnums
-from classes.graph import Graph
-
-from kernels.filter_ import FilterKernel
-from kernels.covariance import CovarianceKernel
+from bcipy import bcipy
 
 import numpy as np
 from scipy import signal
@@ -32,30 +25,30 @@ def manual_computation(input_data):
 
 def main():
     # create a session
-    s = Session.create()
+    s = bcipy.Session.create()
 
-    trial_graph = Graph.create(s)
+    trial_graph = bcipy.Graph.create(s)
 
     input_data = np.random.randn(12,500)
-    t_in = Tensor.create_from_data(s,(12,500),input_data)
-    t_out = Tensor.create(s,(12,12))
-    t_virt = Tensor.create_virtual(s)
+    t_in = bcipy.Tensor.create_from_data(s,(12,500),input_data)
+    t_out = bcipy.Tensor.create(s,(12,12))
+    t_virt = bcipy.Tensor.create_virtual(s)
 
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
     fs = 250
-    f = Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
+    f = bcipy.Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt)
-    CovarianceKernel.add_covariance_node(trial_graph,t_virt,t_out)
+    bcipy.kernels.FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt)
+    bcipy.kernels.CovarianceKernel.add_covariance_node(trial_graph,t_virt,t_out)
     
 
     # verify the session (i.e. schedule the nodes)
     sts = trial_graph.verify()
 
-    if sts != BcipEnums.SUCCESS:
+    if sts != bcipy.BcipEnums.SUCCESS:
         print(sts)
         return sts
     

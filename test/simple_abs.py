@@ -1,8 +1,8 @@
-import bcipy
+from bcipy import bcipy
 import numpy as np
 
-s = bcipy.Session()
-g = bcipy.Graph(s)
+s = bcipy.Session.create()
+g = bcipy.Graph.create(s)
 
 data_in = np.asarray([[1,2,3],[-1,-2,-3]])
 t_in1 = bcipy.Tensor.create_from_data(s, (2,3), data_in)

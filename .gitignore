@@ -19,6 +19,9 @@
 # data dir
 data/*
 
+# scrap
+scrap/*
+
 # bcip dir
 bcip
 

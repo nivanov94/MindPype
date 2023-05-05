@@ -1,8 +1,7 @@
 import sys, os
 sys.path.insert(0, os.getcwd())
 
-from classes.bcip import BCIP
-from classes.bcip_enums import BcipEnums
+from bcipy import bcipy
 from scipy.io import loadmat
 import numpy as np
 import pylsl
