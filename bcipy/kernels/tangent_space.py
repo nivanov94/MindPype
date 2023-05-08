@@ -1,7 +1,6 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .utils.data_extraction import extract_nested_data
 
 from pyriemann.tangentspace import TangentSpace
 import numpy as np
