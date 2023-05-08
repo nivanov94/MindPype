@@ -11,20 +11,7 @@ from django.test import TestCase
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
-from classes.classifier import Classifier
-from classes.session import Session
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.filter import Filter
-from classes.bcip_enums import BcipEnums
-from classes.graph import Graph
-from classes.source import BcipClassSeparatedMat
-
-from kernels.csp import CommonSpatialPatternKernel
-from kernels.filter_ import FilterKernel
-from kernels.classifier_ import ClassifierKernel
-from kernels.covariance import CovarianceKernel
-from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
+from bcipy import bcipy
 
 import scipy.io as sio
 
@@ -35,27 +22,27 @@ import scipy
 
 def CSP_lib(file_data, init_data, init_labels):
     # create a session
-    session = Session.create()
-    trial_graph = Graph.create(session)
+    session = bcipy.Session.create()
+    trial_graph = bcipy.Graph.create(session)
 
-    X = Tensor.create_from_data(session,np.shape(init_data), init_data)
-    y = Tensor.create_from_data(session,np.shape(init_labels),init_labels)
+    X = bcipy.Tensor.create_from_data(session,np.shape(init_data), init_data)
+    y = bcipy.Tensor.create_from_data(session,np.shape(init_labels),init_labels)
 
 
-    input_data = BcipClassSeparatedMat.create_class_separated(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
-    input_data = Tensor.create_from_handle(session, (12, 500), input_data)
+    input_data = bcipy.source.BcipClassSeparatedMat.create_class_separated(session, 2, 500, 0, 4000, 0, 'input_data', 'input_labels', 'test_data\input_data.mat', 'test_data\input_labels.mat')
+    input_data = bcipy.Tensor.create_from_handle(session, (12, 500), input_data)
 
-    t_out = Tensor.create_virtual(session)
+    t_out = bcipy.Tensor.create_virtual(session)
     #t_virt = Tensor.create_virtual(session)
     print(f"input data_point: {input_data.data[0,0]}")
     
     # add the nodes
-    CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph,input_data, t_out, X, y, 2)
+    bcipy.kernels.CommonSpatialPatternKernel.add_uninitialized_CSP_node(trial_graph,input_data, t_out, X, y, 2)
     
     # verify the session (i.e. schedule the nodes)
     verify = trial_graph.verify()
 
-    if verify != BcipEnums.SUCCESS:
+    if verify != bcipy.BcipEnums.SUCCESS:
         print(verify)
         print("Test Failed D=")
         return verify
@@ -63,7 +50,7 @@ def CSP_lib(file_data, init_data, init_labels):
     start = trial_graph.initialize()
     #input_data = trial_graph._nodes[0].kernel._outputA.data
 
-    if start != BcipEnums.SUCCESS:
+    if start != bcipy.BcipEnums.SUCCESS:
         print(start)
         print("Test Failed D=")
         return start
@@ -72,15 +59,15 @@ def CSP_lib(file_data, init_data, init_labels):
     trial_seq = [0]*4 + [1]*4
 
     t_num = 0
-    sts = BcipEnums.SUCCESS
+    sts = bcipy.BcipEnums.SUCCESS
     output_array = []
-    while t_num < 8 and sts == BcipEnums.SUCCESS:
+    while t_num < 8 and sts == bcipy.BcipEnums.SUCCESS:
         print(f"t_num {t_num}, length of trials: {len(trial_seq)}")
         y = trial_seq[t_num]
         sts = trial_graph.execute(y)
         print(f"input data_point: {input_data.data[0,0]}")
                                 
-        if sts != BcipEnums.SUCCESS:
+        if sts != bcipy.BcipEnums.SUCCESS:
             print(f"Trial {t_num+1} raised error, status code: {sts}")
             break
         
