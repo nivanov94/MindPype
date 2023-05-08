@@ -27,7 +27,7 @@ def main():
     X = bcipy.Tensor.create_from_data(session,training_data.shape,training_data)
     y = bcipy.Tensor.create_from_data(session,labels.shape,labels)
 
-    y_LDA = Tensor.create_from_data(session, labels.shape, labels)
+    y_LDA = bcipy.Tensor.create_from_data(session, labels.shape, labels)
 
 
     input_data = np.random.randn(12, 500)
@@ -56,7 +56,7 @@ def main():
     verify = trial_graph.verify()
     print(trial_graph._missing_data)
 
-    if verify != BcipEnums.SUCCESS:
+    if verify != bcipy.BcipEnums.SUCCESS:
         print(verify)
         print("Test Failed D=")
         return verify

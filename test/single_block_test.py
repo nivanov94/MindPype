@@ -7,16 +7,6 @@ full block test
 @author: ivanovn
 """
 from bcipy import bcipy
-from classes.session import Session
-from classes.tensor import Tensor
-from classes.scalar import Scalar
-from classes.filter import Filter
-from classes.source import BcipMatFile
-from classes.bcip_enums import BcipEnums
-
-from kernels.filtfilt import FiltFiltKernel
-from kernels.covariance import CovarianceKernel
-from kernels.riemann_mdm_classifier_kernel import RiemannMDMClassifierKernel
 
 from test.utils import load_training_data
 
