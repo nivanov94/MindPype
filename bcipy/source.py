@@ -938,7 +938,7 @@ class V2LSLStream(BCIP):
             return
         
         # TODO - Warn about more than one available stream
-        self.data_buffer = {'EEG':np.zeros((len(channels),1)),'time_stamps':np.zeros((1,))}
+        self.data_buffer = {'EEG':np.empty((len(channels),1)),'time_stamps':np.empty((1,))}
         self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
         self.marker_inlet = None
         self.marker_pattern = None
@@ -998,23 +998,19 @@ class V2LSLStream(BCIP):
         # First, pull the data required data from the buffer
         eeg_index_bool = np.array(self.data_buffer['time_stamps'] >= t_begin)
         samples_polled = np.sum(eeg_index_bool)
-        trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,eeg_index_bool]
-        
+        trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
 
-        print("polling ...")
-        print(Ns)
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk()
             timestamps = np.asarray(timestamps)
-            print(data, flush=True)
-            print(timestamps)
-
-            if len(timestamps) != 0 and np.any(timestamps > t_begin):
+            if len(timestamps) != -1 and np.any(timestamps > t_begin):
                 # convert data to numpy arrays
                 data = np.asarray(data).T
                 # throw away data that comes after t_begin
                 data = data[:, :Ns-samples_polled]
+                
                 chunk_sz = data.shape[1]            
+                
 
                 # append the latest chunk to the trial_data array
                 if samples_polled + chunk_sz > Ns:
@@ -1025,18 +1021,21 @@ class V2LSLStream(BCIP):
                     dest_end_index = samples_polled + chunk_sz
                     src_end_index = chunk_sz
                 if dest_end_index == Ns:
-                    print(trial_data.shape)
-                    print(data.shape)
                     self.data_buffer['EEG'] = np.concatenate((trial_data, data), axis=1)
+                                                
+                self.data_buffer['time_stamps'] = np.concatenate((self.data_buffer['time_stamps'], timestamps))
+                #if self.data_buffer['time_stamps'].shape[0] < self.data_buffer['EEG'].shape[0]:
+                #    self.data_buffer['time_stamps'] = np.concatenate(
+                #            (self.data_buffer['time_stamps'],timestamps[-1*self.data_buffer['EEG'].shape[0] - self.data_buffer['time_stamps'].shape[0]:]))
+ 
                 trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
+
                 
                 samples_polled += chunk_sz
-            print("SP: ", samples_polled)
-        
+       
+
+
         trial_data = trial_data[:, :Ns]
-        print(trial_data.shape)
-        print(self.data_buffer['EEG'].shape)
-        print(trial_data[23,50])
         return trial_data
     
     @classmethod
