@@ -10,9 +10,11 @@ Currently supported sources:
 
 
 from .core import BCIP, BcipEnums
+from .containers import CircleBuffer, Tensor
 from scipy.io import loadmat
 import numpy as np
 import pylsl
+import pyxdf
 import os
 import re
 
@@ -80,7 +82,7 @@ class BcipMatFile(BCIP):
             self.label_counters[label] = 0
             
         
-    def poll_data(self,label):
+    def poll_data(self,Ns,label):
         """
         Poll the data for the next trial of the input label
         """
@@ -235,7 +237,7 @@ class BcipClassSeparatedMat(BCIP):
         self.raw_data = raw_data
         self.labels = labels
 
-    def poll_data(self, label):
+    def poll_data(self, Ns, label):
         label = int(label)
         try:
             trial_indices = self.labels_dict[label]
@@ -415,7 +417,7 @@ class BcipContinuousMat(BCIP):
 
         self._trial_counter = 0
 
-    def poll_data(self, label = None):
+    def poll_data(self, Ns, label = None):
         try:
             start = self.labels[self._trial_counter, 1] + self.relative_start
             end = start + self.event_duration
@@ -482,6 +484,274 @@ class BcipContinuousMat(BCIP):
         return src
 
 
+class BcipXDF(BCIP):
+    """
+    Utility class for extracting trial data from an XDF file for BCIP. 
+
+    Parameters
+    ----------
+
+    sess : Session Object
+        Session where the BcipXDF data source will exist.
+
+    files : list of str
+        XDF file(s) where data should be extracted from.
+
+        
+    tasks : list or tuple of strings 
+        List or Tuple of strings corresponding to the tasks to be completed by the user.
+        For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+
+    channels : list or tuple of int
+        Values corresponding to the EEG channels used during the session
+
+    relative_start : float, default = 0
+        Value corresponding to the start of the trial relative to the marker onset.
+
+    Ns : int, default = 1
+        Number of samples to be extracted per trial. For epoched data, this value determines the
+        size of each epoch, whereas this value is used in polling for continuous data.    
+        
+    mode : 'continuous' or 'epoched', default = 'epoched'
+        Mode indicates whether the inputted data will be epoched, by class,
+        into individual trials, or to leave the data in a continuous format
+
+    """
+
+    def __init__(self, sess, files, tasks, channels, relative_start = 0, Ns = 1, mode = 'epoched'):
+        """
+        Create a new xdf file reader interface
+        """
+        super().__init__(BcipEnums.SRC,sess)
+        
+        if type(files) == str:
+            files = [files]
+
+        self.files = files
+        self.relative_start = relative_start
+        self.Ns = Ns
+        self.tasks = tasks
+        self.channels = channels
+        self.label_counter = None
+        self.mode = mode
+
+        
+        trial_data = {task: [] for task in tasks}
+        
+        if mode == 'epoched':
+            for filename in files:
+                data, header = pyxdf.load_xdf(filename)
+                
+                for stream in data:
+    
+                    if stream['info']['type'][0] == 'Marker' or stream['info']['type'][0] == 'Markers': #change to Markers after testing
+                        marker_stream = stream
+    
+                    elif stream['info']['type'][0] == 'EEG':
+                        eeg_stream = stream
+                
+                Fs = int(float(eeg_stream['info']['nominal_srate'][0]))
+                    
+                sample_indices = np.full(eeg_stream['time_stamps'].shape, False) # used to extract EEG samples, pre-allocated here
+    
+                #print(eeg_stream['time_series'].shape)
+                total_tasks = 0
+                for i_m, markers in enumerate(marker_stream['time_series']):
+                    marker_value = markers[0]
+                    curr_task = ''
+                                        
+                    for task in self.tasks:
+                        if task in marker_value:
+                            curr_task = task
+    
+                            marker_time = marker_stream['time_stamps'][i_m]
+                            total_tasks += 1
+                            
+                            # compute the 5s window, 2s after cue
+                            eeg_window_start = marker_time - relative_start
+                            #eeg_window_end = marker_time + 0.8 +(5/Fs) # Added temporal buffer to limit indexing errors
+        
+                            sample_indices = np.array(eeg_stream['time_stamps'] >= eeg_window_start)
+                            
+                            sample_data = eeg_stream['time_series'][sample_indices, :][:, channels].T # Nc X len(eeg_stream)
+                            trial_data[curr_task].append(sample_data[:, :Ns]) #Nc x Ns
+                                
+
+
+        
+            for task in trial_data:
+                trial_data[task] = np.stack(trial_data[task], axis=0) # Nt x Nc x Ns
+                
+            self.trial_data = trial_data
+            self.label_counter = {task: 0 for task in tasks}
+
+        elif mode == 'continuous':
+            
+            eeg_stream = None
+            marker_stream = None
+
+            for filename in files:
+                data, header = pyxdf.load_xdf(filename)
+                
+                for stream in data:
+                    if stream['info']['type'][0] == 'Marker' or stream['info']['type'][0] == 'Markers': #change to Markers after testing
+                        if marker_stream:
+                            marker_stream['time_series'] = np.concatenate((marker_stream['time_series'], stream['time_series']), axis=0)
+                            marker_stream['time_stamps'] = np.concatenate((marker_stream['time_stamps'], stream['time_stamps']), axis=0)
+                        else:
+                            marker_stream = stream
+    
+                    elif stream['info']['type'][0] == 'EEG':
+                        if eeg_stream:
+                            eeg_stream['time_series'] = np.concatenate((eeg_stream['time_series'], stream['time_series']), axis=0)
+                            eeg_stream['time_stamps'] = np.concatenate((eeg_stream['time_stamps'], stream['time_stamps']), axis=0)
+                        else:
+                            eeg_stream = stream
+
+            self.trial_data = {'EEG': eeg_stream, 'Markers': marker_stream} 
+            self.label_counter = {task: 0 for task in tasks}
+
+    def poll_data(self, Ns = 1, label = None):
+        #TODO: implement polling
+        """
+        Polls the data source for new data.
+
+        Parameters
+        ----------
+
+        label : string
+            Marker to be used for polling. Number of trials previously extracted is recorded internally.
+            This marker must be present in the XDF file and must be present in the list of tasks used in
+            initialization.
+
+        Ns : int, default = 1
+            Number of samples to be extracted per trial. For continuous data, determines the size of
+            the extracted sample. This value is disregarded for epoched data.   
+        """
+
+        if self.mode == 'epoched':
+            sample_data = self.trial_data[label][self.label_counter[label], :, :]
+            self.label_counter[label] += 1
+
+            return sample_data
+        
+        elif self.mode == 'continuous':
+            index = [i for i, marker in enumerate(self.trial_data['Markers']['time_series']) if label in marker[0]][self.label_counter[label]]
+
+            eeg_window_start = self.trial_data['Markers']['time_stamps'][index] - self.relative_start
+            sample_indices = np.array(self.trial_data['EEG']['time_stamps'] >= eeg_window_start)
+            
+            sample_data = self.trial_data['EEG']['time_series'][sample_indices, :][:, self.channels].T # Nc X len(eeg_stream)
+            sample_data = sample_data[:, :Ns] #Nc x Ns
+            self.label_counter[label] += 1
+            
+            return sample_data
+    
+    @classmethod
+    def create_continuous(cls, sess, files, tasks, channels, relative_start = 0, Ns = 1):
+        """
+        Factory Method for creating continuous XDF File input source. 
+
+        Parameters
+        ---------
+        sess : Session Object
+            Session where the BcipXDF data source will exist.
+
+        files : list of str
+            XDF file(s) where data should be extracted from.
+       
+        tasks : list or tuple of strings 
+            List or Tuple of strings corresponding to the tasks to be completed by the user.
+            For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+
+        channels : list or tuple of int
+            Values corresponding to the EEG channels used during the session
+
+        relative_start : float, default = 0
+            Value corresponding to the start of the trial relative to the marker onset.
+
+        Ns : int, default = 1
+            Number of samples to be extracted per trial. For epoched data, this value determines the
+            size of each epoch, whereas this value is used in polling for continuous data. 
+
+        """
+
+        src = cls(sess, files, tasks, channels, relative_start, Ns, mode = 'continuous')
+
+        sess.add_ext_src(src)
+
+        return src
+
+    @classmethod
+    def create_epoched(cls, sess, files, tasks, channels, relative_start = 0, Ns = 1):
+        """
+        Factory Method for creating epoched XDF File input source. 
+
+        Parameters
+        ---------
+        sess : Session Object
+            Session where the BcipXDF data source will exist.
+
+        files : list of str
+            XDF file(s) where data should be extracted from.
+       
+        tasks : list or tuple of strings 
+            List or Tuple of strings corresponding to the tasks to be completed by the user.
+            For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+
+        channels : list or tuple of int
+            Values corresponding to the EEG channels used during the session
+
+        relative_start : float, default = 0
+            Value corresponding to the start of the trial relative to the marker onset.
+
+        Ns : int, default = 1
+            Number of samples to be extracted per trial. For epoched data, this value determines the
+            size of each epoch, whereas this value is used in polling for continuous data.    
+            
+        """
+    
+        src = cls(sess, files, tasks, channels, relative_start, Ns, mode = 'epoched')
+
+        sess.add_ext_src(src)
+
+        return src
+    
+    @classmethod
+    def create(cls, sess, files, tasks, channels, relative_start = 0, Ns = 1, mode = 'epoched'):
+        """
+        Factory Method for creating epoched XDF File input source. 
+
+        Parameters
+        ---------
+        sess : Session Object
+            Session where the BcipXDF data source will exist.
+
+        files : list of str
+            XDF file(s) where data should be extracted from.
+       
+        tasks : list or tuple of strings 
+            List or Tuple of strings corresponding to the tasks to be completed by the user.
+            For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+
+        channels : list or tuple of int
+            Values corresponding to the EEG channels used during the session
+
+        relative_start : float, default = 0
+            Value corresponding to the start of the trial relative to the marker onset.
+
+        Ns : int, default = 1
+            Number of samples to be extracted per trial. For epoched data, this value determines the
+            size of each epoch, whereas this value is used in polling for continuous data.    
+            
+        """
+    
+        src = cls(sess, files, tasks, channels, relative_start, Ns, mode)
+
+        sess.add_ext_src(src)
+
+        return src
+
 
 class LSLStream(BCIP):
     """
@@ -542,7 +812,7 @@ class LSLStream(BCIP):
                 self.marker_pattern = re.compile(marker_fmt)
 
     
-    def poll_data(self, Ns):
+    def poll_data(self, Ns, label):
         """
         Pull data from the inlet stream until we have Ns data points for each
         channel.
@@ -629,4 +899,180 @@ class LSLStream(BCIP):
         
         return src
 
+
+class V2LSLStream(BCIP):
+    """
+    An object for maintaining an LSL inlet
+    """
+
+    def __init__(self,sess,pred,channels=None,
+                 marker=True,marker_fmt=None,marker_pred=None, relative_start=0):
+        """
+        Create a new LSL inlet stream object
+        Parameters
+        ----------
+        sess : session object
+            Session object where the data source will exist
+        pred : str
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and 
+            count(description/desc/channels/channel)=32"
+        prop_value : str
+            Property value of the target stream
+        channels : tuple of ints
+            Index value of channels to poll from the stream, if None all channels will be polled
+        marker : bool
+            true if there is an associated marker to indicate relative time where data should begin to be polled
+        marker_fmt : str
+            Regular expression template of the marker to be matched, if none all markers will be matched
+        marker_pred : str
+            The predicate string for the marker stream
+        """
+        super().__init__(BcipEnums.SRC,sess)
+        
+        # resolve the stream on the LSL network
+        available_streams = pylsl.resolve_bypred(pred)
+        
+        if len(available_streams) == 0:
+            # TODO log error
+            return
+        
+        # TODO - Warn about more than one available stream
+        self.data_buffer = {'EEG':Tensor.create_virtual(sess),'time_stamps':Tensor.create_virtual(sess)}
+        self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
+        self.marker_inlet = None
+        self.marker_pattern = None
+        self.relative_start = relative_start
+        
+        # TODO - check if the stream has enough input channels to match the
+        # channels parameter
+        if channels:
+            self.channels = channels
+        else:
+            self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
+        
+        if marker:
+            marker_streams = pylsl.resolve_bypred(marker_pred)
+            self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
+            # open the inlet
+            self.marker_inlet.open_stream()
+        
+            if marker_fmt:
+                self.marker_pattern = re.compile(marker_fmt)
+
+    def poll_data(self, Ns, label):
+        """
+        Pull data from the inlet stream until we have Ns data points for each
+        channel.
+        Parameters
+        ----------
+        Ns: int
+            number of samples to collect
+        """
+        
+        if self.marker_inlet != None:
+            # start by getting the timestamp for this trial's marker
+            t_begin = None
+            while t_begin == None:
+                marker, t = self.marker_inlet.pull_sample()
+                if marker != None:
+                    marker = marker[0] # extract the string portion of the marker
+                    
+                    if (self.marker_pattern == None) or self.marker_pattern.match(marker):
+                        t_begin = t
+                    
+        else:
+            t_begin = 0 # i.e. all data is valid
+        
+        t_begin_relative = t_begin + self.relative_start
+        # pull the data in chunks until we get the total number of samples
+        trial_data = np.zeros((len(self.channels), Ns)) # allocate the array
+        samples_polled = 0        
+
+        # First, pull the data required data from the buffer
+        eeg_index_bool = np.array(sample_indices = np.array(self.data_buffer['time_stamps'] >= t_begin_relative))
+        prev_data = self.data_buffer['EEG'].data[:,eeg_index_bool]
+        samples_polled = prev_data.shape[1]
+        
+        while samples_polled < Ns:
+            data, timestamps = self.data_inlet.pull_chunk()
+            timestamps = np.asarray(timestamps)
+
+            if len(timestamps) != 0 and np.any(timestamps > t_begin):
+                # convert data to numpy arrays
+                data = np.asarray(data).T
+                # throw away data that comes after t_begin
+                data = data[:, :Ns-samples_polled]
+                chunk_sz = data.shape[1]            
+
+                # append the latest chunk to the trial_data array
+                #if samples_polled + chunk_sz > Ns:
+                #    dest_end_index = Ns
+                #    src_end_index = Ns - samples_polled
+                
+                #else:
+                #    dest_end_index = samples_polled + chunk_sz
+                #    src_end_index = chunk_sz
+                trial_data = np.concatenate((prev_data, data), axis=1)
+                
+                samples_polled += chunk_sz
+        
+        self.data_buffer['EEG'].data = np.concatenate((self.data_buffer['EEG'].data[:,eeg_index_bool], trial_data), axis=1)
+        return trial_data
+    
+    @classmethod
+    def create_marker_coupled_data_stream(cls,sess,prop,prop_value,
+                                          channels=None,
+                                          marker_fmt=None):
+        """
+        Create a LSLStream data object that maintains a data stream and a
+        marker stream
+        Parameters
+        ----------
+        sess : session object
+            Session object where the data source will exist
+        prop : str
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
+            count(description/desc/channels/channel)=32"
+        prop_value : str
+            Property value of the target stream
+        channels : tuple or list of ints
+            Index value of channels to poll from the stream, if None all channels will be polled
+        marker_fmt : str
+            Regular expression template of the marker to be matched, if none all markers will be matched
+        
+        Examples
+        --------
+        """
+        src = cls(sess,prop,prop_value,channels,True,marker_fmt)
+        sess.add_ext_src(src)
+        
+        return src
+    
+    @classmethod
+    def create_marker_uncoupled_data_stream(cls,sess,prop,prop_value,
+                                            channels=None,
+                                            marker_fmt="T{},L{},LN{}"):
+        """
+        Create a LSLStream data object that maintains only a data stream with
+        no associated marker stream
+        Parameters
+        ----------
+        Examples
+        --------
+        sess : session object
+            Session object where the data source will exist
+        prop : str
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
+            count(description/desc/channels/channel)=32"
+        prop_value : str
+            Property value of the target stream
+        channels : tuple or list of ints
+            Index value of channels to poll from the stream, if None all channels will be polled
+        marker_fmt : str
+            Regular expression template of the marker to be matched, if none all markers will be matched
+        """
+        src = cls(sess,prop,prop_value,channels,False)
+        sess.add_ext_src(src)
+        
+        return src
 
