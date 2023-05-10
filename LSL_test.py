@@ -1,16 +1,16 @@
 import bcipy
 import numpy as np
+import pylsl
 
-
-def LSL_test(file, tasks, channels, start, samples):
+def LSL_test(channels, start, samples):
     session = bcipy.Session.create()
 
     graph = bcipy.Graph.create(session)
 
 
     lsl_object = bcipy.source.V2LSLStream.create_marker_coupled_data_stream(
-        session, "type='EEG' and channel_count=32",
-        2, channels, ['flash', 'target']
+        session, "type='EEG'",
+        channels, -0.2, marker_fmt="^SPACE pressed$"
         )
     
     t_in = bcipy.Tensor.create_from_handle(session, (len(channels), samples), lsl_object)
@@ -38,11 +38,20 @@ def LSL_test(file, tasks, channels, start, samples):
     
     i = 0
 
+    marker_stream = pylsl.StreamInlet(pylsl.resolve_bypred("type='Markers'")[0])
+
+
     sts = bcipy.BcipEnums.SUCCESS
     while i < 10 and sts == bcipy.BcipEnums.SUCCESS:
-        sts = graph.execute('flash')
-        print(t_out.data[23,50])   
-        i+=1 
+        marker = marker_stream.pull_sample(timeout=1)
+        print(marker, flush=True)
+        if marker[0] == None:
+            print("Waiting for marker")
+        elif marker[0][0] == 'SPACE pressed':
+            sts = graph.execute(500)
+            print(t_in.data[23,50])
+            print(t_out.data[23,50])   
+            i+=1 
 
 
 
@@ -88,5 +97,4 @@ sel_chs = ('FCz',
 if __name__ == '__main__':
     
     channels = [ch_map[ch] for ch in sel_chs]
-    tasks = ('flash', 'target')
-    trial_data = XDF_test(['C:/Users/lioa/Documents/Mindset P300 Code for Aaron/sub-P001_ses-S001_task-vP300+2x2_run-003.xdf'], tasks, channels, -.2, 500)
+    trial_data = LSL_test(channels, -.2, 500)

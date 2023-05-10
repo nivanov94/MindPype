@@ -905,8 +905,8 @@ class V2LSLStream(BCIP):
     An object for maintaining an LSL inlet
     """
 
-    def __init__(self,sess,pred,channels=None,
-                 marker=True,marker_fmt=None,marker_pred=None, relative_start=0):
+    def __init__(self,sess,pred,channels=None, relative_start = 0,
+                 marker=True,marker_fmt=None,marker_pred=None):
         """
         Create a new LSL inlet stream object
         Parameters
@@ -916,10 +916,11 @@ class V2LSLStream(BCIP):
         pred : str
             The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and 
             count(description/desc/channels/channel)=32"
-        prop_value : str
-            Property value of the target stream
         channels : tuple of ints
             Index value of channels to poll from the stream, if None all channels will be polled
+        relative_start : float, default = 0
+            Duration of tiem before marker from which samples should be extracted during polling.
+
         marker : bool
             true if there is an associated marker to indicate relative time where data should begin to be polled
         marker_fmt : str
@@ -937,7 +938,7 @@ class V2LSLStream(BCIP):
             return
         
         # TODO - Warn about more than one available stream
-        self.data_buffer = {'EEG':Tensor.create_virtual(sess),'time_stamps':Tensor.create_virtual(sess)}
+        self.data_buffer = {'EEG':np.zeros((len(channels),1)),'time_stamps':np.zeros((1,))}
         self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
         self.marker_inlet = None
         self.marker_pattern = None
@@ -959,7 +960,7 @@ class V2LSLStream(BCIP):
             if marker_fmt:
                 self.marker_pattern = re.compile(marker_fmt)
 
-    def poll_data(self, Ns, label):
+    def poll_data(self, Ns, label=None):
         """
         Pull data from the inlet stream until we have Ns data points for each
         channel.
@@ -967,35 +968,46 @@ class V2LSLStream(BCIP):
         ----------
         Ns: int
             number of samples to collect
+        Label : None
+            used for file-based polling, not used here
         """
         
         if self.marker_inlet != None:
             # start by getting the timestamp for this trial's marker
             t_begin = None
             while t_begin == None:
+                print("Polling marker")
                 marker, t = self.marker_inlet.pull_sample()
+                print("marker: ", marker)
                 if marker != None:
                     marker = marker[0] # extract the string portion of the marker
+                    print(marker)
                     
                     if (self.marker_pattern == None) or self.marker_pattern.match(marker):
                         t_begin = t
+                        print(t_begin)
                     
         else:
             t_begin = 0 # i.e. all data is valid
         
-        t_begin_relative = t_begin + self.relative_start
+        t_begin += self.relative_start
         # pull the data in chunks until we get the total number of samples
         trial_data = np.zeros((len(self.channels), Ns)) # allocate the array
         samples_polled = 0        
 
         # First, pull the data required data from the buffer
-        eeg_index_bool = np.array(sample_indices = np.array(self.data_buffer['time_stamps'] >= t_begin_relative))
-        prev_data = self.data_buffer['EEG'].data[:,eeg_index_bool]
-        samples_polled = prev_data.shape[1]
+        eeg_index_bool = np.array(self.data_buffer['time_stamps'] >= t_begin)
+        samples_polled = np.sum(eeg_index_bool)
+        trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,eeg_index_bool]
         
+
+        print("polling ...")
+        print(Ns)
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk()
             timestamps = np.asarray(timestamps)
+            print(data, flush=True)
+            print(timestamps)
 
             if len(timestamps) != 0 and np.any(timestamps > t_begin):
                 # convert data to numpy arrays
@@ -1005,24 +1017,31 @@ class V2LSLStream(BCIP):
                 chunk_sz = data.shape[1]            
 
                 # append the latest chunk to the trial_data array
-                #if samples_polled + chunk_sz > Ns:
-                #    dest_end_index = Ns
-                #    src_end_index = Ns - samples_polled
+                if samples_polled + chunk_sz > Ns:
+                    dest_end_index = Ns
+                    src_end_index = Ns - samples_polled
                 
-                #else:
-                #    dest_end_index = samples_polled + chunk_sz
-                #    src_end_index = chunk_sz
-                trial_data = np.concatenate((prev_data, data), axis=1)
+                else:
+                    dest_end_index = samples_polled + chunk_sz
+                    src_end_index = chunk_sz
+                if dest_end_index == Ns:
+                    print(trial_data.shape)
+                    print(data.shape)
+                    self.data_buffer['EEG'] = np.concatenate((trial_data, data), axis=1)
+                trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
                 
                 samples_polled += chunk_sz
+            print("SP: ", samples_polled)
         
-        self.data_buffer['EEG'].data = np.concatenate((self.data_buffer['EEG'].data[:,eeg_index_bool], trial_data), axis=1)
+        trial_data = trial_data[:, :Ns]
+        print(trial_data.shape)
+        print(self.data_buffer['EEG'].shape)
+        print(trial_data[23,50])
         return trial_data
     
     @classmethod
-    def create_marker_coupled_data_stream(cls,sess,prop,prop_value,
-                                          channels=None,
-                                          marker_fmt=None):
+    def create_marker_coupled_data_stream(cls,sess,pred, channels = None, relative_start=0,
+                                          marker_fmt=None, marker_pred="type='Markers'"):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
@@ -1030,11 +1049,9 @@ class V2LSLStream(BCIP):
         ----------
         sess : session object
             Session object where the data source will exist
-        prop : str
+        pred : str
             The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
             count(description/desc/channels/channel)=32"
-        prop_value : str
-            Property value of the target stream
         channels : tuple or list of ints
             Index value of channels to poll from the stream, if None all channels will be polled
         marker_fmt : str
@@ -1043,14 +1060,13 @@ class V2LSLStream(BCIP):
         Examples
         --------
         """
-        src = cls(sess,prop,prop_value,channels,True,marker_fmt)
+        src = cls(sess,pred,channels,relative_start,True,marker_fmt,marker_pred)
         sess.add_ext_src(src)
         
         return src
     
     @classmethod
-    def create_marker_uncoupled_data_stream(cls,sess,prop,prop_value,
-                                            channels=None,
+    def create_marker_uncoupled_data_stream(cls,sess,pred,channels = None, relative_start = 0,
                                             marker_fmt="T{},L{},LN{}"):
         """
         Create a LSLStream data object that maintains only a data stream with
@@ -1061,17 +1077,15 @@ class V2LSLStream(BCIP):
         --------
         sess : session object
             Session object where the data source will exist
-        prop : str
+        pred : str
             The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
             count(description/desc/channels/channel)=32"
-        prop_value : str
-            Property value of the target stream
         channels : tuple or list of ints
             Index value of channels to poll from the stream, if None all channels will be polled
         marker_fmt : str
             Regular expression template of the marker to be matched, if none all markers will be matched
         """
-        src = cls(sess,prop,prop_value,channels,False)
+        src = cls(sess,pred,channels, relative_start, False)
         sess.add_ext_src(src)
         
         return src
