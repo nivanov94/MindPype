@@ -14,14 +14,14 @@ Basic Structure of BCIPy
 ------------------------
 BCIPy uses a graph based model of processing pipelines:
 
-.. image:: ../_static/Example_graph.png
+.. image:: /_static/Example_graph.png
     :target: ../_build/html/README.html
 
 Consider the above example. BCIPy has opted to model processing pipelines as *acyclic, directed graphs*, which individual
 operations modeled as nodes within the graph, that contain kernels (or specific operations, ie. Add). Each node within the graph
 is connected by edges, or data storage objects created to serve as inputs and outputs as nodes within the graph. 
 
-.. image:: ../_static/Graph.PNG
+.. image:: /_static/Graph.PNG
     :target: ../_build/html/README.html
 
 
@@ -29,7 +29,7 @@ There are other important aspects of the graph, including a data source (a class
 are so frequently used that they were made into their own objects, but still operate within kernels (more on this in the docs). As such, 
 BCIPy's structure resembles this directed-graph-processing-pipeline model.
 
-.. image:: ../_static/BCIPY_Structure.png
+.. image:: /_static/BCIPY_Structure.png
     :target: ../_build/html/README.html
 
 
