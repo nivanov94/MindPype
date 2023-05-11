@@ -993,15 +993,14 @@ class V2LSLStream(BCIP):
         t_begin += self.relative_start
         # pull the data in chunks until we get the total number of samples
         trial_data = np.zeros((len(self.channels), Ns)) # allocate the array
-        trial_timestamps = np.zeros((1, Ns))
+        trial_timestamps = np.zeros((Ns,))
         samples_polled = 0        
 
         # First, pull the data required data from the buffer
         eeg_index_bool = np.array(self.data_buffer['time_stamps'] >= t_begin)
         samples_polled = np.sum(eeg_index_bool)
         trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
-        trial_timestamps[:, :samples_polled] = self.data_buffer['time_stamps'][:eeg_index_bool]
-
+        trial_timestamps[:samples_polled] = self.data_buffer['time_stamps'][eeg_index_bool]
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk()
             timestamps = np.asarray(timestamps)
@@ -1024,7 +1023,7 @@ class V2LSLStream(BCIP):
                 
 
                 trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
-                trial_timestamps[:, samples_polled:dest_end_index] = timestamps[:src_end_index]
+                trial_timestamps[samples_polled:dest_end_index] = timestamps[:src_end_index]
 
                 samples_polled += chunk_sz
        
