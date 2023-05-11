@@ -993,12 +993,14 @@ class V2LSLStream(BCIP):
         t_begin += self.relative_start
         # pull the data in chunks until we get the total number of samples
         trial_data = np.zeros((len(self.channels), Ns)) # allocate the array
+        trial_timestamps = np.zeros((1, Ns))
         samples_polled = 0        
 
         # First, pull the data required data from the buffer
         eeg_index_bool = np.array(self.data_buffer['time_stamps'] >= t_begin)
         samples_polled = np.sum(eeg_index_bool)
         trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
+        trial_timestamps[:, :samples_polled] = self.data_buffer['time_stamps'][:eeg_index_bool]
 
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk()
@@ -1006,12 +1008,8 @@ class V2LSLStream(BCIP):
             if len(timestamps) != -1 and np.any(timestamps > t_begin):
                 # convert data to numpy arrays
                 data = np.asarray(data).T
-                # throw away data that comes after t_begin
-                data = data[:, :Ns-samples_polled]
-                
                 chunk_sz = data.shape[1]            
                 
-
                 # append the latest chunk to the trial_data array
                 if samples_polled + chunk_sz > Ns:
                     dest_end_index = Ns
@@ -1021,16 +1019,13 @@ class V2LSLStream(BCIP):
                     dest_end_index = samples_polled + chunk_sz
                     src_end_index = chunk_sz
                 if dest_end_index == Ns:
-                    self.data_buffer['EEG'] = np.concatenate((trial_data, data), axis=1)
-                                                
-                self.data_buffer['time_stamps'] = np.concatenate((self.data_buffer['time_stamps'], timestamps))
-                #if self.data_buffer['time_stamps'].shape[0] < self.data_buffer['EEG'].shape[0]:
-                #    self.data_buffer['time_stamps'] = np.concatenate(
-                #            (self.data_buffer['time_stamps'],timestamps[-1*self.data_buffer['EEG'].shape[0] - self.data_buffer['time_stamps'].shape[0]:]))
- 
-                trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
-
+                    self.data_buffer['EEG'] = np.concatenate((trial_data, data), axis=1)                                
+                    self.data_buffer['time_stamps'] = np.concatenate((trial_timestamps, timestamps))
                 
+
+                trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
+                trial_timestamps[:, samples_polled:dest_end_index] = timestamps[:src_end_index]
+
                 samples_polled += chunk_sz
        
 
