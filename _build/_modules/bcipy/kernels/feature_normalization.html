@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bcipy.kernels.feature_normalization &mdash; bcipy 0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            bcipy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Getting Started with BCIPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#basic-setup">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bcipy.html">bcipy package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">bcipy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bcipy.kernels.feature_normalization</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bcipy.kernels.feature_normalization</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">BCIP</span><span class="p">,</span> <span class="n">BcipEnums</span>
+<span class="kn">from</span> <span class="nn">..kernel</span> <span class="kn">import</span> <span class="n">Kernel</span>
+<span class="kn">from</span> <span class="nn">..graph</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">.kernel_utils</span> <span class="kn">import</span> <span class="n">extract_nested_data</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">axes3d</span>
+
+<div class="viewcode-block" id="FeatureNormalizationKernel"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel">[docs]</a><span class="k">class</span> <span class="nc">FeatureNormalizationKernel</span><span class="p">(</span><span class="n">Kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalizes the values within a feature vector</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : Graph Object</span>
+<span class="sd">        - Graph that the kernel should be added to</span>
+
+<span class="sd">    inA : Tensor object</span>
+<span class="sd">        - Input trial data</span>
+
+<span class="sd">    outA : Tensor object</span>
+<span class="sd">        - Extracted trial data</span>
+
+<span class="sd">    init_data : Tensor object</span>
+<span class="sd">        - Initialization data</span>
+
+<span class="sd">    method : {&#39;min-max&#39;, &#39;mean-norm&#39;, &#39;zscore-norm&#39;}</span>
+<span class="sd">        - Feature normalization method</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">init_data</span><span class="p">,</span><span class="n">method</span><span class="p">,</span><span class="n">axis</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kernal normalizes features for classification</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;FeatureNormalization&#39;</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">,</span><span class="n">graph</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span>  <span class="o">=</span> <span class="n">inA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span> <span class="o">=</span> <span class="n">outA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_method</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span> <span class="o">=</span> <span class="n">axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_translate</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span> <span class="o">=</span> <span class="mi">1</span>
+        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">=</span> <span class="n">init_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_out</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="FeatureNormalizationKernel.initialize"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the normalization parameters using the setup data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sts</span> <span class="o">=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialization_data</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">ARRAY</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">X</span> <span class="o">=</span> <span class="n">extract_nested_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_NODE</span>
+
+
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_method</span> <span class="o">==</span> <span class="s1">&#39;min-max&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_translate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+        
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_method</span> <span class="o">==</span> <span class="s1">&#39;mean-norm&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_translate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span> <span class="c1">#changed from init_axis, confirm it should be self._axis </span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+        
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_method</span> <span class="o">==</span> <span class="s1">&#39;zscore-norm&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_translate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_NODE</span>
+
+
+        <span class="c1"># process initialization data</span>
+        <span class="k">if</span> <span class="n">sts</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># adjust the shape of init output tensor, as needed</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span><span class="o">.</span><span class="n">virtual</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">shape</span>
+
+            <span class="n">sts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span><span class="p">)</span>
+
+            <span class="c1"># pass on the labels</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+                <span class="n">input_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">input_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span>
+            <span class="n">input_labels</span><span class="o">.</span><span class="n">copy_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_out</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sts</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+
+        
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+        
+    
+<div class="viewcode-block" id="FeatureNormalizationKernel.verify"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the inputs and outputs are appropriately sized and typed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># first ensure the input and output are tensors</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span> <span class="ow">or</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;min-max&#39;</span><span class="p">,</span><span class="s1">&#39;mean-norm&#39;</span><span class="p">,</span><span class="s1">&#39;zscore-norm&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="n">Nd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">Nd</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="p">(</span><span class="n">Nd</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+
+        <span class="c1"># if the output is a virtual tensor and dimensionless, </span>
+        <span class="c1"># add the dimensions now</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">virtual</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="c1"># check output shape</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+  
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+
+    <span class="k">def</span> <span class="nf">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">outA</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">inA</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_translate</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">EXE_FAILURE</span>
+
+<div class="viewcode-block" id="FeatureNormalizationKernel.execute"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the kernel and calculate the mean</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="FeatureNormalizationKernel.add_feature_normalization_node"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.add_feature_normalization_node">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">add_feature_normalization_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span>
+                                       <span class="n">init_data</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;zscore-norm&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a feature normalization kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># create the kernel object</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">init_data</span><span class="p">,</span><span class="n">method</span><span class="p">,</span><span class="n">axis</span><span class="p">)</span>
+        
+        <span class="c1"># create parameter objects for the input and output</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">inA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
+                  <span class="n">Parameter</span><span class="p">(</span><span class="n">outA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">))</span>
+        
+        <span class="c1"># add the kernel to a generic node object</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">params</span><span class="p">)</span>
+        
+        <span class="c1"># add the node to the graph</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">node</span></div></div>
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Nicolas Ivanov, Aaron Lio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

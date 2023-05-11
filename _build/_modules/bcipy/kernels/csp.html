@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bcipy.kernels.csp &mdash; bcipy 0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            bcipy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Getting Started with BCIPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html#basic-setup">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bcipy.html">bcipy package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">bcipy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bcipy.kernels.csp</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bcipy.kernels.csp</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">BcipEnums</span>
+<span class="kn">from</span> <span class="nn">..kernel</span> <span class="kn">import</span> <span class="n">Kernel</span>
+<span class="kn">from</span> <span class="nn">..graph</span> <span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">.kernel_utils</span> <span class="kn">import</span> <span class="n">extract_nested_data</span>
+<span class="kn">from</span> <span class="nn">..containers</span> <span class="kn">import</span> <span class="n">Tensor</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pyriemann</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">eigh</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">binom</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span> <span class="k">as</span> <span class="n">iter_combs</span>
+
+
+<div class="viewcode-block" id="CommonSpatialPatternKernel"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel">[docs]</a><span class="k">class</span> <span class="nc">CommonSpatialPatternKernel</span><span class="p">(</span><span class="n">Kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CSP Filter Kernel that applies a set of common spatial patter filters to tensors of covariance matrices</span>
+
+<span class="sd">    graph : Graph Object</span>
+<span class="sd">        - Graph that the kernel should be added to</span>
+
+<span class="sd">    inA : Tensor or Scalar object</span>
+<span class="sd">        - First input trial dat</span>
+
+<span class="sd">    outA : Tensor or Scalar object</span>
+<span class="sd">        - Output trial data</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span>
+                 <span class="n">init_style</span><span class="p">,</span><span class="n">init_params</span><span class="p">,</span>
+                 <span class="n">num_filts</span><span class="p">,</span><span class="n">Ncls</span><span class="p">,</span><span class="n">multi_class_mode</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kernel applies a set of common spatial pattern filters to tensor of covariance matrices</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;CSP&#39;</span><span class="p">,</span><span class="n">init_style</span><span class="p">,</span><span class="n">graph</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span> <span class="o">=</span> <span class="n">inA</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span> <span class="o">=</span> <span class="n">outA</span>     
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span> <span class="o">=</span> <span class="n">num_filts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_params</span> <span class="o">=</span> <span class="n">init_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multi_class_mode</span> <span class="o">=</span> <span class="n">multi_class_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">Ncls</span>
+
+        <span class="k">if</span> <span class="s1">&#39;initialization_data&#39;</span> <span class="ow">in</span> <span class="n">init_params</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;initialization_data&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="s1">&#39;labels&#39;</span> <span class="ow">in</span> <span class="n">init_params</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_out</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="k">if</span> <span class="n">init_style</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">:</span>
+            <span class="c1"># model will be trained using data in tensor object at later time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_W</span> <span class="o">=</span> <span class="kc">None</span>
+            
+        <span class="k">elif</span> <span class="n">init_style</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_COPY</span><span class="p">:</span>
+            <span class="c1"># model is copy of predefined MDM model object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_W</span> <span class="o">=</span> <span class="n">init_params</span><span class="p">[</span><span class="s1">&#39;filters&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+    
+
+<div class="viewcode-block" id="CommonSpatialPatternKernel.initialize"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the filter values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sts</span> <span class="o">=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_style</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># clear initialized flag</span>
+            
+            <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span> <span class="ow">and</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">ARRAY</span>  <span class="ow">and</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">CIRCLE_BUFFER</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span> <span class="ow">and</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">ARRAY</span>  <span class="ow">and</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">CIRCLE_BUFFER</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+        
+        
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span> 
+                <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># extract the data from a potentially nested array of tensors</span>
+                    <span class="n">X</span> <span class="o">=</span> <span class="n">extract_nested_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>    
+        
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>    
+                <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">extract_nested_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+            
+            <span class="n">sts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_filters</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+        
+        <span class="c1"># compute init output</span>
+        <span class="k">if</span> <span class="n">sts</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+                <span class="n">init_input_tensor</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">init_input_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span>
+                
+            <span class="c1"># adjust the shape of init output tensor</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">init_input_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">init_input_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_W</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">init_input_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+ 
+            <span class="n">sts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="n">init_input_tensor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span><span class="p">)</span>
+
+            <span class="c1"># pass on the labels</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+                <span class="n">input_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">input_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span>
+            <span class="n">input_labels</span><span class="o">.</span><span class="n">copy_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_out</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sts</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="k">return</span> <span class="n">sts</span></div>
+    
+
+    <span class="k">def</span> <span class="nf">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">,</span> <span class="n">output_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process input data according to outlined kernel function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">output_data</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_W</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">input_data</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> 
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">EXE_FAILURE</span>
+
+
+    <span class="k">def</span> <span class="nf">_compute_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute CSP filters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># ensure the shapes are valid</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+        
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+
+        <span class="n">unique_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">Nl</span> <span class="o">=</span> <span class="n">unique_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="k">if</span> <span class="n">Nl</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+        
+        <span class="k">if</span> <span class="n">Nl</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_W</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_binary_filters</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">multi_class_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;OVA&#39;</span><span class="p">,</span> <span class="s1">&#39;PW&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INITIALIZATION_FAILURE</span>
+
+            <span class="n">_</span><span class="p">,</span> <span class="n">Nc</span><span class="p">,</span> <span class="n">Ns</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">multi_class_mode</span> <span class="o">==</span> <span class="s1">&#39;OVA&#39;</span><span class="p">:</span>
+                <span class="c1"># one vs. all</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nc</span><span class="p">,</span><span class="n">Nl</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="p">))</span>
+
+                <span class="k">for</span> <span class="n">il</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">unique_labels</span><span class="p">):</span>
+                    <span class="n">yl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">yl</span><span class="p">[</span><span class="n">y</span><span class="o">==</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># target</span>
+                    <span class="n">yl</span><span class="p">[</span><span class="n">y</span><span class="o">!=</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># non-target</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_W</span><span class="p">[:,</span> <span class="n">il</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="p">:(</span><span class="n">il</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_binary_filters</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">yl</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># pairwise </span>
+                <span class="n">Nf</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">binom</span><span class="p">(</span><span class="n">Nl</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span> <span class="c1"># number of pairs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Nc</span><span class="p">,</span> <span class="n">Nf</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="p">))</span>
+
+                <span class="k">for</span> <span class="n">il</span><span class="p">,</span> <span class="p">(</span><span class="n">l1</span><span class="p">,</span><span class="n">l2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iter_combs</span><span class="p">(</span><span class="n">unique_labels</span><span class="p">,</span><span class="mi">2</span><span class="p">)):</span>
+                    <span class="c1"># get trials from each label</span>
+                    <span class="n">Xl1</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="o">==</span><span class="n">l1</span><span class="p">,:,:]</span>
+                    <span class="n">Xl2</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span><span class="o">==</span><span class="n">l2</span><span class="p">,:,:]</span>
+
+                    <span class="c1"># create feature and label matrices using the current label pair</span>
+                    <span class="n">yl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">l1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Xl1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],),</span>
+                                         <span class="n">l2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Xl2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+                                        <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">Xl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">Xl1</span><span class="p">,</span><span class="n">Xl2</span><span class="p">),</span>
+                                        <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_W</span><span class="p">[:,</span> <span class="n">il</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="p">:(</span><span class="n">il</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_binary_filters</span><span class="p">(</span><span class="n">Xl</span><span class="p">,</span> <span class="n">yl</span><span class="p">)</span>
+    
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+
+    <span class="k">def</span> <span class="nf">_compute_binary_filters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute binary CSP filters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span> <span class="p">,</span> <span class="n">Nc</span><span class="p">,</span> <span class="n">Ns</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># start by calculating the mean covariance matrix for each class</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">pyriemann</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">covariance</span><span class="o">.</span><span class="n">covariances</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c1"># remove any trials that are not positive definite</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eigvals</span><span class="p">(</span><span class="n">Ci</span><span class="p">))</span> <span class="k">for</span> <span class="n">Ci</span> <span class="ow">in</span> <span class="n">C</span><span class="p">])</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">C</span><span class="p">[</span><span class="n">pd</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">pd</span><span class="o">==</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">C_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">Nc</span><span class="p">,</span> <span class="n">Nc</span><span class="p">))</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+            <span class="n">C_bar</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">C</span><span class="p">[</span><span class="n">y</span><span class="o">==</span><span class="n">label</span><span class="p">,:,:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">C_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">C_bar</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># get the whitening matrix</span>
+        <span class="n">d</span><span class="p">,</span> <span class="n">U</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">C_total</span><span class="p">)</span>
+        
+        <span class="c1"># filter any eigenvalues close to zero</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="n">U</span><span class="p">[:,</span><span class="n">d</span><span class="o">!=</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">d</span><span class="o">!=</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1"># construct the whitening matrix</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">d</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)),</span> <span class="n">U</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> 
+
+        <span class="n">C_tot_white</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">P</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">C_total</span><span class="p">,</span><span class="n">P</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+
+         <span class="c1"># apply the whitening transform to both class covariance matrices</span>
+        <span class="n">C1_bar_white</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">P</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">C_bar</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:],</span><span class="n">P</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+
+        <span class="n">l</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">eigh</span><span class="p">(</span><span class="n">C1_bar_white</span><span class="p">,</span> <span class="n">C_tot_white</span><span class="p">)</span>
+
+        <span class="c1"># sort the eigenvectors in order of eigenvalues</span>
+        <span class="n">ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">l</span><span class="p">))</span> 
+        <span class="n">V</span> <span class="o">=</span> <span class="n">V</span><span class="p">[:,</span><span class="n">ix</span><span class="p">]</span>
+        
+        <span class="c1"># extract the specified number of filters</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">V</span><span class="p">[:,:</span><span class="n">m</span><span class="p">],</span> <span class="n">V</span><span class="p">[:,</span><span class="o">-</span><span class="n">m</span><span class="p">:]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># rotate the filters back into the channel space</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">T</span><span class="p">,</span><span class="n">W</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">W</span>
+    
+    
+<div class="viewcode-block" id="CommonSpatialPatternKernel.verify"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the inputs and outputs are appropriately sized and typed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># first ensure the input and output are tensors</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span> <span class="ow">or</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="c1"># input tensor should be two- or three-dimensional</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+        
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">multi_class_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;OVA&#39;</span><span class="p">,</span> <span class="s1">&#39;PW&#39;</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+
+        <span class="c1"># if the output is a virtual tensor and dimensionless, </span>
+        <span class="c1"># add the dimensions now</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">filt_multiplier</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">multi_class_mode</span> <span class="o">==</span> <span class="s1">&#39;OVA&#39;</span><span class="p">:</span>
+                <span class="n">filt_multiplier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filt_multiplier</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">binom</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+                
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">out_sz</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="o">*</span><span class="n">filt_multiplier</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out_sz</span> <span class="o">=</span>  <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_filts</span><span class="o">*</span><span class="n">filt_multiplier</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">virtual</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">out_sz</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">out_sz</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_PARAMETERS</span>
+
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+        
+<div class="viewcode-block" id="CommonSpatialPatternKernel.execute"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the kernel by classifying the input trials</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inA</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="CommonSpatialPatternKernel.add_uninitialized_CSP_node"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.add_uninitialized_CSP_node">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">add_uninitialized_CSP_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span>
+                                   <span class="n">initialization_data</span><span class="p">,</span><span class="n">labels</span><span class="p">,</span>
+                                   <span class="n">num_filts</span><span class="p">,</span><span class="n">Ncls</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">multi_class_mode</span><span class="o">=</span><span class="s1">&#39;OVA&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a CSP filter node and add it to a graph</span>
+<span class="sd">        </span>
+<span class="sd">        Note that the node will have to be initialized prior </span>
+<span class="sd">        to execution of the kernel.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        graph : Graph Object</span>
+<span class="sd">            - Graph that the kernel should be added to</span>
+
+<span class="sd">        inA : Tensor or Scalar object</span>
+<span class="sd">            - First input trial dat</span>
+
+<span class="sd">        outA : Tensor or Scalar object</span>
+<span class="sd">            - Output trial data</span>
+<span class="sd">        </span>
+<span class="sd">        initialization_data : Tensor object, (n_trials, n_channels, n_samples)</span>
+<span class="sd">            - Initialization data to train the classifier</span>
+<span class="sd">    </span>
+<span class="sd">        labels : Tensor object, (n_trials, )</span>
+<span class="sd">            - Labels corresponding to initialization data class labels </span>
+
+<span class="sd">        num_filts : int</span>
+<span class="sd">            - Number of spatial filters to apply to trial data.        </span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># create the kernel object            </span>
+        <span class="n">init_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;initialization_data&#39;</span> <span class="p">:</span> <span class="n">initialization_data</span><span class="p">,</span> 
+                       <span class="s1">&#39;labels&#39;</span>              <span class="p">:</span> <span class="n">labels</span><span class="p">}</span>
+        
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">,</span><span class="n">init_params</span><span class="p">,</span>
+                <span class="n">num_filts</span><span class="p">,</span><span class="n">Ncls</span><span class="p">,</span><span class="n">multi_class_mode</span><span class="p">)</span>
+        
+        <span class="c1"># create parameter objects for the input and output</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">inA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
+                  <span class="n">Parameter</span><span class="p">(</span><span class="n">outA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">))</span>
+        
+        <span class="c1"># add the kernel to a generic node object</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">params</span><span class="p">)</span>
+        
+        <span class="c1"># add the node to the graph</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">node</span></div>
+    
+    
+<div class="viewcode-block" id="CommonSpatialPatternKernel.add_initialized_CSP_node"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.add_initialized_CSP_node">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">add_initialized_CSP_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">filters</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a pre-initialized CSP filter node</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        graph : Graph Object</span>
+<span class="sd">            - Graph that the kernel should be added to</span>
+
+<span class="sd">        inA : Tensor or Scalar object</span>
+<span class="sd">            - First input trial dat</span>
+
+<span class="sd">        outA : Tensor or Scalar object</span>
+<span class="sd">            - Output trial data</span>
+<span class="sd">        </span>
+<span class="sd">        filters : Tensor Object</span>
+<span class="sd">            - Tensor containing precalculated spatial filters to be applied to input trial data      </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># create the kernel object</span>
+        <span class="n">init_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;filters&#39;</span> <span class="p">:</span> <span class="n">filters</span><span class="p">}</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">inA</span><span class="p">,</span><span class="n">outA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_COPY</span><span class="p">,</span><span class="n">init_params</span><span class="p">,</span><span class="n">filters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        
+        <span class="c1"># create parameter objects for the input and output</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">inA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
+                  <span class="n">Parameter</span><span class="p">(</span><span class="n">outA</span><span class="p">,</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">))</span>
+        
+        <span class="c1"># add the kernel to a generic node object</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">params</span><span class="p">)</span>
+        
+        <span class="c1"># add the node to the graph</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">node</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Nicolas Ivanov, Aaron Lio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
