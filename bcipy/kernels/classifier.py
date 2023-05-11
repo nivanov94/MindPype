@@ -33,9 +33,13 @@ class ClassifierKernel(Kernel):
         - Labels corresponding to initialization data class labels 
         - (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
 
+    return_probabilities : bool, default = False
+        - If True, the output will be the probability of each class instead of the class label.
+        - Probablities are returned with shape (n_samples, n_classes).
+            - For single trial classification, the shape will be (1, n_classes)
     """
 
-    def __init__(self, graph, inA, classifier, outA, initialization_data, labels):
+    def __init__(self, graph, inA, classifier, outA, initialization_data, labels, return_probabilities):
         super().__init__('Classifier', BcipEnums.INIT_FROM_DATA, graph)
         self._inA = inA
         self._classifier = classifier
@@ -45,6 +49,7 @@ class ClassifierKernel(Kernel):
         self._init_inA = initialization_data
         self._init_outA = None
         self._init_labels_in = labels
+        self.return_probabilities = return_probabilities
 
 
     def initialize(self):
@@ -203,18 +208,27 @@ class ClassifierKernel(Kernel):
         else:
             input_data = inA.data
         
-        output_data = self._classifier._classifier.predict(input_data)
+        if self.return_probabilities:
+            output_data = self._classifier._classifier.predict_proba(input_data)
+            try:
+                outA.data = output_data
+            except Exception as e:
+                print(e)
+                return BcipEnums.EXE_FAILURE
 
-        if outA._bcip_type == BcipEnums.SCALAR:
-            outA.data = int(output_data)
         else:
-            outA.data = output_data
+            output_data = self._classifier._classifier.predict(input_data)
+
+            if outA._bcip_type == BcipEnums.SCALAR:
+                outA.data = int(output_data)
+            else:
+                outA.data = output_data
         
         return BcipEnums.SUCCESS
 
 
     @classmethod
-    def add_classifier_node(cls, graph, inA, classifier, outA, initialization_data = None, labels = None):
+    def add_classifier_node(cls, graph, inA, classifier, outA, initialization_data = None, labels = None, return_probabilities = False):
         """
         Factory method to create a classifier kernel and add it to a graph as a generic node object
         
@@ -239,10 +253,15 @@ class ClassifierKernel(Kernel):
         labels : Tensor object, (n_trials, )
             - Labels corresponding to initialization data class labels 
             - (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
+        
+        return_probabilities : bool, default = False
+            - If True, the output will be the probability of each class instead of the class label.
+            - Probablities are returned with shape (n_samples, n_classes).
+                - For single trial classification, the shape will be (1, n_classes)
         """
 
         #create the kernel object
-        c = cls(graph, inA, classifier, outA, initialization_data, labels)
+        c = cls(graph, inA, classifier, outA, initialization_data, labels, return_probabilities)
 
         params = (Parameter(inA, BcipEnums.INPUT),
                   Parameter(outA, BcipEnums.OUTPUT))

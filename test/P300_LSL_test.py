@@ -10,6 +10,7 @@ sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
 from bcipy import bcipy
+import numpy as np
 
 
 def main():
@@ -50,7 +51,7 @@ def main():
                      'labels' : bcipy.CircleBuffer.create(sess, offline_trials, label_input)}
 
     # online graph data containers (i.e. graph edges)
-    pred_label = bcipy.Scalar.create_from_value(sess,-1) 
+    pred_probs = bcipy.Tensor.create_from_data(sess, (1,2), np.zeros((1,2))) 
     t_virt = [bcipy.Tensor.create_virtual(sess), # output of filter, input to resample
               bcipy.Tensor.create_virtual(sess), # output of resample, input to extract
               bcipy.Tensor.create_virtual(sess), # output of extract, input to xdawn
@@ -75,7 +76,7 @@ def main():
                                                     t_virt[3], training_data['data'], 
                                                     training_data['labels'])
     bcipy.kernels.TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[3], t_virt[4])
-    bcipy.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_label)
+    bcipy.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_probs,return_probabilities=True)
 
     # verify the session (i.e. schedule the nodes)
 
@@ -101,8 +102,8 @@ def main():
         sts = online_graph.execute()
         if sts == bcipy.BcipEnums.SUCCESS:
             # print the value of the most recent trial
-            y_bar = pred_label.data
-            print(f"\tTrial {t_num+1}: Predicted label = {y_bar}")
+            y_bar = pred_probs.data
+            print(f"\tTrial {t_num+1}: Max Probability = {max(y_bar)}")
         else:
             print(f"Trial {t_num+1} raised error, status code: {sts}")
             break
