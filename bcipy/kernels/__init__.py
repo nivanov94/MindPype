@@ -23,3 +23,4 @@ from .transpose import TransposeKernel
 from .xdawn_covariances import XDawnCovarianceKernel
 from .tangent_space import TangentSpaceKernel
 from .running_average import RunningAverageKernel
+from .kernel_utils import extract_nested_data

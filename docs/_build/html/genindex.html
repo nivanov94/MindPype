@@ -1,1993 +1,1162 @@
-<!doctype html>
-<html class="no-js" lang="en">
-  <head><meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#" /><link rel="search" title="Search" href="search.html" />
-
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/><title>Index - bcipy 0.1 documentation</title>
-<link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    
-    
-
-
-<style>
-  body {
-    --color-code-background: #f8f8f8;
-  --color-code-foreground: black;
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Index &mdash; bcipy 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-  }
-  @media not print {
-    body[data-theme="dark"] {
-      --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-    }
-    @media (prefers-color-scheme: dark) {
-      body:not([data-theme="light"]) {
-        --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-      }
-    }
-  }
-</style></head>
-  <body>
-    
-    <script>
-      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
-    </script>
-    
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
 
-<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-  <symbol id="svg-toc" viewBox="0 0 24 24">
-    <title>Contents</title>
-    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
-      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
-    </svg>
-  </symbol>
-  <symbol id="svg-menu" viewBox="0 0 24 24">
-    <title>Menu</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
-      <line x1="3" y1="12" x2="21" y2="12"></line>
-      <line x1="3" y1="6" x2="21" y2="6"></line>
-      <line x1="3" y1="18" x2="21" y2="18"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
-    <title>Expand</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  </symbol>
-  <symbol id="svg-sun" viewBox="0 0 24 24">
-    <title>Light mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-moon" viewBox="0 0 24 24">
-    <title>Dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
-    </svg>
-  </symbol>
-  <symbol id="svg-sun-half" viewBox="0 0 24 24">
-    <title>Auto light/dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M13 12h5" />
-      <path d="M13 15h4" />
-      <path d="M13 18h1" />
-      <path d="M13 9h4" />
-      <path d="M13 6h1" />
-    </svg>
-  </symbol>
-</svg>
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
-<label class="overlay sidebar-overlay" for="__navigation">
-  <div class="visually-hidden">Hide navigation sidebar</div>
-</label>
-<label class="overlay toc-overlay" for="__toc">
-  <div class="visually-hidden">Hide table of contents sidebar</div>
-</label>
-
-
-
-<div class="page">
-  <header class="mobile-header">
-    <div class="header-left">
-      <label class="nav-overlay-icon" for="__navigation">
-        <div class="visually-hidden">Toggle site navigation sidebar</div>
-        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
-      </label>
-    </div>
-    <div class="header-center">
-      <a href="index.html"><div class="brand">bcipy 0.1 documentation</div></a>
-    </div>
-    <div class="header-right">
-      <div class="theme-toggle-container theme-toggle-header">
-        <button class="theme-toggle">
-          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-        </button>
-      </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
-        <div class="visually-hidden">Toggle table of contents sidebar</div>
-        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-      </label>
-    </div>
-  </header>
-  <aside class="sidebar-drawer">
-    <div class="sidebar-container">
-      
-      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
-  
-  
-  <span class="sidebar-brand-text">bcipy 0.1 documentation</span>
-  
-</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
-  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
-  <input type="hidden" name="check_keywords" value="yes">
-  <input type="hidden" name="area" value="default">
-</form>
-<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+          
+          
+          <a href="index.html" class="icon icon-home">
+            bcipy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with BCIPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html#setup-guide">Setup Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html#basic-setup">Basic Setup</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="bcipy.html">bcipy package</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="bcipy.classes.html">bcipy.classes package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="bcipy.kernels.html">bcipy.kernels package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="bcipy.kernels.utils.html">bcipy.kernels.utils package</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="bcipy.html">bcipy package</a></li>
 </ul>
 
-</div>
-</div>
-
-      </div>
-      
-    </div>
-  </aside>
-  <div class="main">
-    <div class="content">
-      <div class="article-container">
-        <a href="#" class="back-to-top muted-link">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
-          </svg>
-          <span>Back to top</span>
-        </a>
-        <div class="content-icon-container">
-          <div class="theme-toggle-container theme-toggle-content">
-            <button class="theme-toggle">
-              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-            </button>
-          </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
-            <div class="visually-hidden">Toggle table of contents sidebar</div>
-            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-          </label>
         </div>
-        <article role="main">
-          
-<section class="genindex-section">
-  <h1 id="index">Index</h1>
-  <div class="genindex-jumpbox"><a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#K"><strong>K</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#X"><strong>X</strong></a> | <a href="#Z"><strong>Z</strong></a></div>
-</section>
-<section id="A" class="genindex-section">
-  <h2>A</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.absolute.AbsoluteKernel">AbsoluteKernel (class in bcipy.kernels.absolute)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.absolute.AbsoluteKernel.add_absolute_node">add_absolute_node() (bcipy.kernels.absolute.AbsoluteKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.addition.AdditionKernel.add_addition_node">add_addition_node() (bcipy.kernels.addition.AdditionKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_and.AndKernel.add_and_node">add_and_node() (bcipy.kernels.logical_and.AndKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.cdf.CDFKernel.add_cdf_node">add_cdf_node() (bcipy.kernels.cdf.CDFKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel.add_classifier_node">add_classifier_node() (bcipy.kernels.classifier_.ClassifierKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.add_concatenation_node">add_concatenation_node() (bcipy.kernels.concatenation.ConcatenationKernel class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.edge.Edge.add_consumer">add_consumer() (bcipy.classes.edge.Edge method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.covariance.CovarianceKernel.add_covariance_node">add_covariance_node() (bcipy.kernels.covariance.CovarianceKernel class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.edge.Edge.add_data">add_data() (bcipy.classes.edge.Edge method)</a>
+      </div>
+    </nav>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.session.Session.add_data">(bcipy.classes.session.Session method)</a>
-</li>
-        </ul></li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.divsion.DivisionKernel.add_division_node">add_division_node() (bcipy.kernels.divsion.DivisionKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.enqueue.EnqueueKernel.add_enqueue_node">add_enqueue_node() (bcipy.kernels.enqueue.EnqueueKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.equal.EqualKernel.add_equal_node">add_equal_node() (bcipy.kernels.equal.EqualKernel class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.add_ext_src">add_ext_src() (bcipy.classes.session.Session method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.extract.ExtractKernel.add_extract_node">add_extract_node() (bcipy.kernels.extract.ExtractKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.add_feature_normalization_node">add_feature_normalization_node() (bcipy.kernels.feature_normalization.FeatureNormalizationKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.filter_.FilterKernel.add_filter_node">add_filter_node() (bcipy.kernels.filter_.FilterKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.filtfilt.FiltFiltKernel.add_filtfilt_node">add_filtfilt_node() (bcipy.kernels.filtfilt.FiltFiltKernel class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.add_graph">add_graph() (bcipy.classes.session.Session method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.greater.GreaterKernel.add_greater_node">add_greater_node() (bcipy.kernels.greater.GreaterKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.add_initialized_CSP_node">add_initialized_CSP_node() (bcipy.kernels.csp.CommonSpatialPatternKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.less.LessKernel.add_less_node">add_less_node() (bcipy.kernels.less.LessKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.log.LogKernel.add_log_node">add_log_node() (bcipy.kernels.log.LogKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.max_.MaxKernel.add_max_node">add_max_node() (bcipy.kernels.max_.MaxKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.mean.MeanKernel.add_mean_node">add_mean_node() (bcipy.kernels.mean.MeanKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.min_.MinKernel.add_min_node">add_min_node() (bcipy.kernels.min_.MinKernel class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.add_misc_bcip_obj">add_misc_bcip_obj() (bcipy.classes.session.Session method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.multiplication.MultiplicationKernel.add_multiplication_node">add_multiplication_node() (bcipy.kernels.multiplication.MultiplicationKernel class method)</a>
-</li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph.add_node">add_node() (bcipy.classes.graph.Graph method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_not.NotKernel.add_not_node">add_not_node() (bcipy.kernels.logical_not.NotKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_or.OrKernel.add_or_node">add_or_node() (bcipy.kernels.logical_or.OrKernel class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.edge.Edge.add_producer">add_producer() (bcipy.classes.edge.Edge method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.add_reduced_sum_node">add_reduced_sum_node() (bcipy.kernels.reduced_sum.ReducedSumKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.add_riemann_distance_node">add_riemann_distance_node() (bcipy.kernels.riemann_distance.RiemannDistanceKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.add_riemann_mean_node">add_riemann_mean_node() (bcipy.kernels.riemann_mean.RiemannMeanKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.add_riemann_potato_node">add_riemann_potato_node() (bcipy.kernels.riemann_potato.RiemannPotatoKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.add_running_average_node">add_running_average_node() (bcipy.kernels.running_average.RunningAverageKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.set_data.SetKernel.add_set_node">add_set_node() (bcipy.kernels.set_data.SetKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.stack.StackKernel.add_stack_node">add_stack_node() (bcipy.kernels.stack.StackKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.std.StdKernel.add_std_node">add_std_node() (bcipy.kernels.std.StdKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.subtraction.SubtractionKernel.add_subtraction_node">add_subtraction_node() (bcipy.kernels.subtraction.SubtractionKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.add_tangent_space_kernel">add_tangent_space_kernel() (bcipy.kernels.tangent_space.TangentSpaceKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.tensor_stack.TensorStackKernel.add_tensor_stack_node">add_tensor_stack_node() (bcipy.kernels.tensor_stack.TensorStackKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.add_threshold_node">add_threshold_node() (bcipy.kernels.threshold.ThresholdKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.add_trained_riemann_MDM_node">add_trained_riemann_MDM_node() (bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.add_trained_SVM_node">add_trained_SVM_node() (bcipy.kernels.svm.SVMClassifierKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.add_transpose_node">add_transpose_node() (bcipy.kernels.transpose.TransposeKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.add_uninitialized_CSP_node">add_uninitialized_CSP_node() (bcipy.kernels.csp.CommonSpatialPatternKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node">add_untrained_riemann_MDM_node() (bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.add_untrained_SVM_node">add_untrained_SVM_node() (bcipy.kernels.svm.SVMClassifierKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.var.VarKernel.add_var_node">add_var_node() (bcipy.kernels.var.VarKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.add_xdawn_covariance_kernel">add_xdawn_covariance_kernel() (bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_xor.XorKernel.add_xor_node">add_xor_node() (bcipy.kernels.logical_xor.XorKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.zscore.ZScoreKernel.add_zscore_node">add_zscore_node() (bcipy.kernels.zscore.ZScoreKernel class method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.addition.AdditionKernel">AdditionKernel (class in bcipy.kernels.addition)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_and.AndKernel">AndKernel (class in bcipy.kernels.logical_and)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.ARRAY">ARRAY (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array">Array (class in bcipy.classes.array)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">bcipy</a>
+      </nav>
 
-<section id="B" class="genindex-section">
-  <h2>B</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.BCIP">BCIP (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Index</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.bcip.BCIP">(class in bcipy.classes.bcip)</a>
-</li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip.BCIP.bcip_type">bcip_type (bcipy.classes.bcip.BCIP property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.BcipClassSeparatedMat">BcipClassSeparatedMat (class in bcipy.classes.source)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.BcipContinuousMat">BcipContinuousMat (class in bcipy.classes.source)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums">BcipEnums (class in bcipy.classes.bcip_enums)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.BcipMatFile">BcipMatFile (class in bcipy.classes.source)</a>
-</li>
-        <li>
-    bcipy
+<h1 id="index">Index</h1>
 
-        <ul>
-          <li><a href="bcipy.html#module-bcipy">module</a>
+<div class="genindex-jumpbox">
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#X"><strong>X</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
+ 
+</div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier._classifier">_classifier (bcipy.classifier.Classifier attribute)</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.classes
+      <li><a href="bcipy.html#bcipy.classifier.Classifier._ctype">_ctype (bcipy.classifier.Classifier attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.Session._datum">_datum (bcipy.core.Session attribute)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.kernel.Kernel._init_style">_init_style (bcipy.kernel.Kernel attribute)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.kernel.Kernel._name">_name (bcipy.kernel.Kernel attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes">module</a>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.AbsoluteKernel">AbsoluteKernel (class in bcipy.kernels.arithmetic)</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.classes.array
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.AbsoluteKernel.add_absolute_node">add_absolute_node() (bcipy.kernels.arithmetic.AbsoluteKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.AdditionKernel.add_addition_node">add_addition_node() (bcipy.kernels.arithmetic.AdditionKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.AndKernel.add_and_node">add_and_node() (bcipy.kernels.logical.AndKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CDFKernel.add_cdf_node">add_cdf_node() (bcipy.kernels.statistics.CDFKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.classifier.ClassifierKernel.add_classifier_node">add_classifier_node() (bcipy.kernels.classifier.ClassifierKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ConcatenationKernel.add_concatenation_node">add_concatenation_node() (bcipy.kernels.datamgmt.ConcatenationKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CovarianceKernel.add_covariance_node">add_covariance_node() (bcipy.kernels.statistics.CovarianceKernel class method)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.Session.add_data">add_data() (bcipy.core.Session method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.DivisionKernel.add_division_node">add_division_node() (bcipy.kernels.arithmetic.DivisionKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.EnqueueKernel.add_enqueue_node">add_enqueue_node() (bcipy.kernels.datamgmt.EnqueueKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.EqualKernel.add_equal_node">add_equal_node() (bcipy.kernels.logical.EqualKernel class method)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.Session.add_ext_src">add_ext_src() (bcipy.core.Session method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ExtractKernel.add_extract_node">add_extract_node() (bcipy.kernels.datamgmt.ExtractKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.add_feature_normalization_node">add_feature_normalization_node() (bcipy.kernels.feature_normalization.FeatureNormalizationKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.filters.FilterKernel.add_filter_node">add_filter_node() (bcipy.kernels.filters.FilterKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.filters.FiltFiltKernel.add_filtfilt_node">add_filtfilt_node() (bcipy.kernels.filters.FiltFiltKernel class method)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.Session.add_graph">add_graph() (bcipy.core.Session method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.GreaterKernel.add_greater_node">add_greater_node() (bcipy.kernels.logical.GreaterKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.add_initialized_CSP_node">add_initialized_CSP_node() (bcipy.kernels.csp.CommonSpatialPatternKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.LessKernel.add_less_node">add_less_node() (bcipy.kernels.logical.LessKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.LogKernel.add_log_node">add_log_node() (bcipy.kernels.arithmetic.LogKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MaxKernel.add_max_node">add_max_node() (bcipy.kernels.statistics.MaxKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MeanKernel.add_mean_node">add_mean_node() (bcipy.kernels.statistics.MeanKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MinKernel.add_min_node">add_min_node() (bcipy.kernels.statistics.MinKernel class method)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.Session.add_misc_bcip_obj">add_misc_bcip_obj() (bcipy.core.Session method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.MultiplicationKernel.add_multiplication_node">add_multiplication_node() (bcipy.kernels.arithmetic.MultiplicationKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.NotKernel.add_not_node">add_not_node() (bcipy.kernels.logical.NotKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.OrKernel.add_or_node">add_or_node() (bcipy.kernels.logical.OrKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.add_reduced_sum_node">add_reduced_sum_node() (bcipy.kernels.reduced_sum.ReducedSumKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.resample.ResampleKernel.add_resample_node">add_resample_node() (bcipy.kernels.resample.ResampleKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.add_riemann_distance_node">add_riemann_distance_node() (bcipy.kernels.riemann_distance.RiemannDistanceKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.add_riemann_mean_node">add_riemann_mean_node() (bcipy.kernels.riemann_mean.RiemannMeanKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.add_riemann_potato_node">add_riemann_potato_node() (bcipy.kernels.riemann_potato.RiemannPotatoKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.add_running_average_node">add_running_average_node() (bcipy.kernels.running_average.RunningAverageKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.SetKernel.add_set_node">add_set_node() (bcipy.kernels.datamgmt.SetKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.StackKernel.add_stack_node">add_stack_node() (bcipy.kernels.datamgmt.StackKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.StdKernel.add_std_node">add_std_node() (bcipy.kernels.statistics.StdKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.SubtractionKernel.add_subtraction_node">add_subtraction_node() (bcipy.kernels.arithmetic.SubtractionKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.add_tangent_space_node">add_tangent_space_node() (bcipy.kernels.tangent_space.TangentSpaceKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.TensorStackKernel.add_tensor_stack_node">add_tensor_stack_node() (bcipy.kernels.datamgmt.TensorStackKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.add_threshold_node">add_threshold_node() (bcipy.kernels.threshold.ThresholdKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.add_trained_riemann_MDM_node">add_trained_riemann_MDM_node() (bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.add_transpose_node">add_transpose_node() (bcipy.kernels.transpose.TransposeKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.add_uninitialized_CSP_node">add_uninitialized_CSP_node() (bcipy.kernels.csp.CommonSpatialPatternKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node">add_untrained_riemann_MDM_node() (bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.VarKernel.add_var_node">add_var_node() (bcipy.kernels.statistics.VarKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.add_xdawn_covariance_node">add_xdawn_covariance_node() (bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.XorKernel.add_xor_node">add_xor_node() (bcipy.kernels.logical.XorKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.ZScoreKernel.add_zscore_node">add_zscore_node() (bcipy.kernels.statistics.ZScoreKernel class method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.AdditionKernel">AdditionKernel (class in bcipy.kernels.arithmetic)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.AndKernel">AndKernel (class in bcipy.kernels.logical)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.ARRAY">ARRAY (bcipy.core.BcipEnums attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.array">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.bcip
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.BCIP">BCIP (bcipy.core.BcipEnums attribute)</a>
 
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.bcip">module</a>
+      <ul>
+        <li><a href="bcipy.html#bcipy.core.BCIP">(class in bcipy.core)</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.classes.bcip_enums
+      </ul></li>
+      <li><a href="bcipy.html#bcipy.core.BCIP.bcip_type">bcip_type (bcipy.core.BCIP property)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.BcipClassSeparatedMat">BcipClassSeparatedMat (class in bcipy.source)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.BcipContinuousMat">BcipContinuousMat (class in bcipy.source)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums">BcipEnums (class in bcipy.core)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.BcipMatFile">BcipMatFile (class in bcipy.source)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.BcipXDF">BcipXDF (class in bcipy.source)</a>
+</li>
+      <li>
+    bcipy.classifier
 
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.bcip_enums">module</a>
+      <ul>
+        <li><a href="bcipy.html#module-bcipy.classifier">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.classes.circle_buffer
+      </ul></li>
+      <li>
+    bcipy.core
 
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.circle_buffer">module</a>
+      <ul>
+        <li><a href="bcipy.html#module-bcipy.core">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.classes.classifier
+      </ul></li>
+      <li>
+    bcipy.filter
 
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.classifier">module</a>
+      <ul>
+        <li><a href="bcipy.html#module-bcipy.filter">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.classes.edge
+      </ul></li>
+      <li>
+    bcipy.kernel
 
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.edge">module</a>
+      <ul>
+        <li><a href="bcipy.html#module-bcipy.kernel">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.classes.filter
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.filter">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.graph
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.graph">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.kernel
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.kernel">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.node
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.node">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.parameter
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.parameter">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.scalar
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.scalar">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.session
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.session">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.source
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.source">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.classes.tensor
-
-        <ul>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.tensor">module</a>
-</li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.absolute
+      </ul></li>
+      <li>
+    bcipy.kernels.arithmetic
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.absolute">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.arithmetic">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.addition
+      </ul></li>
+      <li>
+    bcipy.kernels.classifier
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.addition">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.classifier">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.cdf
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.cdf">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.classifier_
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.classifier_">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.concatenation
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.concatenation">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.covariance
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.covariance">module</a>
-</li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.csp
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.csp">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.csp">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.divsion
+      </ul></li>
+      <li>
+    bcipy.kernels.datamgmt
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.divsion">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.datamgmt">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.enqueue
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.enqueue">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.equal
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.equal">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.extract
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.extract">module</a>
-</li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.feature_normalization
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.feature_normalization">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.feature_normalization">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.filter_
+      </ul></li>
+      <li>
+    bcipy.kernels.filters
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.filter_">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.filters">module</a>
 </li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li>
-    bcipy.kernels.filtfilt
+      </ul></li>
+      <li>
+    bcipy.kernels.kernel_utils
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.filtfilt">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.kernel_utils">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.greater
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    bcipy.kernels.logical
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.greater">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.less
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.less">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.log
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.log">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.logical_and
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_and">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.logical_not
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_not">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.logical_or
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_or">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.logical_xor
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_xor">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.max_
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.max_">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.mean
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.mean">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.min_
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.min_">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.multiplication
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.multiplication">module</a>
-</li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.reduced_sum
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.reduced_sum">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.reduced_sum">module</a>
 </li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
+    bcipy.kernels.resample
+
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.resample">module</a>
+</li>
+      </ul></li>
+      <li>
     bcipy.kernels.riemann_distance
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_distance">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_distance">module</a>
 </li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.riemann_mdm_classifier_kernel
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mdm_classifier_kernel">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mdm_classifier_kernel">module</a>
 </li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.riemann_mean
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mean">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mean">module</a>
 </li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.riemann_potato
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_potato">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_potato">module</a>
 </li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.running_average
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.running_average">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.running_average">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.set_data
+      </ul></li>
+      <li>
+    bcipy.kernels.statistics
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.set_data">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.statistics">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.stack
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.stack">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.std
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.std">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.subtraction
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.subtraction">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.svm
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.svm">module</a>
-</li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.tangent_space
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.tangent_space">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.tangent_space">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.tensor_stack
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.tensor_stack">module</a>
-</li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.threshold
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.threshold">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.threshold">module</a>
 </li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.transpose
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.transpose">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.transpose">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.utils
-
-        <ul>
-          <li><a href="bcipy.kernels.utils.html#module-bcipy.kernels.utils">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.utils.data_extraction
-
-        <ul>
-          <li><a href="bcipy.kernels.utils.html#module-bcipy.kernels.utils.data_extraction">module</a>
-</li>
-        </ul></li>
-        <li>
-    bcipy.kernels.var
-
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.var">module</a>
-</li>
-        </ul></li>
-        <li>
+      </ul></li>
+      <li>
     bcipy.kernels.xdawn_covariances
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.xdawn_covariances">module</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.xdawn_covariances">module</a>
 </li>
-        </ul></li>
-        <li>
-    bcipy.kernels.zscore
+      </ul></li>
+      <li>
+    bcipy.source
 
-        <ul>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.zscore">module</a>
+      <ul>
+        <li><a href="bcipy.html#module-bcipy.source">module</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.BLOCK">BLOCK (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.btype">btype (bcipy.classes.filter.Filter property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.btypes">btypes (bcipy.classes.filter.Filter attribute)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+      </ul></li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Binary">Binary (class in bcipy.kernels.arithmetic)</a>
 
-<section id="C" class="genindex-section">
-  <h2>C</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.capacity">capacity (bcipy.classes.array.Array property)</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Binary">(class in bcipy.kernels.logical)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.cdf.CDFKernel">CDFKernel (class in bcipy.kernels.cdf)</a>
+      </ul></li>
+      <li><a href="bcipy.html#bcipy.filter.Filter.btype">btype (bcipy.filter.Filter property)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer">CircleBuffer (class in bcipy.classes.circle_buffer)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.btypes">btypes (bcipy.filter.Filter attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.CLASSIFIER">CLASSIFIER (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.classifier.Classifier">Classifier (class in bcipy.classes.classifier)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel">ClassifierKernel (class in bcipy.kernels.classifier_)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.coeffs">coeffs (bcipy.classes.filter.Filter property)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel">CommonSpatialPatternKernel (class in bcipy.kernels.csp)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel">ConcatenationKernel (class in bcipy.kernels.concatenation)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.edge.Edge.consumers">consumers (bcipy.classes.edge.Edge property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.copy_to">copy_to() (bcipy.classes.array.Array method)</a>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.copy_to">(bcipy.classes.circle_buffer.CircleBuffer method)</a>
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CDFKernel">CDFKernel (class in bcipy.kernels.statistics)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.copy_to">(bcipy.classes.scalar.Scalar method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.CIRCLE_BUFFER">CIRCLE_BUFFER (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.copy_to">(bcipy.classes.tensor.Tensor method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.CLASSIFIER">CLASSIFIER (bcipy.core.BcipEnums attribute)</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.covariance.CovarianceKernel">CovarianceKernel (class in bcipy.kernels.covariance)</a>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier">Classifier (class in bcipy.classifier)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.create">create() (bcipy.classes.array.Array class method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.classifier.ClassifierKernel">ClassifierKernel (class in bcipy.kernels.classifier)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.filter.Filter.coeffs">coeffs (bcipy.filter.Filter property)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel">CommonSpatialPatternKernel (class in bcipy.kernels.csp)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ConcatenationKernel">ConcatenationKernel (class in bcipy.kernels.datamgmt)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CovarianceKernel">CovarianceKernel (class in bcipy.kernels.statistics)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.Session.create">create() (bcipy.core.Session class method)</a>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.create">(bcipy.classes.circle_buffer.CircleBuffer class method)</a>
+      <ul>
+        <li><a href="bcipy.html#bcipy.source.BcipMatFile.create">(bcipy.source.BcipMatFile class method)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph.create">(bcipy.classes.graph.Graph class method)</a>
+        <li><a href="bcipy.html#bcipy.source.BcipXDF.create">(bcipy.source.BcipXDF class method)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.create">(bcipy.classes.scalar.Scalar class method)</a>
+      </ul></li>
+      <li><a href="bcipy.html#bcipy.filter.Filter.create_bessel">create_bessel() (bcipy.filter.Filter class method)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.session.Session.create">(bcipy.classes.session.Session class method)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.create_butter">create_butter() (bcipy.filter.Filter class method)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.source.BcipMatFile.create">(bcipy.classes.source.BcipMatFile class method)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.create_cheby1">create_cheby1() (bcipy.filter.Filter class method)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.create">(bcipy.classes.tensor.Tensor class method)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.create_cheby2">create_cheby2() (bcipy.filter.Filter class method)</a>
 </li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.create_bessel">create_bessel() (bcipy.classes.filter.Filter class method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.source.BcipClassSeparatedMat.create_class_separated">create_class_separated() (bcipy.source.BcipClassSeparatedMat class method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.create_butter">create_butter() (bcipy.classes.filter.Filter class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.create_cheby1">create_cheby1() (bcipy.classes.filter.Filter class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.create_cheby2">create_cheby2() (bcipy.classes.filter.Filter class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.BcipClassSeparatedMat.create_class_separated">create_class_separated() (bcipy.classes.source.BcipClassSeparatedMat class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.BcipContinuousMat.create_continuous">create_continuous() (bcipy.classes.source.BcipContinuousMat class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.classifier.Classifier.create_custom_classifier">create_custom_classifier() (bcipy.classes.classifier.Classifier class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.create_ellip">create_ellip() (bcipy.classes.filter.Filter class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.create_from_data">create_from_data() (bcipy.classes.tensor.Tensor class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.create_from_handle">create_from_handle() (bcipy.classes.scalar.Scalar class method)</a>
+      <li><a href="bcipy.html#bcipy.source.BcipContinuousMat.create_continuous">create_continuous() (bcipy.source.BcipContinuousMat class method)</a>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.create_from_handle">(bcipy.classes.tensor.Tensor class method)</a>
+      <ul>
+        <li><a href="bcipy.html#bcipy.source.BcipXDF.create_continuous">(bcipy.source.BcipXDF class method)</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.create_from_value">create_from_value() (bcipy.classes.scalar.Scalar class method)</a>
+      </ul></li>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier.create_custom_classifier">create_custom_classifier() (bcipy.classifier.Classifier class method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.classifier.Classifier.create_LDA">create_LDA() (bcipy.classes.classifier.Classifier class method)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.create_ellip">create_ellip() (bcipy.filter.Filter class method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.classifier.Classifier.create_logistic_regression">create_logistic_regression() (bcipy.classes.classifier.Classifier class method)</a>
+      <li><a href="bcipy.html#bcipy.source.BcipXDF.create_epoched">create_epoched() (bcipy.source.BcipXDF class method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.LSLStream.create_marker_coupled_data_stream">create_marker_coupled_data_stream() (bcipy.classes.source.LSLStream class method)</a>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier.create_LDA">create_LDA() (bcipy.classifier.Classifier class method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.LSLStream.create_marker_uncoupled_data_stream">create_marker_uncoupled_data_stream() (bcipy.classes.source.LSLStream class method)</a>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier.create_logistic_regression">create_logistic_regression() (bcipy.classifier.Classifier class method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.classifier.Classifier.create_SVM">create_SVM() (bcipy.classes.classifier.Classifier class method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.create_virtual">create_virtual() (bcipy.classes.scalar.Scalar class method)</a>
+      <li><a href="bcipy.html#bcipy.source.LSLStream.create_marker_coupled_data_stream">create_marker_coupled_data_stream() (bcipy.source.LSLStream class method)</a>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.create_virtual">(bcipy.classes.tensor.Tensor class method)</a>
+      <ul>
+        <li><a href="bcipy.html#bcipy.source.V2LSLStream.create_marker_coupled_data_stream">(bcipy.source.V2LSLStream class method)</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.crit_frqs">crit_frqs (bcipy.classes.filter.Filter property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.classifier.Classifier.ctype">ctype (bcipy.classes.classifier.Classifier property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.classifier.Classifier.ctypes">ctypes (bcipy.classes.classifier.Classifier attribute)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+      </ul></li>
+      <li><a href="bcipy.html#bcipy.source.LSLStream.create_marker_uncoupled_data_stream">create_marker_uncoupled_data_stream() (bcipy.source.LSLStream class method)</a>
 
-<section id="D" class="genindex-section">
-  <h2>D</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.edge.Edge.data">data (bcipy.classes.edge.Edge property)</a>
+      <ul>
+        <li><a href="bcipy.html#bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream">(bcipy.source.V2LSLStream class method)</a>
+</li>
+      </ul></li>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier.create_SVM">create_SVM() (bcipy.classifier.Classifier class method)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.filter.Filter.crit_frqs">crit_frqs (bcipy.filter.Filter property)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier.ctype">ctype (bcipy.classifier.Classifier property)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.classifier.Classifier.ctypes">ctypes (bcipy.classifier.Classifier attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.parameter.Parameter.data">(bcipy.classes.parameter.Parameter property)</a>
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.Descriptive">Descriptive (class in bcipy.kernels.statistics)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.data">(bcipy.classes.scalar.Scalar property)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.DivisionKernel">DivisionKernel (class in bcipy.kernels.arithmetic)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.data">(bcipy.classes.tensor.Tensor property)</a>
-</li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.data_type">data_type (bcipy.classes.scalar.Scalar property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.dequeue">dequeue() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.parameter.Parameter.direction">direction (bcipy.classes.parameter.Parameter property)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.divsion.DivisionKernel">DivisionKernel (class in bcipy.kernels.divsion)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="E" class="genindex-section">
-  <h2>E</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.edge.Edge">Edge (class in bcipy.classes.edge)</a>
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.EnqueueKernel">EnqueueKernel (class in bcipy.kernels.datamgmt)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.enqueue">enqueue() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.EqualKernel">EqualKernel (class in bcipy.kernels.logical)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.enqueue_chunk">enqueue_chunk() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.EXCEED_TRIAL_LIMIT">EXCEED_TRIAL_LIMIT (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.enqueue.EnqueueKernel">EnqueueKernel (class in bcipy.kernels.enqueue)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.EXE_FAILURE">EXE_FAILURE (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.equal.EqualKernel">EqualKernel (class in bcipy.kernels.equal)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.EXE_FAILURE_UNINITIALIZED">EXE_FAILURE_UNINITIALIZED (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.EXCEED_TRIAL_LIMIT">EXCEED_TRIAL_LIMIT (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.EXE_FAILURE">EXE_FAILURE (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.EXE_FAILURE_UNINITIALIZED">EXE_FAILURE_UNINITIALIZED (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph.execute">execute() (bcipy.classes.graph.Graph method)</a>
+      <li><a href="bcipy.html#bcipy.kernel.Kernel.execute">execute() (bcipy.kernel.Kernel method)</a>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.kernel.Kernel.execute">(bcipy.classes.kernel.Kernel method)</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Binary.execute">(bcipy.kernels.arithmetic.Binary method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.absolute.AbsoluteKernel.execute">(bcipy.kernels.absolute.AbsoluteKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Unary.execute">(bcipy.kernels.arithmetic.Unary method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.addition.AdditionKernel.execute">(bcipy.kernels.addition.AdditionKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.classifier.ClassifierKernel.execute">(bcipy.kernels.classifier.ClassifierKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.cdf.CDFKernel.execute">(bcipy.kernels.cdf.CDFKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.execute">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel.execute">(bcipy.kernels.classifier_.ClassifierKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ConcatenationKernel.execute">(bcipy.kernels.datamgmt.ConcatenationKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.execute">(bcipy.kernels.concatenation.ConcatenationKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.EnqueueKernel.execute">(bcipy.kernels.datamgmt.EnqueueKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.covariance.CovarianceKernel.execute">(bcipy.kernels.covariance.CovarianceKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ExtractKernel.execute">(bcipy.kernels.datamgmt.ExtractKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.execute">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.SetKernel.execute">(bcipy.kernels.datamgmt.SetKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.divsion.DivisionKernel.execute">(bcipy.kernels.divsion.DivisionKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.StackKernel.execute">(bcipy.kernels.datamgmt.StackKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.enqueue.EnqueueKernel.execute">(bcipy.kernels.enqueue.EnqueueKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.TensorStackKernel.execute">(bcipy.kernels.datamgmt.TensorStackKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.equal.EqualKernel.execute">(bcipy.kernels.equal.EqualKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.execute">(bcipy.kernels.feature_normalization.FeatureNormalizationKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.extract.ExtractKernel.execute">(bcipy.kernels.extract.ExtractKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.filters.Filter.execute">(bcipy.kernels.filters.Filter method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.execute">(bcipy.kernels.feature_normalization.FeatureNormalizationKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Binary.execute">(bcipy.kernels.logical.Binary method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filter_.FilterKernel.execute">(bcipy.kernels.filter_.FilterKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Unary.execute">(bcipy.kernels.logical.Unary method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filtfilt.FiltFiltKernel.execute">(bcipy.kernels.filtfilt.FiltFiltKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.execute">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.greater.GreaterKernel.execute">(bcipy.kernels.greater.GreaterKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.resample.ResampleKernel.execute">(bcipy.kernels.resample.ResampleKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.less.LessKernel.execute">(bcipy.kernels.less.LessKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.execute">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.log.LogKernel.execute">(bcipy.kernels.log.LogKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.execute">(bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_and.AndKernel.execute">(bcipy.kernels.logical_and.AndKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.execute">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_not.NotKernel.execute">(bcipy.kernels.logical_not.NotKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.execute">(bcipy.kernels.riemann_potato.RiemannPotatoKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_or.OrKernel.execute">(bcipy.kernels.logical_or.OrKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.execute">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_xor.XorKernel.execute">(bcipy.kernels.logical_xor.XorKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CDFKernel.execute">(bcipy.kernels.statistics.CDFKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.max_.MaxKernel.execute">(bcipy.kernels.max_.MaxKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CovarianceKernel.execute">(bcipy.kernels.statistics.CovarianceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.mean.MeanKernel.execute">(bcipy.kernels.mean.MeanKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.Descriptive.execute">(bcipy.kernels.statistics.Descriptive method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.min_.MinKernel.execute">(bcipy.kernels.min_.MinKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.ZScoreKernel.execute">(bcipy.kernels.statistics.ZScoreKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.multiplication.MultiplicationKernel.execute">(bcipy.kernels.multiplication.MultiplicationKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.execute">(bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.execute">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.execute">(bcipy.kernels.threshold.ThresholdKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.execute">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.execute">(bcipy.kernels.transpose.TransposeKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.execute">(bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.execute">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.execute">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.Session.execute_trial">execute_trial() (bcipy.core.Session method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.execute">(bcipy.kernels.riemann_potato.RiemannPotatoKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.kernel_utils.extract_nested_data">extract_nested_data() (in module bcipy.kernels.kernel_utils)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.execute">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ExtractKernel">ExtractKernel (class in bcipy.kernels.datamgmt)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.set_data.SetKernel.execute">(bcipy.kernels.set_data.SetKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.stack.StackKernel.execute">(bcipy.kernels.stack.StackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.std.StdKernel.execute">(bcipy.kernels.std.StdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.subtraction.SubtractionKernel.execute">(bcipy.kernels.subtraction.SubtractionKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.execute">(bcipy.kernels.svm.SVMClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.execute">(bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tensor_stack.TensorStackKernel.execute">(bcipy.kernels.tensor_stack.TensorStackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.execute">(bcipy.kernels.threshold.ThresholdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.execute">(bcipy.kernels.transpose.TransposeKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.var.VarKernel.execute">(bcipy.kernels.var.VarKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.execute">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.zscore.ZScoreKernel.execute">(bcipy.kernels.zscore.ZScoreKernel method)</a>
-</li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.execute_trial">execute_trial() (bcipy.classes.session.Session method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.ext_src">ext_src (bcipy.classes.scalar.Scalar property)</a>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.ext_src">(bcipy.classes.tensor.Tensor property)</a>
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.FAILURE">FAILURE (bcipy.core.BcipEnums attribute)</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.extract_filters">extract_filters() (bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel">FeatureNormalizationKernel (class in bcipy.kernels.feature_normalization)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.node.Node.extract_inputs">extract_inputs() (bcipy.classes.node.Node method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.FILTER">FILTER (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.kernels.utils.html#bcipy.kernels.utils.data_extraction.extract_nested_data">extract_nested_data() (in module bcipy.kernels.utils.data_extraction)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.node.Node.extract_outputs">extract_outputs() (bcipy.classes.node.Node method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.extract.ExtractKernel">ExtractKernel (class in bcipy.kernels.extract)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+      <li><a href="bcipy.html#bcipy.filter.Filter">Filter (class in bcipy.filter)</a>
 
-<section id="F" class="genindex-section">
-  <h2>F</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.FAILURE">FAILURE (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.filters.Filter">(class in bcipy.kernels.filters)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel">FeatureNormalizationKernel (class in bcipy.kernels.feature_normalization)</a>
+      </ul></li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.filters.FilterKernel">FilterKernel (class in bcipy.kernels.filters)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph.fill_initialization_links">fill_initialization_links() (bcipy.classes.graph.Graph method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.filters.FiltFiltKernel">FiltFiltKernel (class in bcipy.kernels.filters)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.FILTER">FILTER (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.html#bcipy.core.Session.find_obj">find_obj() (bcipy.core.Session method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter">Filter (class in bcipy.classes.filter)</a>
+      <li><a href="bcipy.html#bcipy.source.BcipClassSeparatedMat.format_continuous_data">format_continuous_data() (bcipy.source.BcipClassSeparatedMat method)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.filter_.FilterKernel">FilterKernel (class in bcipy.kernels.filter_)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.fs">fs (bcipy.filter.Filter property)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.filtfilt.FiltFiltKernel">FiltFiltKernel (class in bcipy.kernels.filtfilt)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.ftype">ftype (bcipy.filter.Filter property)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.find_obj">find_obj() (bcipy.classes.session.Session method)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.ftypes">ftypes (bcipy.filter.Filter attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.flush">flush() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.BcipClassSeparatedMat.format_continuous_data">format_continuous_data() (bcipy.classes.source.BcipClassSeparatedMat method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.fs">fs (bcipy.classes.filter.Filter property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.ftype">ftype (bcipy.classes.filter.Filter property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.ftypes">ftypes (bcipy.classes.filter.Filter attribute)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="G" class="genindex-section">
-  <h2>G</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.get_element">get_element() (bcipy.classes.array.Array method)</a>
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.source.BcipContinuousMat.get_next_label">get_next_label() (bcipy.source.BcipContinuousMat method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.get_queued_element">get_queued_element() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.GRAPH">GRAPH (bcipy.core.BcipEnums attribute)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.GRAPH">GRAPH (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.GreaterKernel">GreaterKernel (class in bcipy.kernels.logical)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph">Graph (class in bcipy.classes.graph)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.greater.GreaterKernel">GreaterKernel (class in bcipy.kernels.greater)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="I" class="genindex-section">
-  <h2>I</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.implementation">implementation (bcipy.classes.filter.Filter property)</a>
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.filter.Filter.implementation">implementation (bcipy.filter.Filter property)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.filter.Filter.implementations">implementations (bcipy.classes.filter.Filter attribute)</a>
+      <li><a href="bcipy.html#bcipy.filter.Filter.implementations">implementations (bcipy.filter.Filter attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INIT_FROM_COPY">INIT_FROM_COPY (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INIT_FROM_COPY">INIT_FROM_COPY (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INIT_FROM_DATA">INIT_FROM_DATA (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INIT_FROM_DATA">INIT_FROM_DATA (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INIT_FROM_NONE">INIT_FROM_NONE (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INIT_FROM_NONE">INIT_FROM_NONE (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.kernel.Kernel.init_style">init_style (bcipy.classes.kernel.Kernel property)</a>
+      <li><a href="bcipy.html#bcipy.kernel.Kernel.init_style">init_style (bcipy.kernel.Kernel property)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.absolute.AbsoluteKernel.initialization_execution">initialization_execution() (bcipy.kernels.absolute.AbsoluteKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.initialization_execution">initialization_execution() (bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
 
-        <ul>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.addition.AdditionKernel.initialization_execution">(bcipy.kernels.addition.AdditionKernel method)</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.initialization_execution">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.cdf.CDFKernel.initialization_execution">(bcipy.kernels.cdf.CDFKernel method)</a>
+      </ul></li>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INITIALIZATION_FAILURE">INITIALIZATION_FAILURE (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel.initialization_execution">(bcipy.kernels.classifier_.ClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.initialization_execution">(bcipy.kernels.concatenation.ConcatenationKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.covariance.CovarianceKernel.initialization_execution">(bcipy.kernels.covariance.CovarianceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.initialization_execution">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.divsion.DivisionKernel.initialization_execution">(bcipy.kernels.divsion.DivisionKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.equal.EqualKernel.initialization_execution">(bcipy.kernels.equal.EqualKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.extract.ExtractKernel.initialization_execution">(bcipy.kernels.extract.ExtractKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filter_.FilterKernel.initialization_execution">(bcipy.kernels.filter_.FilterKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filtfilt.FiltFiltKernel.initialization_execution">(bcipy.kernels.filtfilt.FiltFiltKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.greater.GreaterKernel.initialization_execution">(bcipy.kernels.greater.GreaterKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.less.LessKernel.initialization_execution">(bcipy.kernels.less.LessKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.log.LogKernel.initialization_execution">(bcipy.kernels.log.LogKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_and.AndKernel.initialization_execution">(bcipy.kernels.logical_and.AndKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_not.NotKernel.initialization_execution">(bcipy.kernels.logical_not.NotKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_or.OrKernel.initialization_execution">(bcipy.kernels.logical_or.OrKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_xor.XorKernel.initialization_execution">(bcipy.kernels.logical_xor.XorKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.max_.MaxKernel.initialization_execution">(bcipy.kernels.max_.MaxKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.mean.MeanKernel.initialization_execution">(bcipy.kernels.mean.MeanKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.min_.MinKernel.initialization_execution">(bcipy.kernels.min_.MinKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.multiplication.MultiplicationKernel.initialization_execution">(bcipy.kernels.multiplication.MultiplicationKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.initialization_execution">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.initialization_execution">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.initialization_execution">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.initialization_execution">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.stack.StackKernel.initialization_execution">(bcipy.kernels.stack.StackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.std.StdKernel.initialization_execution">(bcipy.kernels.std.StdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.initialization_execution">(bcipy.kernels.svm.SVMClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tensor_stack.TensorStackKernel.initialization_execution">(bcipy.kernels.tensor_stack.TensorStackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.initialization_execution">(bcipy.kernels.threshold.ThresholdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.initialization_execution">(bcipy.kernels.transpose.TransposeKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.var.VarKernel.initialization_execution">(bcipy.kernels.var.VarKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.zscore.ZScoreKernel.initialization_execution">(bcipy.kernels.zscore.ZScoreKernel method)</a>
-</li>
-        </ul></li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.subtraction.SubtractionKernel.initialization_executioning">initialization_executioning() (bcipy.kernels.subtraction.SubtractionKernel method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INITIALIZATION_FAILURE">INITIALIZATION_FAILURE (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph.initialize">initialize() (bcipy.classes.graph.Graph method)</a>
+      <li><a href="bcipy.html#bcipy.kernel.Kernel.initialize">initialize() (bcipy.kernel.Kernel method)</a>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.kernel.Kernel.initialize">(bcipy.classes.kernel.Kernel method)</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Binary.initialize">(bcipy.kernels.arithmetic.Binary method)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.node.Node.initialize">(bcipy.classes.node.Node method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Unary.initialize">(bcipy.kernels.arithmetic.Unary method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.absolute.AbsoluteKernel.initialize">(bcipy.kernels.absolute.AbsoluteKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.classifier.ClassifierKernel.initialize">(bcipy.kernels.classifier.ClassifierKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.addition.AdditionKernel.initialize">(bcipy.kernels.addition.AdditionKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.initialize">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.cdf.CDFKernel.initialize">(bcipy.kernels.cdf.CDFKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ConcatenationKernel.initialize">(bcipy.kernels.datamgmt.ConcatenationKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel.initialize">(bcipy.kernels.classifier_.ClassifierKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.EnqueueKernel.initialize">(bcipy.kernels.datamgmt.EnqueueKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.initialize">(bcipy.kernels.concatenation.ConcatenationKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ExtractKernel.initialize">(bcipy.kernels.datamgmt.ExtractKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.covariance.CovarianceKernel.initialize">(bcipy.kernels.covariance.CovarianceKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.SetKernel.initialize">(bcipy.kernels.datamgmt.SetKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.initialize">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.StackKernel.initialize">(bcipy.kernels.datamgmt.StackKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.divsion.DivisionKernel.initialize">(bcipy.kernels.divsion.DivisionKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.TensorStackKernel.initialize">(bcipy.kernels.datamgmt.TensorStackKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.enqueue.EnqueueKernel.initialize">(bcipy.kernels.enqueue.EnqueueKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.initialize">(bcipy.kernels.feature_normalization.FeatureNormalizationKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.equal.EqualKernel.initialize">(bcipy.kernels.equal.EqualKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.filters.Filter.initialize">(bcipy.kernels.filters.Filter method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.extract.ExtractKernel.initialize">(bcipy.kernels.extract.ExtractKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Binary.initialize">(bcipy.kernels.logical.Binary method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.initialize">(bcipy.kernels.feature_normalization.FeatureNormalizationKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Unary.initialize">(bcipy.kernels.logical.Unary method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filter_.FilterKernel.initialize">(bcipy.kernels.filter_.FilterKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.initialize">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filtfilt.FiltFiltKernel.initialize">(bcipy.kernels.filtfilt.FiltFiltKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.resample.ResampleKernel.initialize">(bcipy.kernels.resample.ResampleKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.greater.GreaterKernel.initialize">(bcipy.kernels.greater.GreaterKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.initialize">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.less.LessKernel.initialize">(bcipy.kernels.less.LessKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.initialize">(bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.log.LogKernel.initialize">(bcipy.kernels.log.LogKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.initialize">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_and.AndKernel.initialize">(bcipy.kernels.logical_and.AndKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.initialize">(bcipy.kernels.riemann_potato.RiemannPotatoKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_not.NotKernel.initialize">(bcipy.kernels.logical_not.NotKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.initialize">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_or.OrKernel.initialize">(bcipy.kernels.logical_or.OrKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CDFKernel.initialize">(bcipy.kernels.statistics.CDFKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_xor.XorKernel.initialize">(bcipy.kernels.logical_xor.XorKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CovarianceKernel.initialize">(bcipy.kernels.statistics.CovarianceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.max_.MaxKernel.initialize">(bcipy.kernels.max_.MaxKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.Descriptive.initialize">(bcipy.kernels.statistics.Descriptive method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.mean.MeanKernel.initialize">(bcipy.kernels.mean.MeanKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.ZScoreKernel.initialize">(bcipy.kernels.statistics.ZScoreKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.min_.MinKernel.initialize">(bcipy.kernels.min_.MinKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.initialize">(bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.multiplication.MultiplicationKernel.initialize">(bcipy.kernels.multiplication.MultiplicationKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.initialize">(bcipy.kernels.threshold.ThresholdKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.initialize">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.initialize">(bcipy.kernels.transpose.TransposeKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.initialize">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.initialize">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.initialize">(bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.Session.initialize_graph">initialize_graph() (bcipy.core.Session method)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.initialize">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INOUT">INOUT (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.initialize">(bcipy.kernels.riemann_potato.RiemannPotatoKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INPUT">INPUT (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.initialize">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INVALID_BLOCK">INVALID_BLOCK (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.set_data.SetKernel.initialize">(bcipy.kernels.set_data.SetKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INVALID_GRAPH">INVALID_GRAPH (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.stack.StackKernel.initialize">(bcipy.kernels.stack.StackKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INVALID_NODE">INVALID_NODE (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.std.StdKernel.initialize">(bcipy.kernels.std.StdKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.INVALID_PARAMETERS">INVALID_PARAMETERS (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.subtraction.SubtractionKernel.initialize">(bcipy.kernels.subtraction.SubtractionKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.initialize">(bcipy.kernels.svm.SVMClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.initialize">(bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tensor_stack.TensorStackKernel.initialize">(bcipy.kernels.tensor_stack.TensorStackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.initialize">(bcipy.kernels.threshold.ThresholdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.initialize">(bcipy.kernels.transpose.TransposeKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.var.VarKernel.initialize">(bcipy.kernels.var.VarKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.initialize">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.zscore.ZScoreKernel.initialize">(bcipy.kernels.zscore.ZScoreKernel method)</a>
-</li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.initialize_graph">initialize_graph() (bcipy.classes.session.Session method)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.initilization_execution">initilization_execution() (bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.initilization_execution">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.KERNEL">KERNEL (bcipy.core.BcipEnums attribute)</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INOUT">INOUT (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.kernel.Kernel">Kernel (class in bcipy.kernel)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INPUT">INPUT (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INVALID_BLOCK">INVALID_BLOCK (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INVALID_GRAPH">INVALID_GRAPH (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INVALID_NODE">INVALID_NODE (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.INVALID_PARAMETERS">INVALID_PARAMETERS (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.is_empty">is_empty() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.is_full">is_full() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="K" class="genindex-section">
-  <h2>K</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.KERNEL">KERNEL (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.LessKernel">LessKernel (class in bcipy.kernels.logical)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.node.Node.kernel">kernel (bcipy.classes.node.Node property)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.LogKernel">LogKernel (class in bcipy.kernels.arithmetic)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.kernel.Kernel">Kernel (class in bcipy.classes.kernel)</a>
+      <li><a href="bcipy.html#bcipy.source.LSLStream">LSLStream (class in bcipy.source)</a>
 </li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="L" class="genindex-section">
-  <h2>L</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.less.LessKernel">LessKernel (class in bcipy.kernels.less)</a>
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MaxKernel">MaxKernel (class in bcipy.kernels.statistics)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.log.LogKernel">LogKernel (class in bcipy.kernels.log)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MeanKernel">MeanKernel (class in bcipy.kernels.statistics)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.LSLStream">LSLStream (class in bcipy.classes.source)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MinKernel">MinKernel (class in bcipy.kernels.statistics)</a>
 </li>
-    </ul></td>
-  </tr></table>
-</section>
-
-<section id="M" class="genindex-section">
-  <h2>M</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.make_copy">make_copy() (bcipy.classes.array.Array method)</a>
-
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.make_copy">(bcipy.classes.circle_buffer.CircleBuffer method)</a>
-</li>
-          <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.make_copy">(bcipy.classes.scalar.Scalar method)</a>
-</li>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.make_copy">(bcipy.classes.tensor.Tensor method)</a>
-</li>
-        </ul></li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.max_.MaxKernel">MaxKernel (class in bcipy.kernels.max_)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.mean.MeanKernel">MeanKernel (class in bcipy.kernels.mean)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.min_.MinKernel">MinKernel (class in bcipy.kernels.min_)</a>
-</li>
-        <li>
+      <li>
     module
 
-        <ul>
-          <li><a href="bcipy.html#module-bcipy">bcipy</a>
+      <ul>
+        <li><a href="bcipy.html#module-bcipy.classifier">bcipy.classifier</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes">bcipy.classes</a>
+        <li><a href="bcipy.html#module-bcipy.core">bcipy.core</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.array">bcipy.classes.array</a>
+        <li><a href="bcipy.html#module-bcipy.filter">bcipy.filter</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.bcip">bcipy.classes.bcip</a>
+        <li><a href="bcipy.html#module-bcipy.kernel">bcipy.kernel</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.bcip_enums">bcipy.classes.bcip_enums</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels">bcipy.kernels</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.circle_buffer">bcipy.classes.circle_buffer</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.arithmetic">bcipy.kernels.arithmetic</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.classifier">bcipy.classes.classifier</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.classifier">bcipy.kernels.classifier</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.edge">bcipy.classes.edge</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.csp">bcipy.kernels.csp</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.filter">bcipy.classes.filter</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.datamgmt">bcipy.kernels.datamgmt</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.graph">bcipy.classes.graph</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.feature_normalization">bcipy.kernels.feature_normalization</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.kernel">bcipy.classes.kernel</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.filters">bcipy.kernels.filters</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.node">bcipy.classes.node</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.kernel_utils">bcipy.kernels.kernel_utils</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.parameter">bcipy.classes.parameter</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical">bcipy.kernels.logical</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.scalar">bcipy.classes.scalar</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.reduced_sum">bcipy.kernels.reduced_sum</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.session">bcipy.classes.session</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.resample">bcipy.kernels.resample</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.source">bcipy.classes.source</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_distance">bcipy.kernels.riemann_distance</a>
 </li>
-          <li><a href="bcipy.classes.html#module-bcipy.classes.tensor">bcipy.classes.tensor</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mdm_classifier_kernel">bcipy.kernels.riemann_mdm_classifier_kernel</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels">bcipy.kernels</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mean">bcipy.kernels.riemann_mean</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.absolute">bcipy.kernels.absolute</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_potato">bcipy.kernels.riemann_potato</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.addition">bcipy.kernels.addition</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.running_average">bcipy.kernels.running_average</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.cdf">bcipy.kernels.cdf</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.statistics">bcipy.kernels.statistics</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.classifier_">bcipy.kernels.classifier_</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.tangent_space">bcipy.kernels.tangent_space</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.concatenation">bcipy.kernels.concatenation</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.threshold">bcipy.kernels.threshold</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.covariance">bcipy.kernels.covariance</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.transpose">bcipy.kernels.transpose</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.csp">bcipy.kernels.csp</a>
+        <li><a href="bcipy.kernels.html#module-bcipy.kernels.xdawn_covariances">bcipy.kernels.xdawn_covariances</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.divsion">bcipy.kernels.divsion</a>
+        <li><a href="bcipy.html#module-bcipy.source">bcipy.source</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.enqueue">bcipy.kernels.enqueue</a>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.MultiplicationKernel">MultiplicationKernel (class in bcipy.kernels.arithmetic)</a>
 </li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.equal">bcipy.kernels.equal</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.extract">bcipy.kernels.extract</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.feature_normalization">bcipy.kernels.feature_normalization</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.filter_">bcipy.kernels.filter_</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.filtfilt">bcipy.kernels.filtfilt</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.greater">bcipy.kernels.greater</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.less">bcipy.kernels.less</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.log">bcipy.kernels.log</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_and">bcipy.kernels.logical_and</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_not">bcipy.kernels.logical_not</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_or">bcipy.kernels.logical_or</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.logical_xor">bcipy.kernels.logical_xor</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.max_">bcipy.kernels.max_</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.mean">bcipy.kernels.mean</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.min_">bcipy.kernels.min_</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.multiplication">bcipy.kernels.multiplication</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.reduced_sum">bcipy.kernels.reduced_sum</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_distance">bcipy.kernels.riemann_distance</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mdm_classifier_kernel">bcipy.kernels.riemann_mdm_classifier_kernel</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_mean">bcipy.kernels.riemann_mean</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.riemann_potato">bcipy.kernels.riemann_potato</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.running_average">bcipy.kernels.running_average</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.set_data">bcipy.kernels.set_data</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.stack">bcipy.kernels.stack</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.std">bcipy.kernels.std</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.subtraction">bcipy.kernels.subtraction</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.svm">bcipy.kernels.svm</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.tangent_space">bcipy.kernels.tangent_space</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.tensor_stack">bcipy.kernels.tensor_stack</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.threshold">bcipy.kernels.threshold</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.transpose">bcipy.kernels.transpose</a>
-</li>
-          <li><a href="bcipy.kernels.utils.html#module-bcipy.kernels.utils">bcipy.kernels.utils</a>
-</li>
-          <li><a href="bcipy.kernels.utils.html#module-bcipy.kernels.utils.data_extraction">bcipy.kernels.utils.data_extraction</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.var">bcipy.kernels.var</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.xdawn_covariances">bcipy.kernels.xdawn_covariances</a>
-</li>
-          <li><a href="bcipy.kernels.html#module-bcipy.kernels.zscore">bcipy.kernels.zscore</a>
-</li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.multiplication.MultiplicationKernel">MultiplicationKernel (class in bcipy.kernels.multiplication)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="N" class="genindex-section">
-  <h2>N</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.kernel.Kernel.name">name (bcipy.classes.kernel.Kernel property)</a>
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.kernel.Kernel.name">name (bcipy.kernel.Kernel property)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.NODE">NODE (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.NODE">NODE (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.node.Node">Node (class in bcipy.classes.node)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.NOT_SUPPORTED">NOT_SUPPORTED (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.NOT_SUPPORTED">NOT_SUPPORTED (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.NOT_YET_IMPLEMENTED">NOT_YET_IMPLEMENTED (bcipy.core.BcipEnums attribute)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.NOT_YET_IMPLEMENTED">NOT_YET_IMPLEMENTED (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.NotKernel">NotKernel (class in bcipy.kernels.logical)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_not.NotKernel">NotKernel (class in bcipy.kernels.logical_not)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.num_elements">num_elements (bcipy.classes.array.Array property)</a>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.num_elements">(bcipy.classes.circle_buffer.CircleBuffer property)</a>
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.ON_BEGIN">ON_BEGIN (bcipy.core.BcipEnums attribute)</a>
 </li>
-        </ul></li>
-    </ul></td>
-  </tr></table>
-</section>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.ON_CLOSE">ON_CLOSE (bcipy.core.BcipEnums attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.ON_TRIAL">ON_TRIAL (bcipy.core.BcipEnums attribute)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.OrKernel">OrKernel (class in bcipy.kernels.logical)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.OUTPUT">OUTPUT (bcipy.core.BcipEnums attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
 
-<section id="O" class="genindex-section">
-  <h2>O</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.ON_BEGIN">ON_BEGIN (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.PARAMETER">PARAMETER (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.ON_CLOSE">ON_CLOSE (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.ON_TRIAL">ON_TRIAL (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_or.OrKernel">OrKernel (class in bcipy.kernels.logical_or)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.OUTPUT">OUTPUT (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+      <li><a href="bcipy.html#bcipy.source.BcipClassSeparatedMat.poll_data">poll_data() (bcipy.source.BcipClassSeparatedMat method)</a>
 
-<section id="P" class="genindex-section">
-  <h2>P</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.PARAMETER">PARAMETER (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
+      <ul>
+        <li><a href="bcipy.html#bcipy.source.BcipContinuousMat.poll_data">(bcipy.source.BcipContinuousMat method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.parameter.Parameter">Parameter (class in bcipy.classes.parameter)</a>
+        <li><a href="bcipy.html#bcipy.source.BcipMatFile.poll_data">(bcipy.source.BcipMatFile method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.circle_buffer.CircleBuffer.peek">peek() (bcipy.classes.circle_buffer.CircleBuffer method)</a>
+        <li><a href="bcipy.html#bcipy.source.BcipXDF.poll_data">(bcipy.source.BcipXDF method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.source.BcipClassSeparatedMat.poll_data">poll_data() (bcipy.classes.source.BcipClassSeparatedMat method)</a>
+        <li><a href="bcipy.html#bcipy.source.LSLStream.poll_data">(bcipy.source.LSLStream method)</a>
+</li>
+        <li><a href="bcipy.html#bcipy.source.V2LSLStream.poll_data">(bcipy.source.V2LSLStream method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.Session.poll_volatile_channels">poll_volatile_channels() (bcipy.core.Session method)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.XorKernel.process_data">process_data() (bcipy.kernels.logical.XorKernel method)</a>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.source.BcipContinuousMat.poll_data">(bcipy.classes.source.BcipContinuousMat method)</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.process_data">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.source.BcipMatFile.poll_data">(bcipy.classes.source.BcipMatFile method)</a>
-</li>
-          <li><a href="bcipy.classes.html#bcipy.classes.source.LSLStream.poll_data">(bcipy.classes.source.LSLStream method)</a>
-</li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.poll_volatile_channels">poll_volatile_channels() (bcipy.classes.session.Session method)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.poll_volatile_data">poll_volatile_data() (bcipy.classes.scalar.Scalar method)</a>
+      </ul></li>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.poll_volatile_data">(bcipy.classes.tensor.Tensor method)</a>
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel">ReducedSumKernel (class in bcipy.kernels.reduced_sum)</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph.poll_volatile_sources">poll_volatile_sources() (bcipy.classes.graph.Graph method)</a>
+      <li><a href="bcipy.html#bcipy.core.Session.reject_trial">reject_trial() (bcipy.core.Session method)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.absolute.AbsoluteKernel.process_data">process_data() (bcipy.kernels.absolute.AbsoluteKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.resample.ResampleKernel">ResampleKernel (class in bcipy.kernels.resample)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel">RiemannDistanceKernel (class in bcipy.kernels.riemann_distance)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel">RiemannMDMClassifierKernel (class in bcipy.kernels.riemann_mdm_classifier_kernel)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel">RiemannMeanKernel (class in bcipy.kernels.riemann_mean)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel">RiemannPotatoKernel (class in bcipy.kernels.riemann_potato)</a>
+</li>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel">RunningAverageKernel (class in bcipy.kernels.running_average)</a>
+</li>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.addition.AdditionKernel.process_data">(bcipy.kernels.addition.AdditionKernel method)</a>
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.SCALAR">SCALAR (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.cdf.CDFKernel.process_data">(bcipy.kernels.cdf.CDFKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BCIP.session">session (bcipy.core.BCIP property)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel.process_data">(bcipy.kernels.classifier_.ClassifierKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.SESSION">SESSION (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.process_data">(bcipy.kernels.concatenation.ConcatenationKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.Session">Session (class in bcipy.core)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.covariance.CovarianceKernel.process_data">(bcipy.kernels.covariance.CovarianceKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BCIP.session_id">session_id (bcipy.core.BCIP property)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.process_data">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.SetKernel">SetKernel (class in bcipy.kernels.datamgmt)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.divsion.DivisionKernel.process_data">(bcipy.kernels.divsion.DivisionKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.SRC">SRC (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.equal.EqualKernel.process_data">(bcipy.kernels.equal.EqualKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.StackKernel">StackKernel (class in bcipy.kernels.datamgmt)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.extract.ExtractKernel.process_data">(bcipy.kernels.extract.ExtractKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.StdKernel">StdKernel (class in bcipy.kernels.statistics)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filter_.FilterKernel.process_data">(bcipy.kernels.filter_.FilterKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.SubtractionKernel">SubtractionKernel (class in bcipy.kernels.arithmetic)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filtfilt.FiltFiltKernel.process_data">(bcipy.kernels.filtfilt.FiltFiltKernel method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.SUCCESS">SUCCESS (bcipy.core.BcipEnums attribute)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.greater.GreaterKernel.process_data">(bcipy.kernels.greater.GreaterKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.less.LessKernel.process_data">(bcipy.kernels.less.LessKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.log.LogKernel.process_data">(bcipy.kernels.log.LogKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_and.AndKernel.process_data">(bcipy.kernels.logical_and.AndKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_not.NotKernel.process_data">(bcipy.kernels.logical_not.NotKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_or.OrKernel.process_data">(bcipy.kernels.logical_or.OrKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_xor.XorKernel.process_data">(bcipy.kernels.logical_xor.XorKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.max_.MaxKernel.process_data">(bcipy.kernels.max_.MaxKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.mean.MeanKernel.process_data">(bcipy.kernels.mean.MeanKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.min_.MinKernel.process_data">(bcipy.kernels.min_.MinKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.multiplication.MultiplicationKernel.process_data">(bcipy.kernels.multiplication.MultiplicationKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.process_data">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.process_data">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.process_data">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.process_data">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.stack.StackKernel.process_data">(bcipy.kernels.stack.StackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.std.StdKernel.process_data">(bcipy.kernels.std.StdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.subtraction.SubtractionKernel.process_data">(bcipy.kernels.subtraction.SubtractionKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.process_data">(bcipy.kernels.svm.SVMClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.process_data">(bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tensor_stack.TensorStackKernel.process_data">(bcipy.kernels.tensor_stack.TensorStackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.process_data">(bcipy.kernels.threshold.ThresholdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.process_data">(bcipy.kernels.transpose.TransposeKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.var.VarKernel.process_data">(bcipy.kernels.var.VarKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.process_data">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.zscore.ZScoreKernel.process_data">(bcipy.kernels.zscore.ZScoreKernel method)</a>
-</li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.edge.Edge.producers">producers (bcipy.classes.edge.Edge property)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="R" class="genindex-section">
-  <h2>R</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel">ReducedSumKernel (class in bcipy.kernels.reduced_sum)</a>
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel">TangentSpaceKernel (class in bcipy.kernels.tangent_space)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session.reject_trial">reject_trial() (bcipy.classes.session.Session method)</a>
+      <li><a href="bcipy.html#bcipy.core.BcipEnums.TENSOR">TENSOR (bcipy.core.BcipEnums attribute)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel">RiemannDistanceKernel (class in bcipy.kernels.riemann_distance)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.TensorStackKernel">TensorStackKernel (class in bcipy.kernels.datamgmt)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel">RiemannMDMClassifierKernel (class in bcipy.kernels.riemann_mdm_classifier_kernel)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel">ThresholdKernel (class in bcipy.kernels.threshold)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel">RiemannMeanKernel (class in bcipy.kernels.riemann_mean)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.train_classifier">train_classifier() (bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel">RiemannPotatoKernel (class in bcipy.kernels.riemann_potato)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel">TransposeKernel (class in bcipy.kernels.transpose)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel">RunningAverageKernel (class in bcipy.kernels.running_average)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
-<section id="S" class="genindex-section">
-  <h2>S</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.SCALAR">SCALAR (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar">Scalar (class in bcipy.classes.scalar)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip.BCIP.session">session (bcipy.classes.bcip.BCIP property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.SESSION">SESSION (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.session.Session">Session (class in bcipy.classes.session)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip.BCIP.session_id">session_id (bcipy.classes.bcip.BCIP property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.set_element">set_element() (bcipy.classes.array.Array method)</a>
-</li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.set_data.SetKernel">SetKernel (class in bcipy.kernels.set_data)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.shape">shape (bcipy.classes.tensor.Tensor property)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.SRC">SRC (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.stack.StackKernel">StackKernel (class in bcipy.kernels.stack)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.std.StdKernel">StdKernel (class in bcipy.kernels.std)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.subtraction.SubtractionKernel">SubtractionKernel (class in bcipy.kernels.subtraction)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.SUCCESS">SUCCESS (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel">SVMClassifierKernel (class in bcipy.kernels.svm)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Unary">Unary (class in bcipy.kernels.arithmetic)</a>
 
-<section id="T" class="genindex-section">
-  <h2>T</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel">TangentSpaceKernel (class in bcipy.kernels.tangent_space)</a>
+      <ul>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Unary">(class in bcipy.kernels.logical)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.bcip_enums.BcipEnums.TENSOR">TENSOR (bcipy.classes.bcip_enums.BcipEnums attribute)</a>
-</li>
-        <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor">Tensor (class in bcipy.classes.tensor)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.tensor_stack.TensorStackKernel">TensorStackKernel (class in bcipy.kernels.tensor_stack)</a>
-</li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel">ThresholdKernel (class in bcipy.kernels.threshold)</a>
-</li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel.train_classifier">train_classifier() (bcipy.kernels.classifier_.ClassifierKernel method)</a>
+      </ul></li>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.train_classifier">(bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.source.V2LSLStream">V2LSLStream (class in bcipy.source)</a>
 </li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.train_classifier">(bcipy.kernels.svm.SVMClassifierKernel method)</a>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.VarKernel">VarKernel (class in bcipy.kernels.statistics)</a>
 </li>
-        </ul></li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel">TransposeKernel (class in bcipy.kernels.transpose)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+      <li><a href="bcipy.html#bcipy.core.Session.verify">verify() (bcipy.core.Session method)</a>
 
-<section id="V" class="genindex-section">
-  <h2>V</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.valid_numeric_types">valid_numeric_types() (bcipy.classes.scalar.Scalar class method)</a>
+      <ul>
+        <li><a href="bcipy.html#bcipy.kernel.Kernel.verify">(bcipy.kernel.Kernel method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.validate_data">validate_data() (bcipy.classes.tensor.Tensor static method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Binary.verify">(bcipy.kernels.arithmetic.Binary method)</a>
 </li>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.var.VarKernel">VarKernel (class in bcipy.kernels.var)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.Unary.verify">(bcipy.kernels.arithmetic.Unary method)</a>
 </li>
-        <li><a href="bcipy.classes.html#bcipy.classes.graph.Graph.verify">verify() (bcipy.classes.graph.Graph method)</a>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.classifier.ClassifierKernel.verify">(bcipy.kernels.classifier.ClassifierKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.verify">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ConcatenationKernel.verify">(bcipy.kernels.datamgmt.ConcatenationKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.EnqueueKernel.verify">(bcipy.kernels.datamgmt.EnqueueKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ExtractKernel.verify">(bcipy.kernels.datamgmt.ExtractKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.SetKernel.verify">(bcipy.kernels.datamgmt.SetKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.StackKernel.verify">(bcipy.kernels.datamgmt.StackKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.TensorStackKernel.verify">(bcipy.kernels.datamgmt.TensorStackKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.verify">(bcipy.kernels.feature_normalization.FeatureNormalizationKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.filters.Filter.verify">(bcipy.kernels.filters.Filter method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Binary.verify">(bcipy.kernels.logical.Binary method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.logical.Unary.verify">(bcipy.kernels.logical.Unary method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.verify">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.resample.ResampleKernel.verify">(bcipy.kernels.resample.ResampleKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.verify">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.verify">(bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.verify">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.verify">(bcipy.kernels.riemann_potato.RiemannPotatoKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.verify">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CDFKernel.verify">(bcipy.kernels.statistics.CDFKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CovarianceKernel.verify">(bcipy.kernels.statistics.CovarianceKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.Descriptive.verify">(bcipy.kernels.statistics.Descriptive method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.StdKernel.verify">(bcipy.kernels.statistics.StdKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.VarKernel.verify">(bcipy.kernels.statistics.VarKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.ZScoreKernel.verify">(bcipy.kernels.statistics.ZScoreKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.verify">(bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.verify">(bcipy.kernels.threshold.ThresholdKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.verify">(bcipy.kernels.transpose.TransposeKernel method)</a>
+</li>
+        <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.verify">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.kernel.Kernel.verify">(bcipy.classes.kernel.Kernel method)</a>
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel">XDawnCovarianceKernel (class in bcipy.kernels.xdawn_covariances)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.node.Node.verify">(bcipy.classes.node.Node method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.logical.XorKernel">XorKernel (class in bcipy.kernels.logical)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.session.Session.verify">(bcipy.classes.session.Session method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.absolute.AbsoluteKernel.verify">(bcipy.kernels.absolute.AbsoluteKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.addition.AdditionKernel.verify">(bcipy.kernels.addition.AdditionKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.cdf.CDFKernel.verify">(bcipy.kernels.cdf.CDFKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.classifier_.ClassifierKernel.verify">(bcipy.kernels.classifier_.ClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.concatenation.ConcatenationKernel.verify">(bcipy.kernels.concatenation.ConcatenationKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.covariance.CovarianceKernel.verify">(bcipy.kernels.covariance.CovarianceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.csp.CommonSpatialPatternKernel.verify">(bcipy.kernels.csp.CommonSpatialPatternKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.divsion.DivisionKernel.verify">(bcipy.kernels.divsion.DivisionKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.enqueue.EnqueueKernel.verify">(bcipy.kernels.enqueue.EnqueueKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.equal.EqualKernel.verify">(bcipy.kernels.equal.EqualKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.extract.ExtractKernel.verify">(bcipy.kernels.extract.ExtractKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.feature_normalization.FeatureNormalizationKernel.verify">(bcipy.kernels.feature_normalization.FeatureNormalizationKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filter_.FilterKernel.verify">(bcipy.kernels.filter_.FilterKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.filtfilt.FiltFiltKernel.verify">(bcipy.kernels.filtfilt.FiltFiltKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.greater.GreaterKernel.verify">(bcipy.kernels.greater.GreaterKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.less.LessKernel.verify">(bcipy.kernels.less.LessKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.log.LogKernel.verify">(bcipy.kernels.log.LogKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_and.AndKernel.verify">(bcipy.kernels.logical_and.AndKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_not.NotKernel.verify">(bcipy.kernels.logical_not.NotKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_or.OrKernel.verify">(bcipy.kernels.logical_or.OrKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.logical_xor.XorKernel.verify">(bcipy.kernels.logical_xor.XorKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.max_.MaxKernel.verify">(bcipy.kernels.max_.MaxKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.mean.MeanKernel.verify">(bcipy.kernels.mean.MeanKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.min_.MinKernel.verify">(bcipy.kernels.min_.MinKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.multiplication.MultiplicationKernel.verify">(bcipy.kernels.multiplication.MultiplicationKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.reduced_sum.ReducedSumKernel.verify">(bcipy.kernels.reduced_sum.ReducedSumKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_distance.RiemannDistanceKernel.verify">(bcipy.kernels.riemann_distance.RiemannDistanceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.verify">(bcipy.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_mean.RiemannMeanKernel.verify">(bcipy.kernels.riemann_mean.RiemannMeanKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.riemann_potato.RiemannPotatoKernel.verify">(bcipy.kernels.riemann_potato.RiemannPotatoKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.verify">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.set_data.SetKernel.verify">(bcipy.kernels.set_data.SetKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.stack.StackKernel.verify">(bcipy.kernels.stack.StackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.std.StdKernel.verify">(bcipy.kernels.std.StdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.subtraction.SubtractionKernel.verify">(bcipy.kernels.subtraction.SubtractionKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.svm.SVMClassifierKernel.verify">(bcipy.kernels.svm.SVMClassifierKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tangent_space.TangentSpaceKernel.verify">(bcipy.kernels.tangent_space.TangentSpaceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.tensor_stack.TensorStackKernel.verify">(bcipy.kernels.tensor_stack.TensorStackKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.threshold.ThresholdKernel.verify">(bcipy.kernels.threshold.ThresholdKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.transpose.TransposeKernel.verify">(bcipy.kernels.transpose.TransposeKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.var.VarKernel.verify">(bcipy.kernels.var.VarKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel.verify">(bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel method)</a>
-</li>
-          <li><a href="bcipy.kernels.html#bcipy.kernels.zscore.ZScoreKernel.verify">(bcipy.kernels.zscore.ZScoreKernel method)</a>
-</li>
-        </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.virtual">virtual (bcipy.classes.array.Array property)</a>
+  </ul></td>
+</tr></table>
 
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.virtual">(bcipy.classes.scalar.Scalar property)</a>
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.ZScoreKernel">ZScoreKernel (class in bcipy.kernels.statistics)</a>
 </li>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.virtual">(bcipy.classes.tensor.Tensor property)</a>
-</li>
-        </ul></li>
-        <li><a href="bcipy.classes.html#bcipy.classes.array.Array.volatile">volatile (bcipy.classes.array.Array property)</a>
-
-        <ul>
-          <li><a href="bcipy.classes.html#bcipy.classes.scalar.Scalar.volatile">(bcipy.classes.scalar.Scalar property)</a>
-</li>
-          <li><a href="bcipy.classes.html#bcipy.classes.tensor.Tensor.volatile">(bcipy.classes.tensor.Tensor property)</a>
-</li>
-        </ul></li>
-    </ul></td>
-  </tr></table>
-</section>
-
-<section id="X" class="genindex-section">
-  <h2>X</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.xdawn_covariances.XDawnCovarianceKernel">XDawnCovarianceKernel (class in bcipy.kernels.xdawn_covariances)</a>
-</li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.logical_xor.XorKernel">XorKernel (class in bcipy.kernels.logical_xor)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
-
-<section id="Z" class="genindex-section">
-  <h2>Z</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="bcipy.kernels.html#bcipy.kernels.zscore.ZScoreKernel">ZScoreKernel (class in bcipy.kernels.zscore)</a>
-</li>
-    </ul></td>
-  </tr></table>
-</section>
+  </ul></td>
+</tr></table>
 
 
-        </article>
-      </div>
-      <footer>
-        
-        <div class="related-pages">
-          
-          
-        </div>
-        <div class="bottom-of-page">
-          <div class="left-details">
-            <div class="copyright">
-                Copyright &#169; 2022, Nicolas Ivanov, Aaron Lio
-            </div>
-            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-            
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
-            
+
+           </div>
           </div>
-          <div class="right-details">
-            <div class="icons">
-              
-            </div>
-          </div>
-        </div>
-        
-      </footer>
-    </div>
-    <aside class="toc-drawer no-toc">
-      
-      
-      
-    </aside>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Nicolas Ivanov, Aaron Lio.</p>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/furo.js"></script>
-    </body>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
 </html>

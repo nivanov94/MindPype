@@ -874,7 +874,7 @@ class Array(BCIP):
         """
         Factory method to create array object
 
-         Parameters
+        Parameters
         ----------
         sess : Session object
             - Session where the Array object will exist
@@ -1173,7 +1173,7 @@ class CircleBuffer(Array):
     @classmethod
     def create(cls,sess,capacity,element_template):
         cb = cls(sess,capacity,element_template)
-        
+
         # add to the session
         sess.add_data(cb)
         

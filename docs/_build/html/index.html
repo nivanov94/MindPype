@@ -1,207 +1,81 @@
-<!doctype html>
-<html class="no-js" lang="en">
-  <head><meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Getting Started with BCIPy" href="README.html" />
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <meta name="generator" content="sphinx-5.1.1, furo 2022.06.21"/>
-        <title>bcipy 0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=40978830699223671f4072448e654b5958f38b89" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
-    
-    
-
-
-<style>
-  body {
-    --color-code-background: #f8f8f8;
-  --color-code-foreground: black;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to bcipy’s documentation! &mdash; bcipy 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-  }
-  @media not print {
-    body[data-theme="dark"] {
-      --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-    }
-    @media (prefers-color-scheme: dark) {
-      body:not([data-theme="light"]) {
-        --color-code-background: #202020;
-  --color-code-foreground: #d0d0d0;
-  
-      }
-    }
-  }
-</style></head>
-  <body>
-    
-    <script>
-      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
-    </script>
-    
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started with BCIPy" href="README.html" /> 
+</head>
 
-<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-  <symbol id="svg-toc" viewBox="0 0 24 24">
-    <title>Contents</title>
-    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
-      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
-    </svg>
-  </symbol>
-  <symbol id="svg-menu" viewBox="0 0 24 24">
-    <title>Menu</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
-      <line x1="3" y1="12" x2="21" y2="12"></line>
-      <line x1="3" y1="6" x2="21" y2="6"></line>
-      <line x1="3" y1="18" x2="21" y2="18"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
-    <title>Expand</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
-      <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-  </symbol>
-  <symbol id="svg-sun" viewBox="0 0 24 24">
-    <title>Light mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>
-  </symbol>
-  <symbol id="svg-moon" viewBox="0 0 24 24">
-    <title>Dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
-    </svg>
-  </symbol>
-  <symbol id="svg-sun-half" viewBox="0 0 24 24">
-    <title>Auto light/dark mode</title>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M13 12h5" />
-      <path d="M13 15h4" />
-      <path d="M13 18h1" />
-      <path d="M13 9h4" />
-      <path d="M13 6h1" />
-    </svg>
-  </symbol>
-</svg>
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
-<label class="overlay sidebar-overlay" for="__navigation">
-  <div class="visually-hidden">Hide navigation sidebar</div>
-</label>
-<label class="overlay toc-overlay" for="__toc">
-  <div class="visually-hidden">Hide table of contents sidebar</div>
-</label>
-
-
-
-<div class="page">
-  <header class="mobile-header">
-    <div class="header-left">
-      <label class="nav-overlay-icon" for="__navigation">
-        <div class="visually-hidden">Toggle site navigation sidebar</div>
-        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
-      </label>
-    </div>
-    <div class="header-center">
-      <a href="#"><div class="brand">bcipy 0.1 documentation</div></a>
-    </div>
-    <div class="header-right">
-      <div class="theme-toggle-container theme-toggle-header">
-        <button class="theme-toggle">
-          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-        </button>
-      </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
-        <div class="visually-hidden">Toggle table of contents sidebar</div>
-        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-      </label>
-    </div>
-  </header>
-  <aside class="sidebar-drawer">
-    <div class="sidebar-container">
-      
-      <div class="sidebar-sticky"><a class="sidebar-brand" href="#">
-  
-  
-  <span class="sidebar-brand-text">bcipy 0.1 documentation</span>
-  
-</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
-  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
-  <input type="hidden" name="check_keywords" value="yes">
-  <input type="hidden" name="area" value="default">
-</form>
-<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+          
+          
+          <a href="#" class="icon icon-home">
+            bcipy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with BCIPy</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html#setup-guide">Setup Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="README.html#basic-setup">Basic Setup</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="bcipy.html">bcipy package</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="bcipy.classes.html">bcipy.classes package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="bcipy.kernels.html">bcipy.kernels package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="bcipy.kernels.utils.html">bcipy.kernels.utils package</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="bcipy.html">bcipy package</a></li>
 </ul>
 
-</div>
-</div>
-
-      </div>
-      
-    </div>
-  </aside>
-  <div class="main">
-    <div class="content">
-      <div class="article-container">
-        <a href="#" class="back-to-top muted-link">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
-          </svg>
-          <span>Back to top</span>
-        </a>
-        <div class="content-icon-container">
-          <div class="theme-toggle-container theme-toggle-content">
-            <button class="theme-toggle">
-              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
-              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
-              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
-            </button>
-          </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
-            <div class="visually-hidden">Toggle table of contents sidebar</div>
-            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
-          </label>
         </div>
-        <article role="main">
-          <section id="welcome-to-bcipy-s-documentation">
-<h1>Welcome to bcipy’s documentation!<a class="headerlink" href="#welcome-to-bcipy-s-documentation" title="Permalink to this heading">#</a></h1>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">bcipy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to bcipy’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-bcipy-s-documentation">
+<h1>Welcome to bcipy’s documentation!<a class="headerlink" href="#welcome-to-bcipy-s-documentation" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -226,138 +100,227 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="bcipy.html">bcipy package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="bcipy.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="bcipy.classes.html">bcipy.classes package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.array">bcipy.classes.array module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.bcip">bcipy.classes.bcip module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.bcip_enums">bcipy.classes.bcip_enums module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.circle_buffer">bcipy.classes.circle_buffer module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.classifier">bcipy.classes.classifier module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.edge">bcipy.classes.edge module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.filter">bcipy.classes.filter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.graph">bcipy.classes.graph module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.kernel">bcipy.classes.kernel module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.node">bcipy.classes.node module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.parameter">bcipy.classes.parameter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.scalar">bcipy.classes.scalar module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.session">bcipy.classes.session module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.source">bcipy.classes.source module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes.tensor">bcipy.classes.tensor module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.classes.html#module-bcipy.classes">Module contents</a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="bcipy.kernels.html">bcipy.kernels package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#subpackages">Subpackages</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.absolute">bcipy.kernels.absolute module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.addition">bcipy.kernels.addition module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.cdf">bcipy.kernels.cdf module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.classifier_">bcipy.kernels.classifier_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.concatenation">bcipy.kernels.concatenation module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.covariance">bcipy.kernels.covariance module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.arithmetic">bcipy.kernels.arithmetic module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.classifier">bcipy.kernels.classifier module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.csp">bcipy.kernels.csp module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.divsion">bcipy.kernels.divsion module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.enqueue">bcipy.kernels.enqueue module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.equal">bcipy.kernels.equal module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.extract">bcipy.kernels.extract module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.datamgmt">bcipy.kernels.datamgmt module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.feature_normalization">bcipy.kernels.feature_normalization module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.filter_">bcipy.kernels.filter_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.filtfilt">bcipy.kernels.filtfilt module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.greater">bcipy.kernels.greater module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.less">bcipy.kernels.less module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.log">bcipy.kernels.log module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_and">bcipy.kernels.logical_and module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_not">bcipy.kernels.logical_not module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_or">bcipy.kernels.logical_or module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical_xor">bcipy.kernels.logical_xor module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.max_">bcipy.kernels.max_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.mean">bcipy.kernels.mean module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.min_">bcipy.kernels.min_ module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.multiplication">bcipy.kernels.multiplication module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.filters">bcipy.kernels.filters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.kernel_utils">bcipy.kernels.kernel_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.logical">bcipy.kernels.logical module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.reduced_sum">bcipy.kernels.reduced_sum module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.resample">bcipy.kernels.resample module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_distance">bcipy.kernels.riemann_distance module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_mdm_classifier_kernel">bcipy.kernels.riemann_mdm_classifier_kernel module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_mean">bcipy.kernels.riemann_mean module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.riemann_potato">bcipy.kernels.riemann_potato module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.running_average">bcipy.kernels.running_average module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.set_data">bcipy.kernels.set_data module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.stack">bcipy.kernels.stack module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.std">bcipy.kernels.std module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.subtraction">bcipy.kernels.subtraction module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.svm">bcipy.kernels.svm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.statistics">bcipy.kernels.statistics module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.tangent_space">bcipy.kernels.tangent_space module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.tensor_stack">bcipy.kernels.tensor_stack module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.threshold">bcipy.kernels.threshold module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.transpose">bcipy.kernels.transpose module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.var">bcipy.kernels.var module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.xdawn_covariances">bcipy.kernels.xdawn_covariances module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels.zscore">bcipy.kernels.zscore module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.kernels.html#module-bcipy.kernels">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-bcipy">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-bcipy.classifier">bcipy.classifier module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier"><code class="docutils literal notranslate"><span class="pre">Classifier</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier._ctype"><code class="docutils literal notranslate"><span class="pre">Classifier._ctype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier._classifier"><code class="docutils literal notranslate"><span class="pre">Classifier._classifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier.create_LDA"><code class="docutils literal notranslate"><span class="pre">Classifier.create_LDA()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier.create_SVM"><code class="docutils literal notranslate"><span class="pre">Classifier.create_SVM()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier.create_custom_classifier"><code class="docutils literal notranslate"><span class="pre">Classifier.create_custom_classifier()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier.create_logistic_regression"><code class="docutils literal notranslate"><span class="pre">Classifier.create_logistic_regression()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier.ctype"><code class="docutils literal notranslate"><span class="pre">Classifier.ctype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.classifier.Classifier.ctypes"><code class="docutils literal notranslate"><span class="pre">Classifier.ctypes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#bcipy-containers-module">bcipy.containers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-bcipy.core">bcipy.core module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.core.BCIP"><code class="docutils literal notranslate"><span class="pre">BCIP</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BCIP.bcip_type"><code class="docutils literal notranslate"><span class="pre">BCIP.bcip_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BCIP.session"><code class="docutils literal notranslate"><span class="pre">BCIP.session</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BCIP.session_id"><code class="docutils literal notranslate"><span class="pre">BCIP.session_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums"><code class="docutils literal notranslate"><span class="pre">BcipEnums</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.ARRAY"><code class="docutils literal notranslate"><span class="pre">BcipEnums.ARRAY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.BCIP"><code class="docutils literal notranslate"><span class="pre">BcipEnums.BCIP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.CIRCLE_BUFFER"><code class="docutils literal notranslate"><span class="pre">BcipEnums.CIRCLE_BUFFER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.CLASSIFIER"><code class="docutils literal notranslate"><span class="pre">BcipEnums.CLASSIFIER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.EXCEED_TRIAL_LIMIT"><code class="docutils literal notranslate"><span class="pre">BcipEnums.EXCEED_TRIAL_LIMIT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.EXE_FAILURE"><code class="docutils literal notranslate"><span class="pre">BcipEnums.EXE_FAILURE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.EXE_FAILURE_UNINITIALIZED"><code class="docutils literal notranslate"><span class="pre">BcipEnums.EXE_FAILURE_UNINITIALIZED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.FAILURE"><code class="docutils literal notranslate"><span class="pre">BcipEnums.FAILURE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.FILTER"><code class="docutils literal notranslate"><span class="pre">BcipEnums.FILTER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.GRAPH"><code class="docutils literal notranslate"><span class="pre">BcipEnums.GRAPH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INITIALIZATION_FAILURE"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INITIALIZATION_FAILURE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INIT_FROM_COPY"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INIT_FROM_COPY</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INIT_FROM_DATA"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INIT_FROM_DATA</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INIT_FROM_NONE"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INIT_FROM_NONE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INOUT"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INOUT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INPUT"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INPUT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INVALID_BLOCK"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INVALID_BLOCK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INVALID_GRAPH"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INVALID_GRAPH</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INVALID_NODE"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INVALID_NODE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.INVALID_PARAMETERS"><code class="docutils literal notranslate"><span class="pre">BcipEnums.INVALID_PARAMETERS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.KERNEL"><code class="docutils literal notranslate"><span class="pre">BcipEnums.KERNEL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.NODE"><code class="docutils literal notranslate"><span class="pre">BcipEnums.NODE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.NOT_SUPPORTED"><code class="docutils literal notranslate"><span class="pre">BcipEnums.NOT_SUPPORTED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.NOT_YET_IMPLEMENTED"><code class="docutils literal notranslate"><span class="pre">BcipEnums.NOT_YET_IMPLEMENTED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.ON_BEGIN"><code class="docutils literal notranslate"><span class="pre">BcipEnums.ON_BEGIN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.ON_CLOSE"><code class="docutils literal notranslate"><span class="pre">BcipEnums.ON_CLOSE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.ON_TRIAL"><code class="docutils literal notranslate"><span class="pre">BcipEnums.ON_TRIAL</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.OUTPUT"><code class="docutils literal notranslate"><span class="pre">BcipEnums.OUTPUT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.PARAMETER"><code class="docutils literal notranslate"><span class="pre">BcipEnums.PARAMETER</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.SCALAR"><code class="docutils literal notranslate"><span class="pre">BcipEnums.SCALAR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.SESSION"><code class="docutils literal notranslate"><span class="pre">BcipEnums.SESSION</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.SRC"><code class="docutils literal notranslate"><span class="pre">BcipEnums.SRC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.SUCCESS"><code class="docutils literal notranslate"><span class="pre">BcipEnums.SUCCESS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.BcipEnums.TENSOR"><code class="docutils literal notranslate"><span class="pre">BcipEnums.TENSOR</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.core.Session"><code class="docutils literal notranslate"><span class="pre">Session</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session._datum"><code class="docutils literal notranslate"><span class="pre">Session._datum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_data"><code class="docutils literal notranslate"><span class="pre">Session.add_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_ext_src"><code class="docutils literal notranslate"><span class="pre">Session.add_ext_src()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_graph"><code class="docutils literal notranslate"><span class="pre">Session.add_graph()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_misc_bcip_obj"><code class="docutils literal notranslate"><span class="pre">Session.add_misc_bcip_obj()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.create"><code class="docutils literal notranslate"><span class="pre">Session.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.execute_trial"><code class="docutils literal notranslate"><span class="pre">Session.execute_trial()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.find_obj"><code class="docutils literal notranslate"><span class="pre">Session.find_obj()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.initialize_graph"><code class="docutils literal notranslate"><span class="pre">Session.initialize_graph()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.poll_volatile_channels"><code class="docutils literal notranslate"><span class="pre">Session.poll_volatile_channels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.reject_trial"><code class="docutils literal notranslate"><span class="pre">Session.reject_trial()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.verify"><code class="docutils literal notranslate"><span class="pre">Session.verify()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-bcipy.filter">bcipy.filter module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter"><code class="docutils literal notranslate"><span class="pre">Filter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.btype"><code class="docutils literal notranslate"><span class="pre">Filter.btype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.btypes"><code class="docutils literal notranslate"><span class="pre">Filter.btypes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.coeffs"><code class="docutils literal notranslate"><span class="pre">Filter.coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.create_bessel"><code class="docutils literal notranslate"><span class="pre">Filter.create_bessel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.create_butter"><code class="docutils literal notranslate"><span class="pre">Filter.create_butter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.create_cheby1"><code class="docutils literal notranslate"><span class="pre">Filter.create_cheby1()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.create_cheby2"><code class="docutils literal notranslate"><span class="pre">Filter.create_cheby2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.create_ellip"><code class="docutils literal notranslate"><span class="pre">Filter.create_ellip()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.crit_frqs"><code class="docutils literal notranslate"><span class="pre">Filter.crit_frqs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.fs"><code class="docutils literal notranslate"><span class="pre">Filter.fs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.ftype"><code class="docutils literal notranslate"><span class="pre">Filter.ftype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.ftypes"><code class="docutils literal notranslate"><span class="pre">Filter.ftypes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.implementation"><code class="docutils literal notranslate"><span class="pre">Filter.implementation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.filter.Filter.implementations"><code class="docutils literal notranslate"><span class="pre">Filter.implementations</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#bcipy-graph-module">bcipy.graph module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-bcipy.kernel">bcipy.kernel module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel"><code class="docutils literal notranslate"><span class="pre">Kernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel._name"><code class="docutils literal notranslate"><span class="pre">Kernel._name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel._init_style"><code class="docutils literal notranslate"><span class="pre">Kernel._init_style</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel.execute"><code class="docutils literal notranslate"><span class="pre">Kernel.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel.init_style"><code class="docutils literal notranslate"><span class="pre">Kernel.init_style</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel.initialize"><code class="docutils literal notranslate"><span class="pre">Kernel.initialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel.name"><code class="docutils literal notranslate"><span class="pre">Kernel.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel.verify"><code class="docutils literal notranslate"><span class="pre">Kernel.verify()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#module-bcipy.source">bcipy.source module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.BcipClassSeparatedMat"><code class="docutils literal notranslate"><span class="pre">BcipClassSeparatedMat</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipClassSeparatedMat.create_class_separated"><code class="docutils literal notranslate"><span class="pre">BcipClassSeparatedMat.create_class_separated()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipClassSeparatedMat.format_continuous_data"><code class="docutils literal notranslate"><span class="pre">BcipClassSeparatedMat.format_continuous_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipClassSeparatedMat.poll_data"><code class="docutils literal notranslate"><span class="pre">BcipClassSeparatedMat.poll_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.BcipContinuousMat"><code class="docutils literal notranslate"><span class="pre">BcipContinuousMat</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipContinuousMat.create_continuous"><code class="docutils literal notranslate"><span class="pre">BcipContinuousMat.create_continuous()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipContinuousMat.get_next_label"><code class="docutils literal notranslate"><span class="pre">BcipContinuousMat.get_next_label()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipContinuousMat.poll_data"><code class="docutils literal notranslate"><span class="pre">BcipContinuousMat.poll_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.BcipMatFile"><code class="docutils literal notranslate"><span class="pre">BcipMatFile</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipMatFile.create"><code class="docutils literal notranslate"><span class="pre">BcipMatFile.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipMatFile.poll_data"><code class="docutils literal notranslate"><span class="pre">BcipMatFile.poll_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.BcipXDF"><code class="docutils literal notranslate"><span class="pre">BcipXDF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipXDF.create"><code class="docutils literal notranslate"><span class="pre">BcipXDF.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipXDF.create_continuous"><code class="docutils literal notranslate"><span class="pre">BcipXDF.create_continuous()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipXDF.create_epoched"><code class="docutils literal notranslate"><span class="pre">BcipXDF.create_epoched()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipXDF.poll_data"><code class="docutils literal notranslate"><span class="pre">BcipXDF.poll_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream"><code class="docutils literal notranslate"><span class="pre">LSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">LSLStream.create_marker_coupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">LSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">LSLStream.poll_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.create_marker_coupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.poll_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bcipy.html#id1">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">#</a></h1>
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
 <ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+<li><p class="linemarker linemarker-20"><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p class="linemarker linemarker-21"><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p class="linemarker linemarker-22"><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
 </section>
 
-        </article>
-      </div>
-      <footer>
-        
-        <div class="related-pages">
-          <a class="next-page" href="README.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Getting Started with BCIPy</div>
-              </div>
-              <svg><use href="#svg-arrow-right"></use></svg>
-            </a>
-          
-        </div>
-        <div class="bottom-of-page">
-          <div class="left-details">
-            <div class="copyright">
-                Copyright &#169; 2022, Nicolas Ivanov, Aaron Lio
-            </div>
-            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-            
-            <a href="https://github.com/pradyunsg/furo">Furo</a>
-            
+
+           </div>
           </div>
-          <div class="right-details">
-            <div class="icons">
-              
-            </div>
-          </div>
-        </div>
-        
-      </footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="README.html" class="btn btn-neutral float-right" title="Getting Started with BCIPy" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-    <aside class="toc-drawer no-toc">
-      
-      
-      
-    </aside>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Nicolas Ivanov, Aaron Lio.</p>
   </div>
-</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/furo.js"></script>
-    </body>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
 </html>

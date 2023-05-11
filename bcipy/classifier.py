@@ -151,41 +151,39 @@ class Classifier(BCIP):
         share the same covariance matrix.
         
         Parameters
-        ----------
+        -----------
+
         sess : session object
             Session where the SVM BCIP Classifier object will exist
 
         solver : {'svd', 'lsqr', 'eigen'}, default='svd'
-            Solver to use, possible values:
-
-            'svd': Singular value decomposition (default). Does not compute the covariance matrix, therefore this solver is recommended for data with a large number of features.
-            'lsqr': Least squares solution. Can be combined with shrinkage or custom covariance estimator.
-            'eigen': Eigenvalue decomposition. Can be combined with shrinkage or custom covariance estimator.
-
+            * Solver to use, possible values:
+                * 'svd' : Singular value decomposition (default). Does not compute the covariance matrix, therefore this solver is recommended for data with a large number of features.
+                * 'lsqr' : Least squares solution. Can be combined with shrinkage or custom covariance estimator.
+                * 'eigen' : Eigenvalue decomposition. Can be combined with shrinkage or custom covariance estimator.
+            
         shrinkage : 'auto' or float, default=None
-            Shrinkage parameter, possible values:
-
-            None: no shrinkage (default).
-            'auto': automatic shrinkage using the Ledoit-Wolf lemma.
-            float between 0 and 1: fixed shrinkage parameter.
-                This should be left to None if covariance_estimator is used. Note that shrinkage works only with 'lsqr' and 'eigen' solvers.
+            * Shrinkage parameter, possible values:
+                * None: no shrinkage (default).
+                * 'auto': automatic shrinkage using the Ledoit-Wolf lemma.
+                * float between 0 and 1: fixed shrinkage parameter.
+                    * This should be left to None if covariance_estimator is used. Note that shrinkage works only with 'lsqr' and 'eigen' solvers.
 
         priors : array-like of shape (n_classes,), default=None
-            The class prior probabilities. By default, the class proportions are inferred from the training data.
+            * The class prior probabilities. By default, the class proportions are inferred from the training data.
 
         n_components : int, default=None
-            Number of components (<= min(n_classes - 1, n_features)) for dimensionality reduction. If None, will be set to min(n_classes - 1, n_features). This parameter only affects the transform method.
+            * Number of components (should be of dimension at least min(n_classes - 1, n_features)) for dimensionality reduction. If None, will be set to min(n_classes - 1, n_features). This parameter only affects the transform method.
 
-        store_covariance : bool, default=False
-            If True, explicitly compute the weighted within-class covariance matrix when solver is 'svd'. The matrix is always computed and stored for the other solvers.
+        store_covariance: bool, default=False
+            * If True, explicitly compute the weighted within-class covariance matrix when solver is 'svd'. The matrix is always computed and stored for the other solvers.
 
-        tol : float, default=1.0e-4
-            Absolute threshold for a singular value of X to be considered significant, used to estimate the rank of X. Dimensions whose singular values are non-significant are discarded. Only used if solver is 'svd'.
+        tol : float, default=.0001
+            * Absolute threshold for a singular value of X to be considered significant, used to estimate the rank of X. Dimensions whose singular values are non-significant are discarded. Only used if solver is 'svd'.
 
         covariance_estimator : covariance estimator, default=None
-            If not None, covariance_estimator is used to estimate the covariance matrices instead of relying on the empirical covariance estimator (with potential shrinkage). The object should have a fit method and a covariance_ attribute like the estimators in sklearn.covariance. if None the shrinkage parameter drives the estimate.
-
-            This should be left to None if shrinkage is used. Note that covariance_estimator works only with 'lsqr' and 'eigen' solvers.
+            * If not None, covariance_estimator is used to estimate the covariance matrices instead of relying on the empirical covariance estimator (with potential shrinkage). The object should have a fit method and a covariance_ attribute like the estimators in sklearn.covariance. if None the shrinkage parameter drives the estimate.
+                * This should be left to None if shrinkage is used. Note that covariance_estimator works only with 'lsqr' and 'eigen' solvers.
 
         """
         lda_object = LinearDiscriminantAnalysis(solver, shrinkage, priors, n_components, store_covariance, tol, covariance_estimator)

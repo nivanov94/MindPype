@@ -1,61 +1,21 @@
 bcipy.kernels package
 =====================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   bcipy.kernels.utils
-
 Submodules
 ----------
 
-bcipy.kernels.absolute module
------------------------------
-
-.. automodule:: bcipy.kernels.absolute
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.addition module
------------------------------
-
-.. automodule:: bcipy.kernels.addition
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.cdf module
-------------------------
-
-.. automodule:: bcipy.kernels.cdf
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.classifier\_ module
----------------------------------
-
-.. automodule:: bcipy.kernels.classifier_
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.concatenation module
-----------------------------------
-
-.. automodule:: bcipy.kernels.concatenation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.covariance module
+bcipy.kernels.arithmetic module
 -------------------------------
 
-.. automodule:: bcipy.kernels.covariance
+.. automodule:: bcipy.kernels.arithmetic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+bcipy.kernels.classifier module
+-------------------------------
+
+.. automodule:: bcipy.kernels.classifier
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,34 +28,10 @@ bcipy.kernels.csp module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.divsion module
-----------------------------
+bcipy.kernels.datamgmt module
+-----------------------------
 
-.. automodule:: bcipy.kernels.divsion
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.enqueue module
-----------------------------
-
-.. automodule:: bcipy.kernels.enqueue
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.equal module
---------------------------
-
-.. automodule:: bcipy.kernels.equal
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.extract module
-----------------------------
-
-.. automodule:: bcipy.kernels.extract
+.. automodule:: bcipy.kernels.datamgmt
    :members:
    :undoc-members:
    :show-inheritance:
@@ -108,106 +44,26 @@ bcipy.kernels.feature\_normalization module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.filter\_ module
+bcipy.kernels.filters module
 -----------------------------
 
-.. automodule:: bcipy.kernels.filter_
+.. automodule:: bcipy.kernels.filters
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.filtfilt module
------------------------------
+bcipy.kernels.kernel\_utils module
+----------------------------------
 
-.. automodule:: bcipy.kernels.filtfilt
+.. automodule:: bcipy.kernels.kernel_utils
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.greater module
-----------------------------
-
-.. automodule:: bcipy.kernels.greater
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.less module
--------------------------
-
-.. automodule:: bcipy.kernels.less
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.log module
-------------------------
-
-.. automodule:: bcipy.kernels.log
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.logical\_and module
+bcipy.kernels.logical module
 ---------------------------------
 
-.. automodule:: bcipy.kernels.logical_and
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.logical\_not module
----------------------------------
-
-.. automodule:: bcipy.kernels.logical_not
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.logical\_or module
---------------------------------
-
-.. automodule:: bcipy.kernels.logical_or
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.logical\_xor module
----------------------------------
-
-.. automodule:: bcipy.kernels.logical_xor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.max\_ module
---------------------------
-
-.. automodule:: bcipy.kernels.max_
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.mean module
--------------------------
-
-.. automodule:: bcipy.kernels.mean
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.min\_ module
---------------------------
-
-.. automodule:: bcipy.kernels.min_
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.multiplication module
------------------------------------
-
-.. automodule:: bcipy.kernels.multiplication
+.. automodule:: bcipy.kernels.logical
    :members:
    :undoc-members:
    :show-inheritance:
@@ -219,6 +75,15 @@ bcipy.kernels.reduced\_sum module
    :members:
    :undoc-members:
    :show-inheritance:
+
+bcipy.kernels.resample module
+---------------------------------
+
+.. automodule:: bcipy.kernels.resample
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 bcipy.kernels.riemann\_distance module
 --------------------------------------
@@ -260,45 +125,14 @@ bcipy.kernels.running\_average module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.set\_data module
-------------------------------
+bcipy.kernels.statistics module
+-------------------------------
 
-.. automodule:: bcipy.kernels.set_data
+.. automodule:: bcipy.kernels.statistics
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.stack module
---------------------------
-
-.. automodule:: bcipy.kernels.stack
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.std module
-------------------------
-
-.. automodule:: bcipy.kernels.std
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.subtraction module
---------------------------------
-
-.. automodule:: bcipy.kernels.subtraction
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.kernels.svm module
-------------------------
-
-.. automodule:: bcipy.kernels.svm
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 bcipy.kernels.tangent\_space module
 -----------------------------------
@@ -308,13 +142,6 @@ bcipy.kernels.tangent\_space module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.tensor\_stack module
-----------------------------------
-
-.. automodule:: bcipy.kernels.tensor_stack
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 bcipy.kernels.threshold module
 ------------------------------
@@ -332,13 +159,6 @@ bcipy.kernels.transpose module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.var module
-------------------------
-
-.. automodule:: bcipy.kernels.var
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 bcipy.kernels.xdawn\_covariances module
 ---------------------------------------
@@ -348,13 +168,6 @@ bcipy.kernels.xdawn\_covariances module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.zscore module
----------------------------
-
-.. automodule:: bcipy.kernels.zscore
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Module contents
 ---------------

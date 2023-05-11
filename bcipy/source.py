@@ -120,6 +120,7 @@ class BcipClassSeparatedMat(BCIP):
     Utility class for extracting class separated data from a mat file for BCIP. 
 
     Parameters
+
     ----------
 
     sess : Session Object
@@ -147,21 +148,20 @@ class BcipClassSeparatedMat(BCIP):
         Name of the labels array within the .mat file.
 
     link_to_data : str
-        Relative path of the mat data to be stored within the created object
+        * Relative path of the mat data to be stored within the created object
 
     link_to_labels : str
-        Relative path of the labels data to be stored within the created object.
+        * Relative path of the labels data to be stored within the created object.
 
     Examples
     --------
-    --> Add traceback example with keyerror when mat_data_var_name is incorrect
+    * Add traceback example with keyerror when mat_data_var_name is incorrect
 
     Notes
     -----
-    --> The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
-    --> The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial 
-        and the second column is the class label of each trial 
-        --> The class label of each trial should be numeric.
+    * The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
+    * The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial and the second column is the class label of each trial 
+        * The class label of each trial should be numeric.
     """
 
     def __init__(self,sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels = None):
@@ -270,7 +270,7 @@ class BcipClassSeparatedMat(BCIP):
         return [data, labels]
 
     @classmethod
-    def create_class_separated(cls, sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name ,link_to_data, link_to_labels):
+    def create_class_separated(cls, sess, num_classes, event_duration, start_index, end_index, relative_start, mat_data_var_name, mat_labels_var_name, link_to_data, link_to_labels):
         """
         Factory Method for creating class separated MAT File input source. 
 
@@ -300,23 +300,24 @@ class BcipClassSeparatedMat(BCIP):
 
         mat_labels_var_name : str
             Name of the labels array within the .mat file.
-
+            
+        
         link_to_data : str
-            Relative path of the mat data to be stored within the created object
+            Relative path of the mat data to be stored within the created object.
+
 
         link_to_labels : str
             Relative path of the labels data to be stored within the created object.
 
         Examples
         --------
-        --> Add traceback example with keyerror when mat_data_var_name is incorrect
+        * Add traceback example with keyerror when mat_data_var_name is incorrect
 
         Notes
         -----
-        --> The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
-        --> The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial 
-            and the second column is the class label of each trial 
-            --> The class label of each trial should be numeric.
+        * The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
+        * The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial and the second column is the class label of each trial 
+            * The class label of each trial should be numeric.
         
         
         """
@@ -439,6 +440,7 @@ class BcipContinuousMat(BCIP):
                           mat_data_var_name = None, 
                           mat_labels_var_name = None, label_filename = None):
         """
+
         Factory Method for creating continuous MAT File input source. 
 
         Parameters
@@ -652,6 +654,7 @@ class BcipXDF(BCIP):
         """
         Factory Method for creating continuous XDF File input source. 
 
+        
         Parameters
         ---------
         sess : Session Object
@@ -1038,8 +1041,10 @@ class V2LSLStream(BCIP):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
+
         Parameters
-        ----------
+        -----------
+
         sess : session object
             Session object where the data source will exist
         pred : str

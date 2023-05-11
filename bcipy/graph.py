@@ -333,14 +333,14 @@ class Graph(BCIP):
         Execute the graph by iterating over all the nodes within the graph and executing each one
 
         Parameters
+        
         ----------
+
         Label : int, default = None
-            - If the trial label is known, it can be passed when a trial is executed. This is required for 
-            epoched input data
+            * If the trial label is known, it can be passed when a trial is executed. This is required for epoched input data
         
         poll_volatile_sources : bool, default = True
-            - If true, volatile sources (ie. LSL input data), will be updated. If false, the input data will
-            not be updated
+            * If true, volatile sources (ie. LSL input data), will be updated. If false, the input data will not be updated
 
         Return
         ------
