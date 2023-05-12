@@ -4,9 +4,6 @@ Created on Tues July 26 16:12:30 2022
 
 @author: aaronlio
 """
-# For debugging 
-import sys, os
-sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
 from bcipy import bcipy
@@ -18,29 +15,31 @@ def main():
     sess = bcipy.Session.create()
     offline_graph = bcipy.Graph.create(sess)
     online_graph = bcipy.Graph.create(sess)
-
-    offline_trials = 252
-    online_trials = 202
+    offline_trials = 500
+    online_trials = 500
 
     Fs = 500
-    trial_len = 1.5
-    t_start = -0.45
+    trial_len = 1.0
+    t_start = -0.2
+    tasks = ('flash', 'target')
     
     resample_fs = 50
     
     # create a filter
     order = 4
-    bandpass = (8,35) # in Hz
+    bandpass = (1,25) # in Hz
     f = bcipy.Filter.create_butter(sess,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
 
     channels = tuple([_ for _ in range(0,32)])
 
-    # Data sources from MAT files
+    # Data sources from LSL
     LSL_data_src = bcipy.source.V2LSLStream.create_marker_coupled_data_stream(sess, "type='EEG'", channels, relative_start=-0.2, marker_fmt='flash$|target$')
 
-    offline_data_src = bcipy.source.BcipContinuousMat.create_continuous(sess,
-            '../data/p300_offline.mat', Fs*trial_len, relative_start=0, channels=channels,
-            mat_data_var_name='EEG', mat_labels_var_name='labels')
+    # TODO Change to XDF
+    # training data sources from mat file
+    offline_data_src = bcipy.source.BcipXDF.create_epoched(sess,
+            ['C:/Users/lioa/Documents/Mindset P300 Code for Aaron/sub-P001_ses-S001_task-vP300+2x2_run-003.xdf'], 
+            tasks, channels=channels, relative_start=0, Ns = Fs*trial_len) 
 
     online_input_data = bcipy.Tensor.create_from_handle(sess, (len(channels), 500), LSL_data_src)
     offline_input_data = bcipy.Tensor.create_from_data(sess, (len(channels), 500), offline_data_src)
@@ -60,15 +59,16 @@ def main():
     
     classifier = bcipy.Classifier.create_logistic_regression(sess)
     
-    # extraction indices
+    # extraction indices - TODO Ask Jason about filter-epoch execution order during online
     start_time = 0.25
     end_time = 1.25
     extract_indices = [":", # all channels
                        [_ for _ in range(int(start_time*resample_fs),int(end_time*resample_fs))] # central 1s
                       ]
     
+    # TODO add offline graph (separate file)
 
-    # online graph nodes
+    # online graph nodes 
     bcipy.kernels.FilterKernel.add_filter_node(online_graph, online_input_data, f, t_virt[0])
     bcipy.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[0], resample_fs/Fs, t_virt[1])
     bcipy.kernels.ExtractKernel.add_extract_node(online_graph, t_virt[1], extract_indices, t_virt[2])
@@ -98,6 +98,8 @@ def main():
     sts = bcipy.BcipEnums.SUCCESS
     online_trials = 100
     
+    # TODO add LSL output and loop to wait for marker
+
     for t_num in range(online_trials):
         sts = online_graph.execute()
         if sts == bcipy.BcipEnums.SUCCESS:

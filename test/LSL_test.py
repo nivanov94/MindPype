@@ -1,4 +1,4 @@
-import bcipy
+from bcipy import bcipy
 import numpy as np
 import pylsl
 
@@ -8,9 +8,9 @@ def LSL_test(channels, start, samples):
     graph = bcipy.Graph.create(session)
 
 
-    lsl_object = bcipy.source.V2LSLStream.create_marker_coupled_data_stream(
+    lsl_object = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(
         session, "type='EEG'",
-        channels, -0.2, marker_fmt="^SPACE pressed$"
+        channels, -0.2, marker_fmt="^SPACE pressed$",marker_pred="type='Markers'"
         )
     
     t_in = bcipy.Tensor.create_from_handle(session, (len(channels), samples), lsl_object)
@@ -38,12 +38,12 @@ def LSL_test(channels, start, samples):
     
     i = 0
 
-    marker_stream = pylsl.StreamInlet(pylsl.resolve_bypred("type='Markers'")[0])
+    #marker_stream = pylsl.StreamInlet(pylsl.resolve_bypred("type='Markers'")[0])
 
 
     sts = bcipy.BcipEnums.SUCCESS
     while i < 10 and sts == bcipy.BcipEnums.SUCCESS:
-        marker = marker_stream.pull_sample(timeout=1)
+        marker = lsl_object.marker_inlet.pull_sample(timeout=1)
         print(marker, flush=True)
         if marker[0] == None:
             print("Waiting for marker")
