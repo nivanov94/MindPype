@@ -56,7 +56,7 @@ class Scalar(BCIP):
 
     _valid_types = [int, float, complex, str, bool]
     
-    def __init__(self,sess,value_type,val,is_virtual,ext_src):
+    def __init__(self,sess,value_type,val,is_virtual,ext_src, ext_out=None):
         super().__init__(BcipEnums.SCALAR,sess)
         self._data_type = value_type
 
@@ -74,7 +74,7 @@ class Scalar(BCIP):
             elif value_type == bool:
                 val = False
         
-        
+        self._ext_out = ext_out
         self.data = val
         
         self._virtual = is_virtual        
@@ -82,11 +82,20 @@ class Scalar(BCIP):
             self._volatile = False
         else:
             self._volatile = True
+
+        if ext_out is None:
+            self._volatile_out = False
+        else:
+            self._volatile_out = True
             
     # API Getters
     @property
     def volatile(self):
         return self._volatile
+
+    @property
+    def volatile_out(self):
+        return self._volatile_out
     
     @property
     def virtual(self):
@@ -104,7 +113,10 @@ class Scalar(BCIP):
     def ext_src(self):
         return self._ext_src
     
-    
+    @property
+    def ext_out(self):
+        return self._ext_out
+
     # API Setters
     @data.setter
     def data(self,data):
@@ -170,7 +182,8 @@ class Scalar(BCIP):
                      self.data_type,
                      self.data,
                      self.virtual,
-                     self.ext_src)
+                     self.ext_src,
+                     self.ext_out)
         
         # add the copy to the session
         sess = self.session
@@ -223,13 +236,21 @@ class Scalar(BCIP):
         """
         
         # check if the data is actually volatile, if not just return
-        if not self.is_voltatile:
+        if not self.volatile:
             return BcipEnums.SUCCESS
         
         self.data = self.ext_src.poll_data(label)
         
         return BcipEnums.SUCCESS
         
+    def push_volatile_outputs(self, label=None):
+
+        if not self.volatile_out:
+            return BcipEnums.SUCCESS
+        
+        self.ext_out.push_data(self.data, label)
+
+        return BcipEnums.SUCCESS
     
     @classmethod
     def valid_numeric_types(cls):
@@ -409,13 +430,17 @@ class Tensor(BCIP):
 
     ext_src : BCIPy input Source
         - Data source the tensor pulls data from (only applies to Tensors created from a handle)
+
+    ext_out : BCIPy output Source
+        - Data source the tensor pushes data to (only applies to Tensors created from a handle)
     """
     
-    def __init__(self,sess,shape,data,is_virtual,ext_src):
+    def __init__(self,sess,shape,data,is_virtual,ext_src, ext_out = None):
         super().__init__(BcipEnums.TENSOR,sess)
         self._shape = tuple(shape)
         self._virtual = is_virtual
         self._ext_src = ext_src
+        self._ext_out = ext_out
         
         if not (data is None):
             self.data = data
@@ -426,6 +451,11 @@ class Tensor(BCIP):
             self._volatile = False
         else:
             self._volatile = True
+            
+        if ext_out is None:
+            self._volatile_out = False
+        else:
+            self._volatile_out = True
     
     # API Getters
     @property
@@ -445,8 +475,16 @@ class Tensor(BCIP):
         return self._volatile
     
     @property
+    def volatile_out(self):
+        return self._volatile_out
+
+    @property
     def ext_src(self):
         return self._ext_src
+    
+    @property
+    def ext_out(self):
+        return self._ext_out
     
     #API setters
     @data.setter
@@ -486,8 +524,7 @@ class Tensor(BCIP):
             # when changing the shape write a zero tensor to data
             self.data = np.zeros(shape)
         else:
-            raise ValueError("Cannot change shape of non-virtual tensor")
-            
+            raise ValueError("Cannot change shape of non-virtual tensor") 
             
     def make_copy(self):
         """
@@ -545,6 +582,20 @@ class Tensor(BCIP):
         # set the data 
         self.data = data
         
+        return BcipEnums.SUCCESS
+    
+    def push_volatile_outputs(self):
+        """
+        Push data to external sources.
+        """
+        
+        # check if the output is actually volatile, if not just return
+        if not self.volatile_out:
+            return BcipEnums.SUCCESS
+        
+        # push the data
+        self.ext_out.push_data(self.data)
+
         return BcipEnums.SUCCESS
     
     # Factory Methods
@@ -644,6 +695,9 @@ class Tensor(BCIP):
         sess.add_data(t)
         return t
     
+    @classmethod
+    def create_for_volatile_output(cls, sess, shape, out):
+        t = cls(sess,shape,None,False,None,out)
     
     # utility static methods
     @staticmethod
@@ -659,8 +713,6 @@ class Tensor(BCIP):
             
         return True
  
-
-
 
 class Array(BCIP):
     """
@@ -701,6 +753,7 @@ class Array(BCIP):
         
         self._virtual = False # no virtual arrays for now
         self._volatile = False # no volatile arrays for now...
+        self._volatile_out = False # no volatile arrays for now...
         
         self._capacity = capacity
         
@@ -785,6 +838,10 @@ class Array(BCIP):
     @property
     def volatile(self):
         return self._volatile
+    
+    @property
+    def volatile_out(self):
+        return self._volatile_out
     
     @capacity.setter
     def capacity(self,capacity):

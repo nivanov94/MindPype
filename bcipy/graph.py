@@ -35,6 +35,9 @@ class Graph(BCIP):
     _volatile_sources : Array of data Source objects
         - Data sources within this array will be polled/executed when the graph is executed.
 
+    _volatile_outputs : Array of data Output objects
+        - Data outputs within this array will push to external sources when the graph is executed.
+
     Examples
     --------
 
@@ -54,6 +57,7 @@ class Graph(BCIP):
         self._verified = False
         self._sess = sess
         self._volatile_sources = []
+        self._volatile_outputs = []
         
     
     def add_node(self,node):
@@ -119,7 +123,8 @@ class Graph(BCIP):
                     edges[n_i.session_id] = Edge(n_i)
                     if n_i.volatile:
                         self._volatile_sources.append(n_i)
-                
+                    if n_i.volatile_out:
+                        self._volatile_outputs.append(n_i)
                 # now add the node the edge's list of consumers
                 edges[n_i.session_id].add_consumer(n)
                 
@@ -328,7 +333,7 @@ class Graph(BCIP):
         return BcipEnums.SUCCESS
     
     
-    def execute(self, label = None, poll_volatile_sources = True):
+    def execute(self, label = None, poll_volatile_sources = True, push_volatile_outputs = True):
         """
         Execute the graph by iterating over all the nodes within the graph and executing each one
 
@@ -371,7 +376,10 @@ class Graph(BCIP):
             if sts != BcipEnums.SUCCESS:
                 print("Node {} failed with status {}".format(n.kernel.name,sts))
                 return sts
-        
+
+        if push_volatile_outputs:
+            self.push_volatile_outputs(label)
+
         return BcipEnums.SUCCESS
     
     def poll_volatile_sources(self, label = None):
@@ -394,6 +402,27 @@ class Graph(BCIP):
         for datum in self._volatile_sources:
             datum.poll_volatile_data(label)    
     
+    def push_volatile_outputs(self, label=None):
+        """
+        Push data (update output data) to volatile outputs within the graph.
+
+        Parameters
+        ----------
+        label : int, default = None
+            - If the class label of the current trial is known, it can be passed to poll epoched data.
+
+        Return
+        ------
+        None
+
+        Example
+        -------
+        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data 
+        """
+        for datum in self._volatile_outputs:
+            datum.push_volatile_outputs(label=label)    
+
+
     @classmethod
     def create(cls,sess):
         """

@@ -903,9 +903,27 @@ class LSLStream(BCIP):
         return src
 
 
-class V2LSLStream(BCIP):
+class InputLSLStream(BCIP):
     """
     An object for maintaining an LSL inlet
+
+    Attributes
+    ----------
+    data_buffer : dict - {'EEG': np.array, 'time_stamps': np.array}
+        A dictionary containing the data and time stamps from past samples (used when trials have overlapping data)
+
+    data_inlet : pylsl.StreamInlet
+        The LSL inlet object
+
+    marker_inlet : pylsl.StreamInlet
+        The LSL inlet object for the marker stream
+
+    marker_pattern : re.Pattern
+        The regular expression pattern for the marker stream. Use "task1$|task2$|task3$" if task1, task2, and task3 are the markers
+
+    channels : tuple of ints
+        Index value of channels to poll from the stream, if None all channels will be polled.
+
     """
 
     def __init__(self,sess,pred,channels=None, relative_start = 0,
@@ -1088,3 +1106,112 @@ class V2LSLStream(BCIP):
         
         return src
 
+
+
+class OutputLSLStream(BCIP):
+    """
+    An object for maintaining an LSL outlet
+
+    Attributes
+    ----------
+    
+    """
+
+    def __init__(self, sess, stream_info, chunk_size = 0, max_buffer=360):
+        """Establish a new stream outlet. This makes the stream discoverable.
+        
+        Parameters
+        ----------
+
+        stream_info : StreamInfo
+            StreamInfo object to describe this stream. Stays constant over the lifetime of the outlet.
+        
+        chunk_size : int, default = 0
+            Optionally the desired chunk granularity (in samples) for transmission. 
+            If unspecified, each push operation yields one chunk. Inlets can override this setting. (default 0)
+        
+        max_buffered : default = 360
+            The maximum amount of data to buffer (in seconds if there is a nominal sampling rate, otherwise 
+            x100 in samples). The default is 6 minutes of data. Note that, for high-bandwidth data, you will want to 
+            use a lower value here to avoid running out of RAM.
+                        
+
+        """
+        super().__init__(BcipEnums.SRC,sess)
+        
+        # resolve the stream on the LSL network
+        self.lsl_marker_outlet = pylsl.StreamOutlet(stream_info,chunk_size,max_buffer)
+        
+
+    def push_data(self, data, label = None):
+        """
+        Push data to the outlet stream.
+        
+        Parameters
+        ----------
+        
+        """
+        self.lsl_marker_outlet.push_sample(data)
+       
+        return BcipEnums.SUCCESS
+    
+    @classmethod
+    def create_outlet_from_streaminfo(cls,sess, stream_info):
+        """
+        Factory method to create a OutletLSLStream bcipy object from a pylsl.StreamInfo object.
+
+        Parameters
+        -----------
+
+        sess : session object
+            Session object where the data source will exist
+        stream_info : pylsl.StreamInfo object
+            pylsl.StreamInfo object that describes the stream to be created
+        
+        Examples
+        --------
+        """
+        src = cls(sess, stream_info)
+        sess.add_ext_src(src)
+        
+        return src
+    
+    @classmethod
+    def create_outlet(cls,sess,name='untitled', type='', channel_count = 1, nominal_srate=0.0,
+                                          channel_format=1, source_id=""):    
+        """
+        Factory Method to create an OutletLSLStream bcipy object from scratch.
+
+        Parameters
+        ----------
+        
+        sess : session object
+            Session object where the data source will exist
+
+        name : str, default = 'untitled'
+            * Name of the stream. 
+            * Describes the device (or product series) that this stream makes available.
+
+        type  str, default = ''
+            * Content type of the stream. 
+            * By convention LSL uses the content types defined in the XDF file format specification where applicable. 
+        
+        channel_count : int, default = 1
+            * Number of channels per sample. This stays constant for the lifetime of the stream. 
+        
+        nominal_srate : float, default = 0.0
+            * The sampling rate (in Hz) as advertised by the data source.
+
+        channel_format : int or str, default = 1
+            * Format/type of each channel (ie. 'float32'). 
+
+        source_id : str, default = ''
+            * Unique identifier of the device or source of the data, if available (such as the serial number). 
+            * This is critical for system robustness since it allows recipients to recover from failure even after the serving app, device or computer crashes (just by finding a stream with the same source id on the network again). 
+        """
+
+        stream_info = pylsl.StreamInfo(name, type, channel_count, nominal_srate, channel_format, source_id)
+        src = cls(sess, stream_info)
+        sess.add_ext_src(src)
+        
+        return src

@@ -118,19 +118,12 @@ class Session(BCIP):
         self._ext_srcs = {}
         self._verified = False
         self._trials_elapsed = 0
+        self._ext_out = {}
         
         
         self.graphs = []
 
-    # API Getters
-    #@property
-    #def current_block(self):
-    #    return self._blocks[0]
-    #
-    #@property
-    #def remaining_blocks(self):
-    #    return len(self._blocks)
-    
+
     def verify(self):
         """
         Ensure all graphs are valid.
@@ -170,11 +163,6 @@ class Session(BCIP):
     def initialize_graph(self, graph):
         return graph.initialize()
 
-    #def initialize_block(self):
-    #    """
-    #    Initialize the current block object for trial execution.
-    #    """
-    #    return self.current_block.initialize()
     
     def poll_volatile_channels(self,label=None):
         """
@@ -187,45 +175,14 @@ class Session(BCIP):
             if self._datum[d].volatile:
                 self._datum[d].poll_volatile_data(label)
         
-        
-    #def close_block(self):
-    #    """
-    #    Run any postprocessing on the block and remove it from the session
-    #    queue.
-    #    """
-    #    print("Closing block...")
-    #    # get the current block
-    #    b = self.current_block
-    #
-    #    # check if the block is finished
-    #    if sum(b.remaining_trials()) != 0:
-    #    # block not finished, don't close
-    #        return BcipEnums.FAILURE
-    #    
-    #    # run postprocessing
-    #    sts = b.close_block()
-    #    if sts != BcipEnums.SUCCESS:
-    #    #        return sts
-    #
-    #    # if everything executed nicely, remove the block from the session queue
-    #    self.dequeue_block()
-    #    return BcipEnums.SUCCESS    
-        
-    #def start_block(self, graph):
-    #    """
-    #    Initialize the block nodes and execute the preprocessing graph
-    #    """
-    #    print("Starting block...")
-    #    if len(self._blocks) == 0:
-    #        return BcipEnums.FAILURE
-    #    
-    #    b = self.current_block
-    #    
-    #    # make sure we're not in the middle of a block
-    #    if b.remaining_trials() != b.n_class_trials:
-    #        return BcipEnums.FAILURE
-    #    
-    #    return b.initialize(graph)
+    def push_volatile_outputs(self, label=None):
+        """
+        Push outputs to volatile sources
+        """ 
+
+        for d in self._datum:
+            if self._datum[d].volatile_out:
+                self._datum[d].push_volatile_outputs(label)
     
     def execute_trial(self,label,graph):
         """
@@ -235,6 +192,7 @@ class Session(BCIP):
         """
         print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
+        self.push_volatile_outputs(label)
         #sts = self.current_block.process_trial(label, graph)
         sts = graph.execute(label)
         return sts
@@ -248,13 +206,6 @@ class Session(BCIP):
     def add_graph(self,graph):
         self._verified = False
         self.graphs.append(graph)
-
-    #def enqueue_block(self,b):
-    #    # block added, so make sure verified is false -> not needed, graphs verified now
-    #    self._blocks.append(b)
-    #
-    #def dequeue_block(self):
-    #    return self._blocks.pop(0)
     
     def add_data(self,data):
         self._datum[data.session_id] = data
@@ -265,6 +216,9 @@ class Session(BCIP):
     def add_ext_src(self,src):
         self._ext_srcs[src.session_id] = src
         
+    def add_ext_out(self,src):
+        self._ext_out[src.session_id] = src
+    
     def find_obj(self,id_num):
         """
         Search for and return a BCIP object within the session with a
@@ -274,11 +228,6 @@ class Session(BCIP):
         # check if the ID is the session itself
         if id_num == self.session_id:
             return self
-        
-        # check if its a block
-        #for b in self._blocks:
-        #    if id_num == b.session_id:
-        #        return b
         
         # check if its a data obj
         if id_num in self._datum:
