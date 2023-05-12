@@ -144,6 +144,8 @@
 </li>
       <li><a href="bcipy.kernels.html#bcipy.kernels.logical.EqualKernel.add_equal_node">add_equal_node() (bcipy.kernels.logical.EqualKernel class method)</a>
 </li>
+      <li><a href="bcipy.html#bcipy.core.Session.add_ext_out">add_ext_out() (bcipy.core.Session method)</a>
+</li>
       <li><a href="bcipy.html#bcipy.core.Session.add_ext_src">add_ext_src() (bcipy.core.Session method)</a>
 </li>
       <li><a href="bcipy.kernels.html#bcipy.kernels.datamgmt.ExtractKernel.add_extract_node">add_extract_node() (bcipy.kernels.datamgmt.ExtractKernel class method)</a>
@@ -454,6 +456,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.CDFKernel">CDFKernel (class in bcipy.kernels.statistics)</a>
 </li>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream.channels">channels (bcipy.source.InputLSLStream attribute)</a>
+</li>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.CIRCLE_BUFFER">CIRCLE_BUFFER (bcipy.core.BcipEnums attribute)</a>
 </li>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.CLASSIFIER">CLASSIFIER (bcipy.core.BcipEnums attribute)</a>
@@ -506,18 +510,22 @@
 </li>
       <li><a href="bcipy.html#bcipy.classifier.Classifier.create_logistic_regression">create_logistic_regression() (bcipy.classifier.Classifier class method)</a>
 </li>
-      <li><a href="bcipy.html#bcipy.source.LSLStream.create_marker_coupled_data_stream">create_marker_coupled_data_stream() (bcipy.source.LSLStream class method)</a>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream.create_marker_coupled_data_stream">create_marker_coupled_data_stream() (bcipy.source.InputLSLStream class method)</a>
 
       <ul>
-        <li><a href="bcipy.html#bcipy.source.V2LSLStream.create_marker_coupled_data_stream">(bcipy.source.V2LSLStream class method)</a>
+        <li><a href="bcipy.html#bcipy.source.LSLStream.create_marker_coupled_data_stream">(bcipy.source.LSLStream class method)</a>
 </li>
       </ul></li>
-      <li><a href="bcipy.html#bcipy.source.LSLStream.create_marker_uncoupled_data_stream">create_marker_uncoupled_data_stream() (bcipy.source.LSLStream class method)</a>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream.create_marker_uncoupled_data_stream">create_marker_uncoupled_data_stream() (bcipy.source.InputLSLStream class method)</a>
 
       <ul>
-        <li><a href="bcipy.html#bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream">(bcipy.source.V2LSLStream class method)</a>
+        <li><a href="bcipy.html#bcipy.source.LSLStream.create_marker_uncoupled_data_stream">(bcipy.source.LSLStream class method)</a>
 </li>
       </ul></li>
+      <li><a href="bcipy.html#bcipy.source.OutputLSLStream.create_outlet">create_outlet() (bcipy.source.OutputLSLStream class method)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.OutputLSLStream.create_outlet_from_streaminfo">create_outlet_from_streaminfo() (bcipy.source.OutputLSLStream class method)</a>
+</li>
       <li><a href="bcipy.html#bcipy.classifier.Classifier.create_SVM">create_SVM() (bcipy.classifier.Classifier class method)</a>
 </li>
       <li><a href="bcipy.html#bcipy.filter.Filter.crit_frqs">crit_frqs (bcipy.filter.Filter property)</a>
@@ -532,10 +540,14 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.Descriptive">Descriptive (class in bcipy.kernels.statistics)</a>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream.data_buffer">data_buffer (bcipy.source.InputLSLStream attribute)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream.data_inlet">data_inlet (bcipy.source.InputLSLStream attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.Descriptive">Descriptive (class in bcipy.kernels.statistics)</a>
+</li>
       <li><a href="bcipy.kernels.html#bcipy.kernels.arithmetic.DivisionKernel">DivisionKernel (class in bcipy.kernels.arithmetic)</a>
 </li>
   </ul></td>
@@ -768,6 +780,8 @@
 </li>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.INPUT">INPUT (bcipy.core.BcipEnums attribute)</a>
 </li>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream">InputLSLStream (class in bcipy.source)</a>
+</li>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.INVALID_BLOCK">INVALID_BLOCK (bcipy.core.BcipEnums attribute)</a>
 </li>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.INVALID_GRAPH">INVALID_GRAPH (bcipy.core.BcipEnums attribute)</a>
@@ -808,6 +822,10 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream.marker_inlet">marker_inlet (bcipy.source.InputLSLStream attribute)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.InputLSLStream.marker_pattern">marker_pattern (bcipy.source.InputLSLStream attribute)</a>
+</li>
       <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MaxKernel">MaxKernel (class in bcipy.kernels.statistics)</a>
 </li>
       <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.MeanKernel">MeanKernel (class in bcipy.kernels.statistics)</a>
@@ -903,13 +921,15 @@
 </li>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.ON_CLOSE">ON_CLOSE (bcipy.core.BcipEnums attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.ON_TRIAL">ON_TRIAL (bcipy.core.BcipEnums attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="bcipy.kernels.html#bcipy.kernels.logical.OrKernel">OrKernel (class in bcipy.kernels.logical)</a>
 </li>
       <li><a href="bcipy.html#bcipy.core.BcipEnums.OUTPUT">OUTPUT (bcipy.core.BcipEnums attribute)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.source.OutputLSLStream">OutputLSLStream (class in bcipy.source)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -928,9 +948,9 @@
 </li>
         <li><a href="bcipy.html#bcipy.source.BcipXDF.poll_data">(bcipy.source.BcipXDF method)</a>
 </li>
-        <li><a href="bcipy.html#bcipy.source.LSLStream.poll_data">(bcipy.source.LSLStream method)</a>
+        <li><a href="bcipy.html#bcipy.source.InputLSLStream.poll_data">(bcipy.source.InputLSLStream method)</a>
 </li>
-        <li><a href="bcipy.html#bcipy.source.V2LSLStream.poll_data">(bcipy.source.V2LSLStream method)</a>
+        <li><a href="bcipy.html#bcipy.source.LSLStream.poll_data">(bcipy.source.LSLStream method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -943,6 +963,10 @@
         <li><a href="bcipy.kernels.html#bcipy.kernels.running_average.RunningAverageKernel.process_data">(bcipy.kernels.running_average.RunningAverageKernel method)</a>
 </li>
       </ul></li>
+      <li><a href="bcipy.html#bcipy.source.OutputLSLStream.push_data">push_data() (bcipy.source.OutputLSLStream method)</a>
+</li>
+      <li><a href="bcipy.html#bcipy.core.Session.push_volatile_outputs">push_volatile_outputs() (bcipy.core.Session method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -1035,8 +1059,6 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="bcipy.html#bcipy.source.V2LSLStream">V2LSLStream (class in bcipy.source)</a>
-</li>
       <li><a href="bcipy.kernels.html#bcipy.kernels.statistics.VarKernel">VarKernel (class in bcipy.kernels.statistics)</a>
 </li>
       <li><a href="bcipy.html#bcipy.core.Session.verify">verify() (bcipy.core.Session method)</a>

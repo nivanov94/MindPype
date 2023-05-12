@@ -117,6 +117,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#bcipy.core.Session"><code class="docutils literal notranslate"><span class="pre">Session</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session._datum"><code class="docutils literal notranslate"><span class="pre">Session._datum</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.add_data"><code class="docutils literal notranslate"><span class="pre">Session.add_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.add_ext_out"><code class="docutils literal notranslate"><span class="pre">Session.add_ext_out()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.add_ext_src"><code class="docutils literal notranslate"><span class="pre">Session.add_ext_src()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.add_graph"><code class="docutils literal notranslate"><span class="pre">Session.add_graph()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.add_misc_bcip_obj"><code class="docutils literal notranslate"><span class="pre">Session.add_misc_bcip_obj()</span></code></a></li>
@@ -125,6 +126,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.find_obj"><code class="docutils literal notranslate"><span class="pre">Session.find_obj()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.initialize_graph"><code class="docutils literal notranslate"><span class="pre">Session.initialize_graph()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.poll_volatile_channels"><code class="docutils literal notranslate"><span class="pre">Session.poll_volatile_channels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.push_volatile_outputs"><code class="docutils literal notranslate"><span class="pre">Session.push_volatile_outputs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.reject_trial"><code class="docutils literal notranslate"><span class="pre">Session.reject_trial()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.core.Session.verify"><code class="docutils literal notranslate"><span class="pre">Session.verify()</span></code></a></li>
 </ul>
@@ -190,16 +192,27 @@
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.BcipXDF.poll_data"><code class="docutils literal notranslate"><span class="pre">BcipXDF.poll_data()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#bcipy.source.InputLSLStream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.data_buffer"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.data_buffer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.data_inlet"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.data_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.marker_inlet"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.marker_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.marker_pattern"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.marker_pattern</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.channels"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.create_marker_coupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.InputLSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.poll_data()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#bcipy.source.LSLStream"><code class="docutils literal notranslate"><span class="pre">LSLStream</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.LSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">LSLStream.create_marker_coupled_data_stream()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.LSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">LSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.LSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">LSLStream.poll_data()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#bcipy.source.V2LSLStream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.V2LSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.create_marker_coupled_data_stream()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.V2LSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.poll_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bcipy.source.OutputLSLStream"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.OutputLSLStream.create_outlet"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.create_outlet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.OutputLSLStream.create_outlet_from_streaminfo"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.create_outlet_from_streaminfo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.OutputLSLStream.push_data"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.push_data()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -338,19 +351,19 @@ If we pass in a generic classifier obejct, should be able to execute standard sk
 <dt class="sig sig-object py" id="bcipy.classifier.Classifier.create_LDA">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_LDA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'svd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrinkage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_components</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">store_covariance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariance_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classifier.html#Classifier.create_LDA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classifier.Classifier.create_LDA" title="Permalink to this definition"></a></dt>
 <dd><p class="linemarker linemarker-1">Factory method to create an LDA BCIP Classifier object.</p>
-<p class="linemarker linemarker-3">A classifier with a linear decision boundary, generated by fitting class conditional densities to the
-data and using Bayes’ rule. The model fits a Gaussian density to each class, assuming that all classes
-share the same covariance matrix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sess</strong> (<em>session object</em>) – Session where the SVM BCIP Classifier object will exist</p></li>
+<li><p><strong>sess</strong> (<em>session object</em>) – <ul>
+<li><p class="linemarker linemarker-4">Session where the SVM BCIP Classifier object will exist</p></li>
+</ul>
+</p></li>
 <li><p><strong>solver</strong> (<em>{'svd'</em><em>, </em><em>'lsqr'</em><em>, </em><em>'eigen'}</em><em>, </em><em>default='svd'</em>) – <ul>
 <li><dl class="simple">
 <dt>Solver to use, possible values:</dt><dd><ul>
-<li><p class="linemarker linemarker-11">’svd’ : Singular value decomposition (default). Does not compute the covariance matrix, therefore this solver is recommended for data with a large number of features.</p></li>
-<li><p class="linemarker linemarker-12">’lsqr’ : Least squares solution. Can be combined with shrinkage or custom covariance estimator.</p></li>
-<li><p class="linemarker linemarker-13">’eigen’ : Eigenvalue decomposition. Can be combined with shrinkage or custom covariance estimator.</p></li>
+<li><p class="linemarker linemarker-8">’svd’ : Singular value decomposition (default). Does not compute the covariance matrix, therefore this solver is recommended for data with a large number of features.</p></li>
+<li><p class="linemarker linemarker-9">’lsqr’ : Least squares solution. Can be combined with shrinkage or custom covariance estimator.</p></li>
+<li><p class="linemarker linemarker-10">’eigen’ : Eigenvalue decomposition. Can be combined with shrinkage or custom covariance estimator.</p></li>
 </ul>
 </dd>
 </dl>
@@ -360,11 +373,11 @@ share the same covariance matrix.</p>
 <li><p><strong>shrinkage</strong> (<em>'auto'</em><em> or </em><em>float</em><em>, </em><em>default=None</em>) – <ul>
 <li><dl class="simple">
 <dt>Shrinkage parameter, possible values:</dt><dd><ul>
-<li><p class="linemarker linemarker-17">None: no shrinkage (default).</p></li>
-<li><p class="linemarker linemarker-18">’auto’: automatic shrinkage using the Ledoit-Wolf lemma.</p></li>
+<li><p class="linemarker linemarker-14">None: no shrinkage (default).</p></li>
+<li><p class="linemarker linemarker-15">’auto’: automatic shrinkage using the Ledoit-Wolf lemma.</p></li>
 <li><dl class="simple">
 <dt>float between 0 and 1: fixed shrinkage parameter.</dt><dd><ul>
-<li><p class="linemarker linemarker-20">This should be left to None if covariance_estimator is used. Note that shrinkage works only with ‘lsqr’ and ‘eigen’ solvers.</p></li>
+<li><p class="linemarker linemarker-17">This should be left to None if covariance_estimator is used. Note that shrinkage works only with ‘lsqr’ and ‘eigen’ solvers.</p></li>
 </ul>
 </dd>
 </dl>
@@ -376,25 +389,25 @@ share the same covariance matrix.</p>
 </ul>
 </p></li>
 <li><p><strong>priors</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_classes</em><em>,</em><em>)</em><em>, </em><em>default=None</em>) – <ul>
-<li><p class="linemarker linemarker-23">The class prior probabilities. By default, the class proportions are inferred from the training data.</p></li>
+<li><p class="linemarker linemarker-20">The class prior probabilities. By default, the class proportions are inferred from the training data.</p></li>
 </ul>
 </p></li>
 <li><p><strong>n_components</strong> (<em>int</em><em>, </em><em>default=None</em>) – <ul>
-<li><p class="linemarker linemarker-26">Number of components (should be of dimension at least min(n_classes - 1, n_features)) for dimensionality reduction. If None, will be set to min(n_classes - 1, n_features). This parameter only affects the transform method.</p></li>
+<li><p class="linemarker linemarker-23">Number of components (should be of dimension at least min(n_classes - 1, n_features)) for dimensionality reduction. If None, will be set to min(n_classes - 1, n_features). This parameter only affects the transform method.</p></li>
 </ul>
 </p></li>
 <li><p><strong>store_covariance</strong> (<em>bool</em><em>, </em><em>default=False</em>) – <ul>
-<li><p class="linemarker linemarker-29">If True, explicitly compute the weighted within-class covariance matrix when solver is ‘svd’. The matrix is always computed and stored for the other solvers.</p></li>
+<li><p class="linemarker linemarker-26">If True, explicitly compute the weighted within-class covariance matrix when solver is ‘svd’. The matrix is always computed and stored for the other solvers.</p></li>
 </ul>
 </p></li>
 <li><p><strong>tol</strong> (<em>float</em><em>, </em><em>default=.0001</em>) – <ul>
-<li><p class="linemarker linemarker-32">Absolute threshold for a singular value of X to be considered significant, used to estimate the rank of X. Dimensions whose singular values are non-significant are discarded. Only used if solver is ‘svd’.</p></li>
+<li><p class="linemarker linemarker-29">Absolute threshold for a singular value of X to be considered significant, used to estimate the rank of X. Dimensions whose singular values are non-significant are discarded. Only used if solver is ‘svd’.</p></li>
 </ul>
 </p></li>
 <li><p><strong>covariance_estimator</strong> (<em>covariance estimator</em><em>, </em><em>default=None</em>) – <ul>
 <li><dl class="simple">
-<dt>If not None, covariance_estimator is used to estimate the covariance matrices instead of relying on the empirical covariance estimator (with potential shrinkage). The object should have a fit method and a <a href="#id2"><span class="problematic" id="id3">covariance_</span></a> attribute like the estimators in sklearn.covariance. if None the shrinkage parameter drives the estimate.</dt><dd><ul>
-<li><p class="linemarker linemarker-36">This should be left to None if shrinkage is used. Note that covariance_estimator works only with ‘lsqr’ and ‘eigen’ solvers.</p></li>
+<dt>If not None, covariance_estimator is used to estimate the covariance matrices instead of relying on the empirical covariance estimator (with potential shrinkage). The object should have a fit method and a covariance_ attribute like the estimators in sklearn.covariance. if None the shrinkage parameter drives the estimate.</dt><dd><ul>
+<li><p class="linemarker linemarker-33">This should be left to None if shrinkage is used. Note that covariance_estimator works only with ‘lsqr’ and ‘eigen’ solvers.</p></li>
 </ul>
 </dd>
 </dl>
@@ -683,6 +696,11 @@ separately.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volatile</span></span></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volatile_out</span></span></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -912,7 +930,7 @@ separately.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.containers.</span></span><span class="sig-name descname"><span class="pre">Scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_virtual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.containers.</span></span><span class="sig-name descname"><span class="pre">Scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_virtual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p class="linemarker linemarker-1">Bases: <a class="reference internal" href="#bcipy.core.BCIP" title="bcipy.core.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
 <p class="linemarker linemarker-1">BCIP Data type defining scalar-type data. The valid data types are int, float, complex, str, and bool.</p>
 <dl class="field-list simple">
@@ -1143,6 +1161,11 @@ separately.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ext_out</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ext_src</span></span></dt>
 <dd></dd></dl>
 
@@ -1201,6 +1224,11 @@ separately.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">push_volatile_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Scalar.push_volatile_outputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">valid_numeric_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Scalar.valid_numeric_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p class="linemarker linemarker-1">Valid numeric types for a BCIP Scalar object</p>
 <dl class="field-list simple">
@@ -1220,11 +1248,16 @@ separately.</p>
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volatile</span></span></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volatile_out</span></span></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.containers.</span></span><span class="sig-name descname"><span class="pre">Tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_virtual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.containers.</span></span><span class="sig-name descname"><span class="pre">Tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_virtual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p class="linemarker linemarker-1">Bases: <a class="reference internal" href="#bcipy.core.BCIP" title="bcipy.core.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
 <p class="linemarker linemarker-1">Tensor data</p>
 <p class="linemarker linemarker-3">Tensor (or n-dimensional matrices), are defined by the tensor class.
@@ -1251,6 +1284,10 @@ Each of the scalars, tensors and array data containers also have an external sou
 </p></li>
 <li><p><strong>ext_src</strong> (<em>BCIPy input Source</em>) – <ul>
 <li><p class="linemarker linemarker-20">Data source the tensor pulls data from (only applies to Tensors created from a handle)</p></li>
+</ul>
+</p></li>
+<li><p><strong>ext_out</strong> (<em>BCIPy output Source</em>) – <ul>
+<li><p class="linemarker linemarker-23">Data source the tensor pushes data to (only applies to Tensors created from a handle)</p></li>
 </ul>
 </p></li>
 </ul>
@@ -1285,6 +1322,11 @@ Each of the scalars, tensors and array data containers also have an external sou
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_for_volatile_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Tensor.create_for_volatile_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
@@ -1361,6 +1403,11 @@ Each of the scalars, tensors and array data containers also have an external sou
 
 <dl class="py property">
 <dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ext_out</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ext_src</span></span></dt>
 <dd></dd></dl>
 
@@ -1374,6 +1421,12 @@ Each of the scalars, tensors and array data containers also have an external sou
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">poll_volatile_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Tensor.poll_volatile_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p class="linemarker linemarker-1">Pull data from external sources or BCIPy input data sources.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">push_volatile_outputs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/containers.html#Tensor.push_volatile_outputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p class="linemarker linemarker-1">Push data to external sources.</p>
 </dd></dl>
 
 <dl class="py property">
@@ -1395,6 +1448,11 @@ Each of the scalars, tensors and array data containers also have an external sou
 <dl class="py property">
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volatile</span></span></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volatile_out</span></span></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1646,6 +1704,11 @@ capture session.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="bcipy.core.Session.add_ext_out">
+<span class="sig-name descname"><span class="pre">add_ext_out</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/core.html#Session.add_ext_out"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.core.Session.add_ext_out" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="bcipy.core.Session.add_ext_src">
 <span class="sig-name descname"><span class="pre">add_ext_src</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/core.html#Session.add_ext_src"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.core.Session.add_ext_src" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -1691,6 +1754,12 @@ specific ID number</p>
 <dd><p class="linemarker linemarker-1">Update the contents of all volatile data streams</p>
 <p class="linemarker linemarker-3">TODO - may need to add an input parameter with some timing information
 to indicate how each data object should be synced</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.core.Session.push_volatile_outputs">
+<span class="sig-name descname"><span class="pre">push_volatile_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/core.html#Session.push_volatile_outputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.core.Session.push_volatile_outputs" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Push outputs to volatile sources</p>
 </dd></dl>
 
 <dl class="py method">
@@ -2212,6 +2281,19 @@ Individual nodes, or processing steps, are added to the graph to create the pipe
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">_volatile_outputs</span></span></dt>
+<dd><ul class="simple">
+<li><p class="linemarker linemarker-58">Data outputs within this array will push to external sources when the graph is executed.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-60">Array of data Output objects</p>
+</dd>
+</dl>
+</dd></dl>
+
 <p class="rubric">Examples</p>
 <dl class="py method">
 <dt class="sig sig-object py">
@@ -2242,7 +2324,7 @@ Individual nodes, or processing steps, are added to the graph to create the pipe
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poll_volatile_sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/graph.html#Graph.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">poll_volatile_sources</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">push_volatile_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/graph.html#Graph.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p class="linemarker linemarker-1">Execute the graph by iterating over all the nodes within the graph and executing each one</p>
 <p class="linemarker linemarker-3">Parameters</p>
 <hr class="docutils" />
@@ -2321,6 +2403,27 @@ Used recursively to ensure all nodes within a particular graph have the required
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">poll_volatile_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/graph.html#Graph.poll_volatile_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p class="linemarker linemarker-1">Poll data (update input data) from volatile sources within the graph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>label</strong> (<em>int</em><em>, </em><em>default = None</em>) – <ul class="simple">
+<li><p class="linemarker linemarker-4">If the class label of the current trial is known, it can be passed to poll epoched data.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_graph</span><span class="o">.</span><span class="n">poll_volatile_data</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Polls next class 0 trial data</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">push_volatile_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/graph.html#Graph.push_volatile_outputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p class="linemarker linemarker-1">Push data (update output data) to volatile outputs within the graph.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>label</strong> (<em>int</em><em>, </em><em>default = None</em>) – <ul class="simple">
@@ -2960,6 +3063,117 @@ the extracted sample. This value is disregarded for epoched data.</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.source.</span></span><span class="sig-name descname"><span class="pre">InputLSLStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_pred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#InputLSLStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.InputLSLStream" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Bases: <a class="reference internal" href="#bcipy.core.BCIP" title="bcipy.core.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
+<p class="linemarker linemarker-1">An object for maintaining an LSL inlet</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.data_buffer">
+<span class="sig-name descname"><span class="pre">data_buffer</span></span><a class="headerlink" href="#bcipy.source.InputLSLStream.data_buffer" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-5">A dictionary containing the data and time stamps from past samples (used when trials have overlapping data)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-7">dict - {‘EEG’: np.array, ‘time_stamps’: np.array}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.data_inlet">
+<span class="sig-name descname"><span class="pre">data_inlet</span></span><a class="headerlink" href="#bcipy.source.InputLSLStream.data_inlet" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-11">The LSL inlet object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-13">pylsl.StreamInlet</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.marker_inlet">
+<span class="sig-name descname"><span class="pre">marker_inlet</span></span><a class="headerlink" href="#bcipy.source.InputLSLStream.marker_inlet" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-17">The LSL inlet object for the marker stream</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-19">pylsl.StreamInlet</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.marker_pattern">
+<span class="sig-name descname"><span class="pre">marker_pattern</span></span><a class="headerlink" href="#bcipy.source.InputLSLStream.marker_pattern" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-23">The regular expression pattern for the marker stream. Use “task1$|task2$|task3$” if task1, task2, and task3 are the markers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-25">re.Pattern</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.channels">
+<span class="sig-name descname"><span class="pre">channels</span></span><a class="headerlink" href="#bcipy.source.InputLSLStream.channels" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-29">Index value of channels to poll from the stream, if None all channels will be polled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p class="linemarker linemarker-31">tuple of ints</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.create_marker_coupled_data_stream">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_marker_coupled_data_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_pred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;type='Markers'&quot;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#InputLSLStream.create_marker_coupled_data_stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.InputLSLStream.create_marker_coupled_data_stream" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Create a LSLStream data object that maintains a data stream and a
+marker stream</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sess</strong> (<em>session object</em>) – Session object where the data source will exist</p></li>
+<li><p><strong>pred</strong> (<em>str</em>) – The predicate string, e.g. “name=’BioSemi’” or “type=’EEG’ and starts-with(name,’BioSemi’) and
+count(description/desc/channels/channel)=32”</p></li>
+<li><p><strong>channels</strong> (<em>tuple</em><em> or </em><em>list</em><em> of </em><em>ints</em>) – Index value of channels to poll from the stream, if None all channels will be polled</p></li>
+<li><p><strong>marker_fmt</strong> (<em>str</em>) – Regular expression template of the marker to be matched, if none all markers will be matched</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.create_marker_uncoupled_data_stream">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_marker_uncoupled_data_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'T{},L{},LN{}'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#InputLSLStream.create_marker_uncoupled_data_stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.InputLSLStream.create_marker_uncoupled_data_stream" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Create a LSLStream data object that maintains only a data stream with
+no associated marker stream</p>
+<p class="rubric">Examples</p>
+<dl class="simple">
+<dt>sess<span class="classifier">session object</span></dt><dd><p class="linemarker linemarker-7">Session object where the data source will exist</p>
+</dd>
+<dt>pred<span class="classifier">str</span></dt><dd><p class="linemarker linemarker-9">The predicate string, e.g. “name=’BioSemi’” or “type=’EEG’ and starts-with(name,’BioSemi’) and
+count(description/desc/channels/channel)=32”</p>
+</dd>
+<dt>channels<span class="classifier">tuple or list of ints</span></dt><dd><p class="linemarker linemarker-12">Index value of channels to poll from the stream, if None all channels will be polled</p>
+</dd>
+<dt>marker_fmt<span class="classifier">str</span></dt><dd><p class="linemarker linemarker-14">Regular expression template of the marker to be matched, if none all markers will be matched</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.source.InputLSLStream.poll_data">
+<span class="sig-name descname"><span class="pre">poll_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#InputLSLStream.poll_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.InputLSLStream.poll_data" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Pull data from the inlet stream until we have Ns data points for each
+channel.
+:param Ns: number of samples to collect
+:type Ns: int
+:param Label: used for file-based polling, not used here
+:type Label: None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="bcipy.source.LSLStream">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.source.</span></span><span class="sig-name descname"><span class="pre">LSLStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_pred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#LSLStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.LSLStream" title="Permalink to this definition"></a></dt>
 <dd><p class="linemarker linemarker-1">Bases: <a class="reference internal" href="#bcipy.core.BCIP" title="bcipy.core.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
@@ -2992,23 +3206,64 @@ channel.
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="bcipy.source.V2LSLStream">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.source.</span></span><span class="sig-name descname"><span class="pre">V2LSLStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_pred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#V2LSLStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.V2LSLStream" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="bcipy.source.OutputLSLStream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.source.</span></span><span class="sig-name descname"><span class="pre">OutputLSLStream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">360</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#OutputLSLStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.OutputLSLStream" title="Permalink to this definition"></a></dt>
 <dd><p class="linemarker linemarker-1">Bases: <a class="reference internal" href="#bcipy.core.BCIP" title="bcipy.core.BCIP"><code class="xref py py-class docutils literal notranslate"><span class="pre">BCIP</span></code></a></p>
-<p class="linemarker linemarker-1">An object for maintaining an LSL inlet</p>
+<p class="linemarker linemarker-1">An object for maintaining an LSL outlet</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="bcipy.source.V2LSLStream.create_marker_coupled_data_stream">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_marker_coupled_data_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_pred</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;type='Markers'&quot;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#V2LSLStream.create_marker_coupled_data_stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.V2LSLStream.create_marker_coupled_data_stream" title="Permalink to this definition"></a></dt>
-<dd><p class="linemarker linemarker-1">Create a LSLStream data object that maintains a data stream and a
-marker stream</p>
+<dt class="sig sig-object py" id="bcipy.source.OutputLSLStream.create_outlet">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_outlet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'untitled'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nominal_srate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#OutputLSLStream.create_outlet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.OutputLSLStream.create_outlet" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Factory Method to create an OutletLSLStream bcipy object from scratch.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sess</strong> (<em>session object</em>) – Session object where the data source will exist</p></li>
-<li><p><strong>pred</strong> (<em>str</em>) – The predicate string, e.g. “name=’BioSemi’” or “type=’EEG’ and starts-with(name,’BioSemi’) and
-count(description/desc/channels/channel)=32”</p></li>
-<li><p><strong>channels</strong> (<em>tuple</em><em> or </em><em>list</em><em> of </em><em>ints</em>) – Index value of channels to poll from the stream, if None all channels will be polled</p></li>
-<li><p><strong>marker_fmt</strong> (<em>str</em>) – Regular expression template of the marker to be matched, if none all markers will be matched</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>default = 'untitled'</em>) – <ul>
+<li><p class="linemarker linemarker-6">Name of the stream.</p></li>
+<li><p class="linemarker linemarker-7">Describes the device (or product series) that this stream makes available.</p></li>
+</ul>
+</p></li>
+<li><p><strong>str</strong> (<em>type</em>) – <ul>
+<li><p class="linemarker linemarker-10">Content type of the stream.</p></li>
+<li><p class="linemarker linemarker-11">By convention LSL uses the content types defined in the XDF file format specification where applicable.</p></li>
+</ul>
+</p></li>
+<li><p><strong>''</strong> (<em>default =</em>) – <ul>
+<li><p class="linemarker linemarker-13">Content type of the stream.</p></li>
+<li><p class="linemarker linemarker-14">By convention LSL uses the content types defined in the XDF file format specification where applicable.</p></li>
+</ul>
+</p></li>
+<li><p><strong>channel_count</strong> (<em>int</em><em>, </em><em>default = 1</em>) – <ul>
+<li><p class="linemarker linemarker-16">Number of channels per sample. This stays constant for the lifetime of the stream.</p></li>
+</ul>
+</p></li>
+<li><p><strong>nominal_srate</strong> (<em>float</em><em>, </em><em>default = 0.0</em>) – <ul>
+<li><p class="linemarker linemarker-19">The sampling rate (in Hz) as advertised by the data source.</p></li>
+</ul>
+</p></li>
+<li><p><strong>channel_format</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>default = 1</em>) – <ul>
+<li><p class="linemarker linemarker-22">Format/type of each channel (ie. ‘float32’).</p></li>
+</ul>
+</p></li>
+<li><p><strong>source_id</strong> (<em>str</em><em>, </em><em>default = ''</em>) – <ul>
+<li><p class="linemarker linemarker-25">Unique identifier of the device or source of the data, if available (such as the serial number).</p></li>
+<li><p class="linemarker linemarker-26">This is critical for system robustness since it allows recipients to recover from failure even after the serving app, device or computer crashes (just by finding a stream with the same source id on the network again).</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.source.OutputLSLStream.create_outlet_from_streaminfo">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_outlet_from_streaminfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#OutputLSLStream.create_outlet_from_streaminfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.OutputLSLStream.create_outlet_from_streaminfo" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Factory method to create a OutletLSLStream bcipy object from a pylsl.StreamInfo object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sess</strong> (<em>session object</em>) – Session object where the data source will exist</p></li>
+<li><p><strong>stream_info</strong> (<em>pylsl.StreamInfo object</em>) – pylsl.StreamInfo object that describes the stream to be created</p></li>
 </ul>
 </dd>
 </dl>
@@ -3016,33 +3271,9 @@ count(description/desc/channels/channel)=32”</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_marker_uncoupled_data_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'T{},L{},LN{}'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#V2LSLStream.create_marker_uncoupled_data_stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream" title="Permalink to this definition"></a></dt>
-<dd><p class="linemarker linemarker-1">Create a LSLStream data object that maintains only a data stream with
-no associated marker stream</p>
-<p class="rubric">Examples</p>
-<dl class="simple">
-<dt>sess<span class="classifier">session object</span></dt><dd><p class="linemarker linemarker-7">Session object where the data source will exist</p>
-</dd>
-<dt>pred<span class="classifier">str</span></dt><dd><p class="linemarker linemarker-9">The predicate string, e.g. “name=’BioSemi’” or “type=’EEG’ and starts-with(name,’BioSemi’) and
-count(description/desc/channels/channel)=32”</p>
-</dd>
-<dt>channels<span class="classifier">tuple or list of ints</span></dt><dd><p class="linemarker linemarker-12">Index value of channels to poll from the stream, if None all channels will be polled</p>
-</dd>
-<dt>marker_fmt<span class="classifier">str</span></dt><dd><p class="linemarker linemarker-14">Regular expression template of the marker to be matched, if none all markers will be matched</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="bcipy.source.V2LSLStream.poll_data">
-<span class="sig-name descname"><span class="pre">poll_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Ns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#V2LSLStream.poll_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.V2LSLStream.poll_data" title="Permalink to this definition"></a></dt>
-<dd><p class="linemarker linemarker-1">Pull data from the inlet stream until we have Ns data points for each
-channel.
-:param Ns: number of samples to collect
-:type Ns: int
-:param Label: used for file-based polling, not used here
-:type Label: None</p>
+<dt class="sig sig-object py" id="bcipy.source.OutputLSLStream.push_data">
+<span class="sig-name descname"><span class="pre">push_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#OutputLSLStream.push_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.OutputLSLStream.push_data" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Push data to the outlet stream.</p>
 </dd></dl>
 
 </dd></dl>

@@ -487,7 +487,7 @@ as a generic node object.</p>
 <span id="bcipy-kernels-classifier-module"></span><h2>bcipy.kernels.classifier module<a class="headerlink" href="#module-bcipy.kernels.classifier" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="bcipy.kernels.classifier.ClassifierKernel">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.kernels.classifier.</span></span><span class="sig-name descname"><span class="pre">ClassifierKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialization_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/kernels/classifier.html#ClassifierKernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.kernels.classifier.ClassifierKernel" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bcipy.kernels.classifier.</span></span><span class="sig-name descname"><span class="pre">ClassifierKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_probs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialization_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/kernels/classifier.html#ClassifierKernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.kernels.classifier.ClassifierKernel" title="Permalink to this definition"></a></dt>
 <dd><p class="linemarker linemarker-1">Bases: <a class="reference internal" href="bcipy.html#bcipy.kernel.Kernel" title="bcipy.kernel.Kernel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Kernel</span></code></a></p>
 <p class="linemarker linemarker-1">Classify data using BCIP Classifier Object</p>
 <dl class="field-list simple">
@@ -509,13 +509,17 @@ as a generic node object.</p>
 <li><p class="linemarker linemarker-13">Output trial data</p></li>
 </ul>
 </p></li>
+<li><p><strong>output_probs</strong> (<em>Tensor object</em><em>, </em><em>default = None</em>) – <ul>
+<li><p class="linemarker linemarker-16">If not None, the output will be the probability of each class.</p></li>
+</ul>
+</p></li>
 <li><p><strong>initialization_data</strong> (<em>Tensor object</em><em>, </em><em>(</em><em>n_trials</em><em>, </em><em>n_channels</em><em>, </em><em>n_samples</em><em>)</em>) – <ul>
-<li><p class="linemarker linemarker-16">Initialization data to train the classifier</p></li>
+<li><p class="linemarker linemarker-19">Initialization data to train the classifier</p></li>
 </ul>
 </p></li>
 <li><p><strong>labels</strong> (<em>Tensor object</em><em>, </em><em>(</em><em>n_trials</em><em>, </em><em>)</em>) – <ul>
-<li><p class="linemarker linemarker-19">Labels corresponding to initialization data class labels</p></li>
-<li><p class="linemarker linemarker-20">(n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index</p></li>
+<li><p class="linemarker linemarker-22">Labels corresponding to initialization data class labels</p></li>
+<li><p class="linemarker linemarker-23">(n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index</p></li>
 </ul>
 </p></li>
 </ul>
@@ -523,7 +527,7 @@ as a generic node object.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="bcipy.kernels.classifier.ClassifierKernel.add_classifier_node">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add_classifier_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialization_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/kernels/classifier.html#ClassifierKernel.add_classifier_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.kernels.classifier.ClassifierKernel.add_classifier_node" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">add_classifier_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialization_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/kernels/classifier.html#ClassifierKernel.add_classifier_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.kernels.classifier.ClassifierKernel.add_classifier_node" title="Permalink to this definition"></a></dt>
 <dd><p class="linemarker linemarker-1">Factory method to create a classifier kernel and add it to a graph as a generic node object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -544,13 +548,17 @@ as a generic node object.</p>
 <li><p class="linemarker linemarker-13">Output trial data</p></li>
 </ul>
 </p></li>
+<li><p><strong>output_probs</strong> (<em>Tensor object</em><em>, </em><em>default = None</em>) – <ul>
+<li><p class="linemarker linemarker-16">If not None, the output will be the probability of each class.</p></li>
+</ul>
+</p></li>
 <li><p><strong>initialization_data</strong> (<em>Tensor object</em><em>, </em><em>(</em><em>n_trials</em><em>, </em><em>n_channels</em><em>, </em><em>n_samples</em><em>)</em>) – <ul>
-<li><p class="linemarker linemarker-16">Initialization data to train the classifier</p></li>
+<li><p class="linemarker linemarker-19">Initialization data to train the classifier</p></li>
 </ul>
 </p></li>
 <li><p><strong>labels</strong> (<em>Tensor object</em><em>, </em><em>(</em><em>n_trials</em><em>, </em><em>)</em>) – <ul>
-<li><p class="linemarker linemarker-19">Labels corresponding to initialization data class labels</p></li>
-<li><p class="linemarker linemarker-20">(n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index</p></li>
+<li><p class="linemarker linemarker-22">Labels corresponding to initialization data class labels</p></li>
+<li><p class="linemarker linemarker-23">(n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index</p></li>
 </ul>
 </p></li>
 </ul>

@@ -386,14 +386,13 @@
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        --&gt; Add traceback example with keyerror when mat_data_var_name is incorrect</span>
+<span class="sd">        * Add traceback example with keyerror when mat_data_var_name is incorrect</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        --&gt; The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples</span>
-<span class="sd">        --&gt; The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial </span>
-<span class="sd">            and the second column is the class label of each trial </span>
-<span class="sd">            --&gt; The class label of each trial should be numeric.</span>
+<span class="sd">        * The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples</span>
+<span class="sd">        * The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial and the second column is the class label of each trial </span>
+<span class="sd">            * The class label of each trial should be numeric.</span>
 <span class="sd">        </span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -979,9 +978,27 @@
         <span class="k">return</span> <span class="n">src</span></div></div>
 
 
-<div class="viewcode-block" id="V2LSLStream"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.V2LSLStream">[docs]</a><span class="k">class</span> <span class="nc">V2LSLStream</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
+<div class="viewcode-block" id="InputLSLStream"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.InputLSLStream">[docs]</a><span class="k">class</span> <span class="nc">InputLSLStream</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An object for maintaining an LSL inlet</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_buffer : dict - {&#39;EEG&#39;: np.array, &#39;time_stamps&#39;: np.array}</span>
+<span class="sd">        A dictionary containing the data and time stamps from past samples (used when trials have overlapping data)</span>
+
+<span class="sd">    data_inlet : pylsl.StreamInlet</span>
+<span class="sd">        The LSL inlet object</span>
+
+<span class="sd">    marker_inlet : pylsl.StreamInlet</span>
+<span class="sd">        The LSL inlet object for the marker stream</span>
+
+<span class="sd">    marker_pattern : re.Pattern</span>
+<span class="sd">        The regular expression pattern for the marker stream. Use &quot;task1$|task2$|task3$&quot; if task1, task2, and task3 are the markers</span>
+
+<span class="sd">    channels : tuple of ints</span>
+<span class="sd">        Index value of channels to poll from the stream, if None all channels will be polled.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">pred</span><span class="p">,</span><span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relative_start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -1039,7 +1056,7 @@
             <span class="k">if</span> <span class="n">marker_fmt</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">marker_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">marker_fmt</span><span class="p">)</span>
 
-<div class="viewcode-block" id="V2LSLStream.poll_data"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.V2LSLStream.poll_data">[docs]</a>    <span class="k">def</span> <span class="nf">poll_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ns</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="InputLSLStream.poll_data"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.InputLSLStream.poll_data">[docs]</a>    <span class="k">def</span> <span class="nf">poll_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ns</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Pull data from the inlet stream until we have Ns data points for each</span>
 <span class="sd">        channel.</span>
@@ -1111,7 +1128,7 @@
         <span class="n">trial_data</span> <span class="o">=</span> <span class="n">trial_data</span><span class="p">[:,</span> <span class="p">:</span><span class="n">Ns</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">trial_data</span></div>
     
-<div class="viewcode-block" id="V2LSLStream.create_marker_coupled_data_stream"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.V2LSLStream.create_marker_coupled_data_stream">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="InputLSLStream.create_marker_coupled_data_stream"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.InputLSLStream.create_marker_coupled_data_stream">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create_marker_coupled_data_stream</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">pred</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">relative_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                           <span class="n">marker_fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">marker_pred</span><span class="o">=</span><span class="s2">&quot;type=&#39;Markers&#39;&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1139,7 +1156,7 @@
         
         <span class="k">return</span> <span class="n">src</span></div>
     
-<div class="viewcode-block" id="V2LSLStream.create_marker_uncoupled_data_stream"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="InputLSLStream.create_marker_uncoupled_data_stream"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.InputLSLStream.create_marker_uncoupled_data_stream">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create_marker_uncoupled_data_stream</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">pred</span><span class="p">,</span><span class="n">channels</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">relative_start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
                                             <span class="n">marker_fmt</span><span class="o">=</span><span class="s2">&quot;T</span><span class="si">{}</span><span class="s2">,L</span><span class="si">{}</span><span class="s2">,LN</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1164,6 +1181,118 @@
         
         <span class="k">return</span> <span class="n">src</span></div></div>
 
+
+
+<div class="viewcode-block" id="OutputLSLStream"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.OutputLSLStream">[docs]</a><span class="k">class</span> <span class="nc">OutputLSLStream</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object for maintaining an LSL outlet</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">,</span> <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_buffer</span><span class="o">=</span><span class="mi">360</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Establish a new stream outlet. This makes the stream discoverable.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        stream_info : StreamInfo</span>
+<span class="sd">            StreamInfo object to describe this stream. Stays constant over the lifetime of the outlet.</span>
+<span class="sd">        </span>
+<span class="sd">        chunk_size : int, default = 0</span>
+<span class="sd">            Optionally the desired chunk granularity (in samples) for transmission. </span>
+<span class="sd">            If unspecified, each push operation yields one chunk. Inlets can override this setting. (default 0)</span>
+<span class="sd">        </span>
+<span class="sd">        max_buffered : default = 360</span>
+<span class="sd">            The maximum amount of data to buffer (in seconds if there is a nominal sampling rate, otherwise </span>
+<span class="sd">            x100 in samples). The default is 6 minutes of data. Note that, for high-bandwidth data, you will want to </span>
+<span class="sd">            use a lower value here to avoid running out of RAM.</span>
+<span class="sd">                        </span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">SRC</span><span class="p">,</span><span class="n">sess</span><span class="p">)</span>
+        
+        <span class="c1"># resolve the stream on the LSL network</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lsl_marker_outlet</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">StreamOutlet</span><span class="p">(</span><span class="n">stream_info</span><span class="p">,</span><span class="n">chunk_size</span><span class="p">,</span><span class="n">max_buffer</span><span class="p">)</span>
+        
+
+<div class="viewcode-block" id="OutputLSLStream.push_data"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.OutputLSLStream.push_data">[docs]</a>    <span class="k">def</span> <span class="nf">push_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push data to the outlet stream.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lsl_marker_outlet</span><span class="o">.</span><span class="n">push_sample</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+       
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+<div class="viewcode-block" id="OutputLSLStream.create_outlet_from_streaminfo"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.OutputLSLStream.create_outlet_from_streaminfo">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_outlet_from_streaminfo</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a OutletLSLStream bcipy object from a pylsl.StreamInfo object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+
+<span class="sd">        sess : session object</span>
+<span class="sd">            Session object where the data source will exist</span>
+<span class="sd">        stream_info : pylsl.StreamInfo object</span>
+<span class="sd">            pylsl.StreamInfo object that describes the stream to be created</span>
+<span class="sd">        </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_src</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">src</span></div>
+    
+<div class="viewcode-block" id="OutputLSLStream.create_outlet"><a class="viewcode-back" href="../../bcipy.html#bcipy.source.OutputLSLStream.create_outlet">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_outlet</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;untitled&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">channel_count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nominal_srate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                          <span class="n">channel_format</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">source_id</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory Method to create an OutletLSLStream bcipy object from scratch.</span>
+<span class="sd">        </span>
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">        name -- Name of the stream. Describes the device (or product series)    </span>
+<span class="sd">                that this stream makes available (for use by programs, </span>
+<span class="sd">                experimenters or data analysts).</span>
+<span class="sd">        type -- Content type of the stream. By convention LSL uses the content </span>
+<span class="sd">                types defined in the XDF file format specification where </span>
+<span class="sd">                applicable (code.google.com/p/xdf). The content type is the </span>
+<span class="sd">                preferred way to find streams (as opposed to searching by name).</span>
+<span class="sd">        channel_count -- Number of channels per sample. This stays constant for </span>
+<span class="sd">                         the lifetime of the stream. (default 1)</span>
+<span class="sd">        nominal_srate -- The sampling rate (in Hz) as advertised by the data </span>
+<span class="sd">                         source, regular (otherwise set to 0.0).</span>
+<span class="sd">                         (default 0.0)</span>
+<span class="sd">        channel_format -- Format/type of each channel. If your channels have </span>
+<span class="sd">                          different formats, consider supplying multiple </span>
+<span class="sd">                          streams or use the largest type that can hold </span>
+<span class="sd">                          them all (such as cf_double64). It is also allowed </span>
+<span class="sd">                          to pass this as a string, without the cf_ prefix,</span>
+<span class="sd">                          e.g., &#39;float32&#39; (default cf_float32)</span>
+<span class="sd">        source_id -- Unique identifier of the device or source of the data, if </span>
+<span class="sd">                     available (such as the serial number). This is critical </span>
+<span class="sd">                     for system robustness since it allows recipients to </span>
+<span class="sd">                     recover from failure even after the serving app, device or </span>
+<span class="sd">                     computer crashes (just by finding a stream with the same </span>
+<span class="sd">                     source id on the network again). Therefore, it is highly </span>
+<span class="sd">                     recommended to always try to provide whatever information </span>
+<span class="sd">                     can uniquely identify the data source itself.</span>
+<span class="sd">                     (default &#39;&#39;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">stream_info</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">StreamInfo</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">channel_count</span><span class="p">,</span> <span class="n">nominal_srate</span><span class="p">,</span> <span class="n">channel_format</span><span class="p">,</span> <span class="n">source_id</span><span class="p">)</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_src</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">src</span></div></div>
 </pre></div>
 
            </div>

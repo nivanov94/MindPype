@@ -108,9 +108,13 @@
 <span class="sd">        - Labels corresponding to initialization data class labels </span>
 <span class="sd">        - (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index</span>
 
+<span class="sd">    return_probabilities : bool, default = False</span>
+<span class="sd">        - If True, the output will be the probability of each class instead of the class label.</span>
+<span class="sd">        - Probablities are returned with shape (n_samples, n_classes).</span>
+<span class="sd">            - For single trial classification, the shape will be (1, n_classes)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span> <span class="n">initialization_data</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span> <span class="n">initialization_data</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">return_probabilities</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Classifier&#39;</span><span class="p">,</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_inA</span> <span class="o">=</span> <span class="n">inA</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span> <span class="o">=</span> <span class="n">classifier</span>
@@ -120,6 +124,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">=</span> <span class="n">initialization_data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_probabilities</span> <span class="o">=</span> <span class="n">return_probabilities</span>
 
 
 <div class="viewcode-block" id="ClassifierKernel.initialize"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.classifier.ClassifierKernel.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -278,18 +283,27 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">input_data</span> <span class="o">=</span> <span class="n">inA</span><span class="o">.</span><span class="n">data</span>
         
-        <span class="n">output_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span><span class="o">.</span><span class="n">_classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_probabilities</span><span class="p">:</span>
+            <span class="n">output_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span><span class="o">.</span><span class="n">_classifier</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">output_data</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">EXE_FAILURE</span>
 
-        <span class="k">if</span> <span class="n">outA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SCALAR</span><span class="p">:</span>
-            <span class="n">outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">output_data</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">output_data</span>
+            <span class="n">output_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_classifier</span><span class="o">.</span><span class="n">_classifier</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">outA</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SCALAR</span><span class="p">:</span>
+                <span class="n">outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">output_data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outA</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">output_data</span>
         
         <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
 
 
 <div class="viewcode-block" id="ClassifierKernel.add_classifier_node"><a class="viewcode-back" href="../../../bcipy.kernels.html#bcipy.kernels.classifier.ClassifierKernel.add_classifier_node">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">add_classifier_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span> <span class="n">initialization_data</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_classifier_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span> <span class="n">initialization_data</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">return_probabilities</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Factory method to create a classifier kernel and add it to a graph as a generic node object</span>
 <span class="sd">        </span>
@@ -314,10 +328,15 @@
 <span class="sd">        labels : Tensor object, (n_trials, )</span>
 <span class="sd">            - Labels corresponding to initialization data class labels </span>
 <span class="sd">            - (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index</span>
+<span class="sd">        </span>
+<span class="sd">        return_probabilities : bool, default = False</span>
+<span class="sd">            - If True, the output will be the probability of each class instead of the class label.</span>
+<span class="sd">            - Probablities are returned with shape (n_samples, n_classes).</span>
+<span class="sd">                - For single trial classification, the shape will be (1, n_classes)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1">#create the kernel object</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span> <span class="n">initialization_data</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">classifier</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span> <span class="n">initialization_data</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">return_probabilities</span><span class="p">)</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">inA</span><span class="p">,</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
                   <span class="n">Parameter</span><span class="p">(</span><span class="n">outA</span><span class="p">,</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">))</span>

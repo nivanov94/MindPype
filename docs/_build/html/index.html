@@ -191,6 +191,7 @@
 <li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.core.Session"><code class="docutils literal notranslate"><span class="pre">Session</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session._datum"><code class="docutils literal notranslate"><span class="pre">Session._datum</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_data"><code class="docutils literal notranslate"><span class="pre">Session.add_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_ext_out"><code class="docutils literal notranslate"><span class="pre">Session.add_ext_out()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_ext_src"><code class="docutils literal notranslate"><span class="pre">Session.add_ext_src()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_graph"><code class="docutils literal notranslate"><span class="pre">Session.add_graph()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.add_misc_bcip_obj"><code class="docutils literal notranslate"><span class="pre">Session.add_misc_bcip_obj()</span></code></a></li>
@@ -199,6 +200,7 @@
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.find_obj"><code class="docutils literal notranslate"><span class="pre">Session.find_obj()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.initialize_graph"><code class="docutils literal notranslate"><span class="pre">Session.initialize_graph()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.poll_volatile_channels"><code class="docutils literal notranslate"><span class="pre">Session.poll_volatile_channels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.push_volatile_outputs"><code class="docutils literal notranslate"><span class="pre">Session.push_volatile_outputs()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.reject_trial"><code class="docutils literal notranslate"><span class="pre">Session.reject_trial()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.core.Session.verify"><code class="docutils literal notranslate"><span class="pre">Session.verify()</span></code></a></li>
 </ul>
@@ -264,16 +266,27 @@
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.BcipXDF.poll_data"><code class="docutils literal notranslate"><span class="pre">BcipXDF.poll_data()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.data_buffer"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.data_buffer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.data_inlet"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.data_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.marker_inlet"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.marker_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.marker_pattern"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.marker_pattern</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.channels"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.create_marker_coupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.InputLSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.poll_data()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream"><code class="docutils literal notranslate"><span class="pre">LSLStream</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">LSLStream.create_marker_coupled_data_stream()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">LSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.LSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">LSLStream.poll_data()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.create_marker_coupled_data_stream()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.V2LSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">V2LSLStream.poll_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bcipy.html#bcipy.source.OutputLSLStream"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.OutputLSLStream.create_outlet"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.create_outlet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.OutputLSLStream.create_outlet_from_streaminfo"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.create_outlet_from_streaminfo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bcipy.html#bcipy.source.OutputLSLStream.push_data"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.push_data()</span></code></a></li>
 </ul>
 </li>
 </ul>
