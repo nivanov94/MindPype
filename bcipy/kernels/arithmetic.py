@@ -85,6 +85,22 @@ class AbsoluteKernel(Unary, Kernel):
     """
     
     def __init__(self,graph,inA,outA):
+
+        """
+        Calculate the element-wise absolute value of Tensor elements
+
+        Parameters
+        ----------
+
+        graph : Graph Object
+            - Graph that the kernel should be added to
+
+        inA : Tensor or Scalar object
+            - Input trial data
+
+        outA : Tensor or Scalar object
+            - Output trial data
+        """
         super().__init__('Absolute',BcipEnums.INIT_FROM_NONE,graph)
         self._inA   = inA
         self._outA  = outA

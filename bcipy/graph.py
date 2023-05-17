@@ -75,13 +75,13 @@ class Graph(BCIP):
         
         Return
         ------
-        None
+        BcipEnums Status Code
 
 
         """
         self._verified = False
         self._nodes.append(node)
-        
+        return BcipEnums.SUCCESS
         
     def verify(self):
         """

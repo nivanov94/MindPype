@@ -944,8 +944,8 @@ class InputLSLStream(BCIP):
 
         marker : bool
             true if there is an associated marker to indicate relative time where data should begin to be polled
-        marker_fmt : str
-            Regular expression template of the marker to be matched, if none all markers will be matched
+        marker_fmt : Regex or list
+            Regular expression template of the marker to be matched, if none all markers will be matched. Alternatively, a list of markers can be provided.
         marker_pred : str
             The predicate string for the marker stream
         """
@@ -971,7 +971,7 @@ class InputLSLStream(BCIP):
             self.channels = channels
         else:
             self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
-        
+
         if marker:
             marker_streams = pylsl.resolve_bypred(marker_pred)
             self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
@@ -979,6 +979,10 @@ class InputLSLStream(BCIP):
             self.marker_inlet.open_stream()
         
             if marker_fmt:
+                if isinstance(marker_fmt,list):
+                    marker_fmt = '$|^'.join(marker_fmt)
+                    marker_fmt = '^' + marker_fmt + '$' 
+                
                 self.marker_pattern = re.compile(marker_fmt)
 
     def poll_data(self, Ns, label=None):
@@ -1184,7 +1188,7 @@ class OutputLSLStream(BCIP):
 
         Parameters
         ----------
-        
+
         sess : session object
             Session object where the data source will exist
 

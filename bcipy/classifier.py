@@ -24,7 +24,7 @@ class Classifier(BCIP):
     ctype : str
         - The name of the classifier to be created
 
-    classifier : Classifier object
+    classifier : BCIPy Classifier object
         - The classifier object to be used within the node (should be the return from a BCIP kernel)
 
     Attributes
@@ -269,6 +269,13 @@ class Classifier(BCIP):
         Factory method to create a generic BCIP Classifier object. 
         
         Parameters
+        ----------
+        sess : BCIP Session Object
+            The BCIP Session object to which the classifier will be added.
+        classifier_object : BCIP Classifier object
+            The classifier object to be added to the BCIP Session.
+        classifier_type : str
+            The type of classifier to be added to the BCIP Session.            
         """
         f = cls(sess, classifier_type, classifier_object)
         sess.add_misc_bcip_obj(f)

@@ -193,19 +193,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trials_elapsed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span> <span class="o">=</span> <span class="p">{}</span>
         
         
         <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c1"># API Getters</span>
-    <span class="c1">#@property</span>
-    <span class="c1">#def current_block(self):</span>
-    <span class="c1">#    return self._blocks[0]</span>
-    <span class="c1">#</span>
-    <span class="c1">#@property</span>
-    <span class="c1">#def remaining_blocks(self):</span>
-    <span class="c1">#    return len(self._blocks)</span>
-    
+
 <div class="viewcode-block" id="Session.verify"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Ensure all graphs are valid.</span>
@@ -245,11 +238,6 @@
 <div class="viewcode-block" id="Session.initialize_graph"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.initialize_graph">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">graph</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span></div>
 
-    <span class="c1">#def initialize_block(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Initialize the current block object for trial execution.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    return self.current_block.initialize()</span>
     
 <div class="viewcode-block" id="Session.poll_volatile_channels"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.poll_volatile_channels">[docs]</a>    <span class="k">def</span> <span class="nf">poll_volatile_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -262,45 +250,14 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">volatile</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">poll_volatile_data</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
         
-        
-    <span class="c1">#def close_block(self):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Run any postprocessing on the block and remove it from the session</span>
-    <span class="c1">#    queue.</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    print(&quot;Closing block...&quot;)</span>
-    <span class="c1">#    # get the current block</span>
-    <span class="c1">#    b = self.current_block</span>
-    <span class="c1">#</span>
-    <span class="c1">#    # check if the block is finished</span>
-    <span class="c1">#    if sum(b.remaining_trials()) != 0:</span>
-    <span class="c1">#    # block not finished, don&#39;t close</span>
-    <span class="c1">#        return BcipEnums.FAILURE</span>
-    <span class="c1">#    </span>
-    <span class="c1">#    # run postprocessing</span>
-    <span class="c1">#    sts = b.close_block()</span>
-    <span class="c1">#    if sts != BcipEnums.SUCCESS:</span>
-    <span class="c1">#    #        return sts</span>
-    <span class="c1">#</span>
-    <span class="c1">#    # if everything executed nicely, remove the block from the session queue</span>
-    <span class="c1">#    self.dequeue_block()</span>
-    <span class="c1">#    return BcipEnums.SUCCESS    </span>
-        
-    <span class="c1">#def start_block(self, graph):</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    Initialize the block nodes and execute the preprocessing graph</span>
-    <span class="c1">#    &quot;&quot;&quot;</span>
-    <span class="c1">#    print(&quot;Starting block...&quot;)</span>
-    <span class="c1">#    if len(self._blocks) == 0:</span>
-    <span class="c1">#        return BcipEnums.FAILURE</span>
-    <span class="c1">#    </span>
-    <span class="c1">#    b = self.current_block</span>
-    <span class="c1">#    </span>
-    <span class="c1">#    # make sure we&#39;re not in the middle of a block</span>
-    <span class="c1">#    if b.remaining_trials() != b.n_class_trials:</span>
-    <span class="c1">#        return BcipEnums.FAILURE</span>
-    <span class="c1">#    </span>
-    <span class="c1">#    return b.initialize(graph)</span>
+<div class="viewcode-block" id="Session.push_volatile_outputs"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.push_volatile_outputs">[docs]</a>    <span class="k">def</span> <span class="nf">push_volatile_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push outputs to volatile sources</span>
+<span class="sd">        &quot;&quot;&quot;</span> 
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">volatile_out</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Session.execute_trial"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.execute_trial">[docs]</a>    <span class="k">def</span> <span class="nf">execute_trial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">label</span><span class="p">,</span><span class="n">graph</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -310,6 +267,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executing trial with label: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">poll_volatile_channels</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
         <span class="c1">#sts = self.current_block.process_trial(label, graph)</span>
         <span class="n">sts</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sts</span></div>
@@ -323,13 +281,6 @@
 <div class="viewcode-block" id="Session.add_graph"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_graph">[docs]</a>    <span class="k">def</span> <span class="nf">add_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span></div>
-
-    <span class="c1">#def enqueue_block(self,b):</span>
-    <span class="c1">#    # block added, so make sure verified is false -&gt; not needed, graphs verified now</span>
-    <span class="c1">#    self._blocks.append(b)</span>
-    <span class="c1">#</span>
-    <span class="c1">#def dequeue_block(self):</span>
-    <span class="c1">#    return self._blocks.pop(0)</span>
     
 <div class="viewcode-block" id="Session.add_data"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_data">[docs]</a>    <span class="k">def</span> <span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span></div>
@@ -340,6 +291,9 @@
 <div class="viewcode-block" id="Session.add_ext_src"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_ext_src">[docs]</a>    <span class="k">def</span> <span class="nf">add_ext_src</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span></div>
         
+<div class="viewcode-block" id="Session.add_ext_out"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_ext_out">[docs]</a>    <span class="k">def</span> <span class="nf">add_ext_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span></div>
+    
 <div class="viewcode-block" id="Session.find_obj"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.find_obj">[docs]</a>    <span class="k">def</span> <span class="nf">find_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">id_num</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Search for and return a BCIP object within the session with a</span>
@@ -349,11 +303,6 @@
         <span class="c1"># check if the ID is the session itself</span>
         <span class="k">if</span> <span class="n">id_num</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span>
-        
-        <span class="c1"># check if its a block</span>
-        <span class="c1">#for b in self._blocks:</span>
-        <span class="c1">#    if id_num == b.session_id:</span>
-        <span class="c1">#        return b</span>
         
         <span class="c1"># check if its a data obj</span>
         <span class="k">if</span> <span class="n">id_num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
