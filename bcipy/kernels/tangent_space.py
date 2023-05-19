@@ -41,6 +41,9 @@ class TangentSpaceKernel(Kernel):
         self._init_outA = None
         self._init_labels_in = None
         self._init_labels_out = None
+
+        self._sample_weight = sample_weight
+        self._tsupdate = tsupdate
         
         
     def verify(self):
@@ -86,11 +89,12 @@ class TangentSpaceKernel(Kernel):
 
         # fit the tangent space
         if sts == BcipEnums.SUCCESS:
-            try:
+            #try:
+                self._tangent_space = TangentSpace()
                 self._tangent_space = self._tangent_space.fit(self._init_inA.data, 
                                                               sample_weight=self._sample_weight)
-            except:
-                sts = BcipEnums.INITIALIZATION_FAILURE
+            #except:
+                #sts = BcipEnums.INITIALIZATION_FAILURE
         
         # compute init output
         if sts == BcipEnums.SUCCESS and self._init_outA != None:

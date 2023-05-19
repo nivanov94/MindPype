@@ -107,6 +107,7 @@ class FilterKernel(Filter, Kernel):
 
         self._init_labels_in = None
         self._init_labels_out = None
+        self._axis = axis
     
     def _process_data(self, input_data, output_data):
         try:

@@ -81,7 +81,6 @@ class Graph(BCIP):
         """
         self._verified = False
         self._nodes.append(node)
-        return BcipEnums.SUCCESS
         
     def verify(self):
         """

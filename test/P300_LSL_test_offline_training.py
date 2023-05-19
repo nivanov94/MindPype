@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tues July 26 16:12:30 2022
-
 @author: aaronlio
 """
 
 # Create a simple graph for testing
-from bcipy import bcipy
+from .. import bcipy
 import numpy as np
 import pylsl
 
@@ -20,12 +19,12 @@ def main():
 
     Fs = 500
     trial_len = 1.0
-    t_start = -0.2
     tasks = ('flash', 'target')
     resample_fs = 50
 
+    #outlet_info = pylsl.StreamInfo('Marker-PredictedLabel', 'Markers', channel_format='string')
+    #lsl_marker_outlet = pylsl.StreamOutlet(outlet_info)
 
-    
     # create a filter
     order = 4
     bandpass = (1,25) # in Hz
@@ -34,19 +33,16 @@ def main():
     channels = tuple([_ for _ in range(0,32)])
 
     # Data sources from LSL
-    LSL_data_src = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(sess, "type='EEG'", channels, relative_start=-0.2, marker_fmt='flash$|target$')
-    LSL_data_out = bcipy.source.OutputLSLStream.create_outlet(sess, name='Outputs', type='type="probabilities"', channel_count=32, 
-                                                              channel_format='float32')
-    # TODO Change to XDF - DONE
+    LSL_data_src = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(sess, "type='EEG'", channels, relative_start=-0.4, marker_fmt='^SPACE pressed$')
+
+    # TODO Change to XDF
     # training data sources from mat file
     offline_data_src = bcipy.source.BcipXDF.create_epoched(sess,
             ['C:/Users/lioa/Documents/Mindset P300 Code for Aaron/sub-P001_ses-S001_task-vP300+2x2_run-003.xdf'], 
             tasks, channels=channels, relative_start=0, Ns = Fs*trial_len) 
 
-    online_input_data = bcipy.Tensor.create_from_handle(sess, (len(channels), 500), LSL_data_src)
-    offline_input_data = bcipy.Tensor.create_from_data(sess, (len(channels), 500), offline_data_src)
-
-    online_output_data = bcipy.Tensor.create_for_volatile_output(sess, (2,1), LSL_data_out)
+    online_input_data = bcipy.Tensor.create_from_handle(sess, (len(channels), 700), LSL_data_src)
+    offline_input_data = bcipy.Tensor.create_from_handle(sess, (len(channels), 700), offline_data_src)
 
     # Data input tensors
     label_input = bcipy.Scalar.create(sess, int)
@@ -54,6 +50,7 @@ def main():
                      'labels' : bcipy.CircleBuffer.create(sess, offline_trials, label_input)}
 
     # online graph data containers (i.e. graph edges)
+    pred_probs = bcipy.Tensor.create_from_data(sess, (1,2), np.zeros((1,2))) 
     pred_label = bcipy.Scalar.create_from_value(sess,-1) 
 
     t_virt = [bcipy.Tensor.create_virtual(sess), # output of filter, input to resample
@@ -61,15 +58,16 @@ def main():
               bcipy.Tensor.create_virtual(sess), # output of extract, input to xdawn
               bcipy.Tensor.create_virtual(sess), # output of xdawn, input to tangent space
               bcipy.Tensor.create_virtual(sess)] # output of tangent space, input to classifier
-    
+
     classifier = bcipy.Classifier.create_logistic_regression(sess)
-    
+
     # extraction indices - TODO Ask Jason about filter-epoch execution order during online
-    start_time = 0.25
-    end_time = 1.25
+    start_time = 0.2
+    end_time = 1.2
     extract_indices = [":", # all channels
                        [_ for _ in range(int(start_time*resample_fs),int(end_time*resample_fs))] # central 1s
                       ]
+
 
     # online graph nodes 
     bcipy.kernels.FilterKernel.add_filter_node(online_graph, online_input_data, f, t_virt[0])
@@ -79,7 +77,7 @@ def main():
                                                     t_virt[3], training_data['data'], 
                                                     training_data['labels'])
     bcipy.kernels.TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[3], t_virt[4])
-    bcipy.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_label, online_output_data)
+    bcipy.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_label, pred_probs)
 
     # verify the session (i.e. schedule the nodes)
 
@@ -88,36 +86,35 @@ def main():
     if verify_sts != bcipy.BcipEnums.SUCCESS:
         print("Test Failed D=")
         return verify_sts
-    
+
+
     # initialize the classifiers (i.e., train the classifier)
     init_sts = online_graph.initialize()
 
     if init_sts != bcipy.BcipEnums.SUCCESS:
-        print("Test Failed D=")
+        print("Init Failed D=")
         return init_sts
-    
+
     # Run the online trials
     sts = bcipy.BcipEnums.SUCCESS
     online_trials = 100
-    
-    # TODO add LSL output and loop to wait for marker
-    t_num = 0
 
-    while True:
-        while LSL_data_src.marker_inlet.samples_available() == 0:
-            print("waiting for marker...")   
-        
-        sts = online_graph.execute()
-        
+    # TODO add LSL output and loop to wait for marker
+
+    for t_num in range(online_trials):
+        true_label = -1
+        print("waiting for marker...")
+        while true_label == -1:
+
+            sts = online_graph.execute()
         if sts == bcipy.BcipEnums.SUCCESS:
             # print the value of the most recent trial
-            label = pred_label.data
-            print(f"\tTrial {t_num+1}: Predicted Label = {label}")
+            y_bar = pred_probs.data
+            print(f"\tTrial {t_num+1}: Max Probability = {max(y_bar)}")
         else:
             print(f"Trial {t_num+1} raised error, status code: {sts}")
             break
-        t_num += 1
-    
+
     print("Test Passed =D")
 
 if __name__ == "__main__":

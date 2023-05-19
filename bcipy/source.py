@@ -576,7 +576,7 @@ class BcipXDF(BCIP):
                             sample_indices = np.array(eeg_stream['time_stamps'] >= eeg_window_start)
                             
                             sample_data = eeg_stream['time_series'][sample_indices, :][:, channels].T # Nc X len(eeg_stream)
-                            trial_data[curr_task].append(sample_data[:, :Ns]) #Nc x Ns
+                            trial_data[curr_task].append(sample_data[:, :int(Ns)]) #Nc x Ns
                                 
 
 
@@ -1032,6 +1032,7 @@ class InputLSLStream(BCIP):
             if len(timestamps) != -1 and np.any(timestamps > t_begin):
                 # convert data to numpy arrays
                 data = np.asarray(data).T
+                data = data[self.channels,:]
                 chunk_sz = data.shape[1]            
                 
                 # append the latest chunk to the trial_data array

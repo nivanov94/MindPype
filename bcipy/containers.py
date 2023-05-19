@@ -698,6 +698,8 @@ class Tensor(BCIP):
     @classmethod
     def create_for_volatile_output(cls, sess, shape, out):
         t = cls(sess,shape,None,False,None,out)
+        sess.add_data(t)
+        return t
     
     # utility static methods
     @staticmethod
