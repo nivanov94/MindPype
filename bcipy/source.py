@@ -17,6 +17,7 @@ import pylsl
 import pyxdf
 import os
 import re
+import time
 
 class BcipMatFile(BCIP):
     """
@@ -542,6 +543,7 @@ class BcipXDF(BCIP):
         
         if mode == 'epoched':
             for filename in files:
+                print(filename)
                 data, header = pyxdf.load_xdf(filename)
                 
                 for stream in data:
@@ -611,6 +613,7 @@ class BcipXDF(BCIP):
                             eeg_stream = stream
 
             self.trial_data = {'EEG': eeg_stream, 'Markers': marker_stream} 
+            print(self.trial_data['EEG']['time_stamps'][-100:], self.trial_data['Markers']['time_stamps'][-10:])
             self.label_counter = {task: 0 for task in tasks}
 
     def poll_data(self, Ns = 1, label = None):
@@ -632,21 +635,38 @@ class BcipXDF(BCIP):
         """
 
         if self.mode == 'epoched':
+            # Extract sample data from epoched trial data and increment the label counter
             sample_data = self.trial_data[label][self.label_counter[label], :, :]
             self.label_counter[label] += 1
 
             return sample_data
         
         elif self.mode == 'continuous':
-            index = [i for i, marker in enumerate(self.trial_data['Markers']['time_series']) if label in marker[0]][self.label_counter[label]]
+            # Find the index of the marker in the marker stream data
+            lst_of_marker_indices = []
+            for i in range(len(self.trial_data['Markers']['time_series'])):
+                if label in self.trial_data['Markers']['time_series'][i] or label in self.trial_data['Markers']['time_series'][i][0]:
+                    lst_of_marker_indices.append(i)
+            
+            index = lst_of_marker_indices[self.label_counter[label]]
+            
+            # Extract the corresponding marker timestamp
+            eeg_window_start = self.trial_data['Markers']['time_stamps'][index] + self.relative_start
 
-            eeg_window_start = self.trial_data['Markers']['time_stamps'][index] - self.relative_start
+            # Construct the boolean array for samples that fall after the marker timestamp
             sample_indices = np.array(self.trial_data['EEG']['time_stamps'] >= eeg_window_start)
+
+            print(eeg_window_start, self.trial_data['EEG']['time_stamps'][sample_indices][179])
+            #while np.sum(sample_indices) < Ns:
+            #    eeg_window_start = eeg_window_start + (.2*self.relative_start)
+
+                # Construct the boolean array for samples that fall after the marker timestamp
+            #    sample_indices = np.array(self.trial_data['EEG']['time_stamps'] >= eeg_window_start)
+
             
             sample_data = self.trial_data['EEG']['time_series'][sample_indices, :][:, self.channels].T # Nc X len(eeg_stream)
             sample_data = sample_data[:, :Ns] #Nc x Ns
             self.label_counter[label] += 1
-            
             return sample_data
     
     @classmethod
@@ -959,11 +979,13 @@ class InputLSLStream(BCIP):
             return
         
         # TODO - Warn about more than one available stream
-        self.data_buffer = {'EEG':np.empty((len(channels),1)),'time_stamps':np.empty((1,))}
+        self.data_buffer = {'EEG':None,'time_stamps':None}
         self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
         self.marker_inlet = None
         self.marker_pattern = None
         self.relative_start = relative_start
+
+        self.timestamps = []
         
         # TODO - check if the stream has enough input channels to match the
         # channels parameter
@@ -974,6 +996,7 @@ class InputLSLStream(BCIP):
 
         if marker:
             marker_streams = pylsl.resolve_bypred(marker_pred)
+            print(len(marker_streams))
             self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
             # open the inlet
             self.marker_inlet.open_stream()
@@ -1001,16 +1024,16 @@ class InputLSLStream(BCIP):
             # start by getting the timestamp for this trial's marker
             t_begin = None
             while t_begin == None:
-                print("Polling marker")
                 marker, t = self.marker_inlet.pull_sample()
                 print("marker: ", marker)
                 if marker != None:
                     marker = marker[0] # extract the string portion of the marker
-                    print(marker)
-                    
+                    #print(marker)
+                    #print(self.marker_pattern)
                     if (self.marker_pattern == None) or self.marker_pattern.match(marker):
                         t_begin = t
-                        print(t_begin)
+                        #print(t_begin)
+                        self.timestamps.append(t_begin)
                     
         else:
             t_begin = 0 # i.e. all data is valid
@@ -1022,40 +1045,61 @@ class InputLSLStream(BCIP):
         samples_polled = 0        
 
         # First, pull the data required data from the buffer
-        eeg_index_bool = np.array(self.data_buffer['time_stamps'] >= t_begin)
-        samples_polled = np.sum(eeg_index_bool)
-        trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
-        trial_timestamps[:samples_polled] = self.data_buffer['time_stamps'][eeg_index_bool]
+        if self.data_buffer['EEG'] is not None:
+            eeg_index_bool = np.array(self.data_buffer['time_stamps'] >= t_begin)
+
+            samples_polled = np.sum(eeg_index_bool)
+            #print(eeg_index_bool)
+            #print(self.data_buffer['time_stamps'])
+            trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
+            #print(trial_timestamps)
+            trial_timestamps[:samples_polled] = self.data_buffer['time_stamps'][eeg_index_bool]
+            #print("Last time stamp in buffer:", self.data_buffer['time_stamps'][-1])
+            #print(eeg_index_bool)
+            #if len(eeg_index_bool) > 700:
+            #    print(trial_timestamps)
+            #print("First zero value in pre-LSL trial data: ", np.argmax(trial_timestamps==0.))
+            #print("Samples pulled from the buffer: ", samples_polled)
+            #print(f"trials_timestamps shape: {self.data_buffer['time_stamps'].shape}")
+
+        #print(f"T-BEGIN:`{t_begin}`")
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk()
             timestamps = np.asarray(timestamps)
-            if len(timestamps) != -1 and np.any(timestamps > t_begin):
+
+            if len(timestamps) != -1 and np.any(timestamps >= t_begin):
+                #print(f"Number of new trials added to trial data: {np.sum(timestamps >= t_begin)}")
                 # convert data to numpy arrays
                 data = np.asarray(data).T
-                data = data[self.channels,:]
-                chunk_sz = data.shape[1]            
+                timestamps_index_bool = timestamps >= t_begin
+
+                data = data[self.channels,:][:,timestamps_index_bool]
+                timestamps = timestamps[timestamps_index_bool]
                 
-                # append the latest chunk to the trial_data array
-                if samples_polled + chunk_sz > Ns:
-                    dest_end_index = Ns
-                    src_end_index = Ns - samples_polled
+                if len(data.shape) > 1:
+                    chunk_sz = data.shape[1]
+                    # append the latest chunk to the trial_data array
+                    if samples_polled + chunk_sz > Ns:
+                        dest_end_index = Ns
+                        src_end_index = Ns - samples_polled
+                    
+                    else:
+                        dest_end_index = samples_polled + chunk_sz
+                        src_end_index = chunk_sz
+                    
+                    trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
+                    trial_timestamps[samples_polled:dest_end_index] = timestamps[:src_end_index]
+
+                    if dest_end_index == Ns:
+                        self.data_buffer['EEG'] = np.concatenate((trial_data, data[:, src_end_index:]), axis=1)                                
+                        self.data_buffer['time_stamps'] = np.concatenate((trial_timestamps, timestamps[src_end_index:]))
+                    
+
+                    samples_polled += chunk_sz 
+                        
                 
-                else:
-                    dest_end_index = samples_polled + chunk_sz
-                    src_end_index = chunk_sz
-                if dest_end_index == Ns:
-                    self.data_buffer['EEG'] = np.concatenate((trial_data, data), axis=1)                                
-                    self.data_buffer['time_stamps'] = np.concatenate((trial_timestamps, timestamps))
-                
+        trial_data = trial_data[:, :Ns] # TODO remove?
 
-                trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
-                trial_timestamps[samples_polled:dest_end_index] = timestamps[:src_end_index]
-
-                samples_polled += chunk_sz
-       
-
-
-        trial_data = trial_data[:, :Ns]
         return trial_data
     
     @classmethod

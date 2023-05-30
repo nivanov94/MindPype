@@ -91,6 +91,7 @@ class TangentSpaceKernel(Kernel):
         if sts == BcipEnums.SUCCESS:
             #try:
                 self._tangent_space = TangentSpace()
+                self._init_inA.data = .99*self._init_inA.data + .01*np.eye(self._init_inA.shape[1])
                 self._tangent_space = self._tangent_space.fit(self._init_inA.data, 
                                                               sample_weight=self._sample_weight)
             #except:
@@ -101,6 +102,7 @@ class TangentSpaceKernel(Kernel):
             # set output shape
             Nt, Nc, _ = self._init_inA.shape
             self._init_outA.shape = (Nt, Nc*(Nc+1)//2)
+            self._init_inA.data = .99*self._init_inA.data + .01*np.eye(Nc)
             sts = self._process_data(self._init_inA, self._init_outA)
 
             # pass on the labels
@@ -129,6 +131,8 @@ class TangentSpaceKernel(Kernel):
             local_input_data = inA.data
             
         try:
+
+            local_input_data = .99*local_input_data + .01*np.eye(local_input_data.shape[1])
             outA.data = self._tangent_space.transform(local_input_data)
         except:
             return BcipEnums.EXE_FAILURE

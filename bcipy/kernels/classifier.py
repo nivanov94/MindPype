@@ -213,7 +213,11 @@ class ClassifierKernel(Kernel):
         if self.output_probs:
             if self.output_probs._bcip_type == BcipEnums.TENSOR:
                 output_probs = self._classifier._classifier.predict_proba(input_data)
-                self.output_probs.data = np.squeeze(output_probs)
+                
+                if output_probs.shape == self.output_probs.shape:
+                    self.output_probs.data = output_probs
+                else:
+                    self.output_probs.data = np.squeeze(output_probs)
         
         output_data = self._classifier._classifier.predict(input_data)
 
