@@ -189,6 +189,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.BcipXDF.create"><code class="docutils literal notranslate"><span class="pre">BcipXDF.create()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.BcipXDF.create_continuous"><code class="docutils literal notranslate"><span class="pre">BcipXDF.create_continuous()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.BcipXDF.create_epoched"><code class="docutils literal notranslate"><span class="pre">BcipXDF.create_epoched()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bcipy.source.BcipXDF.load_into_tensor"><code class="docutils literal notranslate"><span class="pre">BcipXDF.load_into_tensor()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#bcipy.source.BcipXDF.poll_data"><code class="docutils literal notranslate"><span class="pre">BcipXDF.poll_data()</span></code></a></li>
 </ul>
 </li>
@@ -3049,6 +3050,13 @@ size of each epoch, whereas this value is used in polling for continuous data.</
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bcipy.source.BcipXDF.load_into_tensor">
+<span class="sig-name descname"><span class="pre">load_into_tensor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/source.html#BcipXDF.load_into_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.source.BcipXDF.load_into_tensor" title="Permalink to this definition"></a></dt>
+<dd><p class="linemarker linemarker-1">Loads entirity of BCIPXDF data object into a tensor.
+Returns two BCIPy Tensor objects; one containing the data and the other containing the labels.</p>
 </dd></dl>
 
 <dl class="py method">
