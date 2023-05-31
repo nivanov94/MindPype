@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bcipy.graph &mdash; bcipy 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            bcipy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Getting Started with BCIPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#basic-setup">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bcipy.html">bcipy package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">bcipy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bcipy.graph</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bcipy.graph</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Mon Dec  2 12:00:43 2019</span>
+
+<span class="sd">graph.py - Defines the graph object</span>
+
+<span class="sd">@author: ivanovn</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">BCIP</span><span class="p">,</span> <span class="n">BcipEnums</span>
+<span class="kn">from</span> <span class="nn">.containers</span> <span class="kn">import</span> <span class="n">Tensor</span>
+
+<div class="viewcode-block" id="Graph"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph">[docs]</a><span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents the data processing flow graph, or processing pipelines. </span>
+<span class="sd">    Individual nodes, or processing steps, are added to the graph to create the pipeline.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------- </span>
+<span class="sd">    sess : Session Object</span>
+<span class="sd">        - Session where the graph will exist</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _nodes : Array of Node objects</span>
+<span class="sd">        - List of Node objects within the graph</span>
+<span class="sd">    </span>
+<span class="sd">    initialization_edges : Array of Edge objects</span>
+<span class="sd">        - List of Edge objects used within the graph</span>
+
+<span class="sd">    _verified : bool</span>
+<span class="sd">        - True is graph has been verified, false otherwise</span>
+
+<span class="sd">    _sess : Session object</span>
+<span class="sd">        - Session where the Graph object exists</span>
+
+<span class="sd">    _volatile_sources : Array of data Source objects</span>
+<span class="sd">        - Data sources within this array will be polled/executed when the graph is executed.</span>
+
+<span class="sd">    _volatile_outputs : Array of data Output objects</span>
+<span class="sd">        - Data outputs within this array will push to external sources when the graph is executed.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sess</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new graph</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">GRAPH</span><span class="p">,</span><span class="n">sess</span><span class="p">)</span>
+        
+        <span class="c1"># private attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialization_edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sess</span> <span class="o">=</span> <span class="n">sess</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_sources</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        
+    
+<div class="viewcode-block" id="Graph.add_node"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.add_node">[docs]</a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">node</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Append a node object to the list of nodes</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        node : Node object</span>
+<span class="sd">            - Adds the specified Node object to the referenced graph</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        example_graph.add_node(example_node)</span>
+<span class="sd">        </span>
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BcipEnums Status Code</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="Graph.verify"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the processing graph is valid. This method orders the nodes</span>
+<span class="sd">        for execution if the graph is valid</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Status Code</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; status = example_graph.verify()</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+<span class="sd">            </span>
+<span class="sd">            SUCCESS</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        
+        <span class="c1"># begin by scheduling the nodes in execution order</span>
+        
+        <span class="c1"># first we&#39;ll create a set of edges representing data within the graph</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># keys: session_id of data obj, vals: edge object</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="c1"># get a list of all the input objects to the node</span>
+            <span class="n">n_inputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_inputs</span><span class="p">()</span>
+            <span class="n">n_outputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_outputs</span><span class="p">()</span>
+            
+            <span class="c1"># add these inputs/outputs to edge objects</span>
+            <span class="k">for</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="n">n_inputs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">):</span>
+                    <span class="c1"># no edge created for this input yet, so create a new one</span>
+                    <span class="n">edges</span><span class="p">[</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Edge</span><span class="p">(</span><span class="n">n_i</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">n_i</span><span class="o">.</span><span class="n">volatile</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_i</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">n_i</span><span class="o">.</span><span class="n">volatile_out</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_i</span><span class="p">)</span>
+                <span class="c1"># now add the node the edge&#39;s list of consumers</span>
+                <span class="n">edges</span><span class="p">[</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_consumer</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                
+            <span class="k">for</span> <span class="n">n_o</span> <span class="ow">in</span> <span class="n">n_outputs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">):</span>
+                    <span class="c1"># no edge created for this output yet, so create a new one</span>
+                    <span class="n">edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Edge</span><span class="p">(</span><span class="n">n_o</span><span class="p">)</span>
+                    
+                    <span class="c1"># add the node as a producer</span>
+                    <span class="n">edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_producer</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># edge already created, must check that it has no other </span>
+                    <span class="c1"># producer</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># this is an invalid graph, each data object can only</span>
+                        <span class="c1"># have a single producer</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;scheduling failed&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_GRAPH</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># add the producer to the edge</span>
+                        <span class="n">edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_producer</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        
+        <span class="c1"># now determine which edges are ready to be consumed</span>
+        <span class="n">consumable_edges</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">e_key</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="n">e_key</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># these edges have no producing nodes, so they are inputs to </span>
+                <span class="c1"># the block and therefore can be consumed immediately</span>
+                <span class="n">consumable_edges</span><span class="p">[</span><span class="n">e_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">e_key</span><span class="p">]</span>
+        
+        <span class="n">scheduled_nodes</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_nodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">)</span>
+        
+        <span class="k">while</span> <span class="n">scheduled_nodes</span> <span class="o">!=</span> <span class="n">total_nodes</span><span class="p">:</span>
+            <span class="n">nodes_added</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># find the next node that has all its inputs ready to be consumed</span>
+            <span class="k">for</span> <span class="n">node_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">scheduled_nodes</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">)):</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+                <span class="n">n_inputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_inputs</span><span class="p">()</span>
+                <span class="n">n_outputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_outputs</span><span class="p">()</span>
+                <span class="n">consumable</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="n">n_inputs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span> <span class="ow">in</span> <span class="n">consumable_edges</span><span class="p">):</span>
+                        <span class="c1"># the inputs for this node must be produced by another</span>
+                        <span class="c1"># node first, therefore this node cannot be scheduled</span>
+                        <span class="c1"># yet</span>
+                        <span class="n">consumable</span> <span class="o">=</span> <span class="kc">False</span>
+                
+                <span class="k">if</span> <span class="n">consumable</span><span class="p">:</span>
+                    <span class="c1"># schedule this node</span>
+                    <span class="k">if</span> <span class="n">scheduled_nodes</span> <span class="o">!=</span> <span class="n">node_index</span><span class="p">:</span>
+                        <span class="c1"># swap the nodes at these indices</span>
+                        <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">scheduled_nodes</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">scheduled_nodes</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+                    
+                    <span class="c1"># mark this node&#39;s outputs ready for consumption</span>
+                    <span class="k">for</span> <span class="n">n_o</span> <span class="ow">in</span> <span class="n">n_outputs</span><span class="p">:</span>
+                        <span class="n">consumable_edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span>
+                    
+                    <span class="n">nodes_added</span> <span class="o">=</span> <span class="n">nodes_added</span> <span class="o">+</span> <span class="mi">1</span>
+                    
+                    <span class="n">scheduled_nodes</span> <span class="o">=</span> <span class="n">scheduled_nodes</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">Node Scheduled&quot;</span><span class="p">)</span>
+
+            
+
+            <span class="k">if</span> <span class="n">nodes_added</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># invalid graph, cannot be scheduled</span>
+                <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_GRAPH</span>
+        
+        
+        <span class="c1"># now all the nodes are in execution order, validate each node</span>
+        <span class="n">missing_data</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># flag to indicate if any nodes are missing init data connections</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="n">valid</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">valid</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Node </span><span class="si">{}</span><span class="s2"> failed verification&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">valid</span>           
+
+            <span class="c1"># check for missing init data</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">init_style</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="c1"># TODO replace with a kernel method</span>
+                    <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span> <span class="s2">&quot;_init_inB&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)):</span>
+                    <span class="n">missing_data</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># fill in missing init data links</span>
+        <span class="k">if</span> <span class="n">missing_data</span><span class="p">:</span>         
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">init_style</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="c1"># TODO replace with a kernel method</span>
+                        <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span> <span class="s2">&quot;_init_inB&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)):</span>
+
+                        <span class="n">sts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_initialization_links</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">sts</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_GRAPH</span>
+                                                    
+
+        <span class="c1"># Done, all nodes scheduled and verified!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+<div class="viewcode-block" id="Graph.fill_initialization_links"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.fill_initialization_links">[docs]</a>    <span class="k">def</span> <span class="nf">fill_initialization_links</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Connect initialization input of nodes missing init_data to the output of producer nodes. </span>
+<span class="sd">        Used recursively to ensure all nodes within a particular graph have the required initialization data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n : Node Object</span>
+<span class="sd">            - Node object which will have its initialization data filled</span>
+
+<span class="sd">        edges : list of Edge objects within a graph</span>
+<span class="sd">            - Edge object connections used to identify upstream/downstream nodes.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP status code</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">sts</span> <span class="o">=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        
+        <span class="n">n_inputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_inputs</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_inputs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_GRAPH</span>
+        <span class="k">for</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="n">n_inputs</span><span class="p">:</span>
+            <span class="c1"># identify the up-stream node producing each input</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">producer</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">continue</span> <span class="c1"># TODO resolve this??</span>
+            <span class="c1"># TODO: need to more robustly identify the correct initialization output</span>
+            <span class="c1"># may require modification of the node/parameter data structures.</span>
+
+            <span class="k">if</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># TODO init data may come from other node outputs</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span> <span class="s2">&quot;_init_inB&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_GRAPH</span>
+                    
+                    <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_outA</span>
+
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_out</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span> <span class="s2">&quot;_init_inB&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_GRAPH</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_outA</span>
+                    
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_out</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_outA</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_virtual</span><span class="p">(</span><span class="n">sess</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sess</span><span class="p">)</span> <span class="c1"># TODO determine if this would ever not be a tensor</span>
+                <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_out</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_virtual</span><span class="p">(</span><span class="n">sess</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sess</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span> <span class="s2">&quot;_init_inB&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INVALID_GRAPH</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_outA</span>
+
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_out</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_outA</span>
+                    
+                    <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_in</span> <span class="o">=</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_labels_out</span>
+
+            <span class="c1"># recurse process on up-stream nodes</span>
+            <span class="k">if</span> <span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">producer</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inA</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="c1"># TODO kernel method</span>
+                    <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span> <span class="s2">&quot;_init_inB&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">n</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">_init_inB</span> <span class="o">==</span> <span class="kc">None</span><span class="p">)):</span>
+                    <span class="n">sts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_initialization_links</span><span class="p">(</span><span class="n">producer</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">sts</span></div>
+
+
+<div class="viewcode-block" id="Graph.initialize"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize each node within the graph for trial execution</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Status Code</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; status = example_graph.initialize()</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+
+<span class="sd">            SUCCESS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="n">sts</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+            
+            <span class="k">if</span> <span class="n">sts</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">sts</span>
+        
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+    
+<div class="viewcode-block" id="Graph.execute"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">poll_volatile_sources</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">push_volatile_outputs</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the graph by iterating over all the nodes within the graph and executing each one</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        </span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        Label : int, default = None</span>
+<span class="sd">            * If the trial label is known, it can be passed when a trial is executed. This is required for epoched input data</span>
+<span class="sd">        </span>
+<span class="sd">        poll_volatile_sources : bool, default = True</span>
+<span class="sd">            * If true, volatile sources (ie. LSL input data), will be updated. If false, the input data will not be updated</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Status Code</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; status = example_graph.execute(0, True)</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+
+<span class="sd">            SUCCESS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first ensure the block&#39;s processing graph has been verified,</span>
+        <span class="c1"># if not, verify and schedule the nodes</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span><span class="p">:</span>
+            <span class="n">executable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">executable</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">executable</span>
+
+        <span class="k">if</span> <span class="n">poll_volatile_sources</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">poll_volatile_sources</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executing trial with label: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+        
+        <span class="c1"># iterate over all the nodes and execute the kernel</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="n">sts</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">sts</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Node </span><span class="si">{}</span><span class="s2"> failed with status </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">sts</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">sts</span>
+
+        <span class="k">if</span> <span class="n">push_volatile_outputs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+<div class="viewcode-block" id="Graph.poll_volatile_sources"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.poll_volatile_sources">[docs]</a>    <span class="k">def</span> <span class="nf">poll_volatile_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Poll data (update input data) from volatile sources within the graph.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : int, default = None</span>
+<span class="sd">            - If the class label of the current trial is known, it can be passed to poll epoched data.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; example_graph.poll_volatile_data(0) # Polls next class 0 trial data </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">datum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_sources</span><span class="p">:</span>
+            <span class="n">datum</span><span class="o">.</span><span class="n">poll_volatile_data</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>    </div>
+    
+<div class="viewcode-block" id="Graph.push_volatile_outputs"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.push_volatile_outputs">[docs]</a>    <span class="k">def</span> <span class="nf">push_volatile_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push data (update output data) to volatile outputs within the graph.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : int, default = None</span>
+<span class="sd">            - If the class label of the current trial is known, it can be passed to poll epoched data.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; example_graph.poll_volatile_data(0) # Polls next class 0 trial data </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">datum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span><span class="p">:</span>
+            <span class="n">datum</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>    </div>
+
+
+<div class="viewcode-block" id="Graph.create"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Graph.create">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generic factory method for a graph</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">graph</span></div></div>
+
+
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic node object containing a kernel function</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : Graph object</span>
+<span class="sd">        - Graph where the Node object will exist</span>
+<span class="sd">    kernel : Kernel Object</span>
+<span class="sd">        - Kernel object to be used for processing within the Node</span>
+<span class="sd">    params : dict</span>
+<span class="sd">        - Dictionary of parameters outputted by kernel</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _kernel : Kernel Object</span>
+<span class="sd">        - Kernel object to be used for processing within the Node</span>
+<span class="sd">    _params : dict</span>
+<span class="sd">        - Dictionary of parameters outputted by kernel</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; Node.create(example_graph, example_kernel, example_params)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span><span class="n">kernel</span><span class="p">,</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">session</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">NODE</span><span class="p">,</span><span class="n">sess</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
+        
+    
+    <span class="c1"># API getters</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span>
+    
+<div class="viewcode-block" id="Node.extract_inputs"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Node.extract_inputs">[docs]</a>    <span class="k">def</span> <span class="nf">extract_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of all the node&#39;s inputs</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        Array</span>
+<span class="sd">            - List of inputs for the Node</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; inputs = example_node.extract_inputs()</span>
+<span class="sd">        &gt;&gt;&gt; print(inputs)</span>
+
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">direction</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">:</span>
+                <span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">inputs</span></div>
+    
+<div class="viewcode-block" id="Node.extract_outputs"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Node.extract_outputs">[docs]</a>    <span class="k">def</span> <span class="nf">extract_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of all the node&#39;s outputs</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        Array</span>
+<span class="sd">            - List of outputs for the Node</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; inputs = example_node.extract_outputs()</span>
+<span class="sd">        &gt;&gt;&gt; print(inputs)</span>
+
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">direction</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">:</span>
+                <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">outputs</span></div>
+    
+<div class="viewcode-block" id="Node.verify"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Node.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the node is executable</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Status Code</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; status = example_node.verify()</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+
+<span class="sd">            INVALID_PARAMETERS</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="Node.initialize"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Node.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the kernel function for execution</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        BCIP Status Code</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; status = example_node.initialize()</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+
+<span class="sd">            SUCCESS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="Edge"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Edge">[docs]</a><span class="k">class</span> <span class="nc">Edge</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Edge class used by BCIP block to schedule graphs. Each edge object</span>
+<span class="sd">    represents a different BCIP data object and stores the nodes that produce</span>
+<span class="sd">    and consume that data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : Data object</span>
+<span class="sd">        - The data to be stored within the Edge object</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _producers : array of Node objects</span>
+<span class="sd">        Node objects that will produce the data within the Edge object</span>
+
+<span class="sd">    _consumers : array of Node objects</span>
+<span class="sd">        Node objects that will consume the data within the Edge object</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_producers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_consumers</span> <span class="o">=</span> <span class="p">[]</span>
+        
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">producers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_producers</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">consumers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_consumers</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+
+<div class="viewcode-block" id="Edge.add_producer"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Edge.add_producer">[docs]</a>    <span class="k">def</span> <span class="nf">add_producer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">producing_node</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a specified node as a producer to an Edge object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        producing_node : Node object</span>
+<span class="sd">            Node to be added as a producer to the referenced Edge object</span>
+<span class="sd">        </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        example_edge.add_producer(example_producing_edge)</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">producers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">producing_node</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Edge.add_consumer"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Edge.add_consumer">[docs]</a>    <span class="k">def</span> <span class="nf">add_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consuming_node</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a specified node as a consumer to an Edge object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        consuming_node : Node object</span>
+<span class="sd">            Node to be added as a consumer to the referenced Edge object</span>
+<span class="sd">        </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        example_edge.add_consumer(example_consumer_edge)</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">consuming_node</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Edge.add_data"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Edge.add_data">[docs]</a>    <span class="k">def</span> <span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add specified data to an Edge object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : Tensor, Scalar, Array, Python Built-in Data Types</span>
+<span class="sd">            Data to be added to the referenced Edge object</span>
+<span class="sd">        </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        example_edge.add_data(example_data)</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../bcipy.html#bcipy.graph.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameter class can be used to abstract data types as inputs and outputs </span>
+<span class="sd">    to nodes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : any</span>
+<span class="sd">        - Reference to the data object represented by the parameter object</span>
+<span class="sd">    direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]</span>
+<span class="sd">        - Enum indicating whether this is an input-type or output-type parameter</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : any</span>
+<span class="sd">        - Reference to the data object represented by the parameter object</span>
+<span class="sd">    direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]</span>
+<span class="sd">        - Enum indicating whether this is an input-type or output-type parameter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">direction</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span> <span class="c1"># reference of the data object represented by parameter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span> <span class="c1"># enum indicating whether this is an input or output</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Nicolas Ivanov, Aaron Lio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

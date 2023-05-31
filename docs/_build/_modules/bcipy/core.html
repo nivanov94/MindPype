@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bcipy.core &mdash; bcipy 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            bcipy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Getting Started with BCIPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#basic-setup">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bcipy.html">bcipy package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">bcipy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bcipy.core</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bcipy.core</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">IntEnum</span>
+
+<div class="viewcode-block" id="BCIP"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.BCIP">[docs]</a><span class="k">class</span> <span class="nc">BCIP</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the base class for all objects used in the BCIP API.</span>
+<span class="sd">    It serves to define some attributes that will be shared across all</span>
+<span class="sd">    other objects.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bcip_type : Object type enum (int)</span>
+<span class="sd">        Indicates what type of object is being created</span>
+<span class="sd">    session : session object</span>
+<span class="sd">        The session where the object will exist</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">bcip_type</span><span class="p">,</span><span class="n">session</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bcip_type</span> <span class="o">=</span> <span class="n">bcip_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>  <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">session</span>
+    
+    <span class="c1"># API getters</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bcip_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bcip_type</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">session_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span></div>
+
+
+<div class="viewcode-block" id="BcipEnums"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.BcipEnums">[docs]</a><span class="k">class</span> <span class="nc">BcipEnums</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines a class of enums used by BCIP</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Object Type Enums - Have a leading &#39;1&#39;</span>
+    <span class="n">BCIP</span>          <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">SESSION</span>       <span class="o">=</span> <span class="mi">101</span>
+    <span class="n">GRAPH</span>         <span class="o">=</span> <span class="mi">102</span>
+    <span class="n">NODE</span>          <span class="o">=</span> <span class="mi">103</span>
+    <span class="n">KERNEL</span>        <span class="o">=</span> <span class="mi">104</span>
+    <span class="n">PARAMETER</span>     <span class="o">=</span> <span class="mi">105</span>
+    <span class="n">TENSOR</span>        <span class="o">=</span> <span class="mi">106</span>
+    <span class="n">SCALAR</span>        <span class="o">=</span> <span class="mi">107</span>
+    <span class="n">ARRAY</span>         <span class="o">=</span> <span class="mi">108</span>
+    <span class="n">CIRCLE_BUFFER</span> <span class="o">=</span> <span class="mi">109</span>
+    <span class="n">FILTER</span>        <span class="o">=</span> <span class="mi">110</span>
+    <span class="n">SRC</span>           <span class="o">=</span> <span class="mi">111</span>
+    <span class="n">CLASSIFIER</span>    <span class="o">=</span> <span class="mi">112</span>
+    
+    <span class="c1"># Status Codes - Leading &#39;2&#39;</span>
+    <span class="n">SUCCESS</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="n">FAILURE</span> <span class="o">=</span> <span class="mi">201</span>
+    <span class="n">INVALID_BLOCK</span> <span class="o">=</span> <span class="mi">202</span>
+    <span class="n">INVALID_NODE</span>  <span class="o">=</span> <span class="mi">203</span>
+    <span class="n">INVALID_PARAMETERS</span> <span class="o">=</span> <span class="mi">204</span>
+    <span class="n">EXCEED_TRIAL_LIMIT</span> <span class="o">=</span> <span class="mi">205</span>
+    <span class="n">NOT_SUPPORTED</span> <span class="o">=</span> <span class="mi">206</span>
+    <span class="n">INITIALIZATION_FAILURE</span> <span class="o">=</span> <span class="mi">207</span>
+    <span class="n">EXE_FAILURE_UNINITIALIZED</span> <span class="o">=</span> <span class="mi">208</span>
+    <span class="n">EXE_FAILURE</span> <span class="o">=</span> <span class="mi">209</span>
+    <span class="n">NOT_YET_IMPLEMENTED</span> <span class="o">=</span> <span class="mi">210</span>
+    <span class="n">INVALID_GRAPH</span> <span class="o">=</span> <span class="mi">211</span>
+    
+    <span class="c1"># Parameter Directions - Leading &#39;3&#39;</span>
+    <span class="n">INPUT</span>  <span class="o">=</span> <span class="mi">300</span>
+    <span class="n">OUTPUT</span> <span class="o">=</span> <span class="mi">301</span>
+    <span class="n">INOUT</span>  <span class="o">=</span> <span class="mi">302</span>
+    
+    <span class="c1"># Kernel Initialization types - leading &#39;4&#39;</span>
+    <span class="n">INIT_FROM_NONE</span> <span class="o">=</span> <span class="mi">400</span>
+    <span class="n">INIT_FROM_DATA</span> <span class="o">=</span> <span class="mi">401</span>
+    <span class="n">INIT_FROM_COPY</span> <span class="o">=</span> <span class="mi">402</span>
+    
+    <span class="c1"># Block graph identifiers - leading &#39;5&#39;</span>
+    <span class="n">ON_BEGIN</span> <span class="o">=</span> <span class="mi">500</span> <span class="c1"># graph executes when block begins</span>
+    <span class="n">ON_CLOSE</span> <span class="o">=</span> <span class="mi">501</span> <span class="c1"># graph executes when block ends</span>
+    <span class="n">ON_TRIAL</span> <span class="o">=</span> <span class="mi">502</span> <span class="c1"># graph executes when a new trial is recorded</span>
+    
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="Session"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session">[docs]</a><span class="k">class</span> <span class="nc">Session</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Session objects contain all other BCIP objects instances within a data</span>
+<span class="sd">    capture session.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _datum : dict</span>
+<span class="sd">        - </span>
+
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from bcipy.classes import session as S</span>
+<span class="sd">    &gt;&gt;&gt; S.session.create()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">SESSION</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="c1"># define some private attributes</span>
+        <span class="c1"># self._blocks = [] # queue of blocks to execute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trials_elapsed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<div class="viewcode-block" id="Session.verify"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.verify">[docs]</a>    <span class="k">def</span> <span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure all graphs are valid.</span>
+<span class="sd">        Execute this method prior data collection to mitigate potential</span>
+<span class="sd">        crashes due to invalid processing graph construction.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        BCIP Status Code</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; status = session.verify()</span>
+<span class="sd">        &gt;&gt;&gt; print(status)</span>
+
+<span class="sd">            SUCCESS</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Verifying session...&quot;</span><span class="p">)</span>
+        <span class="n">graph_count</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">graph</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Verifying graph </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">graph_count</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">)))</span>
+            <span class="n">verified</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            
+            <span class="k">if</span> <span class="n">verified</span> <span class="o">!=</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">return</span> <span class="n">verified</span>
+            
+            <span class="n">graph_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+<div class="viewcode-block" id="Session.initialize_graph"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.initialize_graph">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">graph</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span></div>
+
+    
+<div class="viewcode-block" id="Session.poll_volatile_channels"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.poll_volatile_channels">[docs]</a>    <span class="k">def</span> <span class="nf">poll_volatile_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the contents of all volatile data streams</span>
+<span class="sd">        </span>
+<span class="sd">        TODO - may need to add an input parameter with some timing information</span>
+<span class="sd">        to indicate how each data object should be synced</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">volatile</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">poll_volatile_data</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="Session.push_volatile_outputs"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.push_volatile_outputs">[docs]</a>    <span class="k">def</span> <span class="nf">push_volatile_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push outputs to volatile sources</span>
+<span class="sd">        &quot;&quot;&quot;</span> 
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">volatile_out</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Session.execute_trial"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.execute_trial">[docs]</a>    <span class="k">def</span> <span class="nf">execute_trial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">label</span><span class="p">,</span><span class="n">graph</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute a trial</span>
+<span class="sd">        First updates all volatile input channels</span>
+<span class="sd">        Then executes current block</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executing trial with label: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">poll_volatile_channels</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="c1">#sts = self.current_block.process_trial(label, graph)</span>
+        <span class="n">sts</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sts</span></div>
+    
+<div class="viewcode-block" id="Session.reject_trial"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.reject_trial">[docs]</a>    <span class="k">def</span> <span class="nf">reject_trial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reject the previous trial and reset the block trial counters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_block</span><span class="o">.</span><span class="n">reject_trial</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="Session.add_graph"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_graph">[docs]</a>    <span class="k">def</span> <span class="nf">add_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Session.add_data"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_data">[docs]</a>    <span class="k">def</span> <span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span></div>
+        
+<div class="viewcode-block" id="Session.add_misc_bcip_obj"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_misc_bcip_obj">[docs]</a>    <span class="k">def</span> <span class="nf">add_misc_bcip_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">obj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span></div>
+        
+<div class="viewcode-block" id="Session.add_ext_src"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_ext_src">[docs]</a>    <span class="k">def</span> <span class="nf">add_ext_src</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span></div>
+        
+<div class="viewcode-block" id="Session.add_ext_out"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.add_ext_out">[docs]</a>    <span class="k">def</span> <span class="nf">add_ext_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">src</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span></div>
+    
+<div class="viewcode-block" id="Session.find_obj"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.find_obj">[docs]</a>    <span class="k">def</span> <span class="nf">find_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">id_num</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Search for and return a BCIP object within the session with a</span>
+<span class="sd">        specific ID number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># check if the ID is the session itself</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        
+        <span class="c1"># check if its a data obj</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">id_num</span><span class="p">]</span>
+        
+        <span class="c1"># check if its a misc obj</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span><span class="p">[</span><span class="n">id_num</span><span class="p">]</span>
+        
+        <span class="c1"># check if its a external source</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span><span class="p">[</span><span class="n">id_num</span><span class="p">]</span>
+        
+        <span class="c1"># not found, return None type</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+    
+<div class="viewcode-block" id="Session.create"><a class="viewcode-back" href="../../bcipy.html#bcipy.core.Session.create">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Nicolas Ivanov, Aaron Lio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
