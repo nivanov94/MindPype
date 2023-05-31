@@ -25,7 +25,6 @@ release = '0.1'
 
 extensions = [
     "sphinx.ext.napoleon",
-    'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
     'sphinx.ext.githubpages'
