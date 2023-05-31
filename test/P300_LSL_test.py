@@ -9,7 +9,7 @@ import sys, os
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
-from .. import bcipy
+from bcipy import bcipy
 import numpy as np
 import pylsl
 import re
@@ -37,10 +37,10 @@ def main():
     bandpass = (8,35) # in Hz
     f = bcipy.Filter.create_butter(sess,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
 
-    channels = tuple([_ for _ in range(0,32)])
+    channels = tuple([_ for _ in range(3,17)])
 
     # Data sources from LSL
-    LSL_data_src = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(sess, "type='EEG'", channels, relative_start=-0.2, marker_fmt='flash$|target$')
+    LSL_data_src = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(sess, 'type="EEG"', channels, relative_start=-0.2, marker_fmt='flash$|target$')
     
     marker_streams = pylsl.resolve_bypred("type='Markers'")
     marker_inlet2 = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
@@ -48,14 +48,14 @@ def main():
     marker_pattern = re.compile('flash$|target$')
 
 
-    LSL_data_out = bcipy.source.OutputLSLStream.create_outlet(sess, "type='label'", channels, 32, Fs, 'float32')
+    LSL_data_out = bcipy.source.OutputLSLStream.create_outlet(sess, "Outputs", 'type="Markers"', 14, Fs, 'float32')
     
     # Data sources from MAT files
-    LSL_data_src = bcipy.source.V2LSLStream.create_marker_coupled_data_stream(sess, "type='EEG'", channels, relative_start=-0.4, marker_fmt='flash$|target$')
+    LSL_data_src = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(sess, "type='EEG'", channels, relative_start=-0.4, marker_fmt='flash$|target$')
 
-    offline_data_src = bcipy.source.BcipContinuousMat.create_continuous(sess,
+    """offline_data_src = bcipy.source.BcipContinuousMat.create_continuous(sess,
             '../data/p300_offline.mat', Fs*trial_len, relative_start=0, channels=channels,
-            mat_data_var_name='EEG', mat_labels_var_name='labels')
+            mat_data_var_name='EEG', mat_labels_var_name='labels')"""
 
     online_input_data = bcipy.Tensor.create_from_handle(sess, (len(channels), 700), LSL_data_src)
     training_input_data = bcipy.Tensor.create_from_data(sess, (len(channels), 700), LSL_data_src)

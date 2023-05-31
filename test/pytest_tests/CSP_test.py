@@ -7,7 +7,6 @@ Created on Tues Aug 9th 14:04:39 2022
 # For debugging 
 import sys, os
 
-from django.test import TestCase
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing

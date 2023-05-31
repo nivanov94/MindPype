@@ -26,11 +26,17 @@ Finally, self.output_num defines the number of outputs for a particular node
 
 import warnings
 from math import atan2, cos, pi, sin
+import json
 
-from PySide2.QtWidgets import *
-from PySide2.QtGui import *
-from PySide2.QtCore import *
+#from PySide6.QtWidgets import *
+#from PySide6.QtGui import *
+#from PySide6.QtCore import *
+
 import sys
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
+
 
 from numpy import isin
 
@@ -42,10 +48,11 @@ class mwindow(QMainWindow):
 
         self.setWindowTitle("BCIPY Graph Builder")
         self.setGeometry(300,200,640,520)
+        self.setMinimumSize(200,200)
         
         # Initial Object options available for users to create
         self.data = {
-            'Filter' : ['Butterworth', 'Chebyshev Type-I', 'Chebyshev Type-II' 'Elliptic', 'Bessel'],
+            'Filter' : ['Butterworth', 'Chebyshev Type-I', 'Chebyshev Type-II', 'Elliptic', 'Bessel'],
             'Classifier': ['LDA', 'SVM', 'Logistic Regression', 'Custom'],
             'Simple Operations': ['Add', 'Subtract', 'Multiply', 'Divide', 'Absolute', 'Mean', 'Log', 'Min', 'Max', 'Standard Deviation', 'Var', 'Threshold'],
             'Riemann Operations' : ['Riemann Distance', 'Riemann Mean', 'Riemann MDM Classifier'],
@@ -304,7 +311,7 @@ class mwindow(QMainWindow):
                         {
                             'Shape': str
                         }, 
-                    'Generic Tensor': 
+                    'Non-Virtual Tensor': 
                         {
                             'Shape': str
                         }
@@ -357,7 +364,7 @@ class mwindow(QMainWindow):
                         }
                 },
             
-            'Scalar':{'Scalar From Value': {'Value': int}, 'Scalar From Handle': {'Data Type': str, 'Handle': str}, 'Virtual Scalar': {'Data Type': str}, 'Generic Scalar': {'Data Type': str}},
+            'Scalar':{'Scalar From Value': {'Value': int}, 'Scalar From Handle': {'Data Type': str, 'Handle': str}, 'Virtual Scalar': {'Data Type': str}, 'Non-Virtual Scalar': {'Data Type': str}},
             
             'Array': {'Generic Array': {'Capacity': int, 'Element Template': str}, 'Circle Buffer': {'Capacity': int, 'Element Template': str}}
         }
@@ -381,7 +388,7 @@ class mwindow(QMainWindow):
         }
 
 
-        self.edges = {}
+        self.edges = {0: ''}
 
         self.user_params = []
         
@@ -396,6 +403,9 @@ class mwindow(QMainWindow):
         self.cancel_dialog.clicked.connect(lambda: UIFunctions.reset_dialog(self))
         self.ok_dialog.clicked.connect(lambda: UIFunctions.confirm_dialog(self))
         self.compile_button.clicked.connect(lambda: UIFunctions.compile_graph(self))
+        #self.export_graph.clicked.connect(lambda: UIFunctions.export_graph(self))
+        #self.load_graph.clicked.connect(lambda: UIFunctions.load_graph(self))
+
         
         # Removed trial/class setting window since blocks are no longer used
         """# self.compiler_window_button_box.button(QDialogButtonBox.Save).clicked.connect(lambda: UIFunctions.set_trials_layout(self))
@@ -465,10 +475,14 @@ class mwindow(QMainWindow):
         self.button_layout.addWidget(self.add_Button)
 
         self.compile_button = QPushButton('Compile')
+        #self.load_graph = QPushButton('Load')
+        #self.export_graph = QPushButton('Export')
         
 
         self.main_layout.addWidget(self.view)
         self.main_layout.addWidget(self.right_widget)
+        #self.right_side.addWidget(self.load_graph)
+        #self.right_side.addWidget(self.export_graph)
         self.right_side.addWidget(self.compile_button)
 
         #Property Setter Dialog Layout
@@ -876,44 +890,147 @@ class UIFunctions(mwindow):
             # Iterate through all nodes, if it is an edge, create an entry in an edges dictionary {self.edge_num: edge_in_library}
             # Need to check whether the producing node has multiple output edges
                 # Since some nodes will have multiple control points, need to check whether the multiple control multiple have output edges
-                
+        
+        sample_starting_node = None
         
         for item in self.scene.items():
             edge_count = 0
             if isinstance(item, Node):
                 if item.node_type in ['Tensor', 'Array', 'Scalar', 'Input Data']:
                     item.edge_num = edge_count
-                    self.edges[edge_count] == f't[{edge_count}]'
+                    self.edges[edge_count] = f't[{edge_count}]'
                     edge_count += 1
                 else:
                     sample_starting_node = item
                     break
-                
-        scheduled_nodes = self.recurse_nodes(sample_starting_node, scheduled_nodes)
+        
+        scheduled_nodes = []
+        if sample_starting_node is None or scheduled_nodes is None:
+            QMessageBox.warning(self, 'Error', 'No Nodes in Graph')
 
-        print('\n')
+        else:
+            scheduled_nodes = UIFunctions.recurse_nodes(self, sample_starting_node, scheduled_nodes)
+            print(f'{scheduled_nodes}\n')
+
+        UIFunctions.generate_code(self, scheduled_nodes, f)
+
+    def generate_code(mwindow, scheduled_nodes, f):
+        for node in scheduled_nodes:
+            print(node.kernel_type)
+
+
+    def export_graph(self):
+
+        # TODO: Try importing ini file on Qt Designer to see whether the compilation issues 
+        # are an issue with saving or loading
+        
+        name = QFileDialog.getSaveFileName(self, qApp.tr('Save File'), "", "INI Files (*.ini)")    
+        if name[0] == '':
+            return
+
+        settings = QSettings(name[0], QSettings.IniFormat)
+        
+        
+        for w in qApp.allWidgets():
+            mo = w.metaObject()
+            for i in range(mo.propertyCount()):
+                prop = mo.property(i)
+                name = prop.name()
+                key = "{}/{}".format(w.objectName(), name)
+                if prop.isValid() and prop.isWritable():
+                    settings.setValue(key, w.property(name))
+
+
+    def load_graph(self):
+
+        #TODO: Get Loading Working
+        name = QFileDialog.getOpenFileName(self, qApp.tr('Open File'), "", "INI Files (*.ini)")       
+        
+        if name[0] == '':
+            return
+        
+        settings = QSettings(name[0], QSettings.IniFormat)
+        
+        all_widgets = qApp.allWidgets()
+
+        #all_widgets = qApp.allWidgets()
+        
+
+        finfo = QFileInfo(name[0])
+        if finfo.exists() and finfo.isFile():
+
+            for w in all_widgets:
+                print(w)
+                mo = w.metaObject()
+
+                for i in range(mo.propertyCount()):
+                    prop = mo.property(i)
+                    name = prop.name()
+                    last_value = w.property(name)
+                    key = "{}/{}".format(w.objectName(), name)
+                    if not settings.contains(key):
+                        continue
+                    val = settings.value(key, type=type(last_value),)
+                    if (
+                        val != last_value
+                        and prop.isValid()
+                        and prop.isWritable()
+                    ):
+                        w.setProperty(name, val)
+                    
+                    """
+                    try:
+                        prop = mo.property(i)
+                        name = prop.name()
+                        last_value = w.property(name)
+                        print(last_value)
+                        key = "{}/{}".format(w.objectName(), name)
+                        val = settings.value(key, type=type(last_value))
+                        w.setProperty(name, val)
+
+                    except Exception as e:
+                        print(e)
+                        """
+
 
     def recurse_nodes(self, node, scheduled_nodes):
         # start at top node --> append to list of scheduled nodes
         # recurse down nodes
-        if node.top_point.lines == []:
+        
+        # move up nodes until top node is reached
+        producers = [node.top_points[point].lines != [] for point in range(len(node.top_points))]
+        
+        if True in producers:
+            true_index = producers.index(True)
+            if node.top_points and len(node.top_points[true_index].lines) > 0:
+                true_index = producers.index(True)
+                print(true_index, len(node.top_points))
+                while len(node.top_points) > 0 and len(node.top_points[true_index].lines) > 0 and \
+                    node.top_points[true_index].lines[0].start.parent not in scheduled_nodes \
+                        and True in producers:
+                    print("Current Node: ", node.kernel_type)
+                    node = node.top_points[true_index].lines[0].start.parent
+                    producers = [node.top_points[point].lines != [] for point in range(len(node.top_points))]
+                    
+
+                print("TOP NODE: ", node.kernel_type)
+                scheduled_nodes.append(node)
+
+            
+            if node.bot_points[0].lines == []:
+                print("BOTTOM NODE: ", node.kernel_type)
+                return scheduled_nodes
+            
+            else:
+                print("HERE")
+                return UIFunctions.recurse_nodes(self, node.bot_points[0].lines[0].end.parent, scheduled_nodes)
+
+        elif node not in scheduled_nodes:
             scheduled_nodes.append(node)
             return scheduled_nodes
-        
-        elif node.top_point.lines[0].start in scheduled_nodes or node.top_point.lines[0].end in scheduled_nodes:
-            scheduled_nodes.append(node)
-            consumer = node.bot_point.lines[0].start
 
         else:
-            producer = node.top_point.lines[0].start
-            if producer == node:
-                producer = node.top_point.lines[0].end
-            scheduled_nodes = self.recurse_nodes(producer, scheduled_nodes)
-            
-
-        pass
-        
-
+            return scheduled_nodes
 
 class Node(QGraphicsPolygonItem):
     def __init__(self, scene, node_type, kernel_type, params):
@@ -945,6 +1062,7 @@ class Node(QGraphicsPolygonItem):
     
     def set_controls(self):
 
+        
         for sublist in self._scene.input_num.values():
             if self.kernel_type in sublist:
                 in_index = list(self._scene.input_num.values()).index(sublist)
@@ -1104,27 +1222,27 @@ class Node(QGraphicsPolygonItem):
                 {
                     'Butterworth': 
                         {
-                            'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                            'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                             'Colour': 'light blue'
                             },
                     'Chebyshev Type-I':
                         {
-                            'Shape': QPolygon([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
+                            'Shape': QPolygonF([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
                             'Colour': 'light green'
                         },
-                    'Chebyshev Type-I':
+                    'Chebyshev Type-II':
                         {
-                            'Shape': QPolygon([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
+                            'Shape': QPolygonF([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
                             'Colour': 'light green'
                         },
                     'Elliptic':
                         {
-                            'Shape': QPolygon([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
+                            'Shape': QPolygonF([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
                             'Colour': 'green'
                         },
                     'Bessel':
                         {
-                            'Shape': QPolygon([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
+                            'Shape': QPolygonF([QPoint(80,40), QPoint(80,0), QPoint(40,0), QPoint(40,40)]),
                             'Colour': 'light green'
                         },
 
@@ -1134,24 +1252,24 @@ class Node(QGraphicsPolygonItem):
                 {
                     'LDA':
                     {
-                        'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                        'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                         'Colour': 'orange'
                     },
                     'SVM':
                     {
-                        'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                        'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                         'Colour': 'orange'
                     },
 
                     'Logistic Regression':
                     {
-                        'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                        'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                         'Colour': 'orange'
                     },
 
                     'Custom':
                     {
-                        'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                        'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                         'Colour': 'orange'
                     },
                     
@@ -1161,51 +1279,51 @@ class Node(QGraphicsPolygonItem):
                 {
                     'Add':
                     {
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Subtract':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Divide':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Multiply':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Absolute':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Mean':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Log':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Min':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Max':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Standard Deviation':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Var':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                     'Threshold':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'yellow'
                     },
                 },
@@ -1213,15 +1331,15 @@ class Node(QGraphicsPolygonItem):
             'Riemann Operations':
                 {
                     'Riemann Distance':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'purple'
                     },
                     'Riemann Mean':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'purple'
                     },
                     'Riemann MDM Classifier':{
-                        'Shape': QPolygon([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
+                        'Shape': QPolygonF([QPoint(0,40), QPoint(0,0), QPoint(40,0), QPoint(40,40)]),
                         'Colour': 'purple'
                     },
                 },
@@ -1230,66 +1348,66 @@ class Node(QGraphicsPolygonItem):
                 {
                     'CDF':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'CSP':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'Feature_normalization':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'Covariance':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'Reduced Sum': 
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'Tangent Space':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'Running Average':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'XDawn Covariances':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }, 
                     'Z Score':
                         {
-                            'Shape': QPolygon([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
+                            'Shape': QPolygonF([QPoint(20,0), QPoint(0,20), QPoint(20,40), QPoint(40,20)]),
                             'Colour': 'light yellow'
                         }
                 },
             
             'Logical' : 
                 {
-                    'And':{'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                    'And':{'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'},
-                    'Or':{'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                    'Or':{'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'}, 
-                    'Xor':{'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                    'Xor':{'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'},
-                    'Not':{'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                    'Not':{'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'}, 
-                    'Equal':{'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                    'Equal':{'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'}, 
-                    'Greater Than':{'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                    'Greater Than':{'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'}, 
-                    'Less Than':{'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                    'Less Than':{'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'},
                 },
 
@@ -1297,35 +1415,35 @@ class Node(QGraphicsPolygonItem):
                 {
                     'Extract':
                         {
-                           'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                           'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'cyan'
                         },
-                    'Concatenate':{'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                    'Concatenate':{'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'cyan'},
-                    'Set Data':{'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                    'Set Data':{'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'cyan'}, 
-                    'Stack':{'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                    'Stack':{'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'cyan'}, 
-                    'Transpose':{r'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                    'Transpose':{'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'cyan'},
                 },
             'Tensor':
                 {
                     'Tensor From Data':
                     {
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'yellow'
                     },
                     'Tensor From Handle':{
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'yellow'
                     },
                     'Virtual Tensor':{
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'yellow'
                     },
-                    'Generic Tensor':{
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                    'Non-Virtual Tensor':{
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'yellow'
                     }
                 },
@@ -1334,19 +1452,19 @@ class Node(QGraphicsPolygonItem):
                 {
                     'Scalar From Value':
                     {
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'purple'
                     },
                     'Scalar From Handle':{
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'magenta'
                     },
                     'Virtual Scalar':{
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'cyan'
                     },
-                    'Generic Scalar':{
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                    'Non-Virtual Scalar':{
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'gray'
                     }
                 },
@@ -1355,25 +1473,25 @@ class Node(QGraphicsPolygonItem):
                 {
                     'Lab Streaming Layer Input':
                     {
-                        'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'pink'
                     },
 
                     'Epoched MAT File':
                     {
-                        'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'
                     },
 
                     'Continuous MAT File':
                     {
-                        'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'
                     },
 
                     'Class Separated MAT File':
                     {
-                        'Shape': QPolygon([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'light red'
                     }
                 },
@@ -1382,11 +1500,11 @@ class Node(QGraphicsPolygonItem):
                 {
                     'Generic Array':
                     {
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'yellow'
                     },
                     'Circle Buffer':{
-                        'Shape': QPolygon([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
+                        'Shape': QPolygonF([QPoint(20,-40), QPoint(0,0), QPoint(40,0)]),
                         'Colour': 'yellow'
                     }
                 },

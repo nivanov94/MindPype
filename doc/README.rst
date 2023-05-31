@@ -21,16 +21,27 @@ Consider the above example. BCIPy has opted to model processing pipelines as *ac
 operations modeled as nodes within the graph, that contain kernels (or specific operations, ie. Add). Each node within the graph
 is connected by edges, or data storage objects created to serve as inputs and outputs as nodes within the graph. 
 
+<<<<<<< Updated upstream:doc/README.rst
 .. .. image:: _static/Graph.PNG
 ..    :target: _static/Graph.PNG
 ..    :align: center
+=======
+.. image:: ../_build/html/_static/Graph.PNG
+    :target: ../_build/html/_static/Graph.PNG
+    :align: center
+>>>>>>> Stashed changes:docs/README.rst
 
 There are other important aspects of the graph, including a data source (a class within BCIPy). Filters/Classifiers are special types of kernels that
 are so frequently used that they were made into their own objects, but still operate within kernels (more on this in the docs). As such, 
 BCIPy's structure resembles this directed-graph-processing-pipeline model.
 
+<<<<<<< Updated upstream:doc/README.rst
 .. .. image:: _static/BCIPY_Structure.PNG
 ..    :target: _static/BCIPY_Structure.PNG
+=======
+.. image:: ../_build/html/_static/BCIPY_Structure.PNG
+    :target: ../_build/html/_static/BCIPY_Structure.PNG
+>>>>>>> Stashed changes:docs/README.rst
 
 
 

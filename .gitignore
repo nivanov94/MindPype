@@ -36,5 +36,11 @@ dist/
 test.py
 BcipyGUI/
 
+<<<<<<< Updated upstream
 # build files
 _build/
+=======
+
+#build info
+_build/
+>>>>>>> Stashed changes
