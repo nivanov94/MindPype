@@ -31,10 +31,14 @@ extensions = [
     'sphinx.ext.githubpages'
 ]
 
+templates_path = ['_templates']
+
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 language = 'en'
 
+source_suffix = ['.rst']
+master_doc = 'index'
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -48,3 +52,5 @@ todo_include_todos = True
 napoleon_strip_signature_backslash = True
 autodoc_strip_signature_backslash = True
 strip_signature_backslash = True
+
+pygments_style = 'sphinx'
