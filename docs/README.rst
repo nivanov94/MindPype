@@ -22,7 +22,7 @@ operations modeled as nodes within the graph, that contain kernels (or specific 
 is connected by edges, or data storage objects created to serve as inputs and outputs as nodes within the graph. 
 
 .. image:: _static/Graph.png
-    :target: ../_build/html/README.html
+    :target: _static/Graph.png
     :align: center
 
 There are other important aspects of the graph, including a data source (a class within BCIPy). Filters/Classifiers are special types of kernels that
@@ -30,7 +30,7 @@ are so frequently used that they were made into their own objects, but still ope
 BCIPy's structure resembles this directed-graph-processing-pipeline model.
 
 .. image:: _static/BCIPY_Structure.png
-    :target: ../_build/html/README.html
+    :target: _static/BCIPY_Structure.png
 
 
 

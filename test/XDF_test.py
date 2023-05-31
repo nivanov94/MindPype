@@ -87,8 +87,9 @@ sel_chs = ('FCz',
                'F8'
               )
 
-if __name__ == '__main__':
-    
+def main():    
     channels = [ch_map[ch] for ch in sel_chs]
     tasks = ('flash', 'target')
     trial_data = XDF_test(['C:/Users/lioa/Documents/Mindset P300 Code for Aaron/sub-P001_ses-S001_task-vP300+2x2_run-003.xdf'], tasks, channels, -.2, 500)
+
+main()

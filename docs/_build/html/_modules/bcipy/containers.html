@@ -131,7 +131,7 @@
 
     <span class="n">_valid_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">value_type</span><span class="p">,</span><span class="n">val</span><span class="p">,</span><span class="n">is_virtual</span><span class="p">,</span><span class="n">ext_src</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">value_type</span><span class="p">,</span><span class="n">val</span><span class="p">,</span><span class="n">is_virtual</span><span class="p">,</span><span class="n">ext_src</span><span class="p">,</span> <span class="n">ext_out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">SCALAR</span><span class="p">,</span><span class="n">sess</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data_type</span> <span class="o">=</span> <span class="n">value_type</span>
 
@@ -149,7 +149,7 @@
             <span class="k">elif</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="kc">False</span>
         
-        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span> <span class="o">=</span> <span class="n">ext_out</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">val</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_virtual</span> <span class="o">=</span> <span class="n">is_virtual</span>        
@@ -157,11 +157,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">ext_out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span> <span class="o">=</span> <span class="kc">True</span>
             
     <span class="c1"># API Getters</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volatile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volatile_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">virtual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -179,7 +188,10 @@
     <span class="k">def</span> <span class="nf">ext_src</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_src</span>
     
-    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ext_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span>
+
     <span class="c1"># API Setters</span>
     <span class="nd">@data</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
@@ -245,7 +257,8 @@
                      <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
                      <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
                      <span class="bp">self</span><span class="o">.</span><span class="n">virtual</span><span class="p">,</span>
-                     <span class="bp">self</span><span class="o">.</span><span class="n">ext_src</span><span class="p">)</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">ext_src</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">ext_out</span><span class="p">)</span>
         
         <span class="c1"># add the copy to the session</span>
         <span class="n">sess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span>
@@ -298,13 +311,21 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="c1"># check if the data is actually volatile, if not just return</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_voltatile</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">volatile</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext_src</span><span class="o">.</span><span class="n">poll_data</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
         
+<div class="viewcode-block" id="Scalar.push_volatile_outputs"><a class="viewcode-back" href="../../bcipy.html#bcipy.containers.Scalar.push_volatile_outputs">[docs]</a>    <span class="k">def</span> <span class="nf">push_volatile_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">volatile_out</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">ext_out</span><span class="o">.</span><span class="n">push_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
     
 <div class="viewcode-block" id="Scalar.valid_numeric_types"><a class="viewcode-back" href="../../bcipy.html#bcipy.containers.Scalar.valid_numeric_types">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">valid_numeric_types</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
@@ -484,13 +505,17 @@
 
 <span class="sd">    ext_src : BCIPy input Source</span>
 <span class="sd">        - Data source the tensor pulls data from (only applies to Tensors created from a handle)</span>
+
+<span class="sd">    ext_out : BCIPy output Source</span>
+<span class="sd">        - Data source the tensor pushes data to (only applies to Tensors created from a handle)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">shape</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">is_virtual</span><span class="p">,</span><span class="n">ext_src</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">shape</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">is_virtual</span><span class="p">,</span><span class="n">ext_src</span><span class="p">,</span> <span class="n">ext_out</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">,</span><span class="n">sess</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_virtual</span> <span class="o">=</span> <span class="n">is_virtual</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ext_src</span> <span class="o">=</span> <span class="n">ext_src</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span> <span class="o">=</span> <span class="n">ext_out</span>
         
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
@@ -501,6 +526,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span> <span class="o">=</span> <span class="kc">True</span>
+            
+        <span class="k">if</span> <span class="n">ext_out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span> <span class="o">=</span> <span class="kc">True</span>
     
     <span class="c1"># API Getters</span>
     <span class="nd">@property</span>
@@ -520,8 +550,16 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span>
     
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volatile_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ext_src</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_src</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ext_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span>
     
     <span class="c1">#API setters</span>
     <span class="nd">@data</span><span class="o">.</span><span class="n">setter</span>
@@ -561,8 +599,7 @@
             <span class="c1"># when changing the shape write a zero tensor to data</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot change shape of non-virtual tensor&quot;</span><span class="p">)</span>
-            
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot change shape of non-virtual tensor&quot;</span><span class="p">)</span> 
             
 <div class="viewcode-block" id="Tensor.make_copy"><a class="viewcode-back" href="../../bcipy.html#bcipy.containers.Tensor.make_copy">[docs]</a>    <span class="k">def</span> <span class="nf">make_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -620,6 +657,20 @@
         <span class="c1"># set the data </span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
         
+        <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
+    
+<div class="viewcode-block" id="Tensor.push_volatile_outputs"><a class="viewcode-back" href="../../bcipy.html#bcipy.containers.Tensor.push_volatile_outputs">[docs]</a>    <span class="k">def</span> <span class="nf">push_volatile_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push data to external sources.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># check if the output is actually volatile, if not just return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">volatile_out</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span>
+        
+        <span class="c1"># push the data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ext_out</span><span class="o">.</span><span class="n">push_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span></div>
     
     <span class="c1"># Factory Methods</span>
@@ -719,6 +770,9 @@
         <span class="n">sess</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">t</span></div>
     
+<div class="viewcode-block" id="Tensor.create_for_volatile_output"><a class="viewcode-back" href="../../bcipy.html#bcipy.containers.Tensor.create_for_volatile_output">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_for_volatile_output</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="n">shape</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="n">out</span><span class="p">)</span></div>
     
     <span class="c1"># utility static methods</span>
 <div class="viewcode-block" id="Tensor.validate_data"><a class="viewcode-back" href="../../bcipy.html#bcipy.containers.Tensor.validate_data">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -734,8 +788,6 @@
             
         <span class="k">return</span> <span class="kc">True</span></div></div>
  
-
-
 
 <div class="viewcode-block" id="Array"><a class="viewcode-back" href="../../bcipy.html#bcipy.containers.Array">[docs]</a><span class="k">class</span> <span class="nc">Array</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -776,6 +828,7 @@
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_virtual</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># no virtual arrays for now</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># no volatile arrays for now...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># no volatile arrays for now...</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_capacity</span> <span class="o">=</span> <span class="n">capacity</span>
         
@@ -860,6 +913,10 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volatile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volatile_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_out</span>
     
     <span class="nd">@capacity</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">capacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">capacity</span><span class="p">):</span>

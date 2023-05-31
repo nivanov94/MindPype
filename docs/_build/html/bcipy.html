@@ -308,7 +308,7 @@ If we pass in a generic classifier obejct, should be able to execute standard sk
 <li><p class="linemarker linemarker-7">The name of the classifier to be created</p></li>
 </ul>
 </p></li>
-<li><p><strong>classifier</strong> (<em>Classifier object</em>) – <ul>
+<li><p><strong>classifier</strong> (<em>BCIPy Classifier object</em>) – <ul>
 <li><p class="linemarker linemarker-10">The classifier object to be used within the node (should be the return from a BCIP kernel)</p></li>
 </ul>
 </p></li>
@@ -463,7 +463,15 @@ if ‘auto’, uses 1 / n_features.</p>
 <dt class="sig sig-object py" id="bcipy.classifier.Classifier.create_custom_classifier">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_custom_classifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classifier_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bcipy/classifier.html#Classifier.create_custom_classifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bcipy.classifier.Classifier.create_custom_classifier" title="Permalink to this definition"></a></dt>
 <dd><p class="linemarker linemarker-1">Factory method to create a generic BCIP Classifier object.</p>
-<p class="linemarker linemarker-3">Parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sess</strong> (<em>BCIP Session Object</em>) – The BCIP Session object to which the classifier will be added.</p></li>
+<li><p><strong>classifier_object</strong> (<em>BCIP Classifier object</em>) – The classifier object to be added to the BCIP Session.</p></li>
+<li><p><strong>classifier_type</strong> (<em>str</em>) – The type of classifier to be added to the BCIP Session.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -2311,7 +2319,7 @@ Individual nodes, or processing steps, are added to the graph to create the pipe
 <p class="linemarker linemarker-9">example_graph.add_node(example_node)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None</p>
+<dd class="field-odd"><p>BcipEnums Status Code</p>
 </dd>
 </dl>
 </dd></dl>

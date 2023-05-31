@@ -6,11 +6,11 @@ Created on Tues July 26 16:12:30 2022
 """
 
 # Create a simple graph for testing
-from .. import bcipy
+from bcipy import bcipy
 import numpy as np
 import pylsl
 import re
-
+import time
 
 def main():
     # create a session
@@ -19,7 +19,7 @@ def main():
     training_graph = bcipy.Graph.create(sess)
 
     online_graph = bcipy.Graph.create(sess)
-    training_trials = 10      
+    training_trials = 6          
 
     Fs = 128    
     resample_fs = 50
@@ -103,7 +103,7 @@ def main():
         print("Training verification failed")
         return sts
 
-    
+    print("Training graph verified successfully")
 
 
     verify_sts = online_graph.verify()
@@ -130,7 +130,9 @@ def main():
         while inlet_marker == None or marker_pattern.search(inlet_marker[0]) == None:
             inlet_marker, _ = marker_inlet2.pull_sample(timeout=0.1)
         true_label.data = label_conv[marker_pattern.search(inlet_marker[0]).group(0)]
+        now = time.time()
         sts = training_graph.execute(true_label.data)
+        print("This trial took: ", time.time() - now)
         if sts == bcipy.BcipEnums.SUCCESS:
             print(f"Training Trial{t_num+1} Complete")
         else:
@@ -144,7 +146,9 @@ def main():
     
     t_num=0
     while True:
+        now = time.time()
         sts = online_graph.execute()
+        print("This trial took: ", time.time() - now)                                             
         if sts == bcipy.BcipEnums.SUCCESS:
             # print the value of the most recent trial
             y_bar = online_output_data.data

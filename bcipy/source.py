@@ -554,7 +554,6 @@ class BcipXDF(BCIP):
                     elif stream['info']['type'][0] == 'EEG':
                         eeg_stream = stream
                 
-                Fs = int(float(eeg_stream['info']['nominal_srate'][0]))
                     
                 sample_indices = np.full(eeg_stream['time_stamps'].shape, False) # used to extract EEG samples, pre-allocated here
     
@@ -669,6 +668,23 @@ class BcipXDF(BCIP):
             self.label_counter[label] += 1
             return sample_data
     
+    def load_into_tensor(self):
+        """
+        Loads entirity of BCIPXDF data object into a tensor.
+        Returns two BCIPy Tensor objects; one containing the data and the other containing the labels.
+        """
+        if self.trial_data and self.mode == 'continuous':
+            ret = Tensor.create_from_data(self.session, self.trial_data['EEG']['time_series'].shape, self.trial_data['EEG']['time_series'])
+            ret_labels = Tensor.create_from_data(self.session, self.trial_data['Markers'].shape, self.trial_data['Markers'])
+
+        elif self.trial_data and self.mode == 'epoched':
+            labels = []
+            for task in list(self.trial_data.keys()):
+                labels.append(task)
+
+            ret = Tensor.create_from_data(self.session, self.trial_data.shape, self.trial_data)
+            ret_labels = Tensor.create_from_data(self.session, self.trial_data.shape, self.trial_data)
+
     @classmethod
     def create_continuous(cls, sess, files, tasks, channels, relative_start = 0, Ns = 1):
         """

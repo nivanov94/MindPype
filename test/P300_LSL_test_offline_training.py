@@ -23,7 +23,7 @@ def main(file):
     tasks = ('non-target', 'target')
     resample_fs = 50
 
-
+    
     # create a filter
     order = 4
     bandpass = (1,25) # in Hz
@@ -32,11 +32,12 @@ def main(file):
     channels = tuple([_ for _ in range(3,17)])
 
     # Data sources from LSL
+    print("Session Starting...")
     LSL_data_src = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(sess, "type='EEG'", channels, relative_start=-0.4, marker_fmt='.*flash', marker_pred="type='Marker'")
-
+    
     # training data sources from XDF file
     offline_data_src = bcipy.source.BcipXDF.create_continuous(sess,
-            [file], 
+            file, 
             tasks, channels=channels, relative_start=-.4, Ns = np.ceil(Fs*trial_len)) 
 
     # Create input tensors
@@ -178,5 +179,11 @@ def main(file):
     print("Test Passed =D")
 
 if __name__ == "__main__":
-    file = r"C:\Users\lioa\Documents\Mindset_Data\data\sub-P001\sourcedata\sub-P001_ses-S001_task-vP300+2x2_run-003.xdf"
-    main(file)
+    files = ["C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S001_task-vP300+2x2_run-001.xdf",
+            "C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S001_task-vP300+2x2_run-002.xdf",
+            "C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S001_task-vP300+2x2_run-003.xdf",
+            "C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S001_task-vP300+2x2_run-004.xdf",
+            "C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S001_task-vP300+2x2_run-005.xdf",
+            "C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S001_task-vP300+2x2_run-006.xdf"]
+    #files = "C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S001_task-vP300+2x2_run-006.xdf"
+    main(files)
