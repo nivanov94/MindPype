@@ -93,47 +93,47 @@
              
   <section id="getting-started-with-bcipy">
 <h1>Getting Started with BCIPy<a class="headerlink" href="#getting-started-with-bcipy" title="Permalink to this heading"></a></h1>
-<p class="linemarker linemarker-4"><strong>BCIPy</strong> is a Python-based software library designed for BCI researchers and developers that greatly simplifies the design and development of BCI data processing pipelines.
+<p><strong>BCIPy</strong> is a Python-based software library designed for BCI researchers and developers that greatly simplifies the design and development of BCI data processing pipelines.
 Users can create and implement custom processing pipelines to use alongside new or existing BCI interfaces.</p>
 </section>
 <section id="setup-guide">
 <h1>Setup Guide<a class="headerlink" href="#setup-guide" title="Permalink to this heading"></a></h1>
-<p class="linemarker linemarker-9">Installing <em>pip</em> (Python Package Manager) is the first step to using BCIPy. &#64;NICK this is for you to describe :-}
+<p>Installing <em>pip</em> (Python Package Manager) is the first step to using BCIPy. &#64;NICK this is for you to describe :-}
 Once Pip is installed, install BCIPy and its dependencies from Pypi</p>
 <section id="basic-structure-of-bcipy">
 <h2>Basic Structure of BCIPy<a class="headerlink" href="#basic-structure-of-bcipy" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-15">BCIPy uses a graph based model of processing pipelines:</p>
-<a class="reference external image-reference" href="_build/html/_static/Example_graph.png"><img alt="_images/Example_graph.png" src="_images/Example_graph.png" /></a>
-<p class="linemarker linemarker-20">Consider the above example. BCIPy has opted to model processing pipelines as <em>acyclic, directed graphs</em>, which individual
+<p>BCIPy uses a graph based model of processing pipelines:</p>
+<a class="reference external image-reference" href="bcipy/docs/_build/html/_static/Example_graph.png"><img alt="bcipy/docs/_build/html/_static/Example_graph.png" src="bcipy/docs/_build/html/_static/Example_graph.png" /></a>
+<p>Consider the above example. BCIPy has opted to model processing pipelines as <em>acyclic, directed graphs</em>, which individual
 operations modeled as nodes within the graph, that contain kernels (or specific operations, ie. Add). Each node within the graph
 is connected by edges, or data storage objects created to serve as inputs and outputs as nodes within the graph.</p>
-<a class="reference external image-reference" href="_build/html/_static/Graph.PNG"><img alt="_images/Graph.PNG" class="align-center" src="_images/Graph.PNG" /></a>
-<p class="linemarker linemarker-28">There are other important aspects of the graph, including a data source (a class within BCIPy). Filters/Classifiers are special types of kernels that
+<a class="reference external image-reference" href="bcipy/docs/_build/html/_static/Graph.PNG"><img alt="bcipy/docs/_build/html/_static/Graph.PNG" class="align-center" src="bcipy/docs/_build/html/_static/Graph.PNG" /></a>
+<p>There are other important aspects of the graph, including a data source (a class within BCIPy). Filters/Classifiers are special types of kernels that
 are so frequently used that they were made into their own objects, but still operate within kernels (more on this in the docs). As such,
 BCIPy’s structure resembles this directed-graph-processing-pipeline model.</p>
-<a class="reference external image-reference" href="_build/html/_static/BCIPY_Structure.PNG"><img alt="_images/BCIPY_Structure.PNG" src="_images/BCIPY_Structure.PNG" /></a>
+<a class="reference external image-reference" href="bcipy/docs/_build/html/_static/BCIPY_Structure.PNG"><img alt="bcipy/docs/_build/html/_static/BCIPY_Structure.PNG" src="bcipy/docs/_build/html/_static/BCIPY_Structure.PNG" /></a>
 </section>
 </section>
 <section id="basic-setup">
 <h1>Basic Setup<a class="headerlink" href="#basic-setup" title="Permalink to this heading"></a></h1>
-<p class="linemarker linemarker-40"><strong>The following guide will walkthrough the creation of a basic processing graph.</strong></p>
+<p><strong>The following guide will walkthrough the creation of a basic processing graph.</strong></p>
 <section id="creating-a-session">
 <h2>Creating a Session<a class="headerlink" href="#creating-a-session" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-44">The usage of the BCIP library is based on sessions, that is, a particular processing session. A Session object must be instantiated before building or executing a processing graph. Sessions are instantiated using the following syntax:</p>
+<p>The usage of the BCIP library is based on sessions, that is, a particular processing session. A Session object must be instantiated before building or executing a processing graph. Sessions are instantiated using the following syntax:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_session</span> <span class="o">=</span> <span class="n">Session</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
 <section id="creating-a-graph">
 <h2>Creating a Graph<a class="headerlink" href="#creating-a-graph" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-51">Once the session has been defined, the trial graph(s) to conduct the processing must be created.</p>
+<p>Once the session has been defined, the trial graph(s) to conduct the processing must be created.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">trial_graph</span> <span class="o">=</span> <span class="n">Graph</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">example_session</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="creating-input-data">
 <h2>Creating input data<a class="headerlink" href="#creating-input-data" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-57">Next, the location of your input data and training data should be provided. Trial Input data is most commonly
+<p>Next, the location of your input data and training data should be provided. Trial Input data is most commonly
 provided with an LSL stream (for online processing), or a MAT file (for batch processing);
 while training data is most often provided either as a MAT file or the output of a execution (as a circle buffer/tensor object).
 It may be easiest to understand the function of the BCIPY library using a MAT File input for input and training data. There are 3
@@ -150,7 +150,7 @@ and use the following code to create the input/training data objects:</p>
 </section>
 <section id="converting-data-to-bcipy-type">
 <h2>Converting data to BCIPy type<a class="headerlink" href="#converting-data-to-bcipy-type" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-73">In the below step, it is critical to remember that inputs and outputs to graph/node must be a BCIPy built-in type
+<p>In the below step, it is critical to remember that inputs and outputs to graph/node must be a BCIPy built-in type
 (Tensor, Array, or Scalar depending on the specific nodes being used), for both training data and trial data. Thus, we’ll
 transform the input and training data to Tensors. For the input data, we’ll create a Tensor from a “handle”, which simply
 means that it will be updated between trials from an external data source (the MAT file we imported), while the training
@@ -163,73 +163,73 @@ data is a Tensor we create from data and doesn’t need to be modified/polled.</
 </section>
 <section id="defining-outputs">
 <h2>Defining outputs<a class="headerlink" href="#defining-outputs" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-85">Along with the input and training data, we also need to define an output data object (to store the result of the processing graph), and edge object (which connect nodes/processing elements together). For this example, our last kernel will be a classifier (and its output a scalar), so we can define an output with the following:</p>
+<p>Along with the input and training data, we also need to define an output data object (to store the result of the processing graph), and edge object (which connect nodes/processing elements together). For this example, our last kernel will be a classifier (and its output a scalar), so we can define an output with the following:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">Scalar</span><span class="o">.</span><span class="n">create_from_value</span><span class="p">(</span><span class="n">session</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="creating-nodes">
 <h2>Creating Nodes<a class="headerlink" href="#creating-nodes" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-91">This example will contain 3 nodes (a temporal filter, a CSP node, and an LDA classifier), thus, we will need 2 edges (think data holder</p>
+<p>This example will contain 3 nodes (a temporal filter, a CSP node, and an LDA classifier), thus, we will need 2 edges (think data holder</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">edges_to_connect_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tensor</span><span class="o">.</span><span class="n">create_virtual</span><span class="p">(</span><span class="n">session</span><span class="p">),</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_virtual</span><span class="p">(</span><span class="n">session</span><span class="p">)]</span>
 </pre></div>
 </div>
-<p class="linemarker linemarker-95">Once the edges have been created, nodes (processing elements) can be added to the graph. Nodes are the objects that get added to the graph, but nodes contain kernels, which are objects that conduct the data processing. To create a filter node and add it to the graph, use the following syntax:</p>
+<p>Once the edges have been created, nodes (processing elements) can be added to the graph. Nodes are the objects that get added to the graph, but nodes contain kernels, which are objects that conduct the data processing. To create a filter node and add it to the graph, use the following syntax:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">filter_object</span> <span class="o">=</span> <span class="n">Filter</span><span class="o">.</span><span class="n">create_butter</span><span class="p">(</span><span class="n">session</span><span class="p">,</span><span class="mi">4</span><span class="p">,(</span><span class="mi">8</span><span class="p">,</span><span class="mi">35</span><span class="p">),</span><span class="n">btype</span><span class="o">=</span><span class="s1">&#39;bandpass&#39;</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span><span class="n">implementation</span><span class="o">=</span><span class="s1">&#39;sos&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># see filter class for parameter explanation</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">FilterKernel</span><span class="o">.</span><span class="n">add_filter_node</span><span class="p">(</span><span class="n">trial_graph</span><span class="p">,</span> <span class="n">input_data</span><span class="p">,</span> <span class="n">filter_object</span><span class="p">,</span> <span class="n">edges_to_connect_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># where input_data is the input to the node, filter_object is the specific filter that will conduct the processing, and edges_to_connect_nodes[0] is the Tensor where the output will be stored</span>
 </pre></div>
 </div>
-<p class="linemarker linemarker-102">In a similar fashion, we can add our CSP and LDA Classifier Nodes:</p>
+<p>In a similar fashion, we can add our CSP and LDA Classifier Nodes:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CommonSpatialPatternKernel</span><span class="o">.</span><span class="n">add_uninitialized_CSP_node</span><span class="p">(</span><span class="n">trial_graph</span><span class="p">,</span> <span class="n">edges_to_connect_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">edges_to_connect_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">training_data_tensor</span><span class="p">,</span> <span class="n">training_labels_tensor</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">lda_object</span> <span class="o">=</span> <span class="n">Classifier</span><span class="o">.</span><span class="n">create_LDA</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ClassifierKernel</span><span class="o">.</span><span class="n">add_classifier_node</span><span class="p">(</span><span class="n">trial_graph</span><span class="p">,</span> <span class="n">edges_to_connect_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">lda_object</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="linemarker linemarker-108">In the above line, we set the training_data/labels input parameters to None. This is an important feature to remember about the BCIPy library;
+<p>In the above line, we set the training_data/labels input parameters to None. This is an important feature to remember about the BCIPy library;
 if training data is provided for some upstream node (in this graph, the CSP node), the library will automatically compute the training data for
 downstream nodes. If we wanted, we could’ve passed different training data, but opted not to for this example.</p>
 </section>
 <section id="verifying-a-graph">
 <h2>Verifying a graph<a class="headerlink" href="#verifying-a-graph" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-114">Once the graph is built, the next step is to have it verified. Verification will schedule nodes, ensure that inputs and outputs
+<p>Once the graph is built, the next step is to have it verified. Verification will schedule nodes, ensure that inputs and outputs
 are the correct shape and type, and will determine whether any nodes are missing training data. This process can be started with a single command:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">verification_status</span> <span class="o">=</span> <span class="n">trial_graph</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">verification_status</span><span class="p">)</span>
 </pre></div>
 </div>
 <blockquote>
-<div><p class="linemarker linemarker-120">SUCCESS</p>
+<div><p>SUCCESS</p>
 </div></blockquote>
 </section>
 <section id="initializing-the-graph">
 <h2>Initializing the graph<a class="headerlink" href="#initializing-the-graph" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-124">The last step before we can use the graph is to have it initialized, which will initialize each node within the graph (train, compute filters, etc):
+<p>The last step before we can use the graph is to have it initialized, which will initialize each node within the graph (train, compute filters, etc):
 this process can also be started with one command:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">initialization_status</span> <span class="o">=</span> <span class="n">trial_graph</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">initialization_status</span><span class="p">)</span>
 </pre></div>
 </div>
 <blockquote>
-<div><p class="linemarker linemarker-130">SUCCESS</p>
+<div><p>SUCCESS</p>
 </div></blockquote>
 </section>
 <section id="executing-a-graph">
 <h2>Executing a graph<a class="headerlink" href="#executing-a-graph" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-134">At this stage, the graph is ready to process data. During execution, we have a number of options, so we must first ask ourselves a number of questions.</p>
+<p>At this stage, the graph is ready to process data. During execution, we have a number of options, so we must first ask ourselves a number of questions.</p>
 <ol class="arabic simple">
 <li><dl class="simple">
 <dt>Do the trials you’re executing have a defined structure?</dt><dd><ul class="simple">
-<li><p class="linemarker linemarker-137">If yes, it may be useful to define a trial_set before execution</p></li>
-<li><p class="linemarker linemarker-138">If not, it is assumed that you’ll be executing trials indefinitely (ie. P300 speller setup)</p></li>
+<li><p>If yes, it may be useful to define a trial_set before execution</p></li>
+<li><p>If not, it is assumed that you’ll be executing trials indefinitely (ie. P300 speller setup)</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
 <dt>Do you know the class labels of the trials you’re executing. For example, in some mental imagery experiments, we know what action will be completed before it occurs.</dt><dd><ul class="simple">
-<li><p class="linemarker linemarker-141">If yes, you will not be able to use continuous data for this. You should use class separated / epoched data instead. At that point, you’ll be able to call execute like:</p></li>
+<li><p>If yes, you will not be able to use continuous data for this. You should use class separated / epoched data instead. At that point, you’ll be able to call execute like:</p></li>
 </ul>
 </dd>
 </dl>
@@ -241,11 +241,11 @@ this process can also be started with one command:</p>
 </section>
 <section id="execution-with-epochs-known-labels">
 <h2>Execution with epochs, known labels<a class="headerlink" href="#execution-with-epochs-known-labels" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-147">If you were to use epoched data and a trial set, we could define a trial set using standard Python syntax:</p>
+<p>If you were to use epoched data and a trial set, we could define a trial set using standard Python syntax:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">trial_seq</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">4</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">4</span> <span class="c1">#4 trials of class 0, 4 of class 1</span>
 </pre></div>
 </div>
-<p class="linemarker linemarker-151">Based on the provided data (4000 samples, each trial lasting 500 samples), we already know that only 8 trials can occur, so we can loop through the trial set like this:</p>
+<p>Based on the provided data (4000 samples, each trial lasting 500 samples), we already know that only 8 trials can occur, so we can loop through the trial set like this:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">while</span> <span class="n">t_num</span> <span class="o">&lt;</span> <span class="mi">8</span> <span class="ow">and</span> <span class="n">sts</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">y</span> <span class="o">=</span> <span class="n">trial_seq</span><span class="p">[</span><span class="n">t_num</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">sts</span> <span class="o">=</span> <span class="n">trial_graph</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
@@ -258,13 +258,13 @@ this process can also be started with one command:</p>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">break</span>
 </pre></div>
 </div>
-<p class="linemarker linemarker-164"><strong>Remember, this will only work with class separated/epoched data, not continuous mat data</strong></p>
+<p><strong>Remember, this will only work with class separated/epoched data, not continuous mat data</strong></p>
 </section>
 <section id="execution-with-continuous-data-unknown-labels">
 <h2>Execution with continuous data, unknown labels<a class="headerlink" href="#execution-with-continuous-data-unknown-labels" title="Permalink to this heading"></a></h2>
-<p class="linemarker linemarker-169">If we were to use continuous data and no class labels (ie. P300) we could loop through in a similar way, but execute trials without labels.
+<p>If we were to use continuous data and no class labels (ie. P300) we could loop through in a similar way, but execute trials without labels.
 <strong>Remember, this only works with continuous data, labels are required for epoched/class separated data</strong></p>
-<p class="linemarker linemarker-172">Based on the input data, we still know only 8 trials will occur, so we could use the following code.</p>
+<p>Based on the input data, we still know only 8 trials will occur, so we could use the following code.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t_num</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">while</span> <span class="n">t_num</span> <span class="o">&lt;</span> <span class="mi">8</span> <span class="ow">and</span> <span class="n">sts</span> <span class="o">==</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">sts</span> <span class="o">=</span> <span class="n">trial_graph</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
@@ -277,7 +277,7 @@ this process can also be started with one command:</p>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">break</span>
 </pre></div>
 </div>
-<p class="linemarker linemarker-185">This concludes the setup guide, please see the other documentation, or examples available in our github repo for more examples/test scripts.</p>
+<p>This concludes the setup guide, please see the other documentation, or examples available in our github repo for more examples/test scripts.</p>
 </section>
 </section>
 

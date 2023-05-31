@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bcipy.filter &mdash; bcipy 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            bcipy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Getting Started with BCIPy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#basic-setup">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bcipy.html">bcipy package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">bcipy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bcipy.filter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bcipy.filter</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Nov 21 10:51:07 2019</span>
+
+<span class="sd">filter.py - Defines the filter Class for BCIP</span>
+
+<span class="sd">@author: ivanovn</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">BCIP</span><span class="p">,</span> <span class="n">BcipEnums</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">signal</span>
+
+<div class="viewcode-block" id="Filter"><a class="viewcode-back" href="../../bcipy.html#bcipy.filter.Filter">[docs]</a><span class="k">class</span> <span class="nc">Filter</span><span class="p">(</span><span class="n">BCIP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A filter that can be used by different BCIP kernels</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># these are the possible internal methods for storing the filter </span>
+    <span class="c1"># parameters which determine how it will be executed</span>
+    <span class="n">implementations</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span> <span class="s1">&#39;zpk&#39;</span><span class="p">,</span> <span class="s1">&#39;sos&#39;</span><span class="p">]</span>
+    <span class="n">btypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;lowpass&#39;</span><span class="p">,</span><span class="s1">&#39;highpass&#39;</span><span class="p">,</span><span class="s1">&#39;bandpass&#39;</span><span class="p">,</span><span class="s1">&#39;bandstop&#39;</span><span class="p">]</span>
+    <span class="n">ftypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;butter&#39;</span><span class="p">,</span><span class="s1">&#39;cheby1&#39;</span><span class="p">,</span><span class="s1">&#39;cheby2&#39;</span><span class="p">,</span><span class="s1">&#39;ellip&#39;</span><span class="p">,</span><span class="s1">&#39;bessel&#39;</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">ftype</span><span class="p">,</span><span class="n">btype</span><span class="p">,</span><span class="n">implementation</span><span class="p">,</span><span class="n">crit_frqs</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">coeffs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new filter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">BcipEnums</span><span class="o">.</span><span class="n">FILTER</span><span class="p">,</span><span class="n">sess</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ftype</span> <span class="o">=</span> <span class="n">ftype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_btype</span> <span class="o">=</span> <span class="n">btype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_implementation</span> <span class="o">=</span> <span class="n">implementation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fs</span> <span class="o">=</span> <span class="n">fs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_crit_frqs</span> <span class="o">=</span> <span class="n">crit_frqs</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span> <span class="o">=</span> <span class="n">coeffs</span>
+        
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;BCIP </span><span class="si">{}</span><span class="s2"> Filter with following&quot;</span> <span class="o">+</span> \
+               <span class="s2">&quot;attributes:</span><span class="se">\n</span><span class="s2">Filter Type: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">Band Type: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> \
+               <span class="s2">&quot;Implementation: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">Sampling Frequency: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> \
+               <span class="s2">&quot;Critical Frequencies: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">btype</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">implementation</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">fs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crit_frqs</span><span class="p">)</span>
+        
+    <span class="c1"># API Getters</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ftype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ftype</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">btype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_btype</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_implementation</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fs</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">crit_frqs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_crit_frqs</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coeffs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs</span>
+    
+<div class="viewcode-block" id="Filter.create_butter"><a class="viewcode-back" href="../../bcipy.html#bcipy.filter.Filter.create_butter">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_butter</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="s1">&#39;lowpass&#39;</span><span class="p">,</span><span class="n">implementation</span><span class="o">=</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a butterworth BCIP filter object</span>
+
+<span class="sd">        Butterworth digital and analog filter design.</span>
+
+<span class="sd">        Design an Nth-order digital or analog Butterworth filter and return the filter coefficients.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        N : int</span>
+<span class="sd">            - The order of the filter.</span>
+<span class="sd">        </span>
+<span class="sd">        Wn : array_like</span>
+<span class="sd">            - The critical frequency or frequencies. For lowpass and highpass filters, Wn is a scalar; for bandpass and bandstop filters, Wn is a length-2 sequence.</span>
+<span class="sd">            - For a Butterworth filter, this is the point at which the gain drops to 1/sqrt(2) that of the passband (the &quot;-3 dB point&quot;).</span>
+<span class="sd">            - For digital filters, if fs is not specified, Wn units are normalized from 0 to 1, where 1 is the Nyquist frequency (Wn is thus in half cycles / sample and defined as 2*critical frequencies / fs). If fs is specified, Wn is in the same units as fs.</span>
+<span class="sd">            - For analog filters, Wn is an angular frequency (e.g. rad/s).</span>
+<span class="sd">        </span>
+<span class="sd">        btype : {&#39;lowpass&#39;, &#39;highpass&#39;, &#39;bandpass&#39;, &#39;bandstop&#39;}, default: lowpass</span>
+<span class="sd">            - The type of filter. Default is &#39;lowpass&#39;.</span>
+<span class="sd">        </span>
+<span class="sd">        output : {&#39;ba&#39;, &#39;zpk&#39;, &#39;sos&#39;}, default: &#39;ba&#39;</span>
+<span class="sd">            - Type of output: numerator/denominator (&#39;ba&#39;), pole-zero (&#39;zpk&#39;), or second-order sections (&#39;sos&#39;). Default is &#39;ba&#39; for backwards compatibility, but &#39;sos&#39; should be used for general-purpose filtering.</span>
+<span class="sd">        </span>
+<span class="sd">        fs : float, default: 1.0</span>
+<span class="sd">            - The sampling frequency of the digital system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coeffs</span><span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;ba&#39;</span><span class="p">:</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="k">elif</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;zpk&#39;</span><span class="p">:</span>
+            <span class="n">z</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sos</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;sos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sos</span>
+        
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="s1">&#39;butter&#39;</span><span class="p">,</span><span class="n">btype</span><span class="p">,</span><span class="n">implementation</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">coeffs</span><span class="p">)</span>
+        
+        <span class="c1"># add the filter to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_misc_bcip_obj</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">f</span></div>
+    
+<div class="viewcode-block" id="Filter.create_cheby1"><a class="viewcode-back" href="../../bcipy.html#bcipy.filter.Filter.create_cheby1">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_cheby1</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="s1">&#39;lowpass&#39;</span><span class="p">,</span>\
+                     <span class="n">implementation</span><span class="o">=</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a Chebyshev Type-I BCIP filter object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sess: BCIPy Session Object</span>
+<span class="sd">            - Session where the filter object will exist</span>
+
+<span class="sd">        N : int</span>
+<span class="sd">            - The order of the filter.</span>
+
+<span class="sd">        rp : float</span>
+<span class="sd">            - The maximum ripple allowed below unity gain in the passband. Specified in decibels, as a positive number.</span>
+<span class="sd">        </span>
+<span class="sd">        Wn : array_like</span>
+<span class="sd">            - A scalar or length-2 sequence giving the critical frequencies. For Type I filters, this is the point in the transition band at which the gain first drops below -rp.</span>
+<span class="sd">            - For digital filters, Wn are in the same units as fs. By default, fs is 2 half-cycles/sample, so these are normalized from 0 to 1, where 1 is the Nyquist frequency. (Wn is thus in half-cycles / sample.)</span>
+<span class="sd">            - For analog filters, Wn is an angular frequency (e.g., rad/s).</span>
+
+<span class="sd">        btype : {&#39;lowpass&#39;, &#39;highpass&#39;, &#39;bandpass&#39;, &#39;bandstop&#39;}, default: lowpass</span>
+<span class="sd">            - The type of filter. Default is &#39;lowpass&#39;.</span>
+<span class="sd">        </span>
+<span class="sd">        output : {&#39;ba&#39;, &#39;zpk&#39;, &#39;sos&#39;}, default: &#39;ba&#39;</span>
+<span class="sd">            - Type of output: numerator/denominator (&#39;ba&#39;), pole-zero (&#39;zpk&#39;), or second-order sections (&#39;sos&#39;). Default is &#39;ba&#39; for backwards compatibility, but &#39;sos&#39; should be used for general-purpose filtering.</span>
+<span class="sd">       </span>
+<span class="sd">        fs : float, default: 1.0</span>
+<span class="sd">            - The sampling frequency of the digital system.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coeffs</span><span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;ba&#39;</span><span class="p">:</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">cheby1</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="k">elif</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;zpk&#39;</span><span class="p">:</span>
+            <span class="n">z</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">cheby1</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sos</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">cheby1</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;sos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sos</span>
+        
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="s1">&#39;cheby1&#39;</span><span class="p">,</span><span class="n">btype</span><span class="p">,</span><span class="n">implementation</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">coeffs</span><span class="p">)</span>
+        
+        <span class="c1"># add the filter to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_misc_bcip_obj</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">f</span></div>
+    
+<div class="viewcode-block" id="Filter.create_cheby2"><a class="viewcode-back" href="../../bcipy.html#bcipy.filter.Filter.create_cheby2">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_cheby2</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="s1">&#39;lowpass&#39;</span><span class="p">,</span>\
+                     <span class="n">implementation</span><span class="o">=</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a Chebyshev Type-II BCIPy filter object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sess: BCIPy Session Object</span>
+<span class="sd">            - Session where the filter object will exist</span>
+
+<span class="sd">        N : int</span>
+<span class="sd">            - The order of the filter.</span>
+
+<span class="sd">        rs : float</span>
+<span class="sd">            - The minimum attenuation required in the stop band. Specified in decibels, as a positive number.</span>
+<span class="sd">        </span>
+<span class="sd">        Wn : array_like</span>
+<span class="sd">            - A scalar or length-2 sequence giving the critical frequencies. For Type II filters, this is the point in the transition band at which the gain first reaches -rs.</span>
+<span class="sd">            - For digital filters, Wn are in the same units as fs. By default, fs is 2 half-cycles/sample, so these are normalized from 0 to 1, where 1 is the Nyquist frequency. (Wn is thus in half-cycles / sample.)</span>
+<span class="sd">            - For analog filters, Wn is an angular frequency (e.g., rad/s).</span>
+<span class="sd">        </span>
+<span class="sd">        btype : {&#39;lowpass&#39;, &#39;highpass&#39;, &#39;bandpass&#39;, &#39;bandstop&#39;}, default: &#39;lowpass&#39;</span>
+<span class="sd">            - The type of filter. Default is &#39;lowpass&#39;.</span>
+<span class="sd">        </span>
+<span class="sd">        output : {&#39;ba&#39;, &#39;zpk&#39;, &#39;sos&#39;}, default: &#39;ba&#39;</span>
+<span class="sd">            - Type of output: numerator/denominator (&#39;ba&#39;), pole-zero (&#39;zpk&#39;), or second-order sections (&#39;sos&#39;). Default is &#39;ba&#39; for backwards compatibility, but &#39;sos&#39; should be used for general-purpose filtering.</span>
+<span class="sd">        </span>
+<span class="sd">        fs : float, default: 1.0</span>
+<span class="sd">            - The sampling frequency of the digital system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coeffs</span><span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;ba&#39;</span><span class="p">:</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">cheby2</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="k">elif</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;zpk&#39;</span><span class="p">:</span>
+            <span class="n">z</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">cheby2</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sos</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">cheby2</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;sos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sos</span>
+        
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="s1">&#39;cheby2&#39;</span><span class="p">,</span><span class="n">btype</span><span class="p">,</span><span class="n">implementation</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">coeffs</span><span class="p">)</span>
+        
+        <span class="c1"># add the filter to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_misc_bcip_obj</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">f</span></div>
+        
+<div class="viewcode-block" id="Filter.create_ellip"><a class="viewcode-back" href="../../bcipy.html#bcipy.filter.Filter.create_ellip">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_ellip</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="s1">&#39;lowpass&#39;</span><span class="p">,</span>\
+                     <span class="n">implementation</span><span class="o">=</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a Elliptic BCIP filter object</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        N : int</span>
+<span class="sd">            - The order of the filter.</span>
+<span class="sd">        </span>
+<span class="sd">        rp : float</span>
+<span class="sd">            - The maximum ripple allowed below unity gain in the passband. Specified in decibels, as a positive number.</span>
+<span class="sd">        </span>
+<span class="sd">        rs : float</span>
+<span class="sd">            - The minimum attenuation required in the stop band. Specified in decibels, as a positive number.</span>
+<span class="sd">        </span>
+<span class="sd">        Wn : array_like</span>
+<span class="sd">            - A scalar or length-2 sequence giving the critical frequencies. For elliptic filters, this is the point in the transition band at which the gain first drops below -rp.</span>
+<span class="sd">            - For digital filters, Wn are in the same units as fs. By default, fs is 2 half-cycles/sample, so these are normalized from 0 to 1, where 1 is the Nyquist frequency. (Wn is thus in half-cycles / sample.)</span>
+<span class="sd">            - For analog filters, Wn is an angular frequency (e.g., rad/s).</span>
+<span class="sd">        </span>
+<span class="sd">        btype : {&#39;lowpass&#39;, &#39;highpass&#39;, &#39;bandpass&#39;, &#39;bandstop&#39;}, optional</span>
+<span class="sd">            - The type of filter. Default is &#39;lowpass&#39;.</span>
+<span class="sd">        </span>
+<span class="sd">        analog : bool, optional</span>
+<span class="sd">            - When True, return an analog filter, otherwise a digital filter is returned.</span>
+<span class="sd">        </span>
+<span class="sd">        output : {&#39;ba&#39;, &#39;zpk&#39;, &#39;sos&#39;}, optional</span>
+<span class="sd">            - Type of output: numerator/denominator (&#39;ba&#39;), pole-zero (&#39;zpk&#39;), or second-order sections (&#39;sos&#39;). Default is &#39;ba&#39; for backwards compatibility, but &#39;sos&#39; should be used for general-purpose filtering.</span>
+<span class="sd">        </span>
+<span class="sd">        fs : float, optional</span>
+<span class="sd">            - The sampling frequency of the digital system.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coeffs</span><span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;ba&#39;</span><span class="p">:</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">ellip</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span>\
+                                <span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="k">elif</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;zpk&#39;</span><span class="p">:</span>
+            <span class="n">z</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">ellip</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span>\
+                                 <span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sos</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">ellip</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="n">rs</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span>\
+                               <span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;sos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sos</span>
+        
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="s1">&#39;ellip&#39;</span><span class="p">,</span><span class="n">btype</span><span class="p">,</span><span class="n">implementation</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">coeffs</span><span class="p">)</span>
+        
+        <span class="c1"># add the filter to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_misc_bcip_obj</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">f</span></div>
+    
+<div class="viewcode-block" id="Filter.create_bessel"><a class="viewcode-back" href="../../bcipy.html#bcipy.filter.Filter.create_bessel">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_bessel</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sess</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="s1">&#39;lowpass&#39;</span><span class="p">,</span>\
+                     <span class="n">implementation</span><span class="o">=</span><span class="s1">&#39;ba&#39;</span><span class="p">,</span><span class="n">norm</span><span class="o">=</span><span class="s1">&#39;phase&#39;</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a Bessel BCIP filter object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        N : int</span>
+<span class="sd">            - The order of the filter.</span>
+<span class="sd">        </span>
+<span class="sd">        Wn : array_like</span>
+<span class="sd">            - A scalar or length-2 sequence giving the critical frequencies (defined by the norm parameter). For analog filters, Wn is an angular frequency (e.g., rad/s).</span>
+<span class="sd">            - For digital filters, Wn are in the same units as fs. By default, fs is 2 half-cycles/sample, so these are normalized from 0 to 1, where 1 is the Nyquist frequency. (Wn is thus in half-cycles / sample.)</span>
+<span class="sd">        </span>
+<span class="sd">        btype : {&#39;lowpass&#39;, &#39;highpass&#39;, &#39;bandpass&#39;, &#39;bandstop&#39;}, optional</span>
+<span class="sd">            - The type of filter. Default is &#39;lowpass&#39;.</span>
+<span class="sd">        </span>
+<span class="sd">        analog : bool, optional</span>
+<span class="sd">            - When True, return an analog filter, otherwise a digital filter is returned. (See Notes.)</span>
+<span class="sd">        </span>
+<span class="sd">        output : {&#39;ba&#39;, &#39;zpk&#39;, &#39;sos&#39;}, optional</span>
+<span class="sd">            - Type of output: numerator/denominator (&#39;ba&#39;), pole-zero (&#39;zpk&#39;), or second-order sections (&#39;sos&#39;). Default is &#39;ba&#39;.</span>
+<span class="sd">        </span>
+<span class="sd">        norm : {&#39;phase&#39;, &#39;delay&#39;, &#39;mag&#39;}, optional</span>
+<span class="sd">            - Critical frequency normalization:</span>
+<span class="sd">                - phase</span>
+<span class="sd">                    - The filter is normalized such that the phase response reaches its midpoint at angular (e.g. rad/s) frequency Wn. This happens for both low-pass and high-pass filters, so this is the &quot;phase-matched&quot; case.</span>
+<span class="sd">                    - The magnitude response asymptotes are the same as a Butterworth filter of the same order with a cutoff of Wn.</span>
+<span class="sd">                    - This is the default, and matches MATLAB&#39;s implementation.</span>
+
+<span class="sd">                - delay</span>
+<span class="sd">                    - The filter is normalized such that the group delay in the passband is 1/Wn (e.g., seconds). This is the &quot;natural&quot; type obtained by solving Bessel polynomials.</span>
+<span class="sd">                    </span>
+<span class="sd">                - mag</span>
+<span class="sd">                    - The filter is normalized such that the gain magnitude is -3 dB at angular frequency Wn.</span>
+
+<span class="sd">        fs : float, optional</span>
+<span class="sd">            - The sampling frequency of the digital system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coeffs</span><span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;ba&#39;</span><span class="p">:</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">bessel</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="k">elif</span> <span class="n">implementation</span> <span class="o">==</span> <span class="s1">&#39;zpk&#39;</span><span class="p">:</span>
+            <span class="n">z</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">bessel</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sos</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">bessel</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">btype</span><span class="o">=</span><span class="n">btype</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">implementation</span><span class="p">,</span><span class="n">fs</span><span class="o">=</span><span class="n">fs</span><span class="p">)</span>
+            <span class="n">coeffs</span><span class="p">[</span><span class="s1">&#39;sos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sos</span>
+        
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span><span class="s1">&#39;bessel&#39;</span><span class="p">,</span><span class="n">btype</span><span class="p">,</span><span class="n">implementation</span><span class="p">,</span><span class="n">Wn</span><span class="p">,</span><span class="n">fs</span><span class="p">,</span><span class="n">coeffs</span><span class="p">)</span>
+        
+        <span class="c1"># add the filter to the session</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_misc_bcip_obj</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">f</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Nicolas Ivanov, Aaron Lio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
