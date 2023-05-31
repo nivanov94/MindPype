@@ -10,7 +10,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath(
-    os.path.join(__file__, "../../bcipy")
+    os.path.join(__file__, "../bcipy")
 ))
 
 project = 'bcipy'
@@ -25,23 +25,24 @@ release = '0.1'
 
 extensions = [
     "sphinx.ext.napoleon",
-    'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
-    'sphinx.ext.githubpages',
-    'notfound.extension'
+    'sphinx.ext.githubpages'
 ]
 
 templates_path = ['_templates']
+
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 language = 'en'
 
+source_suffix = ['.rst']
+master_doc = 'index'
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_build/_static']
+#html_static_path = ['_static']
 
 # -- Options for todo extension ----------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/extensions/todo.html#configuration
@@ -50,3 +51,5 @@ todo_include_todos = True
 napoleon_strip_signature_backslash = True
 autodoc_strip_signature_backslash = True
 strip_signature_backslash = True
+
+pygments_style = 'sphinx'
