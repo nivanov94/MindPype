@@ -537,6 +537,8 @@ class BcipXDF(BCIP):
         self.channels = channels
         self.label_counter = None
         self.mode = mode
+        self._continuous_data = None
+        self._continuous_labels = None
 
         
         trial_data = {task: [] for task in tasks}
@@ -556,7 +558,8 @@ class BcipXDF(BCIP):
                 
                     
                 sample_indices = np.full(eeg_stream['time_stamps'].shape, False) # used to extract EEG samples, pre-allocated here
-    
+                self._continuous_data = eeg_stream['time_series']
+                self._continuous_labels = marker_stream['time_series']
                 #print(eeg_stream['time_series'].shape)
                 total_tasks = 0
                 for i_m, markers in enumerate(marker_stream['time_series']):
@@ -675,15 +678,13 @@ class BcipXDF(BCIP):
         """
         if self.trial_data and self.mode == 'continuous':
             ret = Tensor.create_from_data(self.session, self.trial_data['EEG']['time_series'].shape, self.trial_data['EEG']['time_series'])
-            ret_labels = Tensor.create_from_data(self.session, self.trial_data['Markers'].shape, self.trial_data['Markers'])
+            ret_labels = Tensor.create_from_data(self.session, self.trial_data['Markers']['time_series'].shape, self.trial_data['Markers']['time_series'])
 
         elif self.trial_data and self.mode == 'epoched':
-            labels = []
-            for task in list(self.trial_data.keys()):
-                labels.append(task)
-
-            ret = Tensor.create_from_data(self.session, self.trial_data.shape, self.trial_data)
+            ret = Tensor.create_from_data(self.session, self._continuous_data.shape, self._continuous_data)
             ret_labels = Tensor.create_from_data(self.session, self.trial_data.shape, self.trial_data)
+
+        return ret, ret_labels
 
     @classmethod
     def create_continuous(cls, sess, files, tasks, channels, relative_start = 0, Ns = 1):
@@ -997,9 +998,12 @@ class InputLSLStream(BCIP):
         # TODO - Warn about more than one available stream
         self.data_buffer = {'EEG':None,'time_stamps':None}
         self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
+        
         self.marker_inlet = None
         self.marker_pattern = None
         self.relative_start = relative_start
+        self._already_peeked = False
+        self._peeked_marker = None
 
         self.timestamps = []
         
@@ -1014,13 +1018,16 @@ class InputLSLStream(BCIP):
             marker_streams = pylsl.resolve_bypred(marker_pred)
             print(len(marker_streams))
             self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
+            self.peek_marker_inlet = pylsl.StreamInlet(marker_streams[0]) 
+            
             # open the inlet
             self.marker_inlet.open_stream()
+            self.peek_marker_inlet.open_stream()
         
             if marker_fmt:
-                if isinstance(marker_fmt,list):
-                    marker_fmt = '$|^'.join(marker_fmt)
-                    marker_fmt = '^' + marker_fmt + '$' 
+            #    if isinstance(marker_fmt,list):
+            #        marker_fmt = '$|^'.join(marker_fmt)
+            #       marker_fmt = '^' + marker_fmt + '$' 
                 
                 self.marker_pattern = re.compile(marker_fmt)
 
@@ -1118,6 +1125,26 @@ class InputLSLStream(BCIP):
 
         return trial_data
     
+    def peek_marker(self):
+        """
+        Peek at the next marker in the marker stream
+        """
+        if self._already_peeked:
+            return self._peeked_marker
+        
+        else:
+            marker, t = self.peek_marker_inlet.pull_sample()
+            while self.marker_pattern != None and not self.marker_pattern.match(marker[0]):
+                marker, t = self.peek_marker_inlet.pull_sample()
+
+            if marker != None:
+                self._peeked_marker = marker[0]
+                self._already_peeked = True
+                return marker[0]
+               
+        return None
+        
+
     @classmethod
     def create_marker_coupled_data_stream(cls,sess,pred, channels = None, relative_start=0,
                                           marker_fmt=None, marker_pred="type='Markers'"):

@@ -7,7 +7,7 @@ graph.py - Defines the graph object
 """
 from .core import BCIP, BcipEnums
 from .containers import Tensor
-
+import warnings
 class Graph(BCIP):
     """
     This class represents the data processing flow graph, or processing pipelines. 
@@ -373,7 +373,7 @@ class Graph(BCIP):
         for n in self._nodes:
             sts = n.kernel.execute()
             if sts != BcipEnums.SUCCESS:
-                print("Node {} failed with status {}".format(n.kernel.name,sts))
+                warnings.warn(f"Trial execution failed with status {sts} in kernel: {n.kernel.name}. This trial will be disregarded.", category=RuntimeWarning, stacklevel=2)
                 return sts
 
         if push_volatile_outputs:
