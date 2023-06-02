@@ -11,7 +11,8 @@ Welcome to bcipy's documentation!
    :caption: Contents:
 
    README
-   setup
+   before
+   BasicSetup
    AdvancedSetup
    bcipy
 

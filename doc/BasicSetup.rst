@@ -1,31 +1,3 @@
-Setup Guide
-============
-Installing *pip* (Python Package Manager) is the first step to using BCIPy. @NICK this is for you to describe :-}
-Once Pip is installed, install BCIPy and its dependencies from Pypi
-
-
-Basic Structure of BCIPy
-------------------------
-BCIPy uses a graph based model of processing pipelines:
-
-.. .. image:: _static/Example_graph.png
-..    :target: _static/Example_graph.png
-
-Consider the above example. BCIPy has opted to model processing pipelines as *acyclic, directed graphs*, which individual
-operations modeled as nodes within the graph, that contain kernels (or specific operations, ie. Add). Each node within the graph
-is connected by edges, or data storage objects created to serve as inputs and outputs as nodes within the graph. 
-
-.. .. image:: _static/Graph.PNG
-..    :target: _static/Graph.PNG
-..    :align: center
-
-There are other important aspects of the graph, including a data source (a class within BCIPy). Filters/Classifiers are special types of kernels that
-are so frequently used that they were made into their own objects, but still operate within kernels (more on this in the docs). As such, 
-BCIPy's structure resembles this directed-graph-processing-pipeline model.
-
-.. .. image:: _static/BCIPY_Structure.PNG
-..    :target: _static/BCIPY_Structure.PNG
-
 
 
 Basic Setup
