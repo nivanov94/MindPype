@@ -1,4 +1,4 @@
-from bcipy import bcipy
+import bcipy
 import pylsl
 import pyxdf
 import numpy as np
@@ -14,13 +14,8 @@ def main():
     
     parser = argparse.ArgumentParser(prog='Accompanying processing back-end to work with BCI Rocket',
                                      description='Gets data from LSL for processing and sends predicted labels to LSL')
-    parser.add_argument('--no_lsl', dest='LSL_DISABLED', action='store_true', default=False, required=False)
-    parser.add_argument('--previous_sess_data', nargs='+', type=str, required=False, default=None)
-    parser.add_argument('--resume', nargs=1, type=str, required=False, default=None)
-    parser.add_argument('--sim', nargs=1, type=str, required=False, default=None)
     parser.add_argument('--tasks', nargs=3, type=str, required=False, default=['task1','task2','task3'])
     parser.add_argument('--fs', nargs=1, type=int, required=False, default=[250])
-    parser.add_argument('--debug', dest='DEBUG', action='store_true', default=False, required=False)
     args = parser.parse_args()
     
     
@@ -74,9 +69,9 @@ def main():
                'P3',
                'P1',
                'Pz',
-               #'PO3',
-               #'Oz',
-               #'PO4',
+               'PO3',
+               'Oz',
+               'PO4',
                'P8',
                'P6',
                'P4',
@@ -221,15 +216,7 @@ def main():
         if sts != bcipy.BcipEnums.SUCCESS:
             raise Exception(sts)
     
-    
-    
-    ## load data from previous session
-    
 
-    task_data = {}
-    for task in selected_tasks:
-        task_data[task] = np.random.randn(15,Nc,Ns+2*Fs)              
-            
     # create lsl inlet and outlet to communicate with BCI rocket
     lsl_marker_inlet = pylsl.StreamInlet(pylsl.resolve_byprop('type', 'Markers')[0]) # todo verify there will only be one marker stream
     outlet_info = pylsl.StreamInfo('Marker-PredictedLabel', 'Markers', channel_format='string')
@@ -247,7 +234,6 @@ def main():
         if sts != bcipy.BcipEnums.SUCCESS:
             raise Exception(sts)
             
-        trials_remaining = [15,15,15]
         for i_t in range(45): # 45 trials per block
             print(f"\ttrial: {i_t+1}")
             
@@ -265,10 +251,6 @@ def main():
                     true_label = int(label_str)
             
     
-                
-                
-            trials_remaining[true_label] -= 1
-        
             # set the true label scalar
             s_true.data = true_label
         
@@ -286,9 +268,9 @@ def main():
                 else:
                     outlet_marker = f"Block:{i_b+1}_Trial:{i_t+1}_Pred:{-2}"
         
+                
                 # push predicated label to marker outlet
                 lsl_marker_outlet.push_sample([outlet_marker])
-
 
 
     input("Session complete. Please Enter to terminate program...")
