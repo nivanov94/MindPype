@@ -1,4 +1,4 @@
-import bcipy
+from bcipy import bcipy
 import numpy as np
 import pylsl
 
