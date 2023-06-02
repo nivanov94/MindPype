@@ -1,4 +1,4 @@
-from bcipy import bcipy
+import bcipy
 import sys, os
 import numpy as np
 import pytest

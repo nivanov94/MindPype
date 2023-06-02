@@ -1,6 +1,5 @@
-from bcipy import bcipy
 import sys, os
-from bcipy.test.XDF_test import main
+from bcipy.tutorials.XDF_tutorial import main
 
 def test_XDF():
     main()

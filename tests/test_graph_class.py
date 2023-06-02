@@ -1,4 +1,4 @@
-from bcipy import bcipy
+import bcipy
 import sys, os
 class GraphUnitTest:
 

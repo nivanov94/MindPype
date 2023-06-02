@@ -10,7 +10,7 @@ import sys, os
 sys.path.insert(0, os.getcwd())
 
 # Create a simple graph for testing
-from bcipy import bcipy
+import bcipy
 
 import scipy.io as sio
 

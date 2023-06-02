@@ -1,4 +1,4 @@
-from bcipy import bcipy
+import bcipy
 
 def main():
     session = bcipy.Session.create()
