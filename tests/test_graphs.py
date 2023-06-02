@@ -1,9 +1,9 @@
 import bcipy
 import numpy as np
 
-class GraphTests:
+class GraphTests():
 
-    def XDF(file, tasks, channels, start, samples):
+    def XDF(self, file, tasks, channels, start, samples):
         session = bcipy.Session.create()
 
         graph = bcipy.Graph.create(session)
@@ -64,6 +64,11 @@ def test_XDF():
     
     channels = [ch_map[ch] for ch in sel_chs]
     tasks = ('flash', 'target')
-    trial_data = tests.XDF(['C:/Users/lioa/Documents/Mindset P300 Code for Aaron/sub-P001_ses-S001_task-vP300+2x2_run-003.xdf'], tasks, channels, -.2, 500)
+    trial_data = tests.XDF(
+        ['C:/Users/lioa/Documents/Mindset P300 Code for Aaron/sub-P001_ses-S001_task-vP300+2x2_run-003.xdf'], 
+                           tasks, 
+                           channels, 
+                           -.2, 
+                           500)
     
     assert trial_data == bcipy.BcipEnums.SUCCESS
