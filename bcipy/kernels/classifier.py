@@ -138,7 +138,8 @@ class ClassifierKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
         
         if (self.output_probs):
-            if (self.output_probs._bcip_type != BcipEnums.TENSOR):
+            if (self.output_probs._bcip_type != BcipEnums.TENSOR and
+                self.output_probs._bcip_type != BcipEnums.SCALAR):
                 return BcipEnums.INVALID_PARAMETERS
 
         if (self._classifier._bcip_type != BcipEnums.CLASSIFIER):

@@ -1,13 +1,5 @@
-bcipy package
-=============
-
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 2
-   
-   bcipy.kernels
+bcipy package contents
+======================
 
 Module contents
 ---------------
@@ -18,9 +10,6 @@ Module contents
    :show-inheritance:
    :noindex:
 
-
-Submodules
-----------
 
 bcipy.classifier module
 -------------------------------
@@ -64,6 +53,7 @@ bcipy.graph module
    :show-inheritance:
    :noindex:
 
+
 bcipy.kernel module
 ----------------------------
 
@@ -71,6 +61,11 @@ bcipy.kernel module
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. toctree::
+   :maxdepth: 2
+   
+   bcipy.kernels
 
 bcipy.source module
 ---------------------------
