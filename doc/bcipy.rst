@@ -3,7 +3,7 @@ BCIPy Package Contents
 
 bcipy.classifier module
 -----------------------
-
+.. currentmodule:: bcipy.classifier
 .. automodule:: bcipy.classifier
    :members:
    :undoc-members:
@@ -11,7 +11,7 @@ bcipy.classifier module
 
 bcipy.containers module
 -----------------------
-
+.. currentmodule:: bcipy.containers
 .. automodule:: bcipy.containers
    :members:
    :undoc-members:
@@ -19,7 +19,7 @@ bcipy.containers module
 
 bcipy.core module
 -----------------
-
+.. cuurentdmodule:: bcipy.core
 .. automodule:: bcipy.core
    :members:
    :undoc-members:
@@ -27,7 +27,7 @@ bcipy.core module
 
 bcipy.filter module
 -------------------
-
+.. currentmodule:: bcipy.filter
 .. automodule:: bcipy.filter
    :members:
    :undoc-members:
@@ -35,7 +35,7 @@ bcipy.filter module
 
 bcipy.graph module
 ------------------
-
+.. currentmodule:: bcipy.graph
 .. automodule:: bcipy.graph
    :members:
    :undoc-members:
@@ -45,7 +45,7 @@ bcipy.graph module
 
 bcipy.kernel module
 -------------------
-
+.. currentmodule:: bcipy.kernel
 .. automodule:: bcipy.kernel
    :members:
    :undoc-members:
@@ -58,7 +58,7 @@ bcipy.kernel module
 
 bcipy.source module
 -------------------
-
+.. currentmodule:: bcipy.source
 .. automodule:: bcipy.source
    :members:
    :undoc-members:
