@@ -1,8 +1,5 @@
-bcipy.kernels package
-=====================
-
-Submodules
-----------
+List of available kernels
+=========================
 
 bcipy.kernels.arithmetic module
 -------------------------------

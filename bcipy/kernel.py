@@ -41,10 +41,26 @@ class Kernel(BCIP, ABC):
     # API Getters
     @property
     def name(self):
+        """
+        Returns the name of the kernel
+
+        Returns
+        -------
+        _name : str
+        """
+
         return self._name
     
     @property
     def init_style(self):
+        """
+        Returns the initialization style of the kernel
+
+        Returns
+        -------
+        _init_style : BcipEnums Object
+        """
+        
         return self._init_style
     
     @abstractmethod

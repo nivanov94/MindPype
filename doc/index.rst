@@ -15,6 +15,7 @@ Welcome to bcipy's documentation!
    BasicSetup
    AdvancedSetup
    bcipy
+   bcipy.kernels
 
 
 Indices and tables

@@ -1,8 +1,8 @@
 bcipy package contents
 ======================
 
-Module contents
----------------
+BCIPy Contents
+--------------
 
 .. automodule:: bcipy
    :members:
@@ -12,7 +12,7 @@ Module contents
 
 
 bcipy.classifier module
--------------------------------
+-----------------------
 
 .. automodule:: bcipy.classifier
    :members:
@@ -20,16 +20,15 @@ bcipy.classifier module
    :show-inheritance:
 
 bcipy.containers module
--------------------------------
+-----------------------
 
 .. automodule:: bcipy.containers
    :members:
    :undoc-members:
    :show-inheritance:
-   :noindex:
 
 bcipy.core module
--------------------------------
+-----------------
 
 .. automodule:: bcipy.core
    :members:
@@ -37,7 +36,7 @@ bcipy.core module
    :show-inheritance:
 
 bcipy.filter module
----------------------------
+-------------------
 
 .. automodule:: bcipy.filter
    :members:
@@ -45,7 +44,7 @@ bcipy.filter module
    :show-inheritance:
 
 bcipy.graph module
---------------------------
+------------------
 
 .. automodule:: bcipy.graph
    :members:
@@ -55,7 +54,7 @@ bcipy.graph module
 
 
 bcipy.kernel module
-----------------------------
+-------------------
 
 .. automodule:: bcipy.kernel
    :members:
@@ -68,18 +67,10 @@ bcipy.kernel module
    bcipy.kernels
 
 bcipy.source module
----------------------------
+-------------------
 
 .. automodule:: bcipy.source
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: bcipy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :noindex:

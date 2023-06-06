@@ -29,12 +29,6 @@ class BCIP(object):
 
     """
     def __init__(self,bcip_type,session):
-        """
-        Constructor for the base class for all objects used in the BCIP API.
-        It serves to define some attributes that will be shared across all
-        other objects
-        """
-
         self._bcip_type = bcip_type
         self._id  = id(self)
         self._session = session
@@ -45,7 +39,8 @@ class BCIP(object):
         """
         Returns the type of object
 
-        Args:
+        Arguments
+        ---------
         None
 
         Returns
@@ -60,8 +55,8 @@ class BCIP(object):
         """
         Returns the session id of the object
 
-        Parameters
-        ----------
+        Arguments
+        ---------
         None
 
         Returns
@@ -72,6 +67,18 @@ class BCIP(object):
     
     @property
     def session(self):
+        """
+        Returns the session object of the object
+
+        Arguments
+        ---------
+        None
+
+        Returns
+        -------
+        session : session object
+        """
+
         return self._session
 
 
