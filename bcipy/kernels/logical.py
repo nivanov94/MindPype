@@ -85,16 +85,14 @@ class NotKernel(Unary, Kernel):
     
     Numpy broadcasting rules apply.
 
-    Parameters
-    ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    :param graph: Graph that the kernel should be added to
+    :type graph: Graph Object
 
-    inA : Tensor or Scalar object
-        - First Input trial data
+    :param inA: Input trial data
+    :type inA: Tensor or Scalar object
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    :param outA: Output trial data
+    :type outA: Tensor or Scalar object
     """
     
     def __init__(self,graph,inA,outA):
