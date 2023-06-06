@@ -1,15 +1,5 @@
-bcipy package contents
+BCIPy Package Contents
 ======================
-
-BCIPy Contents
---------------
-
-.. automodule:: bcipy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :noindex:
-
 
 bcipy.classifier module
 -----------------------

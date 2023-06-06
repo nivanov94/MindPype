@@ -53,3 +53,8 @@ autodoc_strip_signature_backslash = True
 strip_signature_backslash = True
 
 pygments_style = 'sphinx'
+
+extensions.append('autoapi.extension')
+
+autoapi_type = 'python'
+autoapi_dirs = ['../bcipy']
