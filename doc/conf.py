@@ -27,7 +27,8 @@ extensions = [
     "sphinx.ext.napoleon",
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'sphinx.ext.autoapi',
 ]
 
 templates_path = ['_templates']
@@ -53,8 +54,6 @@ autodoc_strip_signature_backslash = True
 strip_signature_backslash = True
 
 pygments_style = 'sphinx'
-
-extensions.append('autoapi.extension')
 
 autoapi_type = 'python'
 autoapi_dirs = ['../bcipy']
