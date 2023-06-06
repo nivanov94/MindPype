@@ -607,7 +607,7 @@ class LessKernel(Binary,Kernel):
     :param outA: Output trial data
     :type outA: Tensor or Scalar object
 
-    .. note: The calculation is _inA .< _inB
+    
     """
     
     def __init__(self,graph,inA,inB,outA):
