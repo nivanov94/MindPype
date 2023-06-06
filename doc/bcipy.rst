@@ -4,7 +4,7 @@ BCIPy Package Contents
 bcipy.classifier module
 -----------------------
 
-.. automodule:: ..bcipy.classifier
+.. automodule:: bcipy.bcipy.classifier
    :members:
    :undoc-members:
    :show-inheritance:
