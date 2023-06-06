@@ -16,9 +16,6 @@ class Classifier(BCIP):
     """
     A classifier that can be used by different BCIP kernels
 
-    Args:
-        BCIP (BCIP): The base class for all BCIP objects
-
     Parameters
     ----------
     sess : Session object
@@ -80,6 +77,9 @@ class Classifier(BCIP):
         quadratically with the number of samples and may be impractical beyond tens of thousands of samples. 
         The multiclass support is handled according to a one-vs-one scheme.
 
+        Args:
+            sess (session object): Session where the SVM BCIP Classifier object will exist
+        
         Parameters
         ----------
         sess : session object
