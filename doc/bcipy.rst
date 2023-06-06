@@ -3,8 +3,8 @@ BCIPy Package Contents
 
 bcipy.classifier module
 -----------------------
-.. currentmodule:: bcipy.classifier
-.. automodule:: bcipy.classifier
+.. currentmodule:: bcipy.bcipy.classifier
+.. automodule:: bcipy.bcipy.classifier
    :members:
    :undoc-members:
    :show-inheritance:
