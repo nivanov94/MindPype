@@ -16,6 +16,9 @@ class Classifier(BCIP):
     """
     A classifier that can be used by different BCIP kernels
 
+    Args:
+        BCIP (BCIP): The base class for all BCIP objects
+
     Parameters
     ----------
     sess : Session object
