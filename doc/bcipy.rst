@@ -3,15 +3,15 @@ BCIPy Package Contents
 
 bcipy.classifier module
 -----------------------
-.. currentmodule:: bcipy.bcipy.classifier
-.. automodule:: bcipy.bcipy.classifier
+.. currentmodule:: ..bcipy.classifier
+.. automodule:: ..bcipy.classifier
    :members:
    :undoc-members:
    :show-inheritance:
 
 bcipy.containers module
 -----------------------
-.. currentmodule:: bcipy.containers
+.. currentmodule:: ..bcipy.containers
 .. automodule:: bcipy.containers
    :members:
    :undoc-members:
@@ -19,7 +19,7 @@ bcipy.containers module
 
 bcipy.core module
 -----------------
-.. cuurentdmodule:: bcipy.core
+.. cuurentmodule:: bcipy.core
 .. automodule:: bcipy.core
    :members:
    :undoc-members:
