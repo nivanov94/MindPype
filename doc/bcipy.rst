@@ -3,7 +3,7 @@ BCIPy Package Contents
 
 bcipy.classifier module
 -----------------------
-.. currentmodule:: ..bcipy.classifier
+
 .. automodule:: ..bcipy.classifier
    :members:
    :undoc-members:
@@ -11,32 +11,32 @@ bcipy.classifier module
 
 bcipy.containers module
 -----------------------
-.. currentmodule:: ..bcipy.containers
-.. automodule:: bcipy.containers
+
+.. automodule:: ..bcipy.containers
    :members:
    :undoc-members:
    :show-inheritance:
 
 bcipy.core module
 -----------------
-.. cuurentmodule:: bcipy.core
-.. automodule:: bcipy.core
+
+.. automodule:: ..bcipy.core
    :members:
    :undoc-members:
    :show-inheritance:
 
 bcipy.filter module
 -------------------
-.. currentmodule:: bcipy.filter
-.. automodule:: bcipy.filter
+
+.. automodule:: ..bcipy.filter
    :members:
    :undoc-members:
    :show-inheritance:
 
 bcipy.graph module
 ------------------
-.. currentmodule:: bcipy.graph
-.. automodule:: bcipy.graph
+
+.. automodule:: ..bcipy.graph
    :members:
    :undoc-members:
    :show-inheritance:
@@ -45,8 +45,8 @@ bcipy.graph module
 
 bcipy.kernel module
 -------------------
-.. currentmodule:: bcipy.kernel
-.. automodule:: bcipy.kernel
+
+.. automodule:: ..bcipy.kernel
    :members:
    :undoc-members:
    :show-inheritance:
@@ -58,8 +58,8 @@ bcipy.kernel module
 
 bcipy.source module
 -------------------
-.. currentmodule:: bcipy.source
-.. automodule:: bcipy.source
+
+.. automodule:: ..bcipy.source
    :members:
    :undoc-members:
    :show-inheritance:
