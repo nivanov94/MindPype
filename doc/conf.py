@@ -53,3 +53,7 @@ autodoc_strip_signature_backslash = True
 strip_signature_backslash = True
 
 pygments_style = 'sphinx'
+
+autodoc_mock_imports = ['matplotlib', 'more-itertools',
+                        'numpy', 'numpydoc', 'pyriemann', 
+                        'scikit-learn', 'scipy', 'pylsl', 'pyxdf']

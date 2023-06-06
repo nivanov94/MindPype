@@ -4,7 +4,7 @@ BCIPy Package Contents
 bcipy.classifier module
 -----------------------
 
-.. automodule:: classifier
+.. automodule:: bcipy.classifier
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ bcipy.classifier module
 bcipy.containers module
 -----------------------
 
-.. automodule:: .bcipy.containers
+.. automodule:: bcipy.containers
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ bcipy.containers module
 bcipy.core module
 -----------------
 
-.. automodule:: ..bcipy.core
+.. automodule:: bcipy.core
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,7 +36,7 @@ bcipy.filter module
 bcipy.graph module
 ------------------
 
-.. automodule:: ..bcipy.graph
+.. automodule:: bcipy.graph
    :members:
    :undoc-members:
    :show-inheritance:
@@ -46,7 +46,7 @@ bcipy.graph module
 bcipy.kernel module
 -------------------
 
-.. automodule:: ..bcipy.kernel
+.. automodule:: bcipy.kernel
    :members:
    :undoc-members:
    :show-inheritance:
@@ -59,7 +59,7 @@ bcipy.kernel module
 bcipy.source module
 -------------------
 
-.. automodule:: ..bcipy.source
+.. automodule:: bcipy.source
    :members:
    :undoc-members:
    :show-inheritance:
