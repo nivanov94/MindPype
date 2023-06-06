@@ -591,10 +591,6 @@ class LessKernel(Binary,Kernel):
     
     Numpy broadcasting rules apply.
 
-
-    Parameters
-    ----------
-
     :param graph: Graph that the kernel should be added to
     :type graph: Graph Object
 
@@ -607,7 +603,8 @@ class LessKernel(Binary,Kernel):
     :param outA: Output trial data
     :type outA: Tensor or Scalar object
 
-    
+    .. note:: The calculation is _inA .< _inB
+
     """
     
     def __init__(self,graph,inA,inB,outA):
