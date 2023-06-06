@@ -9,8 +9,7 @@ class TangentSpaceKernel(Kernel):
     """
     Kernel to estimate Tangent Space. Applies Pyriemann.tangentspace method
 
-    Paramters
-    ---------
+    Args:
     inA : Tensor object
         - Input data
 
