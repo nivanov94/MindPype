@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 20 10:08:38 2019
-
-Kernel.py - Defines a generic kernel class
-
-@author: ivanovn
-"""
-
 from .core import BCIP, BcipEnums
 from abc import ABC, abstractmethod
 
@@ -60,7 +51,7 @@ class Kernel(BCIP, ABC):
         -------
         _init_style : BcipEnums Object
         """
-        
+
         return self._init_style
     
     @abstractmethod
