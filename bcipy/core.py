@@ -6,35 +6,34 @@ class BCIP(object):
     It serves to define some attributes that will be shared across all
     other objects.
 
+    Arguments
+    ---------
+    bcip_type : Object type enum (int)
+        Indicates what type of object is being created
+    session : session object
+        The session where the object will exist
+
+    
+    Attributes
+    ----------
+    _bcip_type : Object type enum (int)
+        Indicates what type of object is being created
+    _id : int
+        Unique identifier for the object
+    _session : session object
+        The session where the object will exist
+
+    Returns
+    -------
+    BCIP Object
+
     """
     def __init__(self,bcip_type,session):
         """
         Constructor for the base class for all objects used in the BCIP API.
         It serves to define some attributes that will be shared across all
-        other objects.
-
-        Parameters
-        ----------
-        bcip_type : Object type enum (int)
-            Indicates what type of object is being created
-        session : session object
-            The session where the object will exist
-
-        
-        Attributes
-        ----------
-        _bcip_type : Object type enum (int)
-            Indicates what type of object is being created
-        _id : int
-            Unique identifier for the object
-        _session : session object
-            The session where the object will exist
-
-        Returns
-        -------
-        BCIP Object
-
-    """
+        other objects
+        """
 
         self._bcip_type = bcip_type
         self._id  = id(self)
@@ -46,8 +45,7 @@ class BCIP(object):
         """
         Returns the type of object
 
-        Parameters
-        ----------
+        Args:
         None
 
         Returns
