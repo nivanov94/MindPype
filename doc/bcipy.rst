@@ -12,7 +12,7 @@ bcipy.classifier module
 bcipy.containers module
 -----------------------
 
-.. automodule:: ..bcipy.containers
+.. automodule:: .bcipy.containers
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,7 +28,7 @@ bcipy.core module
 bcipy.filter module
 -------------------
 
-.. automodule:: ..bcipy.filter
+.. automodule:: bcipy.filter
    :members:
    :undoc-members:
    :show-inheritance:
