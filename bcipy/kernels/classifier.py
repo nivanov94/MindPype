@@ -9,7 +9,22 @@ import numpy as np
 
 class ClassifierKernel(Kernel):
     """
-    Classify data using BCIP Classifier Object
+    Classify data using BCIPy Classifier Object
+
+    :param graph: Graph that the kernel should be added to
+    :type graph: Graph Object
+
+    :param inA: Input trial data
+    :type inA: Tensor object (n_channels, n_samples)
+
+    :param classifier: BCIPy Classifier object to be used for classification
+    :type classifier: Classifier object
+
+    :param outA: Output trial data
+    :type outA: Scalar object
+
+    :param output_probs: If not None, the output will be the probability of each class.
+    :type output_probs: Tensor object, default = None
 
     Parameters
     ----------

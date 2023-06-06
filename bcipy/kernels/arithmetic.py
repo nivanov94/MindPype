@@ -175,7 +175,7 @@ class LogKernel(Unary,Kernel):
     Kernel to perform element-wise natural logarithm operation on
     one BCIP data container (i.e. tensor or scalar)
     
-    ..note:: Numpy broadcasting rules apply.
+    .. note:: Numpy broadcasting rules apply.
 
     :param graph: Graph that the kernel should be added to
     :type graph: Graph Object
@@ -469,7 +469,7 @@ class DivisionKernel(Binary,Kernel):
     Kernel to divide two BCIP data containers (i.e. tensor or scalar)
     together
     
-    ..note:: This is element-wise division (ie. inA ./ inB)
+    .. note:: This is element-wise division (ie. inA ./ inB)
 
     :param graph: Graph that the kernel should be added to
     :type graph: Graph Object
@@ -576,7 +576,7 @@ class MultiplicationKernel(Binary,Kernel):
     Kernel to multiply two BCIPP data containers (i.e. tensor or scalar)
     together
     
-    Note: This is element-wise multiplication (ie. inA .* inB)
+    .. note: This is element-wise multiplication (ie. inA .* inB)
 
     :param graph: Graph that the kernel should be added to
     :type graph: Graph Object
@@ -645,7 +645,7 @@ class MultiplicationKernel(Binary,Kernel):
         Factory method to create a multiplication kernel and add it to a graph
         as a generic node object.
 
-        ..note:: This is element-wise multiplication (ie. inA .* inB)
+        .. note:: This is element-wise multiplication (ie. inA .* inB)
 
         :param graph: Graph that the kernel should be added to
         :type graph: Graph Object
