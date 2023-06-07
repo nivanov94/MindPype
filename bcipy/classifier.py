@@ -1,11 +1,10 @@
-"""
-.. note:: 
-   Emulates the filter class
-   If we pass in a generic classifier object, should be able to execute standard sklearn commands
+"""Emulates the filter class
+If we pass in a generic classifier obejct, should be able to execute standard sklearn commands
 
-   Creating a classifier object should be done through the factory methods
-   
-   """
+Creating a kernel to handle verification and execution should be straight-foward
+
+Create a classifier object and enter
+"""
 
 from .core import BCIP, BcipEnums
 from pyriemann import classification
@@ -17,17 +16,20 @@ class Classifier(BCIP):
     """
     A classifier that can be used by different BCIP kernels
 
-    :param sess: Session where the Array object will exist
-    :type sess: Session object
+    Args:
+        BCIP (BCIP): The base class for all BCIP objects
 
-    :param ctype: The name of the classifier to be created
-    :type ctype: str
+    Parameters
+    ----------
+    sess : Session object
+        - Session where the Array object will exist
 
-    :param classifier: The classifier object to be used within the node (should be the return from a BCIP kernel)
-    :type classifier: BCIP Classifier object
+    ctype : str
+        - The name of the classifier to be created
 
-    
-    :ivar _ctype: The type of the classifier to be created: ['lda', 'svm', 'logistic regression', 'custom']
+    classifier : BCIPy Classifier object
+        - The classifier object to be used within the node (should be the return from a BCIP kernel)
+
     Attributes
     ----------
     _ctype : ['lda', 'svm', 'logistic regression', 'custom']
@@ -38,11 +40,12 @@ class Classifier(BCIP):
     
     Examples
     --------
-    >>> from bcipy import Classifier
-    >>> classifier_object = Classifier.create_SVM(sess, C=1, kernel="rbf", degree=3)
-    
-    :return: Classifier object
-    :rtype: BCIPy Classifier object
+
+
+    Return
+    ------
+    BCIP Classifier object
+
     """
     
     # these are the possible internal methods for storing the filter 
@@ -77,10 +80,9 @@ class Classifier(BCIP):
         quadratically with the number of samples and may be impractical beyond tens of thousands of samples. 
         The multiclass support is handled according to a one-vs-one scheme.
 
-                
         Parameters
         ----------
-        sess (session object): session object
+        sess : session object
             Session where the SVM BCIP Classifier object will exist
 
         C : float, default=1.0
@@ -140,10 +142,6 @@ class Classifier(BCIP):
         """
         svm_object = SVC(C, kernel, degree, gamma, coef0, shrinking, probability, tol, cache_size, class_weight, verbose, max_iter, decision_function_shape, break_ties, random_state)
         f = cls(sess, 'svm', svm_object)
-
-        sess.add_misc_bcip_obj(f)
-
-        return f
 
 
     @classmethod

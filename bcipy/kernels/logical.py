@@ -85,14 +85,16 @@ class NotKernel(Unary, Kernel):
     
     Numpy broadcasting rules apply.
 
-    :param graph: Graph that the kernel should be added to
-    :type graph: Graph Object
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
 
-    :param inA: Input trial data
-    :type inA: Tensor or Scalar object
+    inA : Tensor or Scalar object
+        - First Input trial data
 
-    :param outA: Output trial data
-    :type outA: Tensor or Scalar object
+    outA : Tensor or Scalar object
+        - Output trial data
     """
     
     def __init__(self,graph,inA,outA):
@@ -591,20 +593,22 @@ class LessKernel(Binary,Kernel):
     
     Numpy broadcasting rules apply.
 
-    :param graph: Graph that the kernel should be added to
-    :type graph: Graph Object
 
-    :param inA: First Input trial data
-    :type inA: Tensor or Scalar object
+    Parameters
+    ----------
+    graph : Graph Object
+        - Graph that the kernel should be added to
 
-    :param inB: Second Input trial data
-    :type inB: Tensor or Scalar object
+    inA : Tensor or Scalar object
+        - First input trial data
 
-    :param outA: Output trial data
-    :type outA: Tensor or Scalar object
+    inB : Tensor or Scalar object
+        - Second input trial data
 
-    .. note:: The calculation is _inA .< _inB
+    outA : Tensor or Scalar object
+        - Output trial data
 
+    Note: The calculation is _inA .< _inB
     """
     
     def __init__(self,graph,inA,inB,outA):
