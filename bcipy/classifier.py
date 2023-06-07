@@ -26,6 +26,8 @@ class Classifier(BCIP):
     :param classifier: The classifier object to be used within the node (should be the return from a BCIP kernel)
     :type classifier: BCIP Classifier object
 
+    
+    :ivar _ctype: The type of the classifier to be created: ['lda', 'svm', 'logistic regression', 'custom']
     Attributes
     ----------
     _ctype : ['lda', 'svm', 'logistic regression', 'custom']
