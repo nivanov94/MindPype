@@ -1,10 +1,11 @@
-"""Emulates the filter class
-If we pass in a generic classifier obejct, should be able to execute standard sklearn commands
-
-Creating a kernel to handle verification and execution should be straight-foward
-
-Create a classifier object and enter
 """
+.. note:: 
+   Emulates the filter class
+   If we pass in a generic classifier object, should be able to execute standard sklearn commands
+
+   Creating a classifier object should be done through the factory methods
+   
+   """
 
 from .core import BCIP, BcipEnums
 from pyriemann import classification
@@ -16,16 +17,14 @@ class Classifier(BCIP):
     """
     A classifier that can be used by different BCIP kernels
 
-    Parameters
-    ----------
-    sess : Session object
-        - Session where the Array object will exist
+    :param sess: Session where the Array object will exist
+    :type sess: Session object
 
-    ctype : str
-        - The name of the classifier to be created
+    :param ctype: The name of the classifier to be created
+    :type ctype: str
 
-    classifier : BCIPy Classifier object
-        - The classifier object to be used within the node (should be the return from a BCIP kernel)
+    :param classifier: The classifier object to be used within the node (should be the return from a BCIP kernel)
+    :type classifier: BCIP Classifier object
 
     Attributes
     ----------
@@ -37,12 +36,11 @@ class Classifier(BCIP):
     
     Examples
     --------
-
-
-    Return
-    ------
-    BCIP Classifier object
-
+    >>> from bcipy import Classifier
+    >>> classifier_object = Classifier.create_SVM(sess, C=1, kernel="rbf", degree=3)
+    
+    :return: Classifier object
+    :rtype: BCIPy Classifier object
     """
     
     # these are the possible internal methods for storing the filter 
@@ -77,10 +75,59 @@ class Classifier(BCIP):
         quadratically with the number of samples and may be impractical beyond tens of thousands of samples. 
         The multiclass support is handled according to a one-vs-one scheme.
 
-        Args:
-            sess (session object): Session where the SVM BCIP Classifier object will exist
-        
-        
+                
+        Parameters
+        ----------
+        sess (session object): session object
+            Session where the SVM BCIP Classifier object will exist
+
+        C : float, default=1.0
+            Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive. The penalty is a squared l2 penalty.
+
+        kernel : {'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'} or callable, default='rbf'
+            Specifies the kernel type to be used in the algorithm. If none is given, 'rbf' will be used. If a callable is given it is used to pre-compute the kernel matrix from data matrices; that matrix should be an array of shape (n_samples, n_samples).
+
+        degree : int, default=3
+            Degree of the polynomial kernel function ('poly'). Ignored by all other kernels.
+
+        gamma : {'scale', 'auto'} or float, default='scale'
+            Kernel coefficient for 'rbf', 'poly' and 'sigmoid'.
+
+            if gamma='scale' (default) is passed then it uses 1 / (n_features * X.var()) as value of gamma,
+            if 'auto', uses 1 / n_features.
+
+        coef0 : float, default=0.0
+            Independent term in kernel function. It is only significant in 'poly' and 'sigmoid'.
+
+        shrinking : bool, default=True
+            Whether to use the shrinking heuristic. See the User Guide <shrinking_svm>.
+
+        probability : bool, default=False
+            Whether to enable probability estimates. This must be enabled prior to calling fit, will slow down that method as it internally uses 5-fold cross-validation, and predict_proba may be inconsistent with predict. Read more in the User Guide <scores_probabilities>.
+
+        tol : float, default=1e-3
+            Tolerance for stopping criterion.
+
+        cache_size : float, default=200
+            Specify the size of the kernel cache (in MB).
+
+        class_weight : dict or 'balanced', default=None
+            Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The "balanced" mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y)).
+
+        verbose : bool, default=False
+            Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.
+
+        max_iter : int, default=-1
+            Hard limit on iterations within solver, or -1 for no limit.
+
+        decision_function_shape : {'ovo', 'ovr'}, default='ovr'
+            Whether to return a one-vs-rest ('ovr') decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one ('ovo') decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). However, note that internally, one-vs-one ('ovo') is always used as a multi-class strategy to train models; an ovr matrix is only constructed from the ovo matrix. The parameter is ignored for binary classification.
+
+        break_ties : bool, default=False
+            If true, decision_function_shape='ovr', and number of classes > 2, predict will break ties according to the confidence values of decision_function; otherwise the first class among the tied classes is returned. Please note that breaking ties comes at a relatively high computational cost compared to a simple predict.
+
+        random_state : int, RandomState instance or None, default=None
+            Controls the pseudo random number generation for shuffling the data for probability estimates. Ignored when probability is False. Pass an int for reproducible output across multiple function calls. See Glossary <random_state>.
 
         Examples
         --------
@@ -91,6 +138,10 @@ class Classifier(BCIP):
         """
         svm_object = SVC(C, kernel, degree, gamma, coef0, shrinking, probability, tol, cache_size, class_weight, verbose, max_iter, decision_function_shape, break_ties, random_state)
         f = cls(sess, 'svm', svm_object)
+
+        sess.add_misc_bcip_obj(f)
+
+        return f
 
 
     @classmethod
