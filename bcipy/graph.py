@@ -587,13 +587,19 @@ class Edge:
     ----------
     _producers : array of Node objects
         Node objects that will produce the data within the Edge object
-
     _consumers : array of Node objects
         Node objects that will consume the data within the Edge object
+
+    Examples
+    --------
+    >>> Edge.create(example_data)
 
     """
     
     def __init__(self,data):
+        """
+        Constructor for Edge object
+        """
         self._data = data
         self._producers = []
         self._consumers = []
@@ -601,19 +607,66 @@ class Edge:
     
     @property
     def producers(self):
+        """
+        Getter for producers property
+
+        Return
+        ------
+        List of producers for the Edge object
+
+        Return Type
+        ------------
+        List of Node objects
+
+        Examples
+        --------
+        >>> example_edge.producers
+        """
         return self._producers
     
     @property
     def consumers(self):
+        """
+        Getter for consumers property
+        
+        Return
+        ------
+        List of consumers for the Edge object
+
+        Return Type
+        -----------
+        List of Node objects
+
+        Examples
+        --------
+        >>> print(example_edge.consumers)
+
+            [example_consumer_node]
+        
+        """
         return self._consumers
     
     @property
     def data(self):
+        """
+        Getter for data property
+
+        Return
+        ------
+        Data object stored within the Edge object
+
+        Return Type
+        -----------
+        BCIPy Data object
+        """
+
         return self._data
 
     def add_producer(self, producing_node):
         """
         Add a specified node as a producer to an Edge object
+
+        .. note:: Adds producer in place, does not return a new Edge object
 
         Parameters
         ----------
@@ -624,16 +677,14 @@ class Edge:
         --------
         example_edge.add_producer(example_producing_edge)
 
-        Return
-        ------
-        None
-
         """
         self.producers.append(producing_node)
 
     def add_consumer(self, consuming_node):
         """
         Add a specified node as a consumer to an Edge object
+
+        .. note:: Adds consumer in place, does not return a new Edge object
 
         Parameters
         ----------
@@ -644,15 +695,14 @@ class Edge:
         --------
         example_edge.add_consumer(example_consumer_edge)
 
-        Return
-        ------
-        None
         """
         self.consumers.append(consuming_node)
 
     def add_data(self, data):
         """
         Add specified data to an Edge object
+
+        .. note:: Adds data object in place, does not return a new Edge object
 
         Parameters
         ----------
@@ -663,9 +713,6 @@ class Edge:
         --------
         example_edge.add_data(example_data)
 
-        Return
-        ------
-        None
         """
         self.data = data
 
@@ -691,14 +738,41 @@ class Parameter:
     """
     
     def __init__(self,data,direction):
+        """
+        Constructor for Parameter object
+        """
         self._data = data # reference of the data object represented by parameter
         self._direction = direction # enum indicating whether this is an input or output
     
     @property
     def direction(self):
+        """
+        Getter for direction property
+
+        Return
+        ------
+        Enum indicating whether this is an input-type or output-type parameter
+
+        Return Type
+        -----------
+        BcipEnums.INPUT or BcipEnums.OUTPUT
+        """
         return self._direction
     
     @property
     def data(self):
+        """
+        Getter for data property
+
+        Return
+        ------
+        Data object stored within the Parameter object
+
+        Return Type
+        ------------
+        BCIPy Data object
+
+        """
+
         return self._data
 

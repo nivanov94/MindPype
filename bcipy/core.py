@@ -6,14 +6,13 @@ class BCIP(object):
     It serves to define some attributes that will be shared across all
     other objects.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     bcip_type : Object type enum (int)
         Indicates what type of object is being created
     session : session object
         The session where the object will exist
 
-    
     Attributes
     ----------
     _bcip_type : Object type enum (int)
@@ -23,12 +22,11 @@ class BCIP(object):
     _session : session object
         The session where the object will exist
 
-    Returns
-    -------
-    BCIP Object
-
     """
     def __init__(self,bcip_type,session):
+        """
+        Constructor for BCIP base class        
+        """
         self._bcip_type = bcip_type
         self._id  = id(self)
         self._session = session
@@ -39,13 +37,13 @@ class BCIP(object):
         """
         Returns the type of object
 
-        Arguments
-        ---------
-        None
-
-        Returns
-        -------
+        Return
+        ------
         bcip_type : Object type enum (int)
+
+        Return Type
+        -----------
+        BCIPEnum
         """
 
         return self._bcip_type
@@ -55,13 +53,14 @@ class BCIP(object):
         """
         Returns the session id of the object
 
-        Arguments
-        ---------
-        None
+        Return
+        ------
+        session_id
+            ID of the session where the object exists
 
-        Returns
-        -------
-        session_id : int
+        Return Type
+        -----------
+        int
         """
         return self._id
     
@@ -70,13 +69,14 @@ class BCIP(object):
         """
         Returns the session object of the object
 
-        Arguments
-        ---------
-        None
-
         Returns
         -------
-        session : session object
+        session
+            Session where the object exists
+        
+        Return Type
+        -----------
+        BCIPy Session Object
         """
 
         return self._session
@@ -88,6 +88,7 @@ class BcipEnums(IntEnum):
     """
 
     # Object Type Enums - Have a leading '1'
+
     BCIP          = 100
     SESSION       = 101
     GRAPH         = 102
@@ -103,6 +104,7 @@ class BcipEnums(IntEnum):
     CLASSIFIER    = 112
     
     # Status Codes - Leading '2'
+
     SUCCESS = 200
     FAILURE = 201
     INVALID_BLOCK = 202
@@ -117,16 +119,19 @@ class BcipEnums(IntEnum):
     INVALID_GRAPH = 211
     
     # Parameter Directions - Leading '3'
+
     INPUT  = 300
     OUTPUT = 301
     INOUT  = 302
     
     # Kernel Initialization types - leading '4'
+
     INIT_FROM_NONE = 400
     INIT_FROM_DATA = 401
     INIT_FROM_COPY = 402
     
     # Block graph identifiers - leading '5'
+
     ON_BEGIN = 500 # graph executes when block begins
     ON_CLOSE = 501 # graph executes when block ends
     ON_TRIAL = 502 # graph executes when a new trial is recorded
@@ -140,14 +145,10 @@ class Session(BCIP):
     Session objects contain all other BCIP objects instances within a data
     capture session.
 
-    Parameters
-    ----------
-    None
-
     Attributes
     ----------
     _datum : dict
-        - 
+        Dictionary of all datum objects
 
 
     Examples
@@ -158,6 +159,9 @@ class Session(BCIP):
     """
     
     def __init__(self):
+        """
+        Constructor for Session class
+        """
         super().__init__(BcipEnums.SESSION,self)
         
         # define some private attributes
@@ -179,10 +183,6 @@ class Session(BCIP):
         Execute this method prior data collection to mitigate potential
         crashes due to invalid processing graph construction.
         
-        Parameters
-        ----------
-        None
-
         Returns
         -------
         BCIP Status Code
@@ -210,6 +210,24 @@ class Session(BCIP):
         return BcipEnums.SUCCESS
     
     def initialize_graph(self, graph):
+        """
+        Initialize a graph
+
+        Parameters
+        ----------
+        graph : Graph object
+            Graph to initialize
+
+        Returns
+        -------
+        BCIP Status Code
+
+        Examples
+        --------
+        >>> status = session.initialize_graph(graph)
+        >>> print(status)
+        """
+
         return graph.initialize()
 
     
@@ -219,6 +237,15 @@ class Session(BCIP):
         
         TODO - may need to add an input parameter with some timing information
         to indicate how each data object should be synced
+
+        Parameters
+        ----------
+        label : str, optional
+            Label for the current trial. The default is None.
+
+        Examples
+        --------
+        >>> session.poll_volatile_channels()
         """
         for d in self._datum:
             if self._datum[d].volatile:
@@ -227,6 +254,16 @@ class Session(BCIP):
     def push_volatile_outputs(self, label=None):
         """
         Push outputs to volatile sources
+
+        Parameters
+        ----------
+        label : str, optional
+            Label for the current trial. The default is None.
+
+        Examples
+        --------
+        >>> session.push_volatile_outputs()
+
         """ 
 
         for d in self._datum:
@@ -238,40 +275,113 @@ class Session(BCIP):
         Execute a trial
         First updates all volatile input channels
         Then executes current block
+
+        Parameters
+        ----------
+        label : str
+            Label for the current trial.
+        graph : Graph object
+            Graph to execute
+
+        Returns
+        -------
+        BCIP Status Code
+
+        Examples
+        --------
+        >>> status = session.execute_trial(label,graph)
+        >>> print(status)
         """
         print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
         self.push_volatile_outputs(label)
-        #sts = self.current_block.process_trial(label, graph)
         sts = graph.execute(label)
         return sts
     
-    def reject_trial(self):
-        """
-        Reject the previous trial and reset the block trial counters
-        """
-        return self.current_block.reject_trial()
         
     def add_graph(self,graph):
+        """
+        Add a graph to the session
+
+        Parameters
+        ----------
+        graph : Graph object
+            Graph to add
+
+        Examples
+        --------
+        >>> session.add_graph(graph)
+        """
         self._verified = False
         self.graphs.append(graph)
     
     def add_data(self,data):
+        """
+        Add a data object to the session
+
+        Parameters
+        ----------
+        data : BCIPy Data object
+            Data object to add
+
+        Examples
+        --------
+        >>> session.add_data(data)
+        """
         self._datum[data.session_id] = data
         
     def add_misc_bcip_obj(self,obj):
+        """
+        Add a misc BCIP object to the session
+
+        Parameters
+        ----------
+        obj : BCIP object
+            BCIP object to add
+        
+        Examples
+        --------
+        >>> session.add_misc_bcip_obj(obj)
+        """
         self._misc_objs[obj.session_id] = obj
         
     def add_ext_src(self,src):
+        """
+        Add an external source to the session
+
+        Parameters
+        ----------
+        src : External Source object
+            External source to add
+        """
         self._ext_srcs[src.session_id] = src
         
     def add_ext_out(self,src):
+        """
+        Add an external outlet to the session
+
+        Parameters
+        ----------
+        src : External outlet object
+            External outlet to add
+        """
         self._ext_out[src.session_id] = src
     
     def find_obj(self,id_num):
         """
         Search for and return a BCIP object within the session with a
         specific ID number
+
+        Parameters
+        ----------
+        id_num : int
+            ID number of the object to find
+
+        Returns
+        -------
+        BCIP object
+            BCIP object with the specified ID number
+
         """
         
         # check if the ID is the session itself
@@ -295,4 +405,13 @@ class Session(BCIP):
     
     @classmethod
     def create(cls):
+        """
+        Create a new session object
+
+        Returns
+        -------
+        Session object
+            New session object
+
+        """
         return cls()

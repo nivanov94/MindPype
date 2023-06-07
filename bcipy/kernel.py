@@ -8,22 +8,24 @@ class Kernel(BCIP, ABC):
 
     Parameters
     ----------
-
     name : str
-        - Name of the kernel
+        Name of the kernel
     init_style : BcipEnums Object
-        - Kernel initialization style, according to BcipEnum class
+        Kernel initialization style, according to BcipEnum class
 
     Attributes
     ----------
     
     _name : str
-        - Name of the kernel
+        Name of the kernel
     _init_style : BcipEnums Object
-        - Kernel initialization style, according to BcipEnum class
+        Kernel initialization style, according to BcipEnum class
     """
     
     def __init__(self,name,init_style,graph):
+        """
+        Constructor for the Kernel class
+        """
         session = graph.session
         super().__init__(BcipEnums.KERNEL,session)
         self._name = name
@@ -37,7 +39,12 @@ class Kernel(BCIP, ABC):
 
         Returns
         -------
-        _name : str
+        _name 
+            The name of the kernel
+
+        Return Type
+        -----------
+        str
         """
 
         return self._name
@@ -49,7 +56,12 @@ class Kernel(BCIP, ABC):
 
         Returns
         -------
-        _init_style : BcipEnums Object
+        _init_style
+            The initialization style of the kernel
+
+        Return Type
+        -----------
+        BcipEnums Object
         """
 
         return self._init_style

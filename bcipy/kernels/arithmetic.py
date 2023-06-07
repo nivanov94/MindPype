@@ -75,13 +75,26 @@ class AbsoluteKernel(Unary, Kernel):
     ----------
 
     graph : Graph Object
-        - Graph that the kernel should be added to
-
+        Graph that the kernel should be added to
     inA : Tensor or Scalar object
-        - Input trial data
-
+        Input trial data
     outA : Tensor or Scalar object
-        - Output trial data
+        Output trial data
+
+    Attributes
+    ----------
+    _inA : Tensor or Scalar object
+        Input trial data
+    _outA : Tensor or Scalar object
+        Output trial data
+    _init_labels_in : Tensor object
+        Initialization labels for input data
+    _init_labels_out : Tensor object
+        Initialization labels for output data
+    _init_inA : Tensor or Scalar object
+        Initialization input data
+    _init_outA : Tensor or Scalar object
+        Initialization output data
     """
     
     def __init__(self,graph,inA,outA):
@@ -93,13 +106,11 @@ class AbsoluteKernel(Unary, Kernel):
         ----------
 
         graph : Graph Object
-            - Graph that the kernel should be added to
-
+            Graph that the kernel should be added to
         inA : Tensor or Scalar object
-            - Input trial data
-
+            Input trial data
         outA : Tensor or Scalar object
-            - Output trial data
+            Output trial data
         """
         super().__init__('Absolute',BcipEnums.INIT_FROM_NONE,graph)
         self._inA   = inA
@@ -137,13 +148,17 @@ class AbsoluteKernel(Unary, Kernel):
         ----------
         
         graph : Graph Object
-            - Graph that the kernel should be added to
-
+            Graph that the kernel should be added to
         inA : Tensor or Scalar object
-            - Input trial data
-
+            Input trial data
         outA : Tensor or Scalar object
-            - Output trial data
+            Output trial data
+        
+        Return
+        ------
+        node : Node object
+            Node object containing the absolute kernel and parameters
+            
         """
         
         # create the kernel object
@@ -172,15 +187,28 @@ class LogKernel(Unary,Kernel):
     Parameters
     ----------
     graph : Graph Object
-        - Graph that the kernel should be added to
-
+        Graph that the kernel should be added to
     inA : Tensor or Scalar object
-        - Input trial data
-
+        Input trial data
     outA : Tensor or Scalar object
-        - Output trial data
+        Output trial data
 
+    Attributes
+    ----------
+    _inA : Tensor or Scalar object
+        Input trial data
+    _outA : Tensor or Scalar object
+        Output trial data
+    _init_labels_in : Tensor object
+        Initialization labels for input data
+    _init_labels_out : Tensor object
+        Initialization labels for output data
+    _init_inA : Tensor or Scalar object
+        Initialization input data
+    _init_outA : Tensor or Scalar object
+        Initialization output data
     """
+
     
     def __init__(self,graph,inA,outA):
         super().__init__('Log',BcipEnums.INIT_FROM_NONE,graph)
@@ -195,6 +223,25 @@ class LogKernel(Unary,Kernel):
 
 
     def _process_data(self, input_data,output_data):
+        """
+        Calculate the natural logarithm of the input data, and assign it to the output data
+        
+        Parameters
+        ----------
+        input_data : Tensor or Scalar object
+            Input trial data
+        output_data : Tensor or Scalar object
+            Output trial data
+
+        Return
+        ------
+        BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
+
+        Return Type
+        -----------
+        BcipEnums
+        """
+
         try:
             data = np.log(input_data.data)
             if output_data._bcip_type == BcipEnums.SCALAR:
@@ -215,13 +262,22 @@ class LogKernel(Unary,Kernel):
         Parameters
         ----------
         graph : Graph Object
-            - Graph that the node should be added to
+            Graph that the node should be added to
 
         inA : Tensor or Scalar object
-            - Input trial data
+            Input trial data
 
         outA : Tensor or Scalar object
-            - Output trial data
+            Output trial data
+
+        Return
+        ------
+        node : Node object
+            Node object containing the log kernel and parameters
+        
+        Return Type
+        -----------
+        BCIPy Node object
         """
         
         # create the kernel object
@@ -332,17 +388,34 @@ class AdditionKernel(Binary, Kernel):
     """
     Kernel to add two BCIPP data containers (i.e. tensor or scalar) together
 
+    Parameters
+    ----------
     graph : Graph Object
-        - Graph that the kernel should be added to
-
+        Graph that the kernel should be added to
     inA : Tensor or Scalar object
-        - First input trial data
-
+        First input trial data
     inB : Tensor or Scalar object
-        - Second input trial data
-
+        Second input trial data
     outA : Tensor or Scalar object
-        - Output trial data
+        Output trial data
+
+    Attributes
+    ----------
+    _inA : Tensor or Scalar object
+        First input trial data
+    _inB : Tensor or Scalar object
+        Second input trial data
+    _outA : Tensor or Scalar object
+        Output trial data
+    _init_inA : Tensor or Scalar object
+        First input initialization data
+    _init_inB : Tensor or Scalar object
+        Second input initialization data
+    _init_outA : Tensor or Scalar object
+        Output initialization data
+    _init_labels_in : Tensor or Scalar object
+        Labels for the initialization data
+    _init_labels_out : Tensor or Scalar object
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -361,6 +434,24 @@ class AdditionKernel(Binary, Kernel):
     def _process_data(self, input_data1, input_data2, output_data):
         """
         Calculate the absolute value of the input data, and assign it to the output data
+
+        Parameters
+        ----------
+        input_data1 : Tensor or Scalar object
+            First input trial data
+        input_data2 : Tensor or Scalar object
+            Second input trial data
+        output_data : Tensor or Scalar object
+            Output trial data
+
+        Returns
+        -------
+        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
+            Status of the execution
+        
+        Return type
+        -----------
+        BcipEnums
         """
         try:
             output_data.data = input_data1.data + input_data2.data
@@ -376,17 +467,25 @@ class AdditionKernel(Binary, Kernel):
         Factory method to create an addition kernel and add it to a graph
         as a generic node object.
 
+        Parameters
+        ----------
         graph : Graph Object
-        - Graph that the kernel should be added to
-
+        Graph that the kernel should be added to
         inA : Tensor or Scalar object
-            - First input trial data
-
+            First input trial data
         inB : Tensor or Scalar object
-            - Second input trial data
-
+            Second input trial data
         outA : Tensor or Scalar object
-            - Output trial data
+            Output trial data
+
+        Returns
+        -------
+        node : Node object
+            Node object that has kernel and parameter stored in it
+
+        Return type
+        -----------
+        BCIPy Node object
         """
         
         # create the kernel object
@@ -410,24 +509,43 @@ class DivisionKernel(Binary,Kernel):
     Kernel to divide two BCIP data containers (i.e. tensor or scalar)
     together
     
-    Note: This is element-wise division
+    .. note:: This is element-wise division (ie. _inA ./ _inB)
 
+    Parameters
+    ----------
     graph : Graph Object
-        - Graph that the kernel should be added to
-
+        Graph that the kernel should be added to
     inA : Tensor or Scalar object
-        - First input trial data
-
+        First input trial data
     inB : Tensor or Scalar object
-        - Second input trial data
-
+        Second input trial data
     outA : Tensor or Scalar object
-        - Output trial data
+        Output trial data
 
-    Note: The calculation is _inA ./ _inB
+    Attributes
+    ----------
+    _inA : Tensor or Scalar object
+        First input trial data
+    _inB : Tensor or Scalar object
+        Second input trial data
+    _outA : Tensor or Scalar object
+        Output trial data
+    _init_inA : Tensor or Scalar object
+        First input initialization data
+    _init_inB : Tensor or Scalar object
+        Second input initialization data
+    _init_outA : Tensor or Scalar object
+        Output initialization data
+    _init_labels_in : Tensor or Scalar object
+        Labels for the initialization data
+    _init_labels_out : Tensor or Scalar object
+        Labels for the output initialization data
     """
     
     def __init__(self,graph,inA,inB,outA):
+        """
+        Constructor for the division kernel
+        """
         super().__init__('Division',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._inB  = inB
@@ -441,6 +559,27 @@ class DivisionKernel(Binary,Kernel):
         self._init_labels_out = None
 
     def _process_data(self, input_data1, input_data2, output_data):
+        """
+        Calculate the quotient of the input tensors, and assign it to the output data
+        
+        Parameters
+        ----------
+        input_data1 : Tensor or Scalar object
+            First input trial data
+        input_data2 : Tensor or Scalar object
+            Second input trial data
+        output_data : Tensor or Scalar object
+            Output trial data
+
+        Returns
+        -------
+        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
+            Status of the execution
+
+        Return type
+        -----------
+        BcipEnums
+        """
         try:
             output_data.data = input_data1.data / input_data2.data
 
@@ -455,18 +594,25 @@ class DivisionKernel(Binary,Kernel):
         Factory method to create a element-wise divsion kernel and add it to a graph
         as a generic node object.
 
+        Parameters
+        ----------
         graph : Graph Object
-            - Graph that the kernel should be added to
-
+            Graph that the kernel should be added to
         inA : Tensor or Scalar object
-            - First input trial data
-
+            First input trial data
         inB : Tensor or Scalar object
-            - Second input trial data
-
+            Second input trial data
         outA : Tensor or Scalar object
-            - Output trial data
+            Output trial data
 
+        Returns
+        -------
+        node : Node object
+            Node object that has kernel and parameter stored in it
+
+        Return type
+        -----------
+        BCIPy Node object
         """
         
         # create the kernel object
@@ -490,23 +636,38 @@ class MultiplicationKernel(Binary,Kernel):
     Kernel to multiply two BCIPP data containers (i.e. tensor or scalar)
     together
     
-    Note: This is element-wise multiplication
+    .. note:: This is element-wise multiplication (ie. _inA .* _inB)
 
     Parameters
     ----------
     graph : Graph Object
-        - Graph that the kernel should be added to
-
+        Graph that the kernel should be added to
     inA : Tensor or Scalar object
-        - First input trial data
-
+        First input trial data
     inB : Tensor or Scalar object
-        - Second input trial data
-
+        Second input trial data
     outA : Tensor or Scalar object
-        - Output trial data
+        Output trial data
 
-    Note: The calculation is _inA .* _inB
+    Attributes
+    ----------
+    _inA : Tensor or Scalar object
+        First input trial data
+    _inB : Tensor or Scalar object
+        Second input trial data
+    _outA : Tensor or Scalar object
+        Output trial data
+    _init_inA : Tensor or Scalar object
+        First input initialization data
+    _init_inB : Tensor or Scalar object
+        Second input initialization data
+    _init_outA : Tensor or Scalar object
+        Output initialization data
+    _init_labels_in : Tensor or Scalar object
+        Labels for the initialization data
+    _init_labels_out : Tensor or Scalar object
+        Labels for the output initialization data
+
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -524,7 +685,25 @@ class MultiplicationKernel(Binary,Kernel):
  
     def _process_data(self, input_data1, input_data2, output_data):
         """
-        Process data according to the outlined kernel function
+        Calculate the product of the input tensors, and assign it to the output data
+
+        Parameters
+        ----------
+        input_data1 : Tensor or Scalar object
+            First input trial data
+        input_data2 : Tensor or Scalar object
+            Second input trial data
+        output_data : Tensor or Scalar object
+            Output trial data
+
+        Returns
+        -------
+        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
+            Status of the execution
+
+        Return type
+        -----------
+        BcipEnums
         """
         try:
            output_data.data = input_data1.data * input_data2.data
@@ -540,19 +719,25 @@ class MultiplicationKernel(Binary,Kernel):
         Factory method to create a multiplication kernel and add it to a graph
         as a generic node object.
 
+        Parameters
+        ----------
         graph : Graph Object
-            - Graph that the node should be added to
-
+            Graph that the node should be added to
         inA : Tensor or Scalar object
-            - First input trial data
-
+            First input trial data
         inB : Tensor or Scalar object
-            - Second input trial data
-
+            Second input trial data
         outA : Tensor or Scalar object
-            - Output trial data
+            Output trial data
 
-        Note: The calculation is _inA .* _inB
+        Returns
+        -------
+        node : Node object
+            Node object that has kernel and parameter stored in it 
+        
+        Return type
+        -----------
+        BCIPy Node object
         """
         
         # create the kernel object
@@ -576,17 +761,38 @@ class SubtractionKernel(Binary,Kernel):
     Kernel to calculate the difference between two BCIP data containers 
     (i.e. tensor or scalar)
 
+    .. note:: This is element-wise subtraction (ie. _inA - _inB)
+
+    Parameters
+    ----------
     graph : Graph Object
-        - Graph that the kernel should be added to
-
+        Graph that the kernel should be added to
     inA : Tensor or Scalar object
-        - First input trial data
-
+        First input trial data
     inB : Tensor or Scalar object
-        - Second input trial data
-
+        Second input trial data
     outA : Tensor or Scalar object
-        - Output trial data
+        Output trial data
+
+    Attributes
+    ----------
+    _inA : Tensor or Scalar object
+        First input trial data
+    _inB : Tensor or Scalar object
+        Second input trial data
+    _outA : Tensor or Scalar object
+        Output trial data
+    _init_inA : Tensor or Scalar object
+        First input initialization data
+    _init_inB : Tensor or Scalar object
+        Second input initialization data
+    _init_outA : Tensor or Scalar object
+        Output initialization data
+    _init_labels_in : Tensor or Scalar object
+        Labels for the initialization data
+    _init_labels_out : Tensor or Scalar object
+        Labels for the output initialization data
+
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -605,6 +811,24 @@ class SubtractionKernel(Binary,Kernel):
     def _process_data(self, input_data1, input_data2, output_data):
         """
         Process data according to outlined kernel function
+
+        Parameters
+        ----------
+        input_data1 : Tensor or Scalar object
+            First input trial data
+        input_data2 : Tensor or Scalar object
+            Second input trial data
+        output_data : Tensor or Scalar object
+            Output trial data
+
+        Returns
+        -------
+        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
+            Status of the execution
+
+        Return type
+        -----------
+        BcipEnums
         """
         try:
             output_data.data = input_data1.data - input_data2.data
@@ -620,17 +844,25 @@ class SubtractionKernel(Binary,Kernel):
         Factory method to create a kernel and add it to a graph
         as a generic node object.
 
+        Parameters
+        ----------
         graph : Graph Object
-            - Graph that the kernel should be added to
-
+            Graph that the kernel should be added to
         inA : Tensor or Scalar object
-            - First input trial data
-
+            First input trial data
         inB : Tensor or Scalar object
-            - Second input trial data
-
+            Second input trial data
         outA : Tensor or Scalar object
-            - Output trial data
+            Output trial data
+
+        Returns
+        -------
+        node : Node object
+            Node object that has kernel and parameter stored in it
+
+        Return type
+        -----------
+        BCIPy Node object
         """
         
         # create the kernel object

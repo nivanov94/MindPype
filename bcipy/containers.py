@@ -15,38 +15,30 @@ class Scalar(BCIP):
     Parameters
     ----------
     sess : Session Object
-        - Session where the Scalar object will exist
-
+        Session where the Scalar object will exist
     value_type : one of [int, float, complex, str, bool]
-        - Indicates the type of data represented by the Scalar
-
+        Indicates the type of data represented by the Scalar
     val : value of type int, float, complex, str, or bool
-        - Data value represented by the Scalar object
-
+        Data value represented by the Scalar object
     is_virtual : bool
-        - If true, the Scalar object is virtual, non-virtual otherwise
-
+        If true, the Scalar object is virtual, non-virtual otherwise
     ext_src : LSL data source input object, MAT data source, or None
-        - External data source represented by the scalar; this data will be polled/updated when trials are executed.
-        - If the data does not represent an external data source, set ext_src to None
+        External data source represented by the scalar; this data will be polled/updated when trials are executed.
+        If the data does not represent an external data source, set ext_src to None
 
     Attributes
     ----------
     _data_type : one of [int, float, complex, str, bool]
-        - Indicates the type of data represented by the Scalar
-
+        Indicates the type of data represented by the Scalar
     data : value of type int, float, complex, str, or bool
-        - Data value represented by the Scalar object
-
+        Data value represented by the Scalar object
     is_virtual : bool
-        - If true, the Scalar object is virtual, non-virtual otherwise
-
+        If true, the Scalar object is virtual, non-virtual otherwise
     _ext_src : LSL data source input object, MAT data source, or None
-        - External data source represented by the scalar; this data will be polled/updated when trials are executed.
-        - If the data does not represent an external data source, set ext_src to None
-
+        External data source represented by the scalar; this data will be polled/updated when trials are executed.
+        If the data does not represent an external data source, set ext_src to None
     _volatile : bool
-        - True if source is volatile (needs to be updated/polled between trials), false otherwise
+        True if source is volatile (needs to be updated/polled between trials), false otherwise
 
     Examples
     --------
@@ -57,6 +49,9 @@ class Scalar(BCIP):
     _valid_types = [int, float, complex, str, bool]
     
     def __init__(self,sess,value_type,val,is_virtual,ext_src, ext_out=None):
+        """
+        Constructor for Scalar object
+        """
         super().__init__(BcipEnums.SCALAR,sess)
         self._data_type = value_type
 
@@ -91,30 +86,104 @@ class Scalar(BCIP):
     # API Getters
     @property
     def volatile(self):
+        """
+        Getter for volatile attribute
+
+        Return
+        ------
+        bool
+            True if source is volatile (needs to be updated/polled between trials), false otherwise
+        """
         return self._volatile
 
     @property
     def volatile_out(self):
+        """
+        Getter for volatile_out attribute
+        
+        Return
+        ------
+        bool
+            True if output is volatile (needs to be updated/pushed between trials), false otherwise
+        """
         return self._volatile_out
     
     @property
     def virtual(self):
+        """
+        Getter for virtual attribute
+
+        Return
+        ------
+        bool
+            True if the Scalar object is virtual, non-virtual otherwise
+        """
         return self._virtual
     
     @property
     def data(self):
+        """
+        Getter for data attribute
+        
+        Return
+        ------
+        Data value represented by the Scalar object
+        
+        Return Type
+        -----------
+        int, float, complex, str, or bool
+        """
         return self._data
     
     @property
     def data_type(self):
+        """
+        Getter for data_type attribute
+
+        Return
+        ------
+        one of [int, float, complex, str, bool]
+            Indicates the type of data represented by the Scalar
+        
+        Return Type
+        -----------
+        type
+        """
         return self._data_type
     
     @property
     def ext_src(self):
+        """
+        Getter for ext_src attribute
+
+        Return
+        ------
+        External data source represented by the scalar; this data will be polled/updated when trials are executed.
+            If the data does not represent an external data source, ext_src is None
+
+        Return Type
+        -----------
+        LSL data source input object, XDF data source, MAT data source, or None
+
+        """
+
         return self._ext_src
     
     @property
     def ext_out(self):
+        """
+        Getter for ext_out attribute
+
+        Return
+        ------
+        External data output represented by the scalar; this data will be pushed when trials are executed.
+            If the data does not represent an external data source, ext_out is None
+
+        Return Type
+        -----------
+        LSL data source output object, XDF data source, MAT data source, or None
+
+        """
         return self._ext_out
 
     # API Setters
@@ -126,8 +195,8 @@ class Scalar(BCIP):
         Parameters
         ----------
         data : Python built-in data or numpy array
-            - Data to be represented by the Scalar object
-            - Data must be scalar (1x1 numerical, single string/bool, etc)
+            Data to be represented by the Scalar object
+            Data must be scalar (1x1 numerical, single string/bool, etc)
 
         Return
         ------
@@ -135,7 +204,7 @@ class Scalar(BCIP):
 
         Examples
         --------
-        empty_scalar.data(5)
+        >>> empty_scalar.data = 5
         """
 
         # if the data passed in is a numpy array, check if its a single value
@@ -162,14 +231,13 @@ class Scalar(BCIP):
         """
         Produce and return a deep copy of the scalar
 
-        Parameters
-        ----------
-        None
-
         Return
         ------
-        int
-            - Deep copy of referenced parameter
+        Deep copy of referenced parameter
+
+        Return Type
+        -----------
+        BCIPy Scalar object
 
         Examples
         --------
@@ -198,11 +266,7 @@ class Scalar(BCIP):
         Parameters
         ----------
         dest_scalar : Scalar Object
-            - Scalar object which will represent the copy of the referenced Scalar's elements
-
-        Return
-        ------
-        None
+            Scalar object which will represent the copy of the referenced Scalar's elements
 
         Examples
         --------
@@ -221,18 +285,22 @@ class Scalar(BCIP):
         Parameters
         ----------
         Label : int, default = None
-            - Class label corresponding to class data to poll. This is required for epoched data but should be set to None for LSL data
+            Class label corresponding to class data to poll. This is required for epoched data but should be set to None for LSL data
 
         Return
         ------
-        BCIP Status Code
+        BcipEnums.SUCCESS if successful, BcipEnums.FAILURE otherwise
+
+        Return Type
+        -----------
+        BcipEnums
 
         Examples
         --------
         >>> status = example_scalar.poll_data()
         >>> print(status)
 
-            SUCCESS
+            BcipEnums.SUCCESS
         """
         
         # check if the data is actually volatile, if not just return
@@ -261,7 +329,7 @@ class Scalar(BCIP):
         ------
         [int, float, complex]
         """
-        return [int,float,complex]
+        return [int,float,complex, str, bool]
     
     # Factory Methods
     @classmethod
@@ -272,18 +340,18 @@ class Scalar(BCIP):
         Parameters
         ----------
         sess : Session Object
-            - Session where the Scalar object will exist
-
+            Session where the Scalar object will exist
         data_type : Python built-in data type (int, float, complex, str, or bool)
-            - Data type of data represented by Scalar object
+            Data type of data represented by Scalar object
 
         Return
         ------
-        BCIP Scalar object
+        BCIPy Scalar object
 
         Examples
         --------
-
+        >>> new_scalar = Scalar.create(sess,int)
+        >>> new_scalar.data = 5
 
         """
         if isinstance(data_type,str):
@@ -308,17 +376,18 @@ class Scalar(BCIP):
         Parameters
         ----------
         sess : Session Object
-            - Session where the Scalar object will exist
-
+            Session where the Scalar object will exist
         data_type : Python built-in data type (int, float, complex, str, or bool)
-            - Data type of data represented by Scalar object
+            Data type of data represented by Scalar object
 
         Return
         ------
-        BCIP Scalar object
+        BCIPy Scalar object
 
         Examples
         --------
+        >>> new_scalar = Scalar.create_virtual(sess,int)
+        >>> new_scalar.data = 5
         """
 
         if isinstance(data_type,str):
@@ -347,17 +416,20 @@ class Scalar(BCIP):
         Parameters
         ----------
         sess : Session Object
-            - Session where the Scalar object will exist
-
+            Session where the Scalar object will exist
         value : Value of type int, float, complex, str, or bool
-            - Data represented by Scalar object
+            Data represented by Scalar object
 
         Return
         ------
-        BCIP Scalar object
+        BCIPy Scalar object
 
         Examples
         --------
+        >>> new_scalar = Scalar.create_from_value(sess,5)
+        >>> print(new_scalar.data)
+
+            5
         """
 
         data_type = type(value)
@@ -379,13 +451,11 @@ class Scalar(BCIP):
         Parameters
         ----------
         sess : Session Object
-            - Session where the Scalar object will exist
-
+            Session where the Scalar object will exist
         data_type : Python built-in data type (int, float, complex, str, or bool)
-            - Data type of data represented by Scalar object
-
+            Data type of data represented by Scalar object
         src : Data Source object
-            - Data source object (LSL, continuousMat, or epochedMat) from which to poll data
+            Data source object (LSL, continuousMat, or epochedMat) from which to poll data
 
         Return
         ------
@@ -393,6 +463,7 @@ class Scalar(BCIP):
 
         Examples
         --------
+        >>> new_scalar = Scalar.create_from_handle(sess,int,src)
         """
 
         if not (data_type in Scalar._valid_types):
@@ -408,7 +479,6 @@ class Scalar(BCIP):
 
 class Tensor(BCIP):
     """
-    Tensor data
 
     Tensor (or n-dimensional matrices), are defined by the tensor class. 
     BCIP tensors can either be volatile (are updated/change each trial, generally reserved for tensors containing current trial data), virtual (empty, dimensionless tensor object). Like scalars and array, tensors can be created from data, copied from a different variable, or created virtually, so they don’t initially contain a value. 
@@ -417,25 +487,23 @@ class Tensor(BCIP):
     Parameters
     ----------
     sess : Session object
-        - Session where Tensor will exist
-    
+        Session where Tensor will exist  
     shape : shape_like
-        - Shape of the Tensor
-    
+        Shape of the Tensor
     data : ndarray
-        - Data to be stored within the array
-    
+        Data to be stored within the array
     is_virtual : bool
-        - If False, the Tensor is non-virtual
-
+        If False, the Tensor is non-virtual, if True, the Tensor is virtual
     ext_src : BCIPy input Source
-        - Data source the tensor pulls data from (only applies to Tensors created from a handle)
-
+        Data source the tensor pulls data from (only applies to Tensors created from a handle)
     ext_out : BCIPy output Source
-        - Data source the tensor pushes data to (only applies to Tensors created from a handle)
+        Data source the tensor pushes data to (only applies to Tensors created from a handle)
     """
     
     def __init__(self,sess,shape,data,is_virtual,ext_src, ext_out = None):
+        """
+        Constructor for Tensor class
+        """
         super().__init__(BcipEnums.TENSOR,sess)
         self._shape = tuple(shape)
         self._virtual = is_virtual
@@ -460,6 +528,17 @@ class Tensor(BCIP):
     # API Getters
     @property
     def data(self):
+        """
+        Getter for Tensor data
+
+        Returns
+        -------
+        Data stored in Tensor : ndarray
+
+        Examples
+        --------
+        >>> print(tensor.data)
+        """
         return self._data
     
     @property
@@ -496,7 +575,17 @@ class Tensor(BCIP):
         Parameters
         ----------
         data : nd_array
-            - Data to have the Tensor data changed to
+            Data to have the Tensor data changed to
+    
+        Raises
+        ------
+        ValueError
+            If the shape of the Tensor is different from the shape of the data being inputted
+
+        Examples
+        --------
+        >>> tensor.data = np.array([1,2,3,4,5,6])
+            
         """
 
         # special case where every dimension is a singleton
@@ -517,6 +606,23 @@ class Tensor(BCIP):
     def shape(self,shape):
         """
         Method to set the shape of a Tensor. Only applies to non-virtual tensors and sets all values in the modified tensor to 0.
+
+        Parameters
+        ----------
+        shape : shape_like
+            Shape to change the Tensor to
+
+        Raises
+        ------
+        ValueError
+            If the Tensor is non-virtual, the shape cannot be changed
+
+        .. note:: This method is only applicable to virtual Tensors, and will throw an error if called on a non-virtual Tensor.
+
+        Examples
+        --------
+        >>> t = Tensor.create_virtual((1,2,3))
+        >>> t.shape = (3,2,1)
         """
 
         if self.virtual:
@@ -529,6 +635,16 @@ class Tensor(BCIP):
     def make_copy(self):
         """
         Create and return a deep copy of the tensor
+
+        Returns
+        -------
+        Tensor object
+            Deep copy of the Tensor object
+
+        Examples
+        --------
+        >>> t = Tensor.create_virtual((1,2,3))
+        >>> t2 = t.make_copy()
         """
         #TODO determine what to do when copying virtual
         cpy = Tensor(self.session,
@@ -550,8 +666,20 @@ class Tensor(BCIP):
         Parameters 
         ----------
         dest_tensor : Tensor object
-            - Tensor object where the attributes with the referenced Tensor will copied to
+            Tensor object where the attributes with the referenced Tensor will copied to
 
+        Returns
+        -------
+        BcipEnums.SUCCESS : int
+            If the copy was successful
+
+        Examples
+        --------
+        >>> t = Tensor.create_virtual((1,2,3))
+        >>> t2 = Tensor.create_virtual((1,3,3))
+        >>> print(t.copy_to(t2))
+
+            BcipEnums.SUCCESS
         """
         if dest_tensor.virtual:
             dest_tensor.shape = self.shape
@@ -604,11 +732,12 @@ class Tensor(BCIP):
         """
         Factory Method to create a generic, non-virtual, Tensor object. The shape must be known to create this object 
         
+        Parameters
+        ----------
         sess : Session object
-            - Session where Tensor will exist
-        
+            Session where Tensor will exist
         shape : shape_like
-            - Shape of the Tensor
+            Shape of the Tensor
         
         """
 
@@ -627,10 +756,10 @@ class Tensor(BCIP):
         ----------
 
         sess : Session object
-            - Session where Tensor will exist
+            Session where Tensor will exist
         
         shape : shape_like, default = ()
-            - Shape of the Tensor, can be changed for virtual tensors
+            Shape of the Tensor, can be changed for virtual tensors
         """
 
         t = cls(sess,shape,None,True,None)
@@ -648,13 +777,13 @@ class Tensor(BCIP):
         ----------
 
         sess : Session object
-            - Session where Tensor will exist
+            Session where Tensor will exist
         
         shape : shape_like
-            - Shape of the Tensor
+            Shape of the Tensor
         
         data : ndarray
-            - Data to be stored within the array
+            Data to be stored within the array
             
         """
 
@@ -680,13 +809,13 @@ class Tensor(BCIP):
         ----------
 
         sess : Session object
-            - Session where Tensor will exist
+            Session where Tensor will exist
         
         shape : shape_like
-            - Shape of the Tensor
+            Shape of the Tensor
         
         ext_src : BCIPy input Source
-            - Data source the tensor pulls data from (only applies to Tensors created from a handle)
+            Data source the tensor pulls data from (only applies to Tensors created from a handle)
         
         """
         t = cls(sess,shape,None,False,src)
@@ -723,20 +852,20 @@ class Array(BCIP):
     Parameters
     ----------
     sess : Session object
-        - Session where the Array object will exist
+        Session where the Array object will exist
     
     capacity : int
-        - Maximum number of elements to be stored within the array (for allocation purposes)
+        Maximum number of elements to be stored within the array (for allocation purposes)
     
     element_template : any
-        - The template BCIP element to populate the array (see examples)
+        The template BCIP element to populate the array (see examples)
 
     Attributes
     ----------
 
     Examples
     --------
-    - Creating An Array
+    Creating An Array
         example = Array.create(example_session, example_capacity, Tensor.create(example_session, input_data.shape))
     
     Return
@@ -745,7 +874,7 @@ class Array(BCIP):
     
     Notes
     -----
-    - A single array object should only contain one BCIP/data object type.
+    A single array object should only contain one BCIP/data object type.
 
     
     """
@@ -773,7 +902,7 @@ class Array(BCIP):
         Parameters
         ----------
         index : int
-            - Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
+            Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
 
         Return
         ------
@@ -799,10 +928,10 @@ class Array(BCIP):
         Parameters
         ----------
         index : int
-            - Index in the array where the element will changed. 0 <= Index < capacity
+            Index in the array where the element will changed. 0 <= Index < capacity
 
         element : any
-            - specified value which will be set at index index
+            specified value which will be set at index index
 
         Examples
         --------
@@ -887,7 +1016,7 @@ class Array(BCIP):
         Parameters 
         ----------
         dest_array : Array object
-            - Array object where the attributes with the referenced array will copied to
+            Array object where the attributes with the referenced array will copied to
 
         Examples
         --------
@@ -936,11 +1065,11 @@ class Array(BCIP):
         Parameters
         ----------
         sess : Session object
-            - Session where the Array object will exist
+            Session where the Array object will exist
         capacity : int
-            - Maximum number of elements to be stored within the array (for allocation purposes)
+            Maximum number of elements to be stored within the array (for allocation purposes)
         element_template : any
-            - The template BCIP element to populate the array (see examples)
+            The template BCIP element to populate the array (see examples)
 
         """
 
@@ -958,11 +1087,11 @@ class CircleBuffer(Array):
     Parameters
     ----------
     sess : Session object
-        - Session where the Array object will exist
+        Session where the Array object will exist
     capacity : int
-        - Maximum number of elements to be stored within the array (for allocation purposes)
+        Maximum number of elements to be stored within the array (for allocation purposes)
     element_template : any
-        - The template BCIP element to populate the array (see Array examples)
+        The template BCIP element to populate the array (see Array examples)
 
     Examples
     --------
@@ -1056,7 +1185,7 @@ class CircleBuffer(Array):
         Parameters
         ----------
         index : int
-            - Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
+            Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
 
         Return
         ------
