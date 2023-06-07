@@ -59,7 +59,7 @@ bcipy.kernel module
 
 
    .. toctree::
-      :maxdepth: 2
+   :maxdepth: 2
    
    bcipy.kernels
 
