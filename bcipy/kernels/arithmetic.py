@@ -7,16 +7,6 @@ import numpy as np
 
 
 class Unary:
-    def __init__(self):
-        self._inA = None
-        self._outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
-
-        self._init_inA = None
-        self._init_outA = None
-
     def initialize(self):
         """
         Initialize the kernel if there is an internal state to initialize, including downstream initialization data
