@@ -99,6 +99,8 @@ class AbsoluteKernel(Unary, Kernel):
     outA : Tensor or Scalar
         Output trial data
 
+    
+
     Attributes
     ----------
     _inA : Tensor or Scalar
@@ -131,6 +133,7 @@ class AbsoluteKernel(Unary, Kernel):
         """
         super().__init__("Absolute", BcipEnums.INIT_FROM_NONE, graph)
         self._inA = inA
+        """Input trial data"""
         self._outA = outA
 
         self._init_labels_in = None
