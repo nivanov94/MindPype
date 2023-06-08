@@ -15,7 +15,6 @@ class Kernel(BCIP, ABC):
 
     Attributes
     ----------
-    
     _name : str
         Name of the kernel
     _init_style : BcipEnums Object
@@ -39,12 +38,9 @@ class Kernel(BCIP, ABC):
 
         Returns
         -------
-        _name 
+        _name : str
             The name of the kernel
 
-        Return Type
-        -----------
-        str
         """
 
         return self._name
@@ -56,12 +52,8 @@ class Kernel(BCIP, ABC):
 
         Returns
         -------
-        _init_style
+        _init_style : BcipEnums
             The initialization style of the kernel
-
-        Return Type
-        -----------
-        BcipEnums Object
         """
 
         return self._init_style

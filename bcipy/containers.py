@@ -1,5 +1,6 @@
 """
-Defines data container classes for <name>
+Defines data container classes for BCIPy. These classes are used to represent data in the BCIPy framework.
+
 @author: Nicolas Ivanov, Aaron Lio
 """
 
@@ -853,10 +854,8 @@ class Array(BCIP):
     ----------
     sess : Session object
         Session where the Array object will exist
-    
     capacity : int
         Maximum number of elements to be stored within the array (for allocation purposes)
-    
     element_template : any
         The template BCIP element to populate the array (see examples)
 
@@ -865,16 +864,14 @@ class Array(BCIP):
 
     Examples
     --------
-    Creating An Array
-        example = Array.create(example_session, example_capacity, Tensor.create(example_session, input_data.shape))
+    >>> #Creating An Array
+    >>> example = Array.create(example_session, example_capacity, Tensor.create(example_session, input_data.shape))
     
     Return
     ======
     Array Object
     
-    Notes
-    -----
-    A single array object should only contain one BCIP/data object type.
+    .. note:: A single array object should only contain one BCIP/data object type.
 
     
     """

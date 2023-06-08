@@ -46,7 +46,7 @@ class Graph(BCIP):
     
     def __init__(self, sess):
         """
-        Create a new graph
+        Constructor for the Graph object
         """
 
         super().__init__(BcipEnums.GRAPH,sess)
@@ -75,9 +75,8 @@ class Graph(BCIP):
         
         Return
         ------
-        BcipEnums Status Code
-
-
+        sts : BcipEnums Status Code
+            Returns a status code indicating the success or failure of the operation
         """
         self._verified = False
         self._nodes.append(node)
@@ -86,10 +85,6 @@ class Graph(BCIP):
         """
         Verify the processing graph is valid. This method orders the nodes
         for execution if the graph is valid
-
-        Parameters
-        ----------
-        None
 
         Return
         ------
@@ -117,7 +112,7 @@ class Graph(BCIP):
             
             # add these inputs/outputs to edge objects
             for n_i in n_inputs:
-                if not (n_i.session_id in edges):
+                if not n_i.session_id in edges:
                     # no edge created for this input yet, so create a new one
                     edges[n_i.session_id] = Edge(n_i)
                     if n_i.volatile:
@@ -612,11 +607,8 @@ class Edge:
 
         Return
         ------
-        List of producers for the Edge object
-
-        Return Type
-        ------------
-        List of Node objects
+        _producers : array of Node objects
+            List of producers for the Edge object
 
         Examples
         --------
