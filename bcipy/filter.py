@@ -86,7 +86,7 @@ class Filter(BCIP):
     @property
     def btype(self):
         """
-        Getter for the band type
+        Getter method for the band type used by the filter
         
         Return
         ------
@@ -102,7 +102,7 @@ class Filter(BCIP):
     @property
     def implementation(self):
         """
-        Getter for the filter implementation
+        Getter method for the filter implementation
 
         Returns
         -------
@@ -118,7 +118,7 @@ class Filter(BCIP):
     @property
     def fs(self):
         """
-        Getter for the sampling frequency
+        Getter method for the sampling frequency
 
         Returns
         -------
@@ -133,7 +133,7 @@ class Filter(BCIP):
     @property
     def crit_frqs(self):
         """
-        Getter for the critical frequencies
+        Getter method for the critical frequencies
 
         Returns
         -------
@@ -148,7 +148,7 @@ class Filter(BCIP):
     @property
     def coeffs(self):
         """
-        Getter for the filter coefficients
+        Getter method for the filter coefficients
 
         Returns
         -------

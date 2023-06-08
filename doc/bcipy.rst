@@ -52,7 +52,7 @@ bcipy.kernel module
    :show-inheritance:
 
    .. toctree::
-   :maxdepth: 2
+      :maxdepth: 2
    
    bcipy.kernels
 

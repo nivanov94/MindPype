@@ -124,7 +124,7 @@ class Scalar(BCIP):
     @property
     def data(self):
         """
-        Getter for data attribute
+        Getter for scalar data attribute
         
         Return
         ------
