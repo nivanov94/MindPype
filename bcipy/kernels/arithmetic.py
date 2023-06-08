@@ -74,20 +74,20 @@ class AbsoluteKernel(Unary, Kernel):
     Parameters
     ----------
 
-    graph : Graph Object
+    graph : Graph
         Graph that the kernel should be added to
-    inA : Tensor or Scalar object
+    inA : Tensor or Scalar
         Input trial data
-    outA : Tensor or Scalar object
+    outA : Tensor or Scalar
         Output trial data
 
     Attributes
     ----------
-    _inA : Tensor or Scalar object
+    _inA : Tensor or Scalar
         Input trial data
-    _outA : Tensor or Scalar object
+    _outA : Tensor or Scalar
         Output trial data
-    _init_labels_in : Tensor object
+    _init_labels_in : Tensor
         Initialization labels for input data
     _init_labels_out : Tensor object
         Initialization labels for output data
