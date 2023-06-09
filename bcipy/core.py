@@ -66,7 +66,115 @@ class BCIP(object):
 class BcipEnums(IntEnum):
     """
     Defines a class of enums used by BCIP
+
+    The following enums are defined and available for use:
+
+    .. list-table:: Object Type BcipEnums - Leading '1'
+        :widths: 50 50
+        :header-rows: 1
+    
+        * - Enum
+          - Value
+        * - BCIP
+          - 100
+        * - SESSION
+          - 101
+        * - GRAPH
+          - 102
+        * - NODE
+          - 103
+        * - KERNEL
+          - 104
+        * - PARAMETER
+          - 105
+        * - TENSOR
+          - 106
+        * - SCALAR
+          - 107
+        * - ARRAY
+          - 108
+        * - CIRCLE_BUFFER
+          - 109
+        * - FILTER
+          - 110
+        * - SRC
+          - 111
+        * - CLASSIFIER
+          - 112
+        
+    .. list-table:: Status Codes - Leading '2'
+        :widths: 50 50
+        :header-rows: 1
+
+        * - Enum
+          - Value
+        * - SUCCESS
+          - 200
+        * - FAILURE
+          - 201
+        * - INVALID_BLOCK
+          - 202
+        * - INVALID_NODE
+          - 203
+        * - INVALID_PARAMETERS
+          - 204
+        * - EXCEED_TRIAL_LIMIT
+          - 205
+        * - NOT_SUPPORTED
+          - 206
+        * - INITIALIZATION_FAILURE
+          - 207
+        * - EXE_FAILURE_UNINITIALIZED
+          - 208
+        * - EXE_FAILURE
+          - 209
+        * - NOT_YET_IMPLEMENTED
+          - 210
+        * - INVALID_GRAPH
+          - 211
+
+    .. list-table:: Parameter Directions - Leading '3'
+        :widths: 50 50
+        :header-rows: 1
+
+        * - Enum
+          - Value
+        * - INPUT
+          - 300
+        * - OUTPUT
+          - 301
+        * - INOUT
+          - 302
+
+    .. list-table:: Kernel Initialization types - leading '4'
+        :widths: 50 50
+        :header-rows: 1
+
+        * - Enum
+          - Value
+        * - INIT_FROM_NONE
+          - 400
+        * - INIT_FROM_DATA
+          - 401
+        * - INIT_FROM_COPY
+          - 402
+
+    .. list-table:: Block graph identifiers - leading '5'
+        :widths: 50 50
+        :header-rows: 1
+
+        * - Enum
+          - Value
+        * - ON_BEGIN
+          - 500
+        * - ON_CLOSE
+          - 501
+        * - ON_TRIAL
+          - 502
+
     """
+
+
 
     # Object Type Enums - Have a leading '1'
 
@@ -126,12 +234,6 @@ class Session(BCIP):
     Session objects contain all other BCIP objects instances within a data
     capture session.
 
-    Attributes
-    ----------
-    _datum : dict
-        Dictionary of all datum objects
-
-
     Examples
     --------
     >>> from bcipy.classes import session as S
@@ -166,13 +268,13 @@ class Session(BCIP):
         
         Returns
         -------
-        BCIP Status Code
+        BCIP Status Code : BcipEnums
+            Status of graph verification
 
         Examples
         --------
         >>> status = session.verify()
         >>> print(status)
-
             SUCCESS
         """
         print("Verifying session...")
@@ -201,7 +303,8 @@ class Session(BCIP):
 
         Returns
         -------
-        BCIP Status Code
+        BCIP Status Code : BcipEnums
+            Status of graph initialization
 
         Examples
         --------
@@ -216,8 +319,9 @@ class Session(BCIP):
         """
         Update the contents of all volatile data streams
         
-        TODO - may need to add an input parameter with some timing information
-        to indicate how each data object should be synced
+ .. warning::
+    may need to add an input parameter with some timing information
+    to indicate how each data object should be synced
 
         Parameters
         ----------
@@ -261,12 +365,13 @@ class Session(BCIP):
         ----------
         label : str
             Label for the current trial.
-        graph : Graph object
-            Graph to execute
+        graph : Graph
+            Graph to execute for the current trial.
 
         Returns
         -------
-        BCIP Status Code
+        Status Code : BcipEnums
+            Status code for the execution of the trial.
 
         Examples
         --------
@@ -286,8 +391,8 @@ class Session(BCIP):
 
         Parameters
         ----------
-        graph : Graph object
-            Graph to add
+        graph : Graph
+            Graph to add to the session
 
         Examples
         --------
@@ -302,7 +407,7 @@ class Session(BCIP):
 
         Parameters
         ----------
-        data : BCIPy Data object
+        data : Tensor or Scalar or Array or CircleBuffer
             Data object to add
 
         Examples
@@ -317,7 +422,7 @@ class Session(BCIP):
 
         Parameters
         ----------
-        obj : BCIP object
+        any BCIPy object : BCIP
             BCIP object to add
         
         Examples
@@ -332,7 +437,7 @@ class Session(BCIP):
 
         Parameters
         ----------
-        src : External Source object
+        src : LSLStream, CircleBuffer, or other external source
             External source to add
         """
         self._ext_srcs[src.session_id] = src
@@ -343,7 +448,7 @@ class Session(BCIP):
 
         Parameters
         ----------
-        src : External outlet object
+        src : OutputLSLStream, CircleBuffer, or other external outlet
             External outlet to add
         """
         self._ext_out[src.session_id] = src
@@ -360,7 +465,7 @@ class Session(BCIP):
 
         Returns
         -------
-        BCIP object
+        BCIP object : BCIP
             BCIP object with the specified ID number
 
         """
@@ -391,8 +496,7 @@ class Session(BCIP):
 
         Returns
         -------
-        Session object
-            New session object
+        New session object : Session
 
         """
         return cls()
