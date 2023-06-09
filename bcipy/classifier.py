@@ -128,8 +128,8 @@ class Classifier(BCIP):
         Check out the sklearn documentation
         `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
 
-        Examples
-        --------
+    Examples
+    --------
         >>> from bcipy import Classifier
         >>> classifier_object = Classifier.create_SVM(sess)
 
