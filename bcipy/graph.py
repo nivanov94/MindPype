@@ -14,29 +14,29 @@ class Graph(BCIP):
     Individual nodes, or processing steps, are added to the graph to create the pipeline.
 
     Parameters
-    ---------- 
+    ----------
     sess : Session Object
-        - Session where the graph will exist
+        Session where the graph will exist
 
     Attributes
     ----------
     _nodes : Array of Node objects
-        - List of Node objects within the graph
+        List of Node objects within the graph
     
     initialization_edges : Array of Edge objects
-        - List of Edge objects used within the graph
+        List of Edge objects used within the graph
 
     _verified : bool
-        - True is graph has been verified, false otherwise
+        True is graph has been verified, false otherwise
 
     _sess : Session object
-        - Session where the Graph object exists
+        Session where the Graph object exists
 
     _volatile_sources : Array of data Source objects
-        - Data sources within this array will be polled/executed when the graph is executed.
+        Data sources within this array will be polled/executed when the graph is executed.
 
     _volatile_outputs : Array of data Output objects
-        - Data outputs within this array will push to external sources when the graph is executed.
+        Data outputs within this array will push to external sources when the graph is executed.
 
     Examples
     --------
@@ -67,7 +67,7 @@ class Graph(BCIP):
         Parameters
         ----------
         node : Node object
-            - Adds the specified Node object to the referenced graph
+            Adds the specified Node object to the referenced graph
 
         Examples
         --------
@@ -229,10 +229,10 @@ class Graph(BCIP):
         Parameters
         ----------
         n : Node Object
-            - Node object which will have its initialization data filled
+            Node object which will have its initialization data filled
 
         edges : list of Edge objects within a graph
-            - Edge object connections used to identify upstream/downstream nodes.
+            Edge object connections used to identify upstream/downstream nodes.
 
         Return
         ------
@@ -383,7 +383,7 @@ class Graph(BCIP):
         Parameters
         ----------
         label : int, default = None
-            - If the class label of the current trial is known, it can be passed to poll epoched data.
+            If the class label of the current trial is known, it can be passed to poll epoched data.
 
         Return
         ------
@@ -403,7 +403,7 @@ class Graph(BCIP):
         Parameters
         ----------
         label : int, default = None
-            - If the class label of the current trial is known, it can be passed to poll epoched data.
+            If the class label of the current trial is known, it can be passed to poll epoched data.
 
         Return
         ------
@@ -435,18 +435,18 @@ class Node(BCIP):
     Parameters
     ----------
     graph : Graph object
-        - Graph where the Node object will exist
+        Graph where the Node object will exist
     kernel : Kernel Object
-        - Kernel object to be used for processing within the Node
+        Kernel object to be used for processing within the Node
     params : dict
-        - Dictionary of parameters outputted by kernel
+        Dictionary of parameters outputted by kernel
 
     Attributes
     ----------
     _kernel : Kernel Object
-        - Kernel object to be used for processing within the Node
+        Kernel object to be used for processing within the Node
     _params : dict
-        - Dictionary of parameters outputted by kernel
+        Dictionary of parameters outputted by kernel
 
     Examples
     --------
@@ -477,7 +477,7 @@ class Node(BCIP):
         Return
         ------
         Array
-            - List of inputs for the Node
+            List of inputs for the Node
 
         Examples
         --------
@@ -506,7 +506,7 @@ class Node(BCIP):
         Return
         ------
         Array
-            - List of outputs for the Node
+            List of outputs for the Node
 
         Examples
         --------
@@ -576,7 +576,7 @@ class Edge:
     Parameters
     ----------
     data : Data object
-        - The data to be stored within the Edge object
+        The data to be stored within the Edge object
 
     Attributes
     ----------
@@ -607,7 +607,7 @@ class Edge:
 
         Return
         ------
-        _producers : array of Node objects
+        _producers : array of Node
             List of producers for the Edge object
 
         Examples
@@ -717,16 +717,16 @@ class Parameter:
     Parameters
     ----------
     data : any
-        - Reference to the data object represented by the parameter object
+        Reference to the data object represented by the parameter object
     direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]
-        - Enum indicating whether this is an input-type or output-type parameter
+        Enum indicating whether this is an input-type or output-type parameter
 
     Attributes
     ----------
     data : any
-        - Reference to the data object represented by the parameter object
+        Reference to the data object represented by the parameter object
     direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]
-        - Enum indicating whether this is an input-type or output-type parameter
+        Enum indicating whether this is an input-type or output-type parameter
     """
     
     def __init__(self,data,direction):

@@ -10,20 +10,20 @@ class ResampleKernel(Kernel):
     
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Array object
-        - Input trial data
+    inA : Tensor or Array 
+        Input trial data
 
     factor: float
-        - Resample factor
+        Resample factor
 
-    outA : Tensor object
-        - Resampled timeseries data
+    outA : Tensor 
+        Resampled timeseries data
         
     axis :
-        - The axis that is to be resampled
+        The axis that is to be resampled
     """
     
     def __init__(self,graph,inA,factor,outA,axis = 1):
@@ -116,20 +116,20 @@ class ResampleKernel(Kernel):
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
 
-         graph : Graph Object
-            - Graph that the kernel should be added to
+         graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Array object
-            - Input trial data
+        inA : Tensor or Array 
+            Input trial data
 
         factor: float
-            - Resample factor
+            Resample factor
 
-        outA : Tensor object
-            - Resampled timeseries data
+        outA : Tensor 
+            Resampled timeseries data
         
         axis :
-            - The axis that is to be resampled
+            The axis that is to be resampled
 
         """
         

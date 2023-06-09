@@ -18,11 +18,11 @@ class CommonSpatialPatternKernel(Kernel):
     Parameters
     ----------
     graph : Graph
-        - Graph that the kernel should be added to
+        Graph that the kernel should be added to
     inA : Tensor or Scalar
-        - First input trial data
+        First input trial data
     outA : Tensor or Scalar 
-        - Output trial data
+        Output trial data
 
     """
     
@@ -320,23 +320,23 @@ class CommonSpatialPatternKernel(Kernel):
         Parameters
         ----------
 
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Scalar object
-            - First input trial dat
+        inA : Tensor or Scalar 
+            First input trial dat
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
         
-        initialization_data : Tensor object, (n_trials, n_channels, n_samples)
-            - Initialization data to train the classifier
+        initialization_data : Tensor
+            Initialization data to configure the filters (n_trials, n_channels, n_samples)
     
-        labels : Tensor object, (n_trials, )
-            - Labels corresponding to initialization data class labels 
+        labels : Tensor
+            Labels corresponding to initialization data class labels (n_trials, )
 
         num_filts : int
-            - Number of spatial filters to apply to trial data.        
+            Number of spatial filters to apply to trial data.        
         
         """
         
@@ -368,17 +368,17 @@ class CommonSpatialPatternKernel(Kernel):
         Parameters
         ----------
         
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Scalar object
-            - First input trial dat
+        inA : Tensor or Scalar 
+            First input trial dat
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
         
-        filters : Tensor Object
-            - Tensor containing precalculated spatial filters to be applied to input trial data      
+        filters : Tensor 
+            Tensor containing precalculated spatial filters to be applied to input trial data      
         """
         
         # create the kernel object

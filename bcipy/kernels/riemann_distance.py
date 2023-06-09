@@ -13,17 +13,17 @@ class RiemannDistanceKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Array object
-        - First input data
+    inA : Tensor or Array 
+        First input data
 
-    inB : Tensor or Array object
-        - Second Input data
+    inB : Tensor or Array 
+        Second Input data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     """
     
@@ -221,17 +221,17 @@ class RiemannDistanceKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Array object
-            - First input data
+        inA : Tensor or Array 
+            First input data
 
-        inB : Tensor or Array object
-            - Second Input data
+        inB : Tensor or Array 
+            Second Input data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
         """
         
         # create the kernel object

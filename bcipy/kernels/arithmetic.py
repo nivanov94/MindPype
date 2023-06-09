@@ -99,11 +99,11 @@ class AbsoluteKernel(Unary, Kernel):
         Output trial data
     _init_labels_in : Tensor
         Initialization labels for input data
-    _init_labels_out : Tensor object
+    _init_labels_out : Tensor 
         Initialization labels for output data
-    _init_inA : Tensor or Scalar object
+    _init_inA : Tensor or Scalar 
         Initialization input data
-    _init_outA : Tensor or Scalar object
+    _init_outA : Tensor or Scalar 
         Initialization output data
     """
 
@@ -145,16 +145,16 @@ class AbsoluteKernel(Unary, Kernel):
         Parameters
         ----------
 
-        graph : Graph Object
+        graph : Graph 
             Graph that the kernel should be added to
-        inA : Tensor or Scalar object
+        inA : Tensor or Scalar 
             Input trial data
-        outA : Tensor or Scalar object
+        outA : Tensor or Scalar 
             Output trial data
 
         Return
         ------
-        node : Node object
+        node : Node 
             Node object containing the absolute kernel and parameters
 
         """
@@ -183,26 +183,26 @@ class LogKernel(Unary, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
+    graph : Graph 
         Graph that the kernel should be added to
-    inA : Tensor or Scalar object
+    inA : Tensor or Scalar 
         Input trial data
-    outA : Tensor or Scalar object
+    outA : Tensor or Scalar 
         Output trial data
 
     Attributes
     ----------
-    _inA : Tensor or Scalar object
+    _inA : Tensor or Scalar 
         Input trial data
-    _outA : Tensor or Scalar object
+    _outA : Tensor or Scalar 
         Output trial data
-    _init_labels_in : Tensor object
+    _init_labels_in : Tensor 
         Initialization labels for input data
-    _init_labels_out : Tensor object
+    _init_labels_out : Tensor 
         Initialization labels for output data
-    _init_inA : Tensor or Scalar object
+    _init_inA : Tensor or Scalar 
         Initialization input data
-    _init_outA : Tensor or Scalar object
+    _init_outA : Tensor or Scalar 
         Initialization output data
     """
 
@@ -223,9 +223,9 @@ class LogKernel(Unary, Kernel):
 
         Parameters
         ----------
-        input_data : Tensor or Scalar object
+        input_data : Tensor or Scalar 
             Input trial data
-        output_data : Tensor or Scalar object
+        output_data : Tensor or Scalar 
             Output trial data
 
         Return
@@ -256,18 +256,18 @@ class LogKernel(Unary, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
+        graph : Graph 
             Graph that the node should be added to
 
-        inA : Tensor or Scalar object
+        inA : Tensor or Scalar 
             Input trial data
 
-        outA : Tensor or Scalar object
+        outA : Tensor or Scalar 
             Output trial data
 
         Return
         ------
-        node : Node object
+        node : Node 
             Node object containing the log kernel and parameters
 
         Return Type
@@ -397,32 +397,32 @@ class AdditionKernel(Binary, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
+    graph : Graph 
         Graph that the kernel should be added to
-    inA : Tensor or Scalar object
+    inA : Tensor or Scalar 
         First input trial data
-    inB : Tensor or Scalar object
+    inB : Tensor or Scalar 
         Second input trial data
-    outA : Tensor or Scalar object
+    outA : Tensor or Scalar 
         Output trial data
 
     Attributes
     ----------
-    _inA : Tensor or Scalar object
+    _inA : Tensor or Scalar 
         First input trial data
-    _inB : Tensor or Scalar object
+    _inB : Tensor or Scalar 
         Second input trial data
-    _outA : Tensor or Scalar object
+    _outA : Tensor or Scalar 
         Output trial data
-    _init_inA : Tensor or Scalar object
+    _init_inA : Tensor or Scalar 
         First input initialization data
-    _init_inB : Tensor or Scalar object
+    _init_inB : Tensor or Scalar 
         Second input initialization data
-    _init_outA : Tensor or Scalar object
+    _init_outA : Tensor or Scalar 
         Output initialization data
-    _init_labels_in : Tensor or Scalar object
+    _init_labels_in : Tensor or Scalar 
         Labels for the initialization data
-    _init_labels_out : Tensor or Scalar object
+    _init_labels_out : Tensor or Scalar 
     """
 
     def __init__(self, graph, inA, inB, outA):
@@ -444,11 +444,11 @@ class AdditionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data1 : Tensor or Scalar object
+        input_data1 : Tensor or Scalar 
             First input trial data
-        input_data2 : Tensor or Scalar object
+        input_data2 : Tensor or Scalar 
             Second input trial data
-        output_data : Tensor or Scalar object
+        output_data : Tensor or Scalar 
             Output trial data
 
         Returns
@@ -476,23 +476,23 @@ class AdditionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
+        graph : Graph 
         Graph that the kernel should be added to
-        inA : Tensor or Scalar object
+        inA : Tensor or Scalar 
             First input trial data
-        inB : Tensor or Scalar object
+        inB : Tensor or Scalar 
             Second input trial data
-        outA : Tensor or Scalar object
+        outA : Tensor or Scalar 
             Output trial data
 
         Returns
         -------
-        node : Node object
+        node : Node 
             Node object that has kernel and parameter stored in it
 
         Return type
         -----------
-        BCIPy Node object
+        BCIPy Node 
         """
 
         # create the kernel object
@@ -523,32 +523,32 @@ class DivisionKernel(Binary, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
+    graph : Graph 
         Graph that the kernel should be added to
-    inA : Tensor or Scalar object
+    inA : Tensor or Scalar 
         First input trial data
-    inB : Tensor or Scalar object
+    inB : Tensor or Scalar 
         Second input trial data
-    outA : Tensor or Scalar object
+    outA : Tensor or Scalar 
         Output trial data
 
     Attributes
     ----------
-    _inA : Tensor or Scalar object
+    _inA : Tensor or Scalar 
         First input trial data
-    _inB : Tensor or Scalar object
+    _inB : Tensor or Scalar 
         Second input trial data
-    _outA : Tensor or Scalar object
+    _outA : Tensor or Scalar 
         Output trial data
-    _init_inA : Tensor or Scalar object
+    _init_inA : Tensor or Scalar 
         First input initialization data
-    _init_inB : Tensor or Scalar object
+    _init_inB : Tensor or Scalar 
         Second input initialization data
-    _init_outA : Tensor or Scalar object
+    _init_outA : Tensor or Scalar 
         Output initialization data
-    _init_labels_in : Tensor or Scalar object
+    _init_labels_in : Tensor or Scalar 
         Labels for the initialization data
-    _init_labels_out : Tensor or Scalar object
+    _init_labels_out : Tensor or Scalar 
         Labels for the output initialization data
     """
 
@@ -574,11 +574,11 @@ class DivisionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data1 : Tensor or Scalar object
+        input_data1 : Tensor or Scalar 
             First input trial data
-        input_data2 : Tensor or Scalar object
+        input_data2 : Tensor or Scalar 
             Second input trial data
-        output_data : Tensor or Scalar object
+        output_data : Tensor or Scalar 
             Output trial data
 
         Returns
@@ -606,18 +606,18 @@ class DivisionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
+        graph : Graph 
             Graph that the kernel should be added to
-        inA : Tensor or Scalar object
+        inA : Tensor or Scalar 
             First input trial data
-        inB : Tensor or Scalar object
+        inB : Tensor or Scalar 
             Second input trial data
-        outA : Tensor or Scalar object
+        outA : Tensor or Scalar 
             Output trial data
 
         Returns
         -------
-        node : Node object
+        node : Node 
             Node object that has kernel and parameter stored in it
 
         Return type
@@ -653,32 +653,32 @@ class MultiplicationKernel(Binary, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
+    graph : Graph 
         Graph that the kernel should be added to
-    inA : Tensor or Scalar object
+    inA : Tensor or Scalar 
         First input trial data
-    inB : Tensor or Scalar object
+    inB : Tensor or Scalar 
         Second input trial data
-    outA : Tensor or Scalar object
+    outA : Tensor or Scalar 
         Output trial data
 
     Attributes
     ----------
-    _inA : Tensor or Scalar object
+    _inA : Tensor or Scalar 
         First input trial data
-    _inB : Tensor or Scalar object
+    _inB : Tensor or Scalar 
         Second input trial data
-    _outA : Tensor or Scalar object
+    _outA : Tensor or Scalar 
         Output trial data
-    _init_inA : Tensor or Scalar object
+    _init_inA : Tensor or Scalar 
         First input initialization data
-    _init_inB : Tensor or Scalar object
+    _init_inB : Tensor or Scalar 
         Second input initialization data
-    _init_outA : Tensor or Scalar object
+    _init_outA : Tensor or Scalar 
         Output initialization data
-    _init_labels_in : Tensor or Scalar object
+    _init_labels_in : Tensor or Scalar 
         Labels for the initialization data
-    _init_labels_out : Tensor or Scalar object
+    _init_labels_out : Tensor or Scalar 
         Labels for the output initialization data
 
     """
@@ -702,11 +702,11 @@ class MultiplicationKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data1 : Tensor or Scalar object
+        input_data1 : Tensor or Scalar 
             First input trial data
-        input_data2 : Tensor or Scalar object
+        input_data2 : Tensor or Scalar 
             Second input trial data
-        output_data : Tensor or Scalar object
+        output_data : Tensor or Scalar 
             Output trial data
 
         Returns
@@ -734,18 +734,18 @@ class MultiplicationKernel(Binary, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
+        graph : Graph 
             Graph that the node should be added to
-        inA : Tensor or Scalar object
+        inA : Tensor or Scalar 
             First input trial data
-        inB : Tensor or Scalar object
+        inB : Tensor or Scalar 
             Second input trial data
-        outA : Tensor or Scalar object
+        outA : Tensor or Scalar 
             Output trial data
 
         Returns
         -------
-        node : Node object
+        node : Node 
             Node object that has kernel and parameter stored in it
 
         Return type
@@ -781,32 +781,32 @@ class SubtractionKernel(Binary, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
+    graph : Graph 
         Graph that the kernel should be added to
-    inA : Tensor or Scalar object
+    inA : Tensor or Scalar 
         First input trial data
-    inB : Tensor or Scalar object
+    inB : Tensor or Scalar 
         Second input trial data
-    outA : Tensor or Scalar object
+    outA : Tensor or Scalar 
         Output trial data
 
     Attributes
     ----------
-    _inA : Tensor or Scalar object
+    _inA : Tensor or Scalar 
         First input trial data
-    _inB : Tensor or Scalar object
+    _inB : Tensor or Scalar 
         Second input trial data
-    _outA : Tensor or Scalar object
+    _outA : Tensor or Scalar 
         Output trial data
-    _init_inA : Tensor or Scalar object
+    _init_inA : Tensor or Scalar 
         First input initialization data
-    _init_inB : Tensor or Scalar object
+    _init_inB : Tensor or Scalar 
         Second input initialization data
-    _init_outA : Tensor or Scalar object
+    _init_outA : Tensor or Scalar 
         Output initialization data
-    _init_labels_in : Tensor or Scalar object
+    _init_labels_in : Tensor or Scalar 
         Labels for the initialization data
-    _init_labels_out : Tensor or Scalar object
+    _init_labels_out : Tensor or Scalar 
         Labels for the output initialization data
 
     """
@@ -830,11 +830,11 @@ class SubtractionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data1 : Tensor or Scalar object
+        input_data1 : Tensor or Scalar 
             First input trial data
-        input_data2 : Tensor or Scalar object
+        input_data2 : Tensor or Scalar 
             Second input trial data
-        output_data : Tensor or Scalar object
+        output_data : Tensor or Scalar 
             Output trial data
 
         Returns
@@ -862,18 +862,18 @@ class SubtractionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
+        graph : Graph 
             Graph that the kernel should be added to
-        inA : Tensor or Scalar object
+        inA : Tensor or Scalar 
             First input trial data
-        inB : Tensor or Scalar object
+        inB : Tensor or Scalar 
             Second input trial data
-        outA : Tensor or Scalar object
+        outA : Tensor or Scalar 
             Output trial data
 
         Returns
         -------
-        node : Node object
+        node : Node 
             Node object that has kernel and parameter stored in it
 
         Return type

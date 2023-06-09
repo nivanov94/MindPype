@@ -187,11 +187,9 @@ class Filter(BCIP):
 
         Return
         ------
-        Filter
+        BCIpy Filter object : Filter
+            The filter object containing the filter and its parameters
 
-        Return Type
-        -----------
-        BCIPy Filter object
         """
         coeffs= {}
         if implementation == 'ba':
@@ -222,7 +220,7 @@ class Filter(BCIP):
 
         Parameters
         ----------
-        sess: BCIPy Session Object
+        sess : Session
             Session where the filter object will exist
         N : int
             The order of the filter.
@@ -241,11 +239,9 @@ class Filter(BCIP):
     
         Return
         ------
-        Filter
+        BCIPy Filter object : Filter
+            The filter object containing the filter and its parameters
 
-        Return Type
-        -----------
-        BCIPy Filter object
         """
         coeffs= {}
         if implementation == 'ba':
@@ -276,7 +272,7 @@ class Filter(BCIP):
 
         Parameters
         ----------
-        sess : BCIPy Session Object
+        sess : Session
             Session where the filter object will exist
         N : int
             The order of the filter.
@@ -295,11 +291,9 @@ class Filter(BCIP):
 
         Return
         ------
-        Filter
+        BCIPy Filter object : Filter
+            The filter object containing the filter and its parameters
 
-        Return Type
-        -----------
-        BCIPy Filter object
         """
         coeffs= {}
         if implementation == 'ba':
@@ -351,11 +345,8 @@ class Filter(BCIP):
 
         Return
         ------
-        Filter
-
-        Return Type
-        -----------
-        BCIPy Filter object
+        BCIPy Filter object : Filter
+            The filter object containing the filter and its parameters
 
         """
         coeffs= {}
@@ -416,11 +407,9 @@ class Filter(BCIP):
 
         Return
         ------
-        Filter
+        BCIPy Filter object : Filter
+            The filter object containing the filter and its parameters
 
-        Return Type
-        -----------
-        BCIPy Filter object
 
         """
         coeffs= {}

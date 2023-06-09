@@ -13,20 +13,20 @@ class RiemannMeanKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - Input data
+    inA : Tensor 
+        Input data
 
-    outA : Tensor object
-        - Output trial data
+    outA : Tensor 
+        Output trial data
 
     axis : int
-        - Axis over which the mean should be calculated (see np.mean for more info)
+        Axis over which the mean should be calculated (see np.mean for more info)
 
     weights : array_like
-        - Weights for each sample
+        Weights for each sample
     """
     
     def __init__(self,graph,inA,outA,weights):

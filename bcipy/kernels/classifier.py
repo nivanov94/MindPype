@@ -14,26 +14,26 @@ class ClassifierKernel(Kernel):
     Parameters
     ----------
     
-    graph : Graph Object
+    graph : Graph 
         Graph that the kernel should be added to
 
-    inA : Tensor object (n_channels, n_samples)
-        Input trial data
+    inA : Tensor
+        Input trial data (n_channels, n_samples)
 
-    classifier : Classifier object
+    classifier : Classifier 
         BCIP Classifier object to be used for classification
 
-    outA : Scalar object
+    outA : Scalar 
         Output trial data
 
-    output_probs : Tensor object, default = None
-        If not None, the output will be the probability of each class.
+    output_probs : Tensor
+        If not None, the output will be the probability of each class. Default is None.
         
-    initialization_data : Tensor object, (n_trials, n_channels, n_samples)
-        Initialization data to train the classifier
+    initialization_data : Tensor
+        Initialization data to train the classifier (n_trials, n_channels, n_samples)
     
-    labels : Tensor object, (n_trials, )
-        Labels corresponding to initialization data class labels 
+    labels : Tensor
+        Labels corresponding to initialization data class labels (n_trials, )
         (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
     """
 
@@ -238,26 +238,26 @@ class ClassifierKernel(Kernel):
         Parameters
         ----------
 
-        graph : Graph Object
+        graph : Graph 
             Graph that the kernel should be added to
 
-        inA : Tensor object (n_channels, n_samples)
-            Input trial data
+        inA : Tensor  
+            Input trial data (n_channels, n_samples)
 
-        classifier : Classifier object
+        classifier : Classifier 
             BCIP Classifier object to be used for classification
 
-        outA : Scalar object
+        outA : Scalar 
             Output trial data
 
-        output_probs : Tensor object, default = None
-            If not None, the output will be the probability of each class.
+        output_probs : Tensor
+            If not None, the output will be the probability of each class. Default is None
 
-        initialization_data : Tensor object, (n_trials, n_channels, n_samples)
-            Initialization data to train the classifier
+        initialization_data : Tensor 
+            Initialization data to train the classifier (n_trials, n_channels, n_samples)
         
-        labels : Tensor object, (n_trials, )
-            Labels corresponding to initialization data class labels 
+        labels : Tensor
+            Labels corresponding to initialization data class labels (n_trials, )
             (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
         
         """

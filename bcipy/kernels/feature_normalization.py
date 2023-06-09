@@ -14,20 +14,20 @@ class FeatureNormalizationKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - Input trial data
+    inA : Tensor 
+        Input trial data
 
-    outA : Tensor object
-        - Extracted trial data
+    outA : Tensor 
+        Extracted trial data
 
-    init_data : Tensor object
-        - Initialization data
+    init_data : Tensor 
+        Initialization data
 
     method : {'min-max', 'mean-norm', 'zscore-norm'}
-        - Feature normalization method
+        Feature normalization method
     """
     
     def __init__(self,graph,inA,outA,init_data,method,axis):

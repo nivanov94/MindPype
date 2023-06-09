@@ -143,7 +143,9 @@ class TangentSpaceKernel(Kernel):
         Factory method to create a tangent_space_kernel, add it to a node, and add the node to a specified graph
 
         Parameters
-        ---------
+        ----------
+        graph : Graph
+            Graph object that this node belongs to
         inA : Tensor 
             Input data
         outA : Tensor 
@@ -156,6 +158,11 @@ class TangentSpaceKernel(Kernel):
             See pyriemann.tangentspace for more info
         sample_weight : ndarray, or None, default = None
             sample of each weight. If none, all samples have equal weight
+
+        Returns
+        -------
+        node : Node
+            Node object that was added to the graph
         """
 
         kernel = cls(graph, inA, outA, initialization_data, metric, tsupdate, sample_weight)

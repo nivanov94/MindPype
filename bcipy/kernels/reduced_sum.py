@@ -14,20 +14,20 @@ class ReducedSumKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - Input trial data
+    inA : Tensor 
+        Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     axis : int or tuple of ints, default = None
-        - What is this for
+        What is this for
 
     keep_dims : bool, default = False
-        - Or this
+        Or this
 
     """
     
@@ -149,20 +149,20 @@ class ReducedSumKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor object
-            - Input trial data
+        inA : Tensor 
+            Input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
         axis : int or tuple of ints, default = None
-            - What is this for
+            What is this for
 
         keep_dims : bool, default = False
-            - Or this
+            Or this
 
         """
         

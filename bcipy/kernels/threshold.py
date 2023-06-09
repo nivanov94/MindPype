@@ -13,17 +13,17 @@ class ThresholdKernel(Kernel):
     Parameters
     ----------
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - Input trial data
+    inA : Tensor or Scalar 
+        Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     thresh : float
-        - Threshold value 
+        Threshold value 
 
     """
     
@@ -133,17 +133,17 @@ class ThresholdKernel(Kernel):
         Parameters
         ----------
 
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Scalar object
-            - Input trial data
+        inA : Tensor or Scalar 
+            Input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
         thresh : float
-            - Threshold value
+            Threshold value
         """
         
         # create the kernel object

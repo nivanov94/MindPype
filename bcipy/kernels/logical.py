@@ -87,14 +87,14 @@ class NotKernel(Unary, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First Input trial data
+    inA : Tensor or Scalar 
+        First Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
     """
     
     def __init__(self,graph,inA,outA):
@@ -249,17 +249,17 @@ class AndKernel(Binary,Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First Input trial data
+    inA : Tensor or Scalar 
+        First Input trial data
 
-    inB : Tensor or Scalar object
-        - Second Input trial data
+    inB : Tensor or Scalar 
+        Second Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -299,17 +299,17 @@ class AndKernel(Binary,Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inA : Tensor or Scalar object
-            - First Input trial data
+        inA : Tensor or Scalar 
+            First Input trial data
 
-        inB : Tensor or Scalar object
-            - Second Input trial data
+        inB : Tensor or Scalar 
+            Second Input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
         
         """
         
@@ -338,17 +338,17 @@ class OrKernel(Binary,Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First Input trial data
+    inA : Tensor or Scalar 
+        First Input trial data
 
-    inB : Tensor or Scalar object
-        - Second Input trial data
+    inB : Tensor or Scalar 
+        Second Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -386,17 +386,17 @@ class OrKernel(Binary,Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inA : Tensor or Scalar object
-            - First Input trial data
+        inA : Tensor or Scalar 
+            First Input trial data
 
-        inB : Tensor or Scalar object
-            - Second Input trial data
+        inB : Tensor or Scalar 
+            Second Input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
         """
         
         # create the kernel object
@@ -424,17 +424,17 @@ class XorKernel(Binary,Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First Input trial data
+    inA : Tensor or Scalar 
+        First Input trial data
 
-    inB : Tensor or Scalar object
-        - Second Input trial data
+    inB : Tensor or Scalar 
+        Second Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
     """
     
     def __init__(self,graph,inA,inB,outA):
@@ -473,17 +473,17 @@ class XorKernel(Binary,Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inA : Tensor or Scalar object
-            - First Input trial data
+        inA : Tensor or Scalar 
+            First Input trial data
 
-        inB : Tensor or Scalar object
-            - Second Input trial data
+        inB : Tensor or Scalar 
+            Second Input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
         """
         
         # create the kernel object
@@ -510,17 +510,17 @@ class GreaterKernel(Binary,Kernel):
     
     Numpy broadcasting rules apply.
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First input trial data
+    inA : Tensor or Scalar 
+        First input trial data
 
-    inB : Tensor or Scalar object
-        - Second input trial data
+    inB : Tensor or Scalar 
+        Second input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     Note: The calculation is _inA .> _inB
     """
@@ -555,17 +555,17 @@ class GreaterKernel(Binary,Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Scalar object
-            - First input trial data
+        inA : Tensor or Scalar 
+            First input trial data
 
-        inB : Tensor or Scalar object
-            - Second input trial data
+        inB : Tensor or Scalar 
+            Second input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
         Note: The calculation is _inA .> _inB
         """
@@ -596,17 +596,17 @@ class LessKernel(Binary,Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First input trial data
+    inA : Tensor or Scalar 
+        First input trial data
 
-    inB : Tensor or Scalar object
-        - Second input trial data
+    inB : Tensor or Scalar 
+        Second input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     Note: The calculation is _inA .< _inB
     """
@@ -640,17 +640,17 @@ class LessKernel(Binary,Kernel):
         Factory method to create a less than comparison kernel 
         and add it to a graph as a generic node object.
 
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inA : Tensor or Scalar object
-            - First input trial data
+        inA : Tensor or Scalar 
+            First input trial data
 
-        inB : Tensor or Scalar object
-            - Second input trial data
+        inB : Tensor or Scalar 
+            Second input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
         Note: The calculation is _inA .> _inB
         """
@@ -678,17 +678,17 @@ class EqualKernel(Binary,Kernel):
     
     Numpy broadcasting rules apply.
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First input trial data
+    inA : Tensor or Scalar 
+        First input trial data
 
-    inB : Tensor or Scalar object
-        - Second input trial data
+    inB : Tensor or Scalar 
+        Second input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
     """
     
     def __init__(self,graph,inA,inB,outA):

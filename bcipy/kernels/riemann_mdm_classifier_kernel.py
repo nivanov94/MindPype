@@ -17,20 +17,20 @@ class RiemannMDMClassifierKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Array object
-        - First input data
+    inA : Tensor or Array 
+        First input data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
-    init_style : BcipEnums Object
-        - Indicates the type of classifier kernel (based by class functions)
+    init_style : BcipEnums 
+        Indicates the type of classifier kernel (based by class functions)
 
     initialize_params : dict
-        - Object passed by classmethods that contains training data and training labels 
+        Object passed by classmethods that contains training data and training labels 
     """
     
     def __init__(self,graph,inA,outA,init_style,init_params):
@@ -235,20 +235,20 @@ class RiemannMDMClassifierKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Array object
-            - First input data
+        inA : Tensor or Array 
+            First input data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
-        initialization_data : BCIPy Tensor Object
-            - Initialization data to train the classifier with (n_trials, n_channels, n_samples)
+        initialization_data : Tensor 
+            Initialization data to train the classifier with (n_trials, n_channels, n_samples)
 
-        labels : BCIPy Tensor Object
-            - Class labels for initialization data (n_trials,)
+        labels : Tensor 
+            Class labels for initialization data (n_trials,)
         """
         
         # create the kernel object            
@@ -283,17 +283,17 @@ class RiemannMDMClassifierKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Array object
-            - First input data
+        inA : Tensor or Array 
+            First input data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
-        model : MDM Classifier object
-            - Existing MDM Classifier object that will be added to the node (must be pre-trained)
+        model : RiemannMDMClassifierKernel
+            Existing MDM Classifier object that will be added to the node (must be pre-trained)
         """
 
         # sanity check that the input is actually an MDM model

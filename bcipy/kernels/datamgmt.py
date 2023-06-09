@@ -12,24 +12,23 @@ class ConcatenationKernel(Kernel):
     Parameters
     ----------
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
-
-    inA : Tensor object
-        - First input trial data
-
-    inB : Tensor object
-        - Second input trial data
-
-    outA : Tensor object
-        - Output trial data
-
+    graph : Graph 
+        Graph that the kernel should be added to
+    inA : Tensor 
+        First input trial data
+    inB : Tensor 
+        Second input trial data
+    outA : Tensor 
+        Output trial data
     axis : int or tuple of ints, default = 0
-        - The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
-        - See numpy.concatenate for more information
+        The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
+        See numpy.concatenate for more information
     """
     
     def __init__(self,graph,outA,inA,inB,axis=0):
+        """
+        Constructor for the Concatenation kernel
+        """
         super().__init__('Concatenation',BcipEnums.INIT_FROM_NONE,graph)
         self._inA  = inA
         self._inB  = inB
@@ -179,21 +178,17 @@ class ConcatenationKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
-
-        inA : Tensor object
-            - First input trial data
-
-        inB : Tensor object
-            - Second input trial data
-
-        outA : Tensor object
-            - Output trial data
-
+        graph : Graph 
+            Graph that the kernel should be added to
+        inA : Tensor 
+            First input trial data
+        inB : Tensor 
+            Second input trial data
+        outA : Tensor 
+            Output trial data
         axis : int or tuple of ints, default = 0
-            - The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
-            - See numpy.concatenate for more information
+            The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
+            See numpy.concatenate for more information
         """
         
         # create the kernel object
@@ -218,14 +213,14 @@ class EnqueueKernel(Kernel):
     """
     Kernel to enqueue a BCIP object into a BCIP circle buffer
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : BCIP Object
-        - Input data to enqueue into circle buffer
+    inA : BCIP 
+        Input data to enqueue into circle buffer
 
-    queue : Circle Buffer object
-        - Circle buffer to have data enqueud to
+    queue : CircleBuffer 
+        Circle buffer to have data enqueud to
 
     """
     
@@ -289,17 +284,17 @@ class EnqueueKernel(Kernel):
         """
         Factory method to create a enqueue kernel and add it to a graph as a generic node object.
 
-        graph : Graph Object
-        - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : BCIP Object
-            - Input data to enqueue into circle buffer
+        inA : Tensor or Scalar or Array or CircleBuffer 
+            Input data to enqueue into circle buffer
 
-        queue : Circle Buffer object
-            - Circle buffer to have data enqueud to
+        queue : CircleBuffer 
+            Circle buffer to have data enqueud to
             
-        enqueue_flag : (optional) Scalar boolean used to determine if the input
-                        is to be added to the queue
+        enqueue_flag : bool
+            (optional) Scalar boolean used to determine if the inputis to be added to the queue
         """
         
         # create the kernel object
@@ -326,20 +321,17 @@ class ExtractKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
 
-    inA : Tensor or Array object
-        - Input trial data
-
+    graph : Graph 
+        Graph that the kernel should be added to
+    inA : Tensor or Array 
+        Input trial data
     Indicies : list slices, list of ints
-        - Indicies within inA from which to extract data
-
-    outA : Tensor object
-        - Extracted trial data
-
+        Indicies within inA from which to extract data
+    outA : Tensor 
+        Extracted trial data
     reduce_dims : bool, default = False
-        - Remove singleton dimensions if true, don't squeeze otherwise
+        Remove singleton dimensions if true, don't squeeze otherwise
     """
     
     def __init__(self,graph,inA,indices,outA,reduce_dims):
@@ -554,20 +546,20 @@ class ExtractKernel(Kernel):
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
 
-         graph : Graph Object
-            - Graph that the kernel should be added to
+         graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Array object
-            - Input trial data
+        inA : Tensor or Array 
+            Input trial data
 
         Indicies : list slices, list of ints
-            - Indicies within inA from which to extract data
+            Indicies within inA from which to extract data
 
-        outA : Tensor, Scalar, or Array object
-            - Extracted trial data
+        outA : Tensor, Scalar, or Array 
+            Extracted trial data
 
         reduce_dims : bool, default = False
-            - Remove singleton dimensions if true, don't squeeze otherwise
+            Remove singleton dimensions if true, don't squeeze otherwise
         """
         
         # create the kernel object
@@ -591,23 +583,19 @@ class SetKernel(Kernel):
 
     Parameters
     ----------
-    graph : graph object
-        - The graph where the RunningAverageKernel object should be added
     
-    inA : Tensor or Array object
-        - Container where specified data will be added to
-
-    data : Tensor/Scalar/Array object
-        - Data to add to container
-
+    graph : Graph 
+        The graph where the RunningAverageKernel object should be added
+    inA : Tensor or Array 
+        Container where specified data will be added to
+    data : Tensor or Scalar or Array 
+        Data to add to container
     axis : int
-        - Axis over which to set the data
-
+        Axis over which to set the data
     index : array_like
-        - Indices of where to change the data within the Container object
-
-    out : Tensor/Array object
-        - Output data
+        Indices of where to change the data within the Container object
+    out : Tensor or Array
+        Output data
 
     """
     
@@ -747,23 +735,19 @@ class SetKernel(Kernel):
 
         Parameters
         ----------
-        graph : graph object
-            - The graph where the RunningAverageKernel object should be added
         
-        inA : Tensor or Array object
-            - Container where specified data will be added to
-
-        data : Tensor/Scalar/Array object
-            - Data to add to container
-
+        graph : Graph 
+            The graph where the RunningAverageKernel object should be added
+        inA : Tensor or Array 
+            Container where specified data will be added to
+        data : Tensor or Scalar or Array 
+            Data to add to container
         axis : int
-            - Axis over which to set the data
-
+            Axis over which to set the data
         index : array_like
-            - Indices of where to change the data within the Container object
-
-        out : Tensor/Array object
-            - Output data
+            Indices of where to change the data within the Container object
+        out : Tensor or Array
+            Output data
         """
         
         # create the kernel object
@@ -789,17 +773,15 @@ class StackKernel(Kernel):
 
     Parameters
     ----------
-    graph : graph object
-        - The graph where the RunningAverageKernel object should be added
-    
-    inA : Array object
-        - Container where specified data will be added to
 
-    outA : Tensor object
-        - Tensor of stacked tensors
-
+    graph : Graph
+        The graph where the RunningAverageKernel object should be added
+    inA : Array 
+        Container where specified data will be added to
+    outA : Tensor
+        Tensor of stacked tensors
     axis : int or None, default = None
-        - The axis in the result array along which the input arrays are stacked.
+        The axis in the result array along which the input arrays are stacked.
     """
     
     def __init__(self,graph,inA,outA,axis=None):
@@ -912,20 +894,16 @@ class TensorStackKernel(Kernel):
     Parameters
     ----------
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
-
-    inA : Tensor object
-        - First input trial data
-
-    inB : Tensorobject
-        - Second input trial data
-
-    outA : Tensor object
-        - Output trial data
-
+    graph : Graph 
+        Graph that the kernel should be added to
+    inA : Tensor 
+        First input trial data
+    inB : Tensor
+        Second input trial data
+    outA : Tensor 
+        Output trial data
     axis : int, default=None
-        - Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
+        Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
     """
     
     def __init__(self,graph,inA,inB,outA,axis=None):
@@ -1023,20 +1001,16 @@ class TensorStackKernel(Kernel):
         Parameters
         ----------
 
-        graph : Graph Object
-            - Graph that the kernel should be added to
-
-        inA : Tensor or Scalar object
-            - First input trial data
-
-        inB : Tensor or Scalar object
-            - Second input trial data
-
-        outA : Tensor or Scalar object
-            - Output trial data
-
+        graph : Graph 
+            Graph that the kernel should be added to
+        inA : Tensor or Scalar 
+            First input trial data
+        inB : Tensor or Scalar 
+            Second input trial data
+        outA : Tensor or Scalar 
+            Output trial data
         axis : int, default=None
-            - Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
+            Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
         
         """
         

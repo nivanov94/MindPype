@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*coding: utf-8 -*-
 """
 Created on Thurs Aug 8 14:13:13 2022
 
@@ -18,20 +18,20 @@ class RunningAverageKernel(Kernel):
 
     Parameters
     ----------
-    graph : graph object
-        - The graph where the RunningAverageKernel object should be added
+    graph : Graph
+        The graph where the RunningAverageKernel object should be added
     
-    inA : Tensor or Scalar object
-        - Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
+    inA : Tensor or Scalar
+        Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
 
-    outA : Tensor/Scalar object
-        - Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
+    outA : Tensor or Scalar
+        Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
 
     running_average_cap : int
-        - Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
+        Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
 
     axis : None or 0:
-        - Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
+        Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
 
     
     """
@@ -146,20 +146,20 @@ class RunningAverageKernel(Kernel):
 
         Parameters
         ----------
-        graph : graph object
-            - The graph where the node object should be added
+        graph : Graph
+            The graph where the node object should be added
         
-        inA : Tensor or scalar object
-            - Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
+        inA : Tensor or Scalar
+            Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
 
-        outA : Tensor/Scalar object
-            - Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
+        outA : Tensor or Scalar
+            Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
 
         running_average_cap : int
-            - Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
+            Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
 
         axis : None or 0:
-            - Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
+            Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
 
     
     """

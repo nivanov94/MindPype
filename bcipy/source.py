@@ -2,6 +2,8 @@
 Currently supported sources:
     - Lab Streaming Layer
     - mat files
+    - xdf files
+
 
 """
 
@@ -946,7 +948,8 @@ class InputLSLStream(BCIP):
 
     Attributes
     ----------
-    data_buffer : dict - {'EEG': np.array, 'time_stamps': np.array}
+    data_buffer : dict 
+        {'EEG': np.array, 'time_stamps': np.array}
         A dictionary containing the data and time stamps from past samples (used when trials have overlapping data)
 
     data_inlet : pylsl.StreamInlet

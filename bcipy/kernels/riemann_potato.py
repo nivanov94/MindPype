@@ -19,14 +19,14 @@ class RiemannPotatoKernel(Kernel):
     Parameters
     ----------
    
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inputA : Tensor or Array object
-        - First input data
+    inputA : Tensor or Array 
+        First input data
 
-    outputA : Tensor or Scalar object
-        - Output trial data
+    outputA : Tensor or Scalar 
+        Output trial data
 
     out_score : 
 

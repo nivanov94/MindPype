@@ -11,38 +11,28 @@ class XDawnCovarianceKernel(Kernel):
     """
     Kernel to estimate special form covariance matrices for ERP combined with Xdawn
     
-
-    Paramters
-    ---------
-    inA : Tensor object
-        - Input data
-
-    outA : Tensor object
-        - Output data
-
-    initialization_data : Tensor object
-        - Data to initialize the estimator with (n_trials, n_channels, n_samples)
-
-    labels : Tensor object
-        - Class labels for initialization data
-
+    Parameters
+    ----------
+    inA : Tensor 
+        Input data
+    outA : Tensor 
+        Output data
+    initialization_data : Tensor 
+        Data to initialize the estimator with (n_trials, n_channels, n_samples)
+    labels : Tensor 
+        Class labels for initialization data
     nfilter : int, default=4
-        - Number of Xdawn filters per class.
-
+        Number of Xdawn filters per class.
     applyfilters : bool, default=True
-        - If true, spatial filter are applied to the prototypes and the signals. If False, filters are applied only to the ERP prototypes allowing for a better generalization across subject and session at the expense of dimensionality increase. In that case, the estimation is similar to pyriemann.estimation.ERPCovariances with svd=nfilter but with more compact prototype reduction.
-
+        If true, spatial filter are applied to the prototypes and the signals. If False, filters are applied only to the ERP prototypes allowing for a better generalization across subject and session at the expense of dimensionality increase. In that case, the estimation is similar to pyriemann.estimation.ERPCovariances with svd=nfilter but with more compact prototype reduction.
     classeslist of int | None, default=None
-        - list of classes to take into account for prototype estimation. If None, all classes will be accounted.
-
+        list of classes to take into account for prototype estimation. If None, all classes will be accounted.
     estimatorstring, default=’scm’
-        - Covariance matrix estimator, see pyriemann.utils.covariance.covariances().
-
+        Covariance matrix estimator, see pyriemann.utils.covariance.covariances().
     xdawn_estimatorstring, default=’scm’
-        - Covariance matrix estimator for Xdawn spatial filtering. Should be regularized using ‘lwf’ or ‘oas’, see pyriemann.utils.covariance.covariances().
-
+        Covariance matrix estimator for Xdawn spatial filtering. Should be regularized using ‘lwf’ or ‘oas’, see pyriemann.utils.covariance.covariances().
     baseline_covarray, shape (n_chan, n_chan) | None, default=None
-        - Baseline covariance for Xdawn spatial filtering, see pyriemann.spatialfilters.Xdawn
+        Baseline covariance for Xdawn spatial filtering, see pyriemann.spatialfilters.Xdawn
 
     Examples
     --------
@@ -51,6 +41,9 @@ class XDawnCovarianceKernel(Kernel):
 
     def __init__(self, graph, inA, outA, initialization_data, labels, num_filters=4, applyfilters=True, 
                  classes=None, estimator='scm', xdawn_estimator='scm', baseline_cov=None):
+        """
+        Constructor for the XDawnCovarianceKernel class
+        """
         super().__init__("XDawnCovarianceKernel", BcipEnums.INIT_FROM_DATA, graph)
         self._inA = inA
         self._outA = outA
@@ -66,6 +59,9 @@ class XDawnCovarianceKernel(Kernel):
         self._xdawn_estimator = XdawnCovariances(num_filters, applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
 
     def verify(self):
+        """
+        Verify that the input and output data are in the correct format and size
+        """
         if (self._inA._bcip_type != BcipEnums.TENSOR or
             self._outA._bcip_type != BcipEnums.TENSOR):
             return BcipEnums.INVALID_PARAMETERS
@@ -147,6 +143,18 @@ class XDawnCovarianceKernel(Kernel):
     def _process_data(self, input_data, output_data):
         """
         Process input data according to outlined kernel function
+
+        Parameters
+        ----------
+        input_data : Tensor
+            Input data to be processed
+        output_data : Tensor
+            Output data to be processed
+
+        Returns
+        -------
+        sts : BcipEnums
+            Status of the processing
         """
         if output_data._bcip_type == BcipEnums.TENSOR:
             result = self._xdawn_estimator.transform(input_data.data)
@@ -167,35 +175,36 @@ class XDawnCovarianceKernel(Kernel):
         """
         Factory method to create xdawn_covariance kernel, add it to a node, and add the node to the specified graph.
 
-        inA : Tensor object
-            - Input data
+        Parameters
+        ----------
 
-        outA : Tensor object
-            - Output data
-
-        initialization_data : Tensor object
-            - Data to initialize the estimator with (n_trials, n_channels, n_samples)
-
-        labels : Tensor object
-            - Class labels for initialization data
-
+        graph : Graph
+            Graph to add the node to
+        inA : Tensor 
+            Input data
+        outA : Tensor 
+            Output data
+        initialization_data : Tensor 
+            Data to initialize the estimator with (n_trials, n_channels, n_samples)
+        labels : Tensor 
+            Class labels for initialization data
         nfilter : int, default=4
-            - Number of Xdawn filters per class.
-
+            Number of Xdawn filters per class.
         applyfilters : bool, default=True
-            - If true, spatial filter are applied to the prototypes and the signals. If False, filters are applied only to the ERP prototypes allowing for a better generalization across subject and session at the expense of dimensionality increase. In that case, the estimation is similar to pyriemann.estimation.ERPCovariances with svd=nfilter but with more compact prototype reduction.
-
+            If true, spatial filter are applied to the prototypes and the signals. If False, filters are applied only to the ERP prototypes allowing for a better generalization across subject and session at the expense of dimensionality increase. In that case, the estimation is similar to pyriemann.estimation.ERPCovariances with svd=nfilter but with more compact prototype reduction.
         classeslist of int | None, default=None
-            - list of classes to take into account for prototype estimation. If None, all classes will be accounted.
-
+            list of classes to take into account for prototype estimation. If None, all classes will be accounted.
         estimatorstring, default=’scm’
-            - Covariance matrix estimator, see pyriemann.utils.covariance.covariances().
-
+            Covariance matrix estimator, see pyriemann.utils.covariance.covariances().
         xdawn_estimatorstring, default=’scm’
-            - Covariance matrix estimator for Xdawn spatial filtering. Should be regularized using ‘lwf’ or ‘oas’, see pyriemann.utils.covariance.covariances().
-
+            Covariance matrix estimator for Xdawn spatial filtering. Should be regularized using ‘lwf’ or ‘oas’, see pyriemann.utils.covariance.covariances().
         baseline_covarray, shape (n_chan, n_chan) | None, default=None
-            - Baseline covariance for Xdawn spatial filtering, see pyriemann.spatialfilters.Xdawn
+            Baseline covariance for Xdawn spatial filtering, see pyriemann.spatialfilters.Xdawn
+        
+        Returns
+        -------
+        node : Node
+            Node containing the kernel
         """
         kernel = cls(graph, inA, outA, initialization_data, labels, num_filters,
                      applyfilters, classes, estimator, xdawn_estimator, baseline_cov)

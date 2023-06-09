@@ -80,20 +80,20 @@ class FilterKernel(Filter, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inputA : Tensor or Scalar object
-        - Input trial data
+    inputA : Tensor or Scalar 
+        Input trial data
 
-    filt : Filter object
-        - BCIP Filter object outputted by bcipy.classes
+    filt : Filter 
+        BCIP Filter object outputted by bcipy.classes
 
-    outputA : Tensor or Scalar object
-        - Output trial data
+    outputA : Tensor or Scalar 
+        Output trial data
 
     axis : int
-        - axis along which to apply the filter
+        axis along which to apply the filter
     """
     
     def __init__(self,graph,inputA,filt,outputA,axis):
@@ -133,20 +133,20 @@ class FilterKernel(Filter, Kernel):
         Factory method to create a filter kernel and add it to a graph
         as a generic node object.
 
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inputA : Tensor or Scalar object
-            - Input trial data
+        inputA : Tensor or Scalar 
+            Input trial data
 
-        filt : Filter object
-            - BCIP Filter object outputted by bcipy.classes
+        filt : Filter 
+            BCIP Filter object outputted by bcipy.classes
 
-        outputA : Tensor or Scalar object
-            - Output trial data
+        outputA : Tensor or Scalar 
+            Output trial data
 
         axis : int
-            - Axis along which to apply the filter
+            Axis along which to apply the filter
         """
         
         # create the kernel object
@@ -170,20 +170,20 @@ class FiltFiltKernel(Filter, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inputA : Tensor or Scalar object
-        - Input trial data
+    inputA : Tensor or Scalar 
+        Input trial data
 
-    filt : Filter object
-        - BCIP Filter object outputted by bcipy.classes
+    filt : Filter 
+        BCIP Filter object outputted by bcipy.classes
 
-    outputA : Tensor or Scalar object
-        - Output trial data
+    outputA : Tensor or Scalar 
+        Output trial data
 
     axis : int
-        - axis along which to apply the filter
+        axis along which to apply the filter
     """
     
     def __init__(self,graph,inputA,filt,outputA,axis):
@@ -224,20 +224,20 @@ class FiltFiltKernel(Filter, Kernel):
         Factory method to create a filtfilt kernel and add it to a graph
         as a generic node object.
 
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inputA : Tensor or Scalar object
-            - Input trial data
+        inputA : Tensor or Scalar 
+            Input trial data
 
-        filt : Filter object
-            - BCIP Filter object outputted by bcipy.classes
+        filt : Filter 
+            BCIP Filter object outputted by bcipy.classes
 
-        outputA : Tensor or Scalar object
-            - Output trial data
+        outputA : Tensor or Scalar 
+            Output trial data
 
         axis : int
-            - axis along which to apply the filter
+            axis along which to apply the filter
         """
         
         # create the kernel object

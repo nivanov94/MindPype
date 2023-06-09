@@ -11,26 +11,26 @@ class CDFKernel(Kernel):
     """
     Calculates the CDF for a distribution given a RV as input. Currently supports normal and chi2 distributions
     
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - First input trial data
+    inA : Tensor 
+        First input trial data
 
-    outA : Tensor object
-        - Output trial data
+    outA : Tensor 
+        Output trial data
 
     dist : str, {'norm', 'chi2'}
-        - Distribution type
+        Distribution type
     
     df : shape_like
-        - The shape parameter(s) for the distribution. See scipy.stats.chi2 docstring for more detailed information
+        The shape parameter(s) for the distribution. See scipy.stats.chi2 docstring for more detailed information
     
     loc : array_like, default = 0
-        - Location Parameter 
+        Location Parameter 
     
     scale : array_like, default = 1
-        - Scale Parameter
+        Scale Parameter
     """
     
     def __init__(self,graph,inA,outA,dist,df,loc,scale):
@@ -157,17 +157,17 @@ class CovarianceKernel(Kernel):
     Parameters
     ----------
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - First input trial data
+    inA : Tensor or Scalar 
+        First input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     regularization : float, 0 < r < 1
-        - Regularization parameter
+        Regularization parameter
 
 
     Tensor size examples:
@@ -302,17 +302,17 @@ class CovarianceKernel(Kernel):
         
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Scalar object
-            - First input trial data
+        inA : Tensor or Scalar 
+            First input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
         regularization : float, 0 < r < 1
-            - Regularization parameter
+            Regularization parameter
 
 
         Tensor size examples:
@@ -442,20 +442,20 @@ class MaxKernel(Descriptive, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - Input data (max value will be extracted from here)
+    inA : Tensor 
+        Input data (max value will be extracted from here)
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     axis : None or int or tuple of ints
-        - Axis or axes along which to operate. By default, flattened input in used.
+        Axis or axes along which to operate. By default, flattened input in used.
 
     keepdims : bool
-        - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+        If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
     """
     
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
@@ -496,20 +496,20 @@ class MaxKernel(Descriptive, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inA : Tensor object
-            - Input data (max value will be extracted from here)
+        inA : Tensor 
+            Input data (max value will be extracted from here)
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
         axis : None or int or tuple of ints
-            - Axis or axes along which to operate. By default, flattened input in used.
+            Axis or axes along which to operate. By default, flattened input in used.
 
         keepdims : bool
-            - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+            If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
         """
         
         # create the kernel object
@@ -534,20 +534,20 @@ class MinKernel(Descriptive, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - Input data (min value will be extracted from here)
+    inA : Tensor 
+        Input data (min value will be extracted from here)
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     axis : None or int or tuple of ints
-        - Axis or axes along which to operate. By default, flattened input in used.
+        Axis or axes along which to operate. By default, flattened input in used.
 
     keepdims : bool
-        - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+        If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
     """
     
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
@@ -589,20 +589,20 @@ class MinKernel(Descriptive, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the node should be added to
+        graph : Graph 
+            Graph that the node should be added to
 
-        inA : Tensor object
-            - Input data (min value will be extracted from here)
+        inA : Tensor 
+            Input data (min value will be extracted from here)
 
-        outA : Tensor object
-            - Output trial data
+        outA : Tensor 
+            Output trial data
 
         axis : None or int or tuple of ints
-            - Axis or axes along which to operate. By default, flattened input in used.
+            Axis or axes along which to operate. By default, flattened input in used.
 
         keepdims : bool
-            - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+            If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
         """
         
         # create the kernel object
@@ -627,20 +627,20 @@ class MeanKernel(Descriptive, Kernel):
 
     Parameters
     ----------
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - Input data
+    inA : Tensor 
+        Input data
 
-    outA : Tensor object
-        - Output trial data
+    outA : Tensor 
+        Output trial data
 
     axis : None or int or tuple of ints
-        - Axis or axes along which to operate. By default, flattened input in used.
+        Axis or axes along which to operate. By default, flattened input in used.
 
     keepdims : bool
-        - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+        If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
     """
     
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
@@ -684,20 +684,20 @@ class MeanKernel(Descriptive, Kernel):
 
         Parameters
         ----------
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor object
-            - Input data
+        inA : Tensor 
+            Input data
 
-        outA : Tensor object
-            - Output trial data
+        outA : Tensor 
+            Output trial data
 
         axis : None or int or tuple of ints
-            - Axis or axes along which to operate. By default, flattened input in used.
+            Axis or axes along which to operate. By default, flattened input in used.
 
         keepdims : bool
-            - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+            If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
         """
         
         # create the kernel object
@@ -719,23 +719,23 @@ class StdKernel(Descriptive, Kernel):
     """
     Calculates the standard deviation of values in a tensor
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor object
-        - First input trial data
+    inA : Tensor 
+        First input trial data
 
-    outA : Tensor object
-        - Output trial data
+    outA : Tensor 
+        Output trial data
 
     axis : None or int or tuple of ints, optional
-        - Axis or axes along which the standard deviation is computed. The default is to compute the standard deviation of the flattened array.
+        Axis or axes along which the standard deviation is computed. The default is to compute the standard deviation of the flattened array.
 
     ddof : int, optional
-        - Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+        Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
 
     keepdims : bool
-        - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+        If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
     """
     
     def __init__(self,graph,inA,outA,axis=None,ddof=0,keepdims=False):
@@ -804,23 +804,23 @@ class StdKernel(Descriptive, Kernel):
 
         Calculates the standard deviation of values in a tensor
 
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
     
-        inA : Tensor object
-            - First input trial data
+        inA : Tensor 
+            First input trial data
     
-        outA : Tensor object
-            - Output trial data
+        outA : Tensor 
+            Output trial data
     
         axis : None or int or tuple of ints, optional
-            - Axis or axes along which the standard deviation is computed. The default is to compute the standard deviation of the flattened array.
+            Axis or axes along which the standard deviation is computed. The default is to compute the standard deviation of the flattened array.
     
         ddof : int, optional
-            - Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+            Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
     
         keepdims : bool
-            - If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
+            If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
         """
         
         # create the kernel object
@@ -842,23 +842,23 @@ class VarKernel(Descriptive, Kernel):
     """
     Calculates the variance of values in a tensor
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - Input trial data
+    inA : Tensor or Scalar 
+        Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
     axis : None or int or tuple of ints, optional
-        - Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
+        Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
 
     ddof : int, optional
-        - "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
+        "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
     
     keepdims : bool, optional
-        - If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
+        If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
     """
     
     def __init__(self,graph,inA,outA,axis,ddof,keep_dims):
@@ -926,23 +926,23 @@ class VarKernel(Descriptive, Kernel):
         """
         Factory method to create a variance kernel
 
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Scalar object
-            - Input trial data
+        inA : Tensor or Scalar 
+            Input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
         axis : None or int or tuple of ints, optional
-            - Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
+            Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
 
         ddof : int, optional
-            - "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
+            "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
         
         keepdims : bool, optional
-            - If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
+            If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
             
         """
         
@@ -965,17 +965,17 @@ class ZScoreKernel(Kernel):
     """
     Calculate a z-score for an tensor or scalar input
 
-    graph : Graph Object
-        - Graph that the kernel should be added to
+    graph : Graph 
+        Graph that the kernel should be added to
 
-    inA : Tensor or Scalar object
-        - Input trial data
+    inA : Tensor or Scalar 
+        Input trial data
 
-    outA : Tensor or Scalar object
-        - Output trial data
+    outA : Tensor or Scalar 
+        Output trial data
 
-    init_data: Tensor or Array object
-        - Initialization data (n_trials, n_channels, n_samples)
+    init_data: Tensor or Array 
+        Initialization data (n_trials, n_channels, n_samples)
     """
     
     def __init__(self,graph,inA,outA,init_data):
@@ -1147,17 +1147,17 @@ class ZScoreKernel(Kernel):
         Factory method to create a z-score value kernel 
         and add it to a graph as a generic node object.
 
-        graph : Graph Object
-            - Graph that the kernel should be added to
+        graph : Graph 
+            Graph that the kernel should be added to
 
-        inA : Tensor or Scalar object
-            - Input trial data
+        inA : Tensor or Scalar 
+            Input trial data
 
-        outA : Tensor or Scalar object
-            - Output trial data
+        outA : Tensor or Scalar 
+            Output trial data
 
-        init_data: Tensor or Array object
-            - Initialization data (n_trials, n_channels, n_samples)
+        init_data: Tensor or Array 
+            Initialization data (n_trials, n_channels, n_samples)
         """
         
         # create the kernel object
