@@ -117,19 +117,21 @@ class Classifier(BCIP):
            and may be impractical beyond tens of thousands of samples.
            The multiclass support is handled according to a one-vs-one scheme.
 
+           
+        .. note:: 
+            All unlisted parameters are the same as the sklearn SVC object. 
+            Check out the sklearn documentation
+            `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
+            for more information.
+
         Parameters
         ----------
         sess : session object
             Session where the SVM BCIP Classifier object will exist
 
-    .. note:: 
-           
-        All other parameters are the same as the sklearn SVC object. 
-        Check out the sklearn documentation
-        `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
-
-    Examples
-    --------
+    
+        Examples
+        --------
         >>> from bcipy import Classifier
         >>> classifier_object = Classifier.create_SVM(sess)
 
@@ -176,16 +178,18 @@ class Classifier(BCIP):
         """
         Factory method to create an LDA BCIP Classifier object.
 
+        .. note:: 
+           All unlisted parameters are the same as the LDA Scikit-Learn object
+           `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html>`_
+           for more information.
+
         Parameters
         ----------
 
         sess : Session
             Session where the SVM BCIP Classifier object will exist
 
-    .. note:: 
-       All other parameters are the same as the LDA Scikit-Learn object
-       `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html>`_
-
+    
         Return
         ------
         BCIPy Classifier : Classifier
@@ -235,17 +239,20 @@ class Classifier(BCIP):
         l1_ratio=None,
     ):
         """
+
+        .. note::
+           The unlisted parameters accepted by this function are specified in the documentation 
+           for the 
+           `SKLearn Logistic Regression classifier <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>`_
+                
+
         Parameters
         ----------
         sess : session object
             Session where the Logistic Regression BCIP Classifier object will exist
 
         
-    .. note::
-       The other parameters accepted by this function are specified in the documentation 
-       for the 
-       `SKLearn Logistic Regression classifier <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>`_
-
+    
         Return
         ------
         BCIPy Classifier Object : Classifier

@@ -14,7 +14,7 @@ Core Components
 
 .. automodule:: bcipy.core
    :members:
-   :undoc-members:
+   :no-undoc-members:
    :show-inheritance:
 
 Data Containers

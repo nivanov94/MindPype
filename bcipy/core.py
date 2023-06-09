@@ -8,18 +8,9 @@ class BCIP(object):
 
     Parameters
     ----------
-    bcip_type : Object type enum (int)
+    bcip_type : BcipEnums
         Indicates what type of object is being created
-    session : session object
-        The session where the object will exist
-
-    Attributes
-    ----------
-    _bcip_type : Object type enum (int)
-        Indicates what type of object is being created
-    _id : int
-        Unique identifier for the object
-    _session : session object
+    session : Session
         The session where the object will exist
 
     """
@@ -39,11 +30,8 @@ class BCIP(object):
 
         Return
         ------
-        bcip_type : Object type enum (int)
-
-        Return Type
-        -----------
-        BCIPEnum
+        bcip_type : BcipEnums
+            Indicates what type of object the reference object is
         """
 
         return self._bcip_type
@@ -55,12 +43,8 @@ class BCIP(object):
 
         Return
         ------
-        session_id
+        session_id : int
             ID of the session where the object exists
-
-        Return Type
-        -----------
-        int
         """
         return self._id
     
@@ -71,12 +55,9 @@ class BCIP(object):
 
         Returns
         -------
-        session
+        Current Session : Session
             Session where the object exists
         
-        Return Type
-        -----------
-        BCIPy Session Object
         """
 
         return self._session
