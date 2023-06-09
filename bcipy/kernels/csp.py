@@ -15,13 +15,13 @@ class CommonSpatialPatternKernel(Kernel):
     """
     CSP Filter Kernel that applies a set of common spatial patter filters to tensors of covariance matrices
 
-    graph : Graph Object
+    Parameters
+    ----------
+    graph : Graph
         - Graph that the kernel should be added to
-
-    inA : Tensor or Scalar object
-        - First input trial dat
-
-    outA : Tensor or Scalar object
+    inA : Tensor or Scalar
+        - First input trial data
+    outA : Tensor or Scalar 
         - Output trial data
 
     """
@@ -30,7 +30,7 @@ class CommonSpatialPatternKernel(Kernel):
                  init_style,init_params,
                  num_filts,Ncls,multi_class_mode):
         """
-        Kernel applies a set of common spatial pattern filters to tensor of covariance matrices
+        Constructor for CSP filter kernel
         """
         super().__init__('CSP',init_style,graph)
         self._inA = inA

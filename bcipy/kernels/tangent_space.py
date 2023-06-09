@@ -9,24 +9,22 @@ class TangentSpaceKernel(Kernel):
     """
     Kernel to estimate Tangent Space. Applies Pyriemann.tangentspace method
 
-    Args:
-    inA : Tensor object
-        - Input data
-
-    outA : Tensor object
-        - Output data
-
-    initialization_data : Tensor object
-        - Data to initialize the estimator with (n_trials, n_channels, n_samples)
-
+    Parameters
+    ----------
+    graph : Graph
+        Graph object that this node belongs to
+    inA : Tensor
+        Input data
+    outA : Tensor
+        Output data
+    initialization_data : Tensor
+        Data to initialize the estimator with (n_trials, n_channels, n_samples)
     metric : str, default = 'riemann'
-        - See pyriemann.tangentspace for more info
-
+        See pyriemann.tangentspace for more info
     metric : bool, default = False
-        - See pyriemann.tangentspace for more info
-
+        See pyriemann.tangentspace for more info
     sample_weight : ndarray, or None, default = None
-        - sample of each weight. If none, all samples have equal weight
+        sample of each weight. If none, all samples have equal weight
 
     """
 
@@ -144,25 +142,20 @@ class TangentSpaceKernel(Kernel):
         """
         Factory method to create a tangent_space_kernel, add it to a node, and add the node to a specified graph
 
-        Paramters
+        Parameters
         ---------
-        inA : Tensor object
-            - Input data
-
-        outA : Tensor object
-            - Output data
-
-        initialization_data : Tensor object
-            - Data to initialize the estimator with (n_trials, n_channels, n_samples)
-
+        inA : Tensor 
+            Input data
+        outA : Tensor 
+            Output data
+        initialization_data : Tensor 
+            Data to initialize the estimator with (n_trials, n_channels, n_samples)
         metric : str, default = 'riemann'
-            - See pyriemann.tangentspace for more info
-
+            See pyriemann.tangentspace for more info
         metric : bool, default = False
-            - See pyriemann.tangentspace for more info
-
+            See pyriemann.tangentspace for more info
         sample_weight : ndarray, or None, default = None
-            - sample of each weight. If none, all samples have equal weight
+            sample of each weight. If none, all samples have equal weight
         """
 
         kernel = cls(graph, inA, outA, initialization_data, metric, tsupdate, sample_weight)

@@ -1,7 +1,7 @@
 List of available kernels
 =========================
 
-bcipy.kernels.arithmetic module
+Arithmetic Operations
 -------------------------------
 
 .. automodule:: bcipy.kernels.arithmetic
@@ -9,7 +9,7 @@ bcipy.kernels.arithmetic module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.classifier module
+Classifier
 -------------------------------
 
 .. automodule:: bcipy.kernels.classifier
@@ -17,15 +17,15 @@ bcipy.kernels.classifier module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.csp module
-------------------------
+Common Spatial Pattern (CSP)
+----------------------------
 
 .. automodule:: bcipy.kernels.csp
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.datamgmt module
+Data Management/Manipulation
 -----------------------------
 
 .. automodule:: bcipy.kernels.datamgmt
@@ -33,48 +33,48 @@ bcipy.kernels.datamgmt module
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.feature\_normalization module
--------------------------------------------
+Feature Normalization
+---------------------
 
 .. automodule:: bcipy.kernels.feature_normalization
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.filters module
------------------------------
+Filters
+--------
 
 .. automodule:: bcipy.kernels.filters
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.kernel\_utils module
-----------------------------------
+Kernel Utilities
+-----------------
 
 .. automodule:: bcipy.kernels.kernel_utils
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.logical module
----------------------------------
+Logical Operations
+-------------------
 
 .. automodule:: bcipy.kernels.logical
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.reduced\_sum module
----------------------------------
+Reduced Sum
+------------
 
 .. automodule:: bcipy.kernels.reduced_sum
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.resample module
----------------------------------
+Resampling
+-----------
 
 .. automodule:: bcipy.kernels.resample
    :members:
@@ -82,48 +82,48 @@ bcipy.kernels.resample module
    :show-inheritance:
 
 
-bcipy.kernels.riemann\_distance module
---------------------------------------
+Riemann Distance
+-----------------
 
 .. automodule:: bcipy.kernels.riemann_distance
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.riemann\_mdm\_classifier\_kernel module
------------------------------------------------------
+Riemann MDM Classifier
+-----------------------
 
 .. automodule:: bcipy.kernels.riemann_mdm_classifier_kernel
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.riemann\_mean module
-----------------------------------
+Riemann Mean
+-------------
 
 .. automodule:: bcipy.kernels.riemann_mean
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.riemann\_potato module
-------------------------------------
+Riemann Potato 
+---------------
 
 .. automodule:: bcipy.kernels.riemann_potato
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.running\_average module
--------------------------------------
+Running Average
+----------------
 
 .. automodule:: bcipy.kernels.running_average
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.statistics module
--------------------------------
+Statistical Operations
+-----------------------
 
 .. automodule:: bcipy.kernels.statistics
    :members:
@@ -131,8 +131,8 @@ bcipy.kernels.statistics module
    :show-inheritance:
 
 
-bcipy.kernels.tangent\_space module
------------------------------------
+Tangent Space
+--------------
 
 .. automodule:: bcipy.kernels.tangent_space
    :members:
@@ -140,16 +140,16 @@ bcipy.kernels.tangent\_space module
    :show-inheritance:
 
 
-bcipy.kernels.threshold module
-------------------------------
+Thresholding
+-------------
 
 .. automodule:: bcipy.kernels.threshold
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.kernels.transpose module
-------------------------------
+Transpose
+---------
 
 .. automodule:: bcipy.kernels.transpose
    :members:
@@ -157,19 +157,11 @@ bcipy.kernels.transpose module
    :show-inheritance:
 
 
-bcipy.kernels.xdawn\_covariances module
----------------------------------------
+XDawn Covariances
+-----------------
 
 .. automodule:: bcipy.kernels.xdawn_covariances
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: bcipy.kernels
-   :members:
-   :undoc-members:
-   :show-inheritance:
