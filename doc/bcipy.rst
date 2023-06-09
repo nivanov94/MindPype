@@ -1,23 +1,15 @@
 BCIPy Package Contents
 ======================
 
-bcipy.classifier module
------------------------
+.. note:: 
+   It is highly recommended that, for any BCIPy objects created, you use the
+   provided factory methods. This will ensure that the objects are created
+   correctly and that the correct parameters are passed. For example, to create
+   a new absolute kernel, use the 
+   :func:`bcipy.kernels.AbsoluteKernel.create_absolute_kernel()` method instead
+   of :class:`bcipy.kernels.AbsoluteKernel` constructor.
 
-.. automodule:: bcipy.classifier
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.containers module
------------------------
-
-.. automodule:: bcipy.containers
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bcipy.core module
+Core Components
 -----------------
 
 .. automodule:: bcipy.core
@@ -25,42 +17,55 @@ bcipy.core module
    :undoc-members:
    :show-inheritance:
 
-bcipy.filter module
--------------------
+Data Containers
+-----------------------
 
-.. automodule:: bcipy.filter
+.. automodule:: bcipy.containers
    :members:
    :undoc-members:
    :show-inheritance:
 
-bcipy.graph module
-------------------
+Graphs - The Processing Pipelines
+---------------------------------
 
 .. automodule:: bcipy.graph
    :members:
    :undoc-members:
    :show-inheritance:
-   :noindex:
 
+External Data Sources
+---------------------
 
-bcipy.kernel module
--------------------
+.. automodule:: bcipy.source
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Kernel Base Class
+-----------------
 
 .. automodule:: bcipy.kernel
    :members:
    :undoc-members:
    :show-inheritance:
 
-   .. toctree::
-      :maxdepth: 2
-   
-   bcipy.kernels
 
-bcipy.source module
--------------------
+BCIPy Classifier Objects
+------------------------
 
-.. automodule:: bcipy.source
+.. automodule:: bcipy.classifier
    :members:
    :undoc-members:
    :show-inheritance:
+
+BCIPy Filter Objects
+--------------------
+
+.. automodule:: bcipy.filter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+
 
