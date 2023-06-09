@@ -1,9 +1,10 @@
-"""Emulates the filter class
-If we pass in a generic classifier obejct, should be able to execute standard sklearn commands
+"""
 
-Creating a kernel to handle verification and execution should be straight-foward
+Use this class to create a classifier object that can be used by the BCIPy Classifier kernel.
 
-Create a classifier object and enter
+.. note:: 
+   BCIPy Classifier objects must be created in order to be used by the BCIPy Classifier kernel.
+
 """
 
 from sklearn.linear_model import LogisticRegression
@@ -21,18 +22,18 @@ class Classifier(BCIP):
 
     Parameters
     ----------
-    sess : Session object
+    sess : Session 
        Session where the Array object will exist
     ctype : str
        The name of the classifier to be created
-    classifier : BCIPy Classifier object
+    classifier : Classifier 
        The classifier object to be used within the node (should be the return from a BCIP kernel)
 
     Attributes
     ----------
-    _ctype : ['lda', 'svm', 'logistic regression', 'custom']
-       Indicates the type of classifier
-    _classifier : Classifier object
+    _ctype : str
+       One of ['lda', 'svm', 'logistic regression', 'custom'], corresponding to the type of classifier
+    _classifier : Classifier
        The Classifier object (ie. Scipy classifier object) that will dictate this node's function
 
     Examples
@@ -42,16 +43,16 @@ class Classifier(BCIP):
         
         from bcipy import Classifier
         
+        # Create a BCIPy Classifier object using the factory method
         classifier_object = Classifier.create_LDA(sess, solver='svd', shrinkage=None, priors=None,
         n_components=None, store_covariance=False, tol=0.0001)
 
     Return
     ------
-    Classifier object
+    BCIPy Classifier object : Classifier
+        The BCIPy Classifier object that can be used by the BCIPy Classifier kernel
 
-    Return Type
-    -----------
-    Classifier object
+
 
     """
 
@@ -110,21 +111,22 @@ class Classifier(BCIP):
         """
         Factory Method to create an SVM BCIP Classifier object.
 
-        C-Support Vector Classification. The implementation is based on libsvm. 
-        The fit time scales at least quadratically with the number of samples 
-        and may be impractical beyond tens of thousands of samples.
-        The multiclass support is handled according to a one-vs-one scheme.
+        .. note::
+           C-Support Vector Classification. The implementation is based on libsvm. 
+           The fit time scales at least quadratically with the number of samples 
+           and may be impractical beyond tens of thousands of samples.
+           The multiclass support is handled according to a one-vs-one scheme.
 
         Parameters
         ----------
         sess : session object
             Session where the SVM BCIP Classifier object will exist
 
-        .. note:: 
+    .. note:: 
            
-           All other parameters are the same as the sklearn SVC object. 
-           Check out the sklearn documentation
-           `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
+        All other parameters are the same as the sklearn SVC object. 
+        Check out the sklearn documentation
+        `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
 
         Examples
         --------
@@ -133,11 +135,9 @@ class Classifier(BCIP):
 
         Return
         ------
-        Classifier Object
+        BCIPy Classifier Object : Classifier
+            BCIPy Classifier Object containing the SVM classifier
 
-        Return Type
-        -----------
-        BCIPy Classifier Object
         """
         
         svm_object = SVC(
@@ -179,14 +179,16 @@ class Classifier(BCIP):
         Parameters
         ----------
 
-        sess : session object
+        sess : Session
             Session where the SVM BCIP Classifier object will exist
 
-        .. note:: All other parameters are the same as the `sklearn.discriminant_analysis.LinearDiscriminantAnalysis object <https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html>`_
+    .. note:: 
+       All other parameters are the same as the LDA Scikit-Learn object
+       `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html>`_
 
         Return
         ------
-        Classifier : BCIPy Classifier Object
+        BCIPy Classifier : Classifier
             BCIPy Classifier Object containing the LDA classifier
 
 
@@ -238,15 +240,16 @@ class Classifier(BCIP):
         sess : session object
             Session where the Logistic Regression BCIP Classifier object will exist
 
-        .. note:: The other parameters accepted by this function are specified in the documentation for the `SKLearn Logistic Regression classifier <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>`_.
+        
+    .. note::
+       The other parameters accepted by this function are specified in the documentation 
+       for the 
+       `SKLearn Logistic Regression classifier <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>`_
 
         Return
         ------
-        Classifier Object
-
-        Return Type
-        -----------
-        BCIPy Logistic Regression Classifier Object
+        BCIPy Classifier Object : Classifier
+            BCIPy Classifier Object containing the Logistic Regression classifier
 
         Examples
         --------
@@ -293,7 +296,7 @@ class Classifier(BCIP):
 
         Return
         ------
-        Classifier Object : BCIP Classifier Object
+        Classifier Object : Classifier
             BCIPy Classifier object that contains the classifier object and type.
 
         Examples
