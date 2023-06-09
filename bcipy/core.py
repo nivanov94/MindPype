@@ -1,3 +1,10 @@
+""" 
+.. sectionauthor:: Aaron Lio <aaron.lio@mail.utoronto.ca>
+
+.. codeauthor:: Nicolas Ivanov <nicolas.ivanov@mail.utoronto.ca>
+.. codeauthor:: Aaron Lio <aaron.lio@mail.utoronto.ca>
+"""
+
 from enum import IntEnum
 
 class BCIP(object):
@@ -318,10 +325,7 @@ class Session(BCIP):
     def poll_volatile_channels(self,label=None):
         """
         Update the contents of all volatile data streams
-        
- .. warning::
-    may need to add an input parameter with some timing information
-    to indicate how each data object should be synced
+    
 
         Parameters
         ----------
@@ -331,6 +335,10 @@ class Session(BCIP):
         Examples
         --------
         >>> session.poll_volatile_channels()
+
+.. warning::
+    For Developers: may need to add an input parameter with some timing information
+    to indicate how each data object should be synced
         """
         for d in self._datum:
             if self._datum[d].volatile:
