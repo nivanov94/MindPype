@@ -104,8 +104,9 @@ class XDawnCovarianceKernel(Kernel):
             
         try:
             self._xdawn_estimator = self._xdawn_estimator.fit(local_init_tensor.data, local_labels.data)
-        except:
-            #print("XDawnCovarianceKernel could not be properly fitted. Please check the shape of your initialization data and labels")
+        except Exception as e:
+            print("XDawnCovarianceKernel could not be properly fitted. Please check the shape of your initialization data and labels. See the following exception:")
+            print(e)
             sts = BcipEnums.INITIALIZATION_FAILURE
         
         if sts == BcipEnums.SUCCESS and self._init_outA != None:
