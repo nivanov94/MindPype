@@ -20,10 +20,10 @@ class Graph(BCIP):
 
     Attributes
     ----------
-    _nodes : Array of Node objects
+    _nodes : List of Node
         List of Node objects within the graph
     
-    initialization_edges : Array of Edge objects
+    initialization_edges : List of Edge objects
         List of Edge objects used within the graph
 
     _verified : bool
@@ -32,10 +32,10 @@ class Graph(BCIP):
     _sess : Session object
         Session where the Graph object exists
 
-    _volatile_sources : Array of data Source objects
+    _volatile_sources : List of Sources
         Data sources within this array will be polled/executed when the graph is executed.
 
-    _volatile_outputs : Array of data Output objects
+    _volatile_outputs : List of data Outputs
         Data outputs within this array will push to external sources when the graph is executed.
 
     Examples
@@ -117,8 +117,6 @@ class Graph(BCIP):
                     edges[n_i.session_id] = Edge(n_i)
                     if n_i.volatile:
                         self._volatile_sources.append(n_i)
-                    if n_i.volatile_out:
-                        self._volatile_outputs.append(n_i)
                 # now add the node the edge's list of consumers
                 edges[n_i.session_id].add_consumer(n)
                 
@@ -129,6 +127,8 @@ class Graph(BCIP):
                     
                     # add the node as a producer
                     edges[n_o.session_id].add_producer(n)
+                    if n_o.volatile_out:
+                        self._volatile_outputs.append(n_o)
                 else:
                     # edge already created, must check that it has no other 
                     # producer
@@ -140,6 +140,8 @@ class Graph(BCIP):
                     else:
                         # add the producer to the edge
                         edges[n_o.session_id].add_producer(n)
+                        if n_o.volatile_out and n_o not in self._volatile_outputs:
+                            self._volatile_outputs.append(n_o)
         
         # now determine which edges are ready to be consumed
         consumable_edges = {}
@@ -476,8 +478,7 @@ class Node(BCIP):
 
         Return
         ------
-        Array
-            List of inputs for the Node
+        List of inputs for the Node : List of Nodes
 
         Examples
         --------
@@ -505,8 +506,7 @@ class Node(BCIP):
 
         Return
         ------
-        Array
-            List of outputs for the Node
+        List of inputs for the Node : List of Nodes
 
         Examples
         --------
@@ -607,7 +607,7 @@ class Edge:
 
         Return
         ------
-        _producers : array of Node
+        _producers : List of Node
             List of producers for the Edge object
 
         Examples
