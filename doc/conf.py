@@ -56,4 +56,4 @@ pygments_style = 'sphinx'
 
 autodoc_mock_imports = ['matplotlib', 'more-itertools',
                         'numpy', 'numpydoc', 'pyriemann', 
-                        'scikit-learn', 'scipy', 'pylsl', 'pyxdf', 'sklearn', 'mpl_toolkits']
+                        'scikit-learn', 'scipy', 'pylsl', 'pyxdf', 'sklearn', 'mpl_toolkits', 'liesl',]
