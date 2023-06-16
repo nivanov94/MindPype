@@ -713,7 +713,7 @@ class Tensor(BCIP):
         
         return BcipEnums.SUCCESS
     
-    def push_volatile_outputs(self):
+    def push_volatile_outputs(self, label=None):
         """
         Push data to external sources.
         """
