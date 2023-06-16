@@ -19,6 +19,10 @@ import pylsl
 import pyxdf
 import os
 import re
+import sys
+import warnings
+import liesl
+import threading
 import time
 
 class BcipMatFile(BCIP):
@@ -514,13 +518,16 @@ class BcipXDF(BCIP):
         Value corresponding to the start of the trial relative to the marker onset.
 
     Ns : int, default = 1
-        Number of samples to be extracted per trial. For epoched data, this value determines the
+        Number of samples to be extracted per trial. For epoched and class-separated data, this value determines the
         size of each epoch, whereas this value is used in polling for continuous data.    
         
-    mode : 'continuous' or 'epoched', default = 'epoched'
-        Mode indicates whether the inputted data will be epoched, by class,
-        into individual trials, or to leave the data in a continuous format
+    mode : 'continuous', 'class-separated' or 'epoched', default = 'epoched'
+        Mode indicates whether the inputted data will be epoched sequentially as individual trials,
+        epoched by class, or to leave the data in a continuous format
 
+    .. warning:: 
+       The task list used in the BcipXDF object MUST REFLECT the task list used in the XDF file.
+       Differences will cause the program to fail.
     """
 
     def __init__(self, sess, files, tasks, channels, relative_start = 0, Ns = 1, mode = 'epoched'):
@@ -545,7 +552,8 @@ class BcipXDF(BCIP):
         
         trial_data = {task: [] for task in tasks}
         
-        if mode == 'epoched':
+        if mode == 'class-separated':
+            combined_marker_streams = {'time_series': None, 'time_stamps': None}
             for filename in files:
                 print(filename)
                 data, header = pyxdf.load_xdf(filename)
@@ -557,13 +565,13 @@ class BcipXDF(BCIP):
     
                     elif stream['info']['type'][0] == 'EEG':
                         eeg_stream = stream
-                
                     
                 sample_indices = np.full(eeg_stream['time_stamps'].shape, False) # used to extract EEG samples, pre-allocated here
                 self._continuous_data = eeg_stream['time_series']
                 self._continuous_labels = marker_stream['time_series']
                 #print(eeg_stream['time_series'].shape)
                 total_tasks = 0
+                
                 for i_m, markers in enumerate(marker_stream['time_series']):
                     marker_value = markers[0]
                     curr_task = ''
@@ -583,14 +591,19 @@ class BcipXDF(BCIP):
                             
                             sample_data = eeg_stream['time_series'][sample_indices, :][:, channels].T # Nc X len(eeg_stream)
                             trial_data[curr_task].append(sample_data[:, :int(Ns)]) #Nc x Ns
-                                
+                if combined_marker_streams['time_series'] is None:
+                    combined_marker_streams['time_series'] = marker_stream['time_series']
+                    combined_marker_streams['time_stamps'] = marker_stream['time_stamps']
+                else:
+                    combined_marker_streams['time_series'] = np.concatenate((combined_marker_streams['time_series'], marker_stream['time_series']), axis=0)
+                    combined_marker_streams['time_stamps'] = np.concatenate((combined_marker_streams['time_stamps'], marker_stream['time_stamps']), axis=0)
 
 
         
             for task in trial_data:
                 trial_data[task] = np.stack(trial_data[task], axis=0) # Nt x Nc x Ns
                 
-            self.trial_data = trial_data
+            self.trial_data = {'EEG': {'time_series': trial_data, 'time_stamps': eeg_stream}, 'Markers': combined_marker_streams}
             self.label_counter = {task: 0 for task in tasks}
 
         elif mode == 'continuous':
@@ -617,8 +630,63 @@ class BcipXDF(BCIP):
                             eeg_stream = stream
 
             self.trial_data = {'EEG': eeg_stream, 'Markers': marker_stream} 
-            print(self.trial_data['EEG']['time_stamps'][-100:], self.trial_data['Markers']['time_stamps'][-10:])
+            #print(self.trial_data['EEG']['time_stamps'][-100:], self.trial_data['Markers']['time_stamps'][-10:])
             self.label_counter = {task: 0 for task in tasks}
+
+        elif mode == 'epoched':
+            self.epoched_counter = 0
+            eeg_stream_data = None
+            eeg_stream_stamps = None
+            eeg_stream = None
+            marker_stream = None
+            Ns = int(Ns)
+            epoch_num = 0
+            
+
+
+            for filename in files:
+                # Load the data from the current xdf file
+                data, header = pyxdf.load_xdf(filename)
+                # Iterate through all streams in every file, add current file's data to the previously loaded data
+                for stream in data:
+                    if stream['info']['type'][0] == 'Marker' or stream['info']['type'][0] == 'Markers': #change to Markers after testing
+                        if marker_stream:
+                            marker_stream['time_series'] = np.concatenate((marker_stream['time_series'], stream['time_series']), axis=0)
+                            marker_stream['time_stamps'] = np.concatenate((marker_stream['time_stamps'], stream['time_stamps']), axis=0)
+                        else:
+                            marker_stream = stream
+                    
+                    elif stream['info']['type'][0] == 'EEG':
+                        if eeg_stream:
+                            eeg_stream['time_series'] = np.concatenate((eeg_stream['time_series'], stream['time_series']), axis=0)
+                            eeg_stream['time_stamps'] = np.concatenate((eeg_stream['time_stamps'], stream['time_stamps']), axis=0)
+                        else:
+                            eeg_stream = stream
+
+            eeg_stream_data = np.zeros((len(marker_stream['time_stamps']), Ns, len(channels)))
+            eeg_stream_stamps = np.zeros((len(marker_stream['time_stamps']), Ns))
+
+            # Actual epoching operation
+            while epoch_num < len(marker_stream['time_stamps']):
+                # Find the marker value where the current epoch starts
+                marker_time = marker_stream['time_stamps'][epoch_num]
+                # Correct the starting time of the epoch based on the relative start time
+                eeg_window_start = marker_time + relative_start
+
+
+                # Find the index of the first sample after the marker
+                first_sample_index = np.where(eeg_stream['time_stamps'] >= eeg_window_start == True)[0][0]
+                # Find the index of the last sample in the window
+                final_sample_index = first_sample_index + Ns 
+                # Extract the data from the eeg stream
+                eeg_stream_data[epoch_num, :, :] = eeg_stream['time_series'][first_sample_index:final_sample_index, :][:, channels]
+                eeg_stream_stamps[epoch_num, :] = eeg_stream['time_stamps'][first_sample_index:final_sample_index]
+                
+                epoch_num += 1
+
+            self.trial_data = {'EEG': {'time_stamps': eeg_stream_stamps, 'time_series': eeg_stream_data}, 'Markers': marker_stream} 
+            
+            
 
     def poll_data(self, Ns = 1, label = None):
         #TODO: implement polling
@@ -635,13 +703,20 @@ class BcipXDF(BCIP):
 
         Ns : int, default = 1
             Number of samples to be extracted per trial. For continuous data, determines the size of
-            the extracted sample. This value is disregarded for epoched data.   
+            the extracted sample. This value is disregarded for epoched and class-separated data.   
         """
 
-        if self.mode == 'epoched':
+        if self.mode == 'class-separated':
             # Extract sample data from epoched trial data and increment the label counter
             sample_data = self.trial_data[label][self.label_counter[label], :, :]
             self.label_counter[label] += 1
+
+            return sample_data
+        
+        elif self.mode == 'epoched':
+            # Extract sample data from epoched trial data and increment the label counter
+            sample_data = self.trial_data['EEG']['time_series'][self.epoched_counter, :, :]
+            self.epoched_counter += 1
 
             return sample_data
         
@@ -683,8 +758,15 @@ class BcipXDF(BCIP):
             ret_labels = Tensor.create_from_data(self.session, self.trial_data['Markers']['time_series'].shape, self.trial_data['Markers']['time_series'])
 
         elif self.trial_data and self.mode == 'epoched':
-            ret = Tensor.create_from_data(self.session, self._continuous_data.shape, self._continuous_data)
-            ret_labels = Tensor.create_from_data(self.session, self.trial_data.shape, self.trial_data)
+            ret = Tensor.create_from_data(self.session,self.trial_data['EEG']['time_series'].shape, self.trial_data['EEG']['time_series'])
+            ret_labels = Tensor.create_from_data(self.session, self.trial_data['Markers']['time_series'].shape, self.trial_data['Markers']['time_series'])
+
+        elif self.trial_data and self.mode == 'class-separated':
+            warnings.warn('Class-separated data is not yet supported for Tensor loading. This must be performed manually. Use tensor.create_from_data() with the appropriate class-separated dataset to create the tensor', RuntimeWarning, stacklevel=5)
+            #ret = Tensor.create_from_data(self.session, self.trial_data['EEG']['time_series'].shape, self.trial_data['EEG']['time_series'])
+            #ret_labels = Tensor.create_from_data(self.session, self.trial_data['Markers']['time_series'].shape, self.trial_data['Markers']['time_series'])
+
+            #RuntimeWarning('Class-separated data is not yet supported for Tensor loading. This must be performed manually.')
 
         return ret, ret_labels
 
@@ -725,6 +807,41 @@ class BcipXDF(BCIP):
         return src
 
     @classmethod
+    def create_class_separated(cls, sess, files, tasks, channels, relative_start = 0, Ns = 1):
+        """
+        Factory Method for creating class-separated XDF File input source. 
+
+        Parameters
+        ---------
+        sess : Session Object
+            Session where the BcipXDF data source will exist.
+
+        files : list of str
+            XDF file(s) where data should be extracted from.
+       
+        tasks : list or tuple of strings 
+            List or Tuple of strings corresponding to the tasks to be completed by the user.
+            For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+
+        channels : list or tuple of int
+            Values corresponding to the EEG channels used during the session
+
+        relative_start : float, default = 0
+            Value corresponding to the start of the trial relative to the marker onset.
+
+        Ns : int, default = 1
+            Number of samples to be extracted per trial. For class-separated data, this value determines the
+            size of each epoch, whereas this value is used in polling for continuous data.    
+            
+        """
+    
+        src = cls(sess, files, tasks, channels, relative_start, Ns, mode = 'class-separated')
+
+        sess.add_ext_src(src)
+
+        return src
+    
+    @classmethod
     def create_epoched(cls, sess, files, tasks, channels, relative_start = 0, Ns = 1):
         """
         Factory Method for creating epoched XDF File input source. 
@@ -748,15 +865,14 @@ class BcipXDF(BCIP):
             Value corresponding to the start of the trial relative to the marker onset.
 
         Ns : int, default = 1
-            Number of samples to be extracted per trial. For epoched data, this value determines the
+            Number of samples to be extracted per trial. For class-separated data, this value determines the
             size of each epoch, whereas this value is used in polling for continuous data.    
-            
+        
         """
-    
         src = cls(sess, files, tasks, channels, relative_start, Ns, mode = 'epoched')
-
+        
         sess.add_ext_src(src)
-
+        
         return src
     
     @classmethod
@@ -1077,7 +1193,11 @@ class InputLSLStream(BCIP):
             samples_polled = np.sum(eeg_index_bool)
             #print(eeg_index_bool)
             #print(self.data_buffer['time_stamps'])
-            trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
+            try:
+                trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
+            except:
+                data = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
+                trial_data[:,:samples_polled] = data[:,:][:,:Ns]
             #print(trial_timestamps)
             trial_timestamps[:samples_polled] = self.data_buffer['time_stamps'][eeg_index_bool]
             #print("Last time stamp in buffer:", self.data_buffer['time_stamps'][-1])
@@ -1201,8 +1321,6 @@ class InputLSLStream(BCIP):
         
         return src
 
-
-
 class OutputLSLStream(BCIP):
     """
     An object for maintaining an LSL outlet
@@ -1212,7 +1330,7 @@ class OutputLSLStream(BCIP):
     
     """
 
-    def __init__(self, sess, stream_info, chunk_size = 0, max_buffer=360):
+    def __init__(self, sess, stream_info, filesave=None, chunk_size = 0, max_buffer=360):
         """Establish a new stream outlet. This makes the stream discoverable.
         
         Parameters
@@ -1233,10 +1351,37 @@ class OutputLSLStream(BCIP):
 
         """
         super().__init__(BcipEnums.SRC,sess)
-        
+        self._sess = sess
+        self._stream_info = stream_info
         # resolve the stream on the LSL network
         self.lsl_marker_outlet = pylsl.StreamOutlet(stream_info,chunk_size,max_buffer)
+        self.liesl_session = None
+        # Start LieSL recording if the user has specified a filesave
         
+        warnings.filterwarnings(action='ignore', category=RuntimeWarning, module='subprocess')
+        x = threading.Thread(target=self._check_status, args=(filesave,))
+        x.start()
+
+
+    def _check_status(self, filesave):
+        if filesave is not None:
+
+            streamargs = [{'name': self._stream_info.name(), "type": self._stream_info.type(),
+                          "channel_count": self._stream_info.channel_count(), "nominal_srate": self._stream_info.nominal_srate(),
+                          "channel_format": self._stream_info.channel_format(),
+                          "source_id": self._stream_info.source_id()}]
+            self.liesl_session = liesl.Session(mainfolder=f"{os.path.dirname(os.path.realpath(__file__))}\labrecordings", streamargs=streamargs)
+        
+        with self.liesl_session(filesave):
+            while True:
+                time.sleep(.1)
+                if not threading.main_thread().is_alive():
+                    sys.stdout = open(os.devnull, "w")
+                    sys.stderr = open(os.devnull, "w")
+                    self.liesl_session.stop_recording()
+                    sys.stdout = sys.__stdout__
+                    sys.stderr = sys.__stderr__
+                    return    
 
     def push_data(self, data, label = None):
         """
@@ -1246,12 +1391,22 @@ class OutputLSLStream(BCIP):
         ----------
         
         """
-        self.lsl_marker_outlet.push_sample(data)
-       
-        return BcipEnums.SUCCESS
-    
+
+        try:
+            self.lsl_marker_outlet.push_sample(data)
+            return BcipEnums.SUCCESS
+
+        except (ValueError, TypeError) as ve:
+            try:
+                self.lsl_marker_outlet.push_sample(data[0], pylsl.local_clock())
+                return BcipEnums.SUCCESS
+            
+            except Exception as e:
+                print(e)
+                print("Irreparable Error in LSL Output. No data pushed to output stream\n") 
+
     @classmethod
-    def create_outlet_from_streaminfo(cls,sess, stream_info):
+    def create_outlet_from_streaminfo(cls,sess, stream_info, filesave = None):
         """
         Factory method to create a OutletLSLStream bcipy object from a pylsl.StreamInfo object.
 
@@ -1266,14 +1421,14 @@ class OutputLSLStream(BCIP):
         Examples
         --------
         """
-        src = cls(sess, stream_info)
-        sess.add_ext_src(src)
+        src = cls(sess, stream_info, filesave)
+        sess.add_ext_out(src)
         
         return src
     
     @classmethod
     def create_outlet(cls,sess,name='untitled', type='', channel_count = 1, nominal_srate=0.0,
-                                          channel_format=1, source_id=""):    
+                                          channel_format=1, source_id="", filesave = None):    
         """
         Factory Method to create an OutletLSLStream bcipy object from scratch.
 
@@ -1303,10 +1458,13 @@ class OutputLSLStream(BCIP):
         source_id : str, default = ''
             * Unique identifier of the device or source of the data, if available (such as the serial number). 
             * This is critical for system robustness since it allows recipients to recover from failure even after the serving app, device or computer crashes (just by finding a stream with the same source id on the network again). 
+        
+        filesave : str, default = None
+            If not None, the data will be saved to the given file.
         """
 
-        stream_info = pylsl.StreamInfo(name, type, channel_count, nominal_srate, channel_format, source_id)
-        src = cls(sess, stream_info)
-        sess.add_ext_src(src)
+        stream_info = pylsl.StreamInfo(name, type, channel_count, nominal_srate, channel_format, source_id='1007988689')
+        src = cls(sess, stream_info, filesave)
+        sess.add_ext_out(src)
         
         return src
