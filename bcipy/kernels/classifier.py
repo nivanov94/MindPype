@@ -266,7 +266,8 @@ class ClassifierKernel(Kernel):
         c = cls(graph, inA, classifier, outA, output_probs, initialization_data, labels)
 
         params = (Parameter(inA, BcipEnums.INPUT),
-                  Parameter(outA, BcipEnums.OUTPUT))
+                  Parameter(outA, BcipEnums.OUTPUT),
+                  Parameter(output_probs, BcipEnums.OUTPUT))
 
         node = Node(graph, c, params)
 
