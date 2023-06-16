@@ -5,6 +5,7 @@ from ..containers import Scalar
 
 from scipy import signal
 import numpy as np
+import warnings
 
 class Filter:
     def initialize(self):
@@ -63,6 +64,7 @@ class Filter:
         
         # ensure the output tensor's shape equals the expected output shape
         if self._outA.shape != output_shape:
+            warnings.warn(f"The output tensor's shape for the {self._filt.ftype} filter does not match the expected output shape", RuntimeWarning, stacklevel=15)
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
@@ -128,7 +130,7 @@ class FilterKernel(Filter, Kernel):
 
 
     @classmethod
-    def add_filter_node(cls,graph,inputA,filt,outputA,axis=0):
+    def add_filter_node(cls,graph,inputA,filt,outputA,axis=1):
         """
         Factory method to create a filter kernel and add it to a graph
         as a generic node object.
@@ -212,14 +214,15 @@ class FiltFiltKernel(Filter, Kernel):
                 output_data.data = signal.sosfiltfilt(self._filt.coeffs['sos'],
                                                        input_data.data,
                                                        axis=self._axis)
-        except:
+        except Exception as e:
+            warnings.warn(f"{e}", RuntimeWarning, stacklevel=5)
             return BcipEnums.EXE_FAILURE
 
         return BcipEnums.SUCCESS
 
 
     @classmethod
-    def add_filtfilt_node(cls,graph,inputA,filt,outputA,axis=0):
+    def add_filtfilt_node(cls,graph,inputA,filt,outputA,axis=1):
         """
         Factory method to create a filtfilt kernel and add it to a graph
         as a generic node object.
@@ -231,7 +234,7 @@ class FiltFiltKernel(Filter, Kernel):
             Input trial data
 
         filt : Filter 
-            BCIP Filter object outputted by bcipy.classes
+            BCIP Filter object outputted by bcipy.filters
 
         outputA : Tensor or Scalar 
             Output trial data
