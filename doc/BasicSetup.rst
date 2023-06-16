@@ -125,7 +125,6 @@ Based on the provided data (4000 samples, each trial lasting 500 samples), we al
             print("Trial {}: Predicted label = {}".format(t_num+1,y_bar))
 >>>     else:
 >>>         print(f"Trial {t_num+1} raised error, status code: {sts}")
->>>         break
 
 **Remember, this will only work with class separated/epoched data, not continuous mat data**
 
@@ -146,6 +145,5 @@ Based on the input data, we still know only 8 trials will occur, so we could use
             print("Trial {}: Predicted label = {}".format(t_num+1,y_bar))
 >>>     else:
 >>>         print(f"Trial {t_num+1} raised error, status code: {sts}")
->>>         break
 
 This concludes the setup guide, please see the other documentation, or examples available in our github repo for more examples/test scripts.
