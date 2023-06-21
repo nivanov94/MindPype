@@ -308,7 +308,7 @@ class Graph(BCIP):
                 if len(self._edges[n_i.session_id]._producers) > 0:
                     producers.append(self._edges[n_i.session_id]._producers[0])
             
-            if len(producers) == 0 and n._kernel._init_inA == None:
+            if len(producers) == 0 and n._kernel._init_inA.shape == ():
                 n._kernel._init_inA.shape = default_init_dataA.shape
                 n._kernel._init_inA = default_init_dataA.data
 
