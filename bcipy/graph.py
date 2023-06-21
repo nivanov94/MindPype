@@ -7,7 +7,9 @@ graph.py - Defines the graph object
 """
 from .core import BCIP, BcipEnums
 from .containers import Tensor
+import logging
 import warnings
+
 class Graph(BCIP):
     """
     This class represents the data processing flow graph, or processing pipelines. 
@@ -58,7 +60,9 @@ class Graph(BCIP):
         self._sess = sess
         self._volatile_sources = []
         self._volatile_outputs = []
-        
+        self._edges = {}
+
+        self._initialization_links_created = False
     
     def add_node(self,node):
         """
@@ -104,7 +108,7 @@ class Graph(BCIP):
         # begin by scheduling the nodes in execution order
         
         # first we'll create a set of edges representing data within the graph
-        edges = {} # keys: session_id of data obj, vals: edge object
+        self._edges = {} # keys: session_id of data obj, vals: edge object
         for n in self._nodes:
             # get a list of all the input objects to the node
             n_inputs = n.extract_inputs()
@@ -112,44 +116,44 @@ class Graph(BCIP):
             
             # add these inputs/outputs to edge objects
             for n_i in n_inputs:
-                if not n_i.session_id in edges:
+                if not n_i.session_id in self._edges:
                     # no edge created for this input yet, so create a new one
-                    edges[n_i.session_id] = Edge(n_i)
+                    self._edges[n_i.session_id] = Edge(n_i)
                     if n_i.volatile:
                         self._volatile_sources.append(n_i)
                 # now add the node the edge's list of consumers
-                edges[n_i.session_id].add_consumer(n)
+                self._edges[n_i.session_id].add_consumer(n)
                 
             for n_o in n_outputs:
-                if not (n_o.session_id in edges):
+                if not (n_o.session_id in self._edges):
                     # no edge created for this output yet, so create a new one
-                    edges[n_o.session_id] = Edge(n_o)
+                    self._edges[n_o.session_id] = Edge(n_o)
                     
                     # add the node as a producer
-                    edges[n_o.session_id].add_producer(n)
+                    self._edges[n_o.session_id].add_producer(n)
                     if n_o.volatile_out:
                         self._volatile_outputs.append(n_o)
                 else:
                     # edge already created, must check that it has no other 
                     # producer
-                    if len(edges[n_o.session_id].producers) != 0:
+                    if len(self._edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
                         print("scheduling failed")
                         return BcipEnums.INVALID_GRAPH
                     else:
                         # add the producer to the edge
-                        edges[n_o.session_id].add_producer(n)
+                        self._edges[n_o.session_id].add_producer(n)
                         if n_o.volatile_out and n_o not in self._volatile_outputs:
                             self._volatile_outputs.append(n_o)
         
         # now determine which edges are ready to be consumed
         consumable_edges = {}
-        for e_key in edges:
-            if len(edges[e_key].producers) == 0:
+        for e_key in self._edges:
+            if len(self._edges[e_key].producers) == 0:
                 # these edges have no producing nodes, so they are inputs to 
                 # the block and therefore can be consumed immediately
-                consumable_edges[e_key] = edges[e_key]
+                consumable_edges[e_key] = self._edges[e_key]
         
         scheduled_nodes = 0
         total_nodes = len(self._nodes)
@@ -179,7 +183,7 @@ class Graph(BCIP):
                     
                     # mark this node's outputs ready for consumption
                     for n_o in n_outputs:
-                        consumable_edges[n_o.session_id] = edges[n_o.session_id]
+                        consumable_edges[n_o.session_id] = self._edges[n_o.session_id]
                     
                     nodes_added = nodes_added + 1
                     
@@ -205,110 +209,80 @@ class Graph(BCIP):
             if n._kernel.init_style == BcipEnums.INIT_FROM_DATA:
                 if (n._kernel._init_inA == None or # TODO replace with a kernel method
                     (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None)):
-                    missing_data = True
+                        missing_data = True
+                    
 
-        # fill in missing init data links
-        if missing_data:         
+        # fill in all init data links
+        if missing_data:
             for n in self._nodes:
-                if n._kernel.init_style == BcipEnums.INIT_FROM_DATA:
-                    if (n._kernel._init_inA == None or # TODO replace with a kernel method
-                        (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None)):
+                n_inputs = n.extract_inputs()
+                n_outputs = n.extract_outputs()
+                producers = []
+                consumers = []
+                for n_i in n_inputs:
+                    if len(self._edges[n_i.session_id]._producers) > 0:
+                        producers.append(self._edges[n_i.session_id]._producers[0])
+                for n_o in n_outputs:
+                    if len(self._edges[n_o.session_id]._consumers) > 0:
+                        consumers.append(self._edges[n_o.session_id]._consumers[0])
+                    
+                if len(producers) == 0 and n._kernel._init_inA == None:
+                    n._kernel._init_inA = Tensor.create_virtual(sess=self._sess)
+                    n._kernel._init_labels_in = Tensor.create_virtual(sess=self._sess)
+  
+                if len(consumers) == 0 and n._kernel._init_outA == None:
+                    n._kernel._init_outA = Tensor.create_virtual(sess=self._sess)
+                    n._kernel._init_labels_out = Tensor.create_virtual(sess=self._sess)
 
-                        sts = self.fill_initialization_links(n, edges)
-                        if sts != BcipEnums.SUCCESS:
-                            return BcipEnums.INVALID_GRAPH
-                                                    
+                for p in producers:
+                    if p._kernel._init_outA != None and n._kernel._init_inA == None:
+                        n._kernel._init_inA = p._kernel._init_outA
+                        n._kernel._init_labels_in = p._kernel._init_labels_out
+                        
+                    elif p._kernel._init_outA != None and (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None):
+                        n._kernel._init_inB = p._kernel._init_outA
+                        n._kernel._init_labels_in = p._kernel._init_labels_out
+
+                    elif p._kernel._init_outA == None and n._kernel._init_inA == None:
+                        p._kernel._init_outA = Tensor.create_virtual(sess=self._sess)
+                        p._kernel._init_labels_out = Tensor.create_virtual(sess=self._sess)
+                        n._kernel._init_inA = p._kernel._init_outA
+                        n._kernel._init_labels_in = p._kernel._init_labels_out
+                        
+                    elif p._kernel._init_outA == None and (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None):
+                        p._kernel._init_outA = Tensor.create_virtual(sess=self._sess)
+                        p._kernel._init_labels_out = Tensor.create_virtual(sess=self._sess)
+                        n._kernel._init_inB = p._kernel._init_outA
+                        n._kernel._init_labels_in = p._kernel._init_labels_out
+
+        
+        for node in self._nodes:
+            if (node._kernel._init_inA == None or node._kernel._init_labels_in == None or node._kernel._init_outA == None or \
+                node._kernel._init_labels_out == None or (hasattr(node._kernel, "_init_inB") and node._kernel._init_inB == None)) and \
+                    node._kernel._init_style == BcipEnums.INIT_FROM_DATA:
+                self._initialization_links_created = False
+                break
+            else:
+                self._initialization_links_created = True                                
 
         # Done, all nodes scheduled and verified!
         self._verified = True
         return BcipEnums.SUCCESS
-    
-    def fill_initialization_links(self, n, edges):
-        """
-        Connect initialization input of nodes missing init_data to the output of producer nodes. 
-        Used recursively to ensure all nodes within a particular graph have the required initialization data.
-
-        Parameters
-        ----------
-        n : Node Object
-            Node object which will have its initialization data filled
-
-        edges : list of Edge objects within a graph
-            Edge object connections used to identify upstream/downstream nodes.
-
-        Return
-        ------
-        BCIP status code
-        """
-        
-        sts = BcipEnums.SUCCESS
-        
-        n_inputs = n.extract_inputs()
-        if len(n_inputs) == 0 and n._kernel._init_inA == None:
-            return BcipEnums.INVALID_GRAPH
-        for n_i in n_inputs:
-            # identify the up-stream node producing each input
-            try:
-                producer = edges[n_i.session_id].producers[0]
-            except:
-                continue # TODO resolve this??
-            # TODO: need to more robustly identify the correct initialization output
-            # may require modification of the node/parameter data structures.
-
-            if producer._kernel._init_outA != None: # TODO init data may come from other node outputs
-                if hasattr(n._kernel, "_init_inB") and n._kernel._init_inA != None:
-                    if n._kernel._init_inB != None and n._kernel._init_inA != None:
-                        return BcipEnums.INVALID_GRAPH
-                    
-                    n._kernel._init_inB = producer._kernel._init_outA
-
-                    if n._kernel._init_labels_in == None:
-                        n._kernel._init_labels_in = producer._kernel._init_labels_out
-
-                if (not hasattr(n._kernel, "_init_inB")) and n._kernel._init_inA != None:
-                    return BcipEnums.INVALID_GRAPH
-
-                else:
-                    n._kernel._init_inA = producer._kernel._init_outA
-                    
-                    if n._kernel._init_labels_in == None:
-                        n._kernel._labels = producer._kernel._init_labels_out
-
-            else:
-                producer._kernel._init_outA = Tensor.create_virtual(sess=self._sess) # TODO determine if this would ever not be a tensor
-                producer._kernel._init_labels_out = Tensor.create_virtual(sess=self._sess)
-                
-                if hasattr(n._kernel, "_init_inB") and n._kernel._init_inA != None:
-                    if n._kernel._init_inB != None:
-                        return BcipEnums.INVALID_GRAPH
-                    n._kernel._init_inB = producer._kernel._init_outA
-
-                    if n._kernel._init_labels_in == None:
-                        n._kernel._init_labels_in = producer._kernel._init_labels_out
-
-                else:
-                    n._kernel._init_inA = producer._kernel._init_outA
-                    
-                    if n._kernel._init_labels_in == None:
-                        n._kernel._init_labels_in = producer._kernel._init_labels_out
-
-            # recurse process on up-stream nodes
-            if producer._kernel._init_inA == None:
-                if (producer._kernel._init_inA == None or # TODO kernel method
-                    (hasattr(n._kernel, "_init_inB") and n._kernel._init_inB == None)):
-                    sts = self.fill_initialization_links(producer, edges)
-        
-        return sts
 
 
-    def initialize(self):
+    def initialize(self, default_init_dataA = None, default_init_labels = None,  default_init_dataB = None):
         """
         Initialize each node within the graph for trial execution
 
         Parameters
         ----------
-        None
-
+        default_init_dataA : Tensor, default = None
+            If the graph has no initialization data, this tensor will be used to initialize the graph
+        default_init_labels : Tensor, default = None
+            If the graph has no initialization labels, this tensor will be used to initialize the graph
+        default_init_dataB : Tensor, default = None
+            If the graph has no initialization data and a top-level node has two inputs, this tensor will be used to initialize the graph
+        
         Return
         ------
         BCIP Status Code
@@ -320,15 +294,42 @@ class Graph(BCIP):
 
             SUCCESS
         """
+        # 1. Check whether nodes in the graph are missing initialization links (similar to verification)
+
+        if not self._initialization_links_created and default_init_dataA == None:
+            warnings.warn("No default initialization data provided, graph is not initialized correctly")
+            return BcipEnums.INVALID_GRAPH
+
+        for n in self._nodes:
+            n_inputs = n.extract_inputs()
+            producers = []
+
+            for n_i in n_inputs:
+                if len(self._edges[n_i.session_id]._producers) > 0:
+                    producers.append(self._edges[n_i.session_id]._producers[0])
+            
+            if len(producers) == 0 and n._kernel._init_inA == None:
+                n._kernel._init_inA.shape = default_init_dataA.shape
+                n._kernel._init_inA = default_init_dataA.data
+
+                n._kernel._init_labels_in.shape = default_init_labels.shape
+                n._kernel._init_labels_in.data = default_init_labels.data
+
+                if hasattr(n._kernel, "_init_inB"):
+                    n._kernel._init_inB.shape = default_init_dataB.shape
+                    n._kernel._init_inB.data = default_init_dataB.data
+                break
+
+
         for n in self._nodes:
             sts = n.initialize()
-            
+                
             if sts != BcipEnums.SUCCESS:
                 return sts
         
         return BcipEnums.SUCCESS
-    
-    
+
+ 
     def execute(self, label = None, poll_volatile_sources = True, push_volatile_outputs = True):
         """
         Execute the graph by iterating over all the nodes within the graph and executing each one
@@ -370,7 +371,7 @@ class Graph(BCIP):
         for n in self._nodes:
             sts = n.kernel.execute()
             if sts != BcipEnums.SUCCESS:
-                warnings.warn(f"Trial execution failed with status {sts} in kernel: {n.kernel.name}. This trial will be disregarded.", category=RuntimeWarning, stacklevel=2)
+                logging.warning(f"Trial execution failed with status {sts} in kernel: {n.kernel.name}. This trial will be disregarded.", category=RuntimeWarning, stacklevel=2)
                 return sts
 
         if push_volatile_outputs:
