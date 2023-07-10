@@ -54,7 +54,7 @@ class CDFKernel(Kernel):
     def initialize(self):
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # update output size, as needed
             if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
@@ -202,7 +202,7 @@ class CovarianceKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # update output size, as needed
             if self._init_outA.virtual:
                 shape = list(self._init_inA.shape)
@@ -352,7 +352,7 @@ class Descriptive:
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # update the output shape
             axis_adjusted = False
             if (len(self._inA.shape) != len(self._init_inA.shape) and
@@ -1045,7 +1045,7 @@ class ZScoreKernel(Kernel):
         self._initialized = True
 
         sts = BcipEnums.SUCCESS
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # set output size, as needed
             if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape

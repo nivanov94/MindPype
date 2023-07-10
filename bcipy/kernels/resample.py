@@ -45,12 +45,16 @@ class ResampleKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
         
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
+            if len(self._init_inA.shape) == 3 and self._axis == 1:
+                axis = 2
+            else:
+                axis = self._axis
             # set the output size, as needed
             if self._init_outA.virtual:
                 output_shape = list(self._init_inA.shape)
-                output_shape[self._axis] = int(output_shape[self._axis] * self._factor)
-                self._init_outA.shape = output_shape
+                output_shape[axis] = int(output_shape[axis] * self._factor)
+                self._init_outA.shape = tuple(output_shape)
             
             sts = self._process_data(self._init_inA, self._init_outA)
 
@@ -93,11 +97,15 @@ class ResampleKernel(Kernel):
         """
         Process trial data according to the Numpy function
         """
+        if len(input_data.shape) == 3 and self._axis == 1:
+            axis = 2
+        else:
+            axis = self._axis
         
         try:
             output_data.data = signal.resample(input_data.data,
-                                               output_data.shape[self._axis],
-                                               axis=self._axis)
+                                               output_data.shape[axis],
+                                               axis=axis)
         except:
             return BcipEnums.EXE_FAILURE
         

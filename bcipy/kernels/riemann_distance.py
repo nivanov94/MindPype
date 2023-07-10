@@ -51,7 +51,7 @@ class RiemannDistanceKernel(Kernel):
 
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # update output size, as needed
             if self._init_outA.virtual:
                 output_sz = self._compute_output_shape(self._init_inA, self._init_inB)

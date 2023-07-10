@@ -300,24 +300,25 @@ class Graph(BCIP):
             warnings.warn("No default initialization data provided, graph is not initialized correctly")
             return BcipEnums.INVALID_GRAPH
 
-        for n in self._nodes:
-            n_inputs = n.extract_inputs()
-            producers = []
+        if default_init_dataA != None:
+            for n in self._nodes:
+                n_inputs = n.extract_inputs()
+                producers = []
 
-            for n_i in n_inputs:
-                if len(self._edges[n_i.session_id]._producers) > 0:
-                    producers.append(self._edges[n_i.session_id]._producers[0])
-            
-            if len(producers) == 0 and n._kernel._init_inA.shape == ():
-                n._kernel._init_inA.shape = default_init_dataA.shape
-                n._kernel._init_inA = default_init_dataA.data
+                for n_i in n_inputs:
+                    if len(self._edges[n_i.session_id]._producers) > 0:
+                        producers.append(self._edges[n_i.session_id]._producers[0])
+                
+                if len(producers) == 0 and n._kernel._init_inA.shape == ():
+                    n._kernel._init_inA.shape = default_init_dataA.shape
+                    n._kernel._init_inA = default_init_dataA.data
 
-                n._kernel._init_labels_in.shape = default_init_labels.shape
-                n._kernel._init_labels_in.data = default_init_labels.data
+                    n._kernel._init_labels_in.shape = default_init_labels.shape
+                    n._kernel._init_labels_in.data = default_init_labels.data
 
-                if hasattr(n._kernel, "_init_inB"):
-                    n._kernel._init_inB.shape = default_init_dataB.shape
-                    n._kernel._init_inB.data = default_init_dataB.data
+                    if hasattr(n._kernel, "_init_inB"):
+                        n._kernel._init_inB.shape = default_init_dataB.shape
+                        n._kernel._init_inB.data = default_init_dataB.data
                 break
 
 
@@ -371,7 +372,7 @@ class Graph(BCIP):
         for n in self._nodes:
             sts = n.kernel.execute()
             if sts != BcipEnums.SUCCESS:
-                logging.warning(f"Trial execution failed with status {sts} in kernel: {n.kernel.name}. This trial will be disregarded.", category=RuntimeWarning, stacklevel=2)
+                logging.warning(f"Trial execution failed with status {sts} in kernel: {n.kernel.name}. This trial will be disregarded.", stacklevel=2)
                 return sts
 
         if push_volatile_outputs:

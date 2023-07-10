@@ -44,7 +44,7 @@ class ThresholdKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # set the output size, as needed
             if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape

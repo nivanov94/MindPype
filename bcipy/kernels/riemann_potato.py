@@ -33,15 +33,15 @@ class RiemannPotatoKernel(Kernel):
 
     """
     
-    def __init__(self,graph,inA,out_label,thresh,max_iter,regulization,
-                 initialization_data):
+    def __init__(self,graph,inA,outA,thresh,max_iter,regulization,
+                 initialization_data=None):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
         super().__init__('RiemannPotato',BcipEnums.INIT_FROM_DATA,graph)
         self._inA  = inA
-        self._outA = out_label
+        self._outA = outA
 
         self._thresh = thresh
         self._max_iter = max_iter
@@ -70,7 +70,7 @@ class RiemannPotatoKernel(Kernel):
             sts = self._fit_filter()
 
         # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and self._init_inA is not None:
             # adjust the shape of init output tensor
             if len(self._init_inA.shape) == 3:
                 self._init_outA.shape = (self._init_inA.shape[0],)
@@ -217,8 +217,7 @@ class RiemannPotatoKernel(Kernel):
 
        
     @classmethod
-    def add_riemann_potato_node(cls,graph,inA,initialization_data,
-                                out_label,
+    def add_riemann_potato_node(cls,graph,inA,outA, initialization_data=None,
                                 thresh=3,max_iter=100,regularization=0.01):
         """
         Factory method to create a riemann potato artifact detector
@@ -226,12 +225,12 @@ class RiemannPotatoKernel(Kernel):
         
         # create the kernel object            
 
-        k = cls(graph,inA,out_label,thresh,max_iter,regularization,
+        k = cls(graph,inA,outA,thresh,max_iter,regularization,
                 initialization_data)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(out_label, BcipEnums.OUTPUT))
+                  Parameter(outA, BcipEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

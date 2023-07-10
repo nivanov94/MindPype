@@ -29,7 +29,7 @@ class TangentSpaceKernel(Kernel):
     """
 
 
-    def __init__(self, graph, inA, outA, initialization_data, metric = 'riemann', tsupdate = False, sample_weight = None):
+    def __init__(self, graph, inA, outA, initialization_data = None, metric = 'riemann', tsupdate = False, sample_weight = None):
         super().__init__("TangentSpaceKernel", BcipEnums.INIT_FROM_DATA, graph)
         self._inA = inA
         self._outA = outA
@@ -95,7 +95,7 @@ class TangentSpaceKernel(Kernel):
                 #sts = BcipEnums.INITIALIZATION_FAILURE
         
         # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and self._init_outA is not None:
             # set output shape
             Nt, Nc, _ = self._init_inA.shape
             self._init_outA.shape = (Nt, Nc*(Nc+1)//2)

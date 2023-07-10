@@ -39,7 +39,7 @@ class XDawnCovarianceKernel(Kernel):
     """
 
 
-    def __init__(self, graph, inA, outA, initialization_data, labels, num_filters=4, applyfilters=True, 
+    def __init__(self, graph, inA, outA, initialization_data=None, labels=None, num_filters=4, applyfilters=True, 
                  classes=None, estimator='scm', xdawn_estimator='scm', baseline_cov=None):
         """
         Constructor for the XDawnCovarianceKernel class
@@ -109,7 +109,7 @@ class XDawnCovarianceKernel(Kernel):
             print(e)
             sts = BcipEnums.INITIALIZATION_FAILURE
         
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and self._init_outA is not None:
             # update the init output shape as needed
             n_classes = np.unique(local_labels.data).shape[0]
             Nt = local_init_tensor.shape[0]
@@ -170,7 +170,7 @@ class XDawnCovarianceKernel(Kernel):
 
 
     @classmethod
-    def add_xdawn_covariance_node(cls, graph, inA, outA, initialization_data, labels,
+    def add_xdawn_covariance_node(cls, graph, inA, outA, initialization_data=None, labels=None,
                                   num_filters=4, applyfilters=True, classes=None, 
                                   estimator='scm', xdawn_estimator='scm', baseline_cov=None):
         """

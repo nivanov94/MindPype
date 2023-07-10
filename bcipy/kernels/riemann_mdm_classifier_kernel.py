@@ -78,7 +78,7 @@ class RiemannMDMClassifierKernel(Kernel):
             sts = self.train_classifier()
 
         # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and self._init_outA is not None:
             # adjust the shape of init output tensor
             if len(self._init_inA.shape) == 3:
                 self._init_outA.shape = (self._init_inA.shape[0],)
@@ -224,7 +224,7 @@ class RiemannMDMClassifierKernel(Kernel):
     
     @classmethod
     def add_untrained_riemann_MDM_node(cls,graph,inA,outA,
-                                       initialization_data,labels):
+                                       initialization_data=None,labels=None):
         """
         Factory method to create an untrained riemann minimum distance 
         to the mean classifier kernel and add it to a graph

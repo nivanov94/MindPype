@@ -83,7 +83,7 @@ class RunningAverageKernel(Kernel):
         """
         This kernel has no internal state to be initialized. Call initialization_execution if downstream nodes are missing training data.
         """
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             return self.initialization_execution()
         
         return BcipEnums.SUCCESS

@@ -12,7 +12,7 @@ class Unary:
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # set the output size, as needed
             if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
@@ -150,7 +150,7 @@ class Binary:
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             # determine output dimensions and adjust init_outA shape
             inA = self._init_inA.data
             inB = self._init_inB.data

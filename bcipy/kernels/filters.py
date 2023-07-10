@@ -14,7 +14,7 @@ class Filter:
         """
         sts = BcipEnums.SUCCESS
         
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             
             if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
@@ -50,10 +50,12 @@ class Filter:
         input_rank = len(input_shape)
 
         if self._axis < 0 or self._axis >= input_rank:
+            warnings.warn(f"The axis parameter for the {self._filt.ftype} filter is out of range", RuntimeWarning, stacklevel=15)
             return BcipEnums.INVALID_PARAMETERS
-        
+               
         # determine what the output shape should be
         if input_rank == 0:
+            warnings.warn(f"The input tensor for the {self._filt.ftype} filter has no dimensions", RuntimeWarning, stacklevel=15)
             return BcipEnums.INVALID_PARAMETERS
         else:
             output_shape = input_shape
@@ -118,13 +120,18 @@ class FilterKernel(Filter, Kernel):
                                                 self._filt.coeffs['a'],
                                                 input_data.data, 
                                                 axis=self._axis)
-            else:
+            elif self._filt.implementation == 'sos':
                 output_data.data = signal.sosfilt(self._filt.coeffs['sos'],
                                                 input_data.data,
                                                 axis=self._axis)
+
+            elif self._filt.implementation == 'fir':
+                output_data.data = np.apply_along_axis(lambda x: signal.convolve(x, self._filt.coeffs['fir'], mode='same'), arr=input_data.data, axis=self._axis)
+            
             return BcipEnums.SUCCESS
 
-        except:
+        except Exception as e:
+            print(e)
             return BcipEnums.EXE_FAILURE
 
 
@@ -203,19 +210,28 @@ class FiltFiltKernel(Filter, Kernel):
         self._init_labels_out = None
  
     def _process_data(self, input_data, output_data):
-
+        
+        if len(input_data.shape) == 3 and self._axis == 1:
+            axis = 2
+        else:
+            axis = self._axis
+        
         try:
             if self._filt.implementation == 'ba':
                 output_data.data = signal.filtfilt(self._filt.coeffs['b'],
                                                     self._filt.coeffs['a'],
                                                     input_data.data,
-                                                    axis=self._axis)
-            else:
+                                                    axis=axis)
+            elif self._filt.implementation == 'sos':
                 output_data.data = signal.sosfiltfilt(self._filt.coeffs['sos'],
                                                        input_data.data,
-                                                       axis=self._axis)
+                                                       axis=axis)
+            elif self._filt.implementation == 'fir':
+                output_data.data = signal.lfilter(self._filt.coeffs['fir'], 1.0, input_data.data, axis=axis)
+            
+
         except Exception as e:
-            warnings.warn(f"{e}", RuntimeWarning, stacklevel=5)
+            warnings.warn(f"{e}", RuntimeWarning)
             return BcipEnums.EXE_FAILURE
 
         return BcipEnums.SUCCESS

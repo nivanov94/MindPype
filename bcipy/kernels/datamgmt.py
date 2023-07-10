@@ -4,6 +4,7 @@ from ..graph import Node, Parameter
 from ..containers import Scalar
 
 import numpy as np
+import warnings
 
 class ConcatenationKernel(Kernel):
     """
@@ -48,7 +49,7 @@ class ConcatenationKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             axis_adjusted = False
             if (len(self._inA.shape)+1 == len(self._init_inA.shape) and
                 len(self._inB.shape)+1 == len(self._init_inB.shape) and
@@ -168,7 +169,7 @@ class ConcatenationKernel(Kernel):
         """
         Execute the kernel function using numpy functions
         """
-        return self.process_data(self._inA, self._inB, self._outA)
+        return self._process_data(self._inA, self._inB, self._outA)
     
     @classmethod
     def add_concatenation_node(cls,graph,inA,inB,outA,axis=0):
@@ -234,6 +235,9 @@ class EnqueueKernel(Kernel):
             self._gated = True
         else:
             self._gated = False
+
+        self._init_inA = None
+        self._init_outA = None
 
         self._init_labels_in = None
         self._init_labels_out = None
@@ -353,7 +357,7 @@ class ExtractKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             init_output_shape = (self._init_inA.shape[0],) + self._out.shape
             if self._init_outA.virtual:
                 if len(self._init_inA.shape) == (len(self._in.shape)+1):
@@ -462,6 +466,7 @@ class ExtractKernel(Kernel):
             # check that the number of dimensions indicated does not exceed 
             # the tensor's rank
             if len(self._indices) != len(self._in.shape):
+                warnings.warn("Number of dimensions to extract exceeds the tensor's rank")
                 return BcipEnums.INVALID_PARAMETERS
             
             output_sz = []
@@ -604,10 +609,14 @@ class SetKernel(Kernel):
     def __init__(self,graph,inA,data,axis,index,out):
         super().__init__('Extract',BcipEnums.INIT_FROM_NONE,graph)
         self._inA = inA
-        self._out = out
+        self._outA = out
         self._data = data
         self._axis = axis
         self._index  = index
+        self._init_inA = None
+        self._init_outA = None
+        self._init_labels_in = None
+        self._init_labels_out = None
 
     def initialize(self):
         """
@@ -926,7 +935,7 @@ class TensorStackKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             if self._init_outA.virtual:
                 self._init_outA.shape = self._int_inA.shape[:self._axis+1] + (2,) + self._init_inA.shape[self._axis+1:]
 

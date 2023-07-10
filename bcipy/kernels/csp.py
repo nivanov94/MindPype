@@ -28,7 +28,7 @@ class CommonSpatialPatternKernel(Kernel):
     
     def __init__(self,graph,inA,outA,
                  init_style,init_params,
-                 num_filts,Ncls,multi_class_mode):
+                 num_filts=2,Ncls=2,multi_class_mode='OVA'):
         """
         Constructor for CSP filter kernel
         """
@@ -103,7 +103,7 @@ class CommonSpatialPatternKernel(Kernel):
             sts = self._compute_filters(X,y)
         
         # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and self._init_outA is not None:
             if self._init_inA._bcip_type != BcipEnums.TENSOR:
                 init_input_tensor = Tensor.create_from_data(self.session, X.shape, X)
             else:
@@ -310,7 +310,7 @@ class CommonSpatialPatternKernel(Kernel):
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
                                    initialization_data,labels,
-                                   num_filts,Ncls=2,multi_class_mode='OVA'):
+                                   num_filts=2,Ncls=2,multi_class_mode='OVA'):
         """
         Factory method to create a CSP filter node and add it to a graph
         

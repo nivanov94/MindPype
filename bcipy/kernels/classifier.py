@@ -6,6 +6,7 @@ from .kernel_utils import extract_nested_data
 
 
 import numpy as np
+import warnings
 
 class ClassifierKernel(Kernel):
     """
@@ -37,7 +38,7 @@ class ClassifierKernel(Kernel):
         (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
     """
 
-    def __init__(self, graph, inA, classifier, outA, output_probs, initialization_data, labels):
+    def __init__(self, graph, inA, classifier, outA, output_probs, initialization_data = None, labels = None):
         super().__init__('Classifier', BcipEnums.INIT_FROM_DATA, graph)
         self._inA = inA
         self._classifier = classifier
@@ -104,7 +105,7 @@ class ClassifierKernel(Kernel):
 
         self._initialized = True
         
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and self._init_outA is not None:
             init_tensor = Tensor.create_from_data(self.session, X.shape, X)
             sts = self._process_data(init_tensor, self._init_outA)
 
@@ -212,19 +213,29 @@ class ClassifierKernel(Kernel):
             input_data = inA.data
         
         if self.output_probs:
-            if self.output_probs._bcip_type == BcipEnums.TENSOR:
-                output_probs = self._classifier._classifier.predict_proba(input_data)
-                
-                if output_probs.shape == self.output_probs.shape:
-                    self.output_probs.data = output_probs
-                else:
-                    self.output_probs.data = np.squeeze(output_probs)
+            
+            output_probs = self._classifier._classifier.predict_proba(input_data)
+            output_probs = Tensor.create_from_data(self.session, output_probs.shape, output_probs)
+
+            try:
+                output_probs.data = np.squeeze(output_probs.data)
+            except:
+                pass
+            
+            try:
+                output_probs.copy_to(self.output_probs)
+
+            except Exception as e:
+                print(e)
+                warnings.warn("Output probabilities could not be set. If the size of the initialize and trial data is different, ensure the output probabilities tensor is virtual", UserWarning)
+
         
         output_data = self._classifier._classifier.predict(input_data)
 
         if outA._bcip_type == BcipEnums.SCALAR:
             outA.data = int(output_data)
         else:
+            outA.shape = output_data.shape
             outA.data = output_data
         
         return BcipEnums.SUCCESS

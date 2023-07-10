@@ -30,7 +30,7 @@ class FeatureNormalizationKernel(Kernel):
         Feature normalization method
     """
     
-    def __init__(self,graph,inA,outA,init_data,method,axis):
+    def __init__(self,graph,inA,outA,init_data,labels,method,axis):
         """
         Kernal normalizes features for classification
         """
@@ -44,7 +44,7 @@ class FeatureNormalizationKernel(Kernel):
         
 
         self._init_inA = init_data
-        self._init_labels_in = None
+        self._init_labels_in = labels
         self._init_outA = None
         self._init_labels_out = None
 
@@ -85,7 +85,7 @@ class FeatureNormalizationKernel(Kernel):
 
 
         # process initialization data
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and self._init_outA is not None:
             # adjust the shape of init output tensor, as needed
             if self._init_outA.virtual:
                 self._init_outA.shape = self._init_inA.shape
@@ -151,13 +151,13 @@ class FeatureNormalizationKernel(Kernel):
     
     @classmethod
     def add_feature_normalization_node(cls,graph,inA,outA,
-                                       init_data,axis=0,method='zscore-norm'):
+                                       init_data=None,labels=None,axis=0,method='zscore-norm'):
         """
         Factory method to create a feature normalization kernel
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,init_data,method,axis)
+        k = cls(graph,inA,outA,init_data, labels,method,axis)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),

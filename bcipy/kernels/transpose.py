@@ -59,7 +59,7 @@ class TransposeKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
         
-        if self._init_outA != None:
+        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
             
             if self._init_outA.virtual:
                 if self._axes == None:
