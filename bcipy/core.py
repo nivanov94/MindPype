@@ -6,6 +6,8 @@
 """
 
 from enum import IntEnum
+import logging
+import pickle
 
 class BCIP(object):
     """
@@ -266,6 +268,9 @@ class Session(BCIP):
         
         self.graphs = []
 
+        # Configure logging for the session
+        #logging.basicConfig(filename='../bcipy/logs/log.log', filemode='a', format='%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s ', level=logging.INFO, encoding='utf-8')
+        #logging.info("Session created")
 
     def verify(self):
         """
@@ -297,6 +302,7 @@ class Session(BCIP):
             graph_count += 1
         
         self._verified = True
+        #logging.info("Session verified successfully")
         return BcipEnums.SUCCESS
     
     def initialize_graph(self, graph):
@@ -343,6 +349,8 @@ class Session(BCIP):
         for d in self._datum:
             if self._datum[d].volatile:
                 self._datum[d].poll_volatile_data(label)
+       
+        #logging.info("Volatile channels polled")
         
     def push_volatile_outputs(self, label=None):
         """
@@ -362,6 +370,8 @@ class Session(BCIP):
         for d in self._datum:
             if self._datum[d].volatile_out:
                 self._datum[d].push_volatile_outputs(label)
+
+        #logging.info("Volatile outputs pushed")
     
     def execute_trial(self,label,graph):
         """
@@ -388,8 +398,11 @@ class Session(BCIP):
         """
         print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
-        self.push_volatile_outputs(label)
         sts = graph.execute(label)
+        self.push_volatile_outputs(label)
+        self._trials_elapsed += 1
+        #logging.info("Trial executed successfully")
+        
         return sts
     
         
@@ -408,6 +421,7 @@ class Session(BCIP):
         """
         self._verified = False
         self.graphs.append(graph)
+        #logging.info("Graph added to session")
     
     def add_data(self,data):
         """
@@ -497,6 +511,21 @@ class Session(BCIP):
         # not found, return None type
         return None
     
+
+    def save_session(self: object, file: str) -> None:
+        """
+        Save the session object and all of its contents to a file
+
+        Returns
+        -------
+        Pickle object : Pickle
+            Pickle object containing the session and all of its contents
+
+        """
+        file = open(file, 'wb')
+        pickle.dump(self, file)
+        file.close()
+        
     @classmethod
     def create(cls):
         """
