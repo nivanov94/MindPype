@@ -827,7 +827,23 @@ class Tensor(BCIP):
     
     @classmethod
     def create_for_volatile_output(cls, sess, shape, out):
-        t = cls(sess,shape,None,False,None,out)
+        """
+        
+
+        Parameters
+        ----------
+        sess : Session object
+            Session where Tensor will exist
+        
+        shape : shape_like
+            Shape of the Tensor
+        
+        out : BCIPy output Source
+            Data source the tensor pushes data to (only applies to Tensors created for volatile output)
+        """
+        # These tensors should be non-volatile but since init and trial data can be different sizes, they need to be virtual until that is addressed
+        
+        t = cls(sess,shape,None,True,None,out)
         sess.add_data(t)
         return t
     
