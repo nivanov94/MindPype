@@ -567,7 +567,7 @@ class BcipXDF(BCIP):
                         eeg_stream = stream
                     
                 sample_indices = np.full(eeg_stream['time_stamps'].shape, False) # used to extract EEG samples, pre-allocated here
-                self._continuous_data = eeg_stream['time_series']
+                self._continuous_data = eeg_stream['time_series'][:,channels]
                 self._continuous_labels = marker_stream['time_series']
                 #print(eeg_stream['time_series'].shape)
                 total_tasks = 0
@@ -583,22 +583,20 @@ class BcipXDF(BCIP):
                             marker_time = marker_stream['time_stamps'][i_m]
                             total_tasks += 1
                             
-                            # compute the 5s window, 2s after cue
-                            eeg_window_start = marker_time - relative_start
+                            # compute the correct start and end indices for the current trial
+                            eeg_window_start = marker_time + relative_start
                             #eeg_window_end = marker_time + 0.8 +(5/Fs) # Added temporal buffer to limit indexing errors
         
                             sample_indices = np.array(eeg_stream['time_stamps'] >= eeg_window_start)
                             
                             sample_data = eeg_stream['time_series'][sample_indices, :][:, channels].T # Nc X len(eeg_stream)
-                            trial_data[curr_task].append(sample_data[:, :int(Ns)]) #Nc x Ns
+                            trial_data[curr_task].append(sample_data[:,:][:, :int(Ns)]) #Nc x Ns
                 if combined_marker_streams['time_series'] is None:
                     combined_marker_streams['time_series'] = marker_stream['time_series']
                     combined_marker_streams['time_stamps'] = marker_stream['time_stamps']
                 else:
                     combined_marker_streams['time_series'] = np.concatenate((combined_marker_streams['time_series'], marker_stream['time_series']), axis=0)
                     combined_marker_streams['time_stamps'] = np.concatenate((combined_marker_streams['time_stamps'], marker_stream['time_stamps']), axis=0)
-
-
         
             for task in trial_data:
                 trial_data[task] = np.stack(trial_data[task], axis=0) # Nt x Nc x Ns
@@ -624,10 +622,12 @@ class BcipXDF(BCIP):
     
                     elif stream['info']['type'][0] == 'EEG':
                         if eeg_stream:
-                            eeg_stream['time_series'] = np.concatenate((eeg_stream['time_series'], stream['time_series']), axis=0)
-                            eeg_stream['time_stamps'] = np.concatenate((eeg_stream['time_stamps'], stream['time_stamps']), axis=0)
+                            eeg_stream['time_series'] = np.concatenate((eeg_stream['time_series'], stream['time_series'].T[channels, :][:,:]), axis=0)
+                            eeg_stream['time_stamps'] = np.concatenate((eeg_stream['time_stamps'], stream['time_stamps'][channels,:]), axis=0)
                         else:
                             eeg_stream = stream
+                            eeg_stream['time_series'] = stream['time_series'].T[channels, :][:,:]
+                            eeg_stream['time_stamps'] = stream['time_stamps'][channels,]
 
             self.trial_data = {'EEG': eeg_stream, 'Markers': marker_stream} 
             #print(self.trial_data['EEG']['time_stamps'][-100:], self.trial_data['Markers']['time_stamps'][-10:])
@@ -1199,14 +1199,11 @@ class InputLSLStream(BCIP):
                 data = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
                 trial_data[:,:samples_polled] = data[:,:][:,:Ns]
             #print(trial_timestamps)
-            trial_timestamps[:samples_polled] = self.data_buffer['time_stamps'][eeg_index_bool]
-            #print("Last time stamp in buffer:", self.data_buffer['time_stamps'][-1])
-            #print(eeg_index_bool)
-            #if len(eeg_index_bool) > 700:
-            #    print(trial_timestamps)
-            #print("First zero value in pre-LSL trial data: ", np.argmax(trial_timestamps==0.))
-            #print("Samples pulled from the buffer: ", samples_polled)
-            #print(f"trials_timestamps shape: {self.data_buffer['time_stamps'].shape}")
+            try:
+                trial_timestamps[:samples_polled] = self.data_buffer['time_stamps'][eeg_index_bool]
+            except:
+                stamps = self.data_buffer['time_stamps'][eeg_index_bool]
+                trial_timestamps[:samples_polled] = stamps[:Ns]
 
         #print(f"T-BEGIN:`{t_begin}`")
         while samples_polled < Ns:
