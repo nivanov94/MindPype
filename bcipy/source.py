@@ -61,7 +61,7 @@ class BcipMatFile(BCIP):
                 # TODO log error
                 return
             
-            if not self.dims == None:
+            if not dims == None:
                 # check that the data has the correct number of dimensions
                 data_dims = self._file_data[varname].shape
                 for i in range(len(dims)):
@@ -1083,7 +1083,7 @@ class InputLSLStream(BCIP):
     """
 
     def __init__(self,sess,pred,channels=None, relative_start = 0,
-                 marker=True,marker_fmt=None,marker_pred=None):
+                 marker=True,marker_fmt=None,marker_pred=None, stream_info=None):
         """
         Create a new LSL inlet stream object
         Parameters
@@ -1104,11 +1104,16 @@ class InputLSLStream(BCIP):
             Regular expression template of the marker to be matched, if none all markers will be matched. Alternatively, a list of markers can be provided.
         marker_pred : str
             The predicate string for the marker stream
+        stream_info : pylsl.StreamInfo
+            The stream info object for the stream can be passed instead of the predicate to avoid the need to resolve the stream
         """
         super().__init__(BcipEnums.SRC,sess)
         
-        # resolve the stream on the LSL network
-        available_streams = pylsl.resolve_bypred(pred)
+        if not stream_info:
+            # resolve the stream on the LSL network
+            available_streams = pylsl.resolve_bypred(pred)
+        else:
+            available_streams = [stream_info]
         
         if len(available_streams) == 0:
             # TODO log error
@@ -1149,6 +1154,9 @@ class InputLSLStream(BCIP):
             #       marker_fmt = '^' + marker_fmt + '$' 
                 
                 self.marker_pattern = re.compile(marker_fmt)
+
+        
+
 
     def poll_data(self, Ns, label=None):
         """
@@ -1267,7 +1275,7 @@ class InputLSLStream(BCIP):
 
     @classmethod
     def create_marker_coupled_data_stream(cls,sess,pred, channels = None, relative_start=0,
-                                          marker_fmt=None, marker_pred="type='Markers'"):
+                                          marker_fmt=None, marker_pred="type='Markers'", stream_info=None):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
@@ -1284,6 +1292,10 @@ class InputLSLStream(BCIP):
             Index value of channels to poll from the stream, if None all channels will be polled
         marker_fmt : str
             Regular expression template of the marker to be matched, if none all markers will be matched
+        marker_pred : str
+            Predicate string to match the marker stream, if None all streams will be matched
+        stream_info : StreamInfo object
+            StreamInfo object to use for the data stream, if None a default StreamInfo object will be created
         
         Examples
         --------
