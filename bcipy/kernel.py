@@ -92,6 +92,58 @@ class Kernel(BCIP, ABC):
 
         return self._init_output_labels
     
+    @property
+    def inputs(self):
+        """
+        Returns the inputs of the kernel
+
+        Returns
+        -------
+        _inputs : list
+            The inputs of the kernel
+        """
+
+        return self._inputs
+    
+    @property
+    def outputs(self):
+        """
+        Returns the outputs of the kernel
+
+        Returns
+        -------
+        _outputs : list
+            The outputs of the kernel
+        """
+
+        return self._outputs
+    
+    @property
+    def init_inputs(self):
+        """
+        Returns the inputs of the kernel
+
+        Returns
+        -------
+        _init_inputs : list
+            The inputs of the kernel
+        """
+
+        return self._init_inputs
+    
+    @property
+    def init_outputs(self):
+        """
+        Returns the outputs of the kernel
+
+        Returns
+        -------
+        _init_outputs : list
+            The outputs of the kernel
+        """
+
+        return self._init_outputs
+    
     @init_input_labels.setter
     def init_input_labels(self,labels):
         """
