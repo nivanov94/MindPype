@@ -42,3 +42,5 @@ _build/
 # Package info
 *.egg-info
 
+.vscode
+
