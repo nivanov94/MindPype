@@ -168,6 +168,68 @@ class Kernel(BCIP, ABC):
         """
         self._init_output_labels = labels
 
+    @inputs.setter
+    def inputs(self,inputs):
+        """
+        Sets the inputs of the kernel
+
+        Parameters
+        ----------
+        inputs : list
+            The list of inputs to be set
+        """
+        self._inputs = inputs
+
+        # update init_inputs so the length matches inputs
+        if len(self._init_inputs) != len(self._inputs):
+            if len(self._init_inputs) == 0:
+                self._init_inputs = [None] * len(self._inputs)
+            else:
+                self._init_inputs.extend([None] * (len(self._inputs) - len(self._init_inputs)))
+    
+    @outputs.setter
+    def outputs(self,outputs):
+        """
+        Sets the outputs of the kernel
+
+        Parameters
+        ----------
+        outputs : list
+            The list of outputs to be set
+        """
+        self._outputs = outputs
+
+        # update init_outputs so the length matches outputs
+        if len(self._init_outputs) != len(self._outputs):
+            if len(self._init_outputs) == 0:
+                self._init_outputs = [None] * len(self._outputs)
+            else:
+                self._init_outputs.extend([None] * (len(self._outputs) - len(self._init_outputs)))
+
+    @init_inputs.setter
+    def init_inputs(self,inputs):
+        """
+        Sets the initialization inputs of the kernel
+
+        Parameters
+        ----------
+        inputs : list
+            The list of inputs to be set
+        """
+        self._init_inputs = inputs
+
+    @init_outputs.setter
+    def init_outputs(self,outputs):
+        """
+        Sets the initialization outputs of the kernel
+
+        Parameters
+        ----------
+        outputs : list
+            The list of outputs to be set
+        """
+        self._init_outputs = outputs
+
     @abstractmethod
     def verify(self):
         """
@@ -253,55 +315,3 @@ class Kernel(BCIP, ABC):
             The output at the specified index
         """
         return self._init_outputs[index]
-
-
-    ## INPUT and OUTPUT setter methods
-    def set_inputs(self,inputs):
-        """
-        Sets the inputs of the kernel
-
-        Parameters
-        ----------
-        inputs : list
-            The list of inputs to be set
-        """
-        self._inputs = inputs
-    
-    def set_outputs(self,outputs):
-        """
-        Sets the outputs of the kernel
-
-        Parameters
-        ----------
-        outputs : list
-            The list of outputs to be set
-        """
-        self._outputs = outputs
-
-    def set_init_inputs(self,inputs=None):
-        """
-        Sets the inputs of the kernel
-
-        Parameters
-        ----------
-        inputs : list
-            The list of inputs to be set
-        """
-        if inputs is None:
-            self._init_inputs = [None] * len(self._inputs)
-        else:
-            self._init_inputs = inputs
-
-    def set_init_outputs(self,outputs=None):
-        """
-        Sets the outputs of the kernel
-
-        Parameters
-        ----------
-        outputs : list
-            The list of outputs to be set
-        """
-        if outputs is None:
-            self._init_outputs = [None] * len(self._outputs)
-        else:
-            self._init_outputs = outputs

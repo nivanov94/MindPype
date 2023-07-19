@@ -682,7 +682,7 @@ class Tensor(BCIP):
 
             BcipEnums.SUCCESS
         """
-        if dest_tensor.virtual:
+        if dest_tensor.virtual and dest_tensor.shape != self.shape:
             dest_tensor.shape = self.shape
         dest_tensor.data = self.data
         

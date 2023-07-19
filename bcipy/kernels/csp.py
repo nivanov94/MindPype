@@ -33,8 +33,8 @@ class CommonSpatialPatternKernel(Kernel):
         Constructor for CSP filter kernel
         """
         super().__init__('CSP',init_style,graph)
-        self.set_inputs([inA])
-        self.set_outputs([outA])
+        self.inputs = [inA]
+        self.outputs = [outA]
         
         self.num_filts = num_filts
         self._init_params = init_params
@@ -42,15 +42,11 @@ class CommonSpatialPatternKernel(Kernel):
         self.num_classes = Ncls
 
         if 'initialization_data' in init_params:
-            self.set_init_inputs([init_params['initialization_data']])
-        else:
-            self.set_init_inputs()
+            self.init_inputs = [init_params['initialization_data']]
 
         if 'labels' in init_params:
             self.init_input_labels = init_params['labels']
 
-        self.set_init_outputs()
-        
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
             self._initialized = False
@@ -71,7 +67,7 @@ class CommonSpatialPatternKernel(Kernel):
         self._initialized = False # clear initialized flag
         
         # check that the input init data is in the correct type
-        init_in = self.get_init_inputs(0)
+        init_in = self.init_inputs[0]
         labels = self.init_input_labels
         accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
         
@@ -102,7 +98,7 @@ class CommonSpatialPatternKernel(Kernel):
         
         # compute init output
         if sts == BcipEnums.SUCCESS:
-            init_out = self.get_init_outputs(0)
+            init_out = self.init_outputs[0]
             # adjust the shape of init output tensor
             if len(init_in.shape) == 3:
                 init_out.shape = (init_in.shape[0], self._W.shape[1], init_in.shape[2])
@@ -259,8 +255,8 @@ class CommonSpatialPatternKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        d_in = self.get_input(0)
-        d_out = self.get_output(0)
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
 
         for param in (d_in, d_out):
             if param.bcip_type != BcipEnums.TENSOR:
@@ -304,9 +300,7 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Execute the kernel by classifying the input trials
         """
-        d_in = self.get_input(0)
-        d_out = self.get_output(0)
-        return self._process_data(d_in, d_out)
+        return self._process_data(self.inputs[0], self.outputs[0])
     
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
