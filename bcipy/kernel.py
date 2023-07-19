@@ -1,5 +1,6 @@
 from .core import BCIP, BcipEnums
 from abc import ABC, abstractmethod
+from .containers import Tensor
 
 class Kernel(BCIP, ABC):
     """
@@ -315,3 +316,16 @@ class Kernel(BCIP, ABC):
             The output at the specified index
         """
         return self._init_outputs[index]
+    
+    def copy_init_labels_to_output(self):
+        """
+        Copies the input labels from initialization to the output
+        """
+        labels = self.init_input_labels
+        if labels.bcip_type != BcipEnums.TENSOR:
+            labels = labels.to_tensor()
+
+        if self.init_output_labels is None:
+            self.init_output_labels = Tensor.create_virtual(self.session)
+
+        labels.copy_to(self.init_output_labels)

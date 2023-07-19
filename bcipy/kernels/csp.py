@@ -106,13 +106,7 @@ class CommonSpatialPatternKernel(Kernel):
             sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if labels.bcip_type != BcipEnums.TENSOR:
-                labels = labels.to_tensor()
-            
-            if self.init_output_labels is None:
-                self.init_output_labels = Tensor.create_virtual(self.session)
-
-            labels.copy_to(self.init_output_labels)
+            self.copy_init_labels_to_output()
 
         if sts == BcipEnums.SUCCESS:
             self._initialized = True

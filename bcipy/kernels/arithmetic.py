@@ -58,9 +58,7 @@ class Unary:
         sts = self._process_data(init_in, init_out)
 
         # pass on labels
-        if labels.bcip_type != BcipEnums.TENSOR:
-            labels = labels.to_tensor()
-        labels.copy_to(self.init_output_labels)
+        self.copy_init_labels_to_output()
 
         return sts
 
@@ -346,9 +344,7 @@ class Binary:
             sts = BcipEnums.INIT_FAILURE
 
         # pass on labels
-        if labels.bcip_type != BcipEnums.TENSOR:
-            labels = labels.to_tensor()
-        labels.copy_to(self.init_output_labels)
+        self.copy_input_labels_to_output()
 
         return sts
 
