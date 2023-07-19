@@ -6,8 +6,7 @@
 """
 
 from enum import IntEnum
-import logging
-import pickle
+import logging, pickle, copy
 
 class BCIP(object):
     """
@@ -522,9 +521,11 @@ class Session(BCIP):
             Pickle object containing the session and all of its contents
 
         """
-        file = open(file, 'wb')
-        pickle.dump(self, file)
-        file.close()
+        new_object = copy.deepcopy(self)
+        
+        sfile = open(file, 'wb')
+        pickle.dump(new_object, sfile)
+        sfile.close()
         
     @classmethod
     def create(cls):
