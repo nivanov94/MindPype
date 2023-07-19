@@ -120,8 +120,7 @@ class Classifier(BCIP):
            
         .. note:: 
             All unlisted parameters are the same as the sklearn SVC object. 
-            Check out the sklearn documentation
-            `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
+            Check out the `sklearn documentation <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
             for more information.
 
         Parameters

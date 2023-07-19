@@ -708,7 +708,7 @@ class Edge:
         example_edge.add_data(example_data)
 
         """
-        self.data = data
+        self._data = data
 
 
 class Parameter:
@@ -723,12 +723,6 @@ class Parameter:
     direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]
         Enum indicating whether this is an input-type or output-type parameter
 
-    Attributes
-    ----------
-    data : any
-        Reference to the data object represented by the parameter object
-    direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]
-        Enum indicating whether this is an input-type or output-type parameter
     """
     
     def __init__(self,data,direction):
