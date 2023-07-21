@@ -113,14 +113,18 @@ class ClassifierKernel(Kernel):
         if (sts == BcipEnums.SUCCESS and 
             (self.init_outputs[0] is not None or self.init_outputs[1] is not None)):
             init_tensor = Tensor.create_from_data(self.session, X.shape, X)
+
+            # adjust output shapes if necessary
+            for init_out in self.init_outputs:
+                if init_out is not None and init_out.virtual:
+                    init_out.shape = (X.shape[0],)
+
             sts = self._process_data(init_tensor, 
                                      self.init_outputs[0], 
                                      self.init_outputs[1])
 
             # pass on the labels
-            if labels.bcip_type != BcipEnums.TENSOR:
-                labels = labels.to_tensor()
-            labels.copy_to(self.init_output_labels)
+            self.copy_init_labels_to_output()
         
         return sts
         
@@ -213,12 +217,12 @@ class ClassifierKernel(Kernel):
         Execute single trial classification
         """
         # if input is not a tensor, convert
-        if self._inA._bcip_type != BcipEnums.TENSOR:
-            input_tensor = self._inA.to_tensor()
+        if self.inputs[0].bcip_type != BcipEnums.TENSOR:
+            input_tensor = self.inputs[0].to_tensor()
         else:
-            input_tensor = self._inA
+            input_tensor = self.inputs[0]
 
-        return self._process_data(input_tensor, self._outA)
+        return self._process_data(input_tensor, self.outputs[0], self.outputs[1])
 
 
     def _process_data(self, inA, outA, outB=None):
@@ -242,7 +246,7 @@ class ClassifierKernel(Kernel):
 
         output_data = self._classifier._classifier.predict(input_data)
 
-        if outA._bcip_type == BcipEnums.SCALAR:
+        if outA.bcip_type == BcipEnums.SCALAR:
             outA.data = int(output_data)
         else:
             outA.data = output_data

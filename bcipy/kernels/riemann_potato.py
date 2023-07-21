@@ -1,6 +1,7 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
+from ..containers import Tensor
 from .kernel_utils import extract_nested_data
 
 import numpy as np
@@ -63,14 +64,25 @@ class RiemannPotatoKernel(Kernel):
         self._initialized = False # clear initialized flag
         sts = self._fit_filter()
 
+        if sts == BcipEnums.SUCCESS:
+            self._initialized = True
+
         init_in = self.init_inputs[0]
         init_out = self.init_outputs[0]
 
         # compute init output
         if sts == BcipEnums.SUCCESS and init_out is not None and init_in is not None:
             # adjust the shape of init output tensor
+            if init_in.bcip_type != BcipEnums.TENSOR:
+                init_in = init_in.to_tensor()
             if len(init_in.shape) == 3:
                 init_out.shape = (init_in.shape[0],)
+
+            # if the init input is trial data, compute the covariances
+            if init_in.shape[-2] != init_in.shape[-1]:
+                init_trial_data = init_in.data
+                init_covs = covariances(init_trial_data)
+                init_in = Tensor.create_from_data(self.session, init_covs.shape, init_covs)
  
             sts = self._process_data(init_in, init_out)
 
@@ -78,9 +90,7 @@ class RiemannPotatoKernel(Kernel):
             if self.init_input_labels is not None:
                 self.copy_init_labels_to_output()
 
-        if sts == BcipEnums.SUCCESS:
-            self._initialized = True
-        
+       
         return sts
         
        
@@ -89,7 +99,6 @@ class RiemannPotatoKernel(Kernel):
         fit the potato filter using the initialization data
         """
         init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
 
         if (init_in.bcip_type != BcipEnums.TENSOR and
             init_in.bcip_type != BcipEnums.ARRAY  and

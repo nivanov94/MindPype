@@ -234,7 +234,7 @@ class EnqueueKernel(Kernel):
         self.inputs = [inA, enqueue_flag]
         self.outputs = [queue]
 
-        if self._enqueue_flag is not None:
+        if enqueue_flag is not None:
             self._gated = True
         else:
             self._gated = False

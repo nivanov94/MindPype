@@ -99,6 +99,10 @@ class CommonSpatialPatternKernel(Kernel):
         # compute init output
         if sts == BcipEnums.SUCCESS:
             init_out = self.init_outputs[0]
+
+            if init_in.bcip_type != BcipEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
             # adjust the shape of init output tensor
             if len(init_in.shape) == 3:
                 init_out.shape = (init_in.shape[0], self._W.shape[1], init_in.shape[2])
