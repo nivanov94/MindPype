@@ -1,7 +1,6 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .kernel_utils import extract_nested_data
 
 from ..containers import Scalar
 

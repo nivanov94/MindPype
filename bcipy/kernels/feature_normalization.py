@@ -1,7 +1,7 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 import numpy as np
 
@@ -53,16 +53,7 @@ class FeatureNormalizationKernel(Kernel):
         # get the initialization input
         init_in = self.init_inputs[0]
 
-        if init_in.bcip_type == BcipEnums.TENSOR:
-            X = init_in.data
-        elif init_in.bcip_type in (BcipEnums.ARRAY, BcipEnums.CIRCULAR_BUFFER):
-            try:
-                X = extract_nested_data(init_in)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE
-        else:
-            return BcipEnums.INVALID_NODE
-
+        X = extract_init_inputs(init_in)
         
         if self._method == 'min-max':
             self._translate = np.min(X,axis=self._axis)

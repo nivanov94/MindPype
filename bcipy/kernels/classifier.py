@@ -2,7 +2,7 @@ from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 
 import numpy as np
@@ -69,22 +69,8 @@ class ClassifierKernel(Kernel):
                 return BcipEnums.INITIALIZATION_FAILURE
     
         # extract the initialization data from a potentially nested array of tensors 
-        if init_in.bcip_type == BcipEnums.TENSOR: 
-            X = init_in.data
-        else:
-            try:
-                # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(init_in)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE    
-    
-        if labels.bcip_type == BcipEnums.TENSOR:    
-            y = labels.data
-        else:
-            try:
-                y = extract_nested_data(labels)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE
+        X = extract_init_inputs(init_in)
+        y = extract_init_inputs(labels)
 
         # ensure the shapes are valid
         if len(X.shape) == 3:

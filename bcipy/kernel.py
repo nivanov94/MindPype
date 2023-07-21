@@ -1,6 +1,7 @@
 from .core import BCIP, BcipEnums
 from abc import ABC, abstractmethod
 from .containers import Tensor
+from kernels.kernel_utils import extract_nested_data
 
 class Kernel(BCIP, ABC):
     """
