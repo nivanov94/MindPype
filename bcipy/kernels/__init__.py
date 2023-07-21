@@ -6,7 +6,7 @@ from .statistics import (CDFKernel, CovarianceKernel, MaxKernel, MinKernel,
                          MeanKernel, StdKernel, VarKernel, ZScoreKernel)
 from .filters import (FilterKernel, FiltFiltKernel)
 
-from .datamgmt import (SetKernel, StackKernel, TensorStackKernel, 
+from .datamgmt import (StackKernel, TensorStackKernel, 
                        ExtractKernel, EnqueueKernel, ConcatenationKernel)
 
 from .classifier import ClassifierKernel

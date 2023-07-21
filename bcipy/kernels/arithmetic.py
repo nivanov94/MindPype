@@ -1,7 +1,8 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar
+from ..containers import Scalar, Tensor
+from .kernel_utils import extract_nested_data
 
 import numpy as np
 
@@ -13,19 +14,51 @@ class Unary:
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
-            # set the output size, as needed
-            if self._init_outA.virtual:
-                self._init_outA.shape = self._init_inA.shape
+        # get the initialization params
+        init_in = self.init_inputs[0]
+        labels = self.init_input_labels
+        init_out = self.init_outputs[0]
 
-            sts = self._process_data(self._init_inA, self._init_outA)
+        # check if initialization is needed
+        if init_in is None or init_out is None:
+            # init not needed, return success
+            return sts
 
-            # pass on labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
+        
+        # check the init inputs are in valid data objects
+        for init_obj in (init_in,labels):
+            if init_obj.bcip_type not in accepted_inputs:
+                return BcipEnums.INITIALIZATION_FAILURE
+    
+        # extract the data from the input
+        if init_in.bcip_type == BcipEnums.TENSOR: 
+            X = init_in.data
+        else:
+            try:
+                # extract the data from a potentially nested array of tensors
+                X = extract_nested_data(init_in)
+            except:
+                return BcipEnums.INITIALIZATION_FAILURE    
+    
+        if labels.bcip_type == BcipEnums.TENSOR:    
+            y = labels.data
+        else:
+            try:
+                y = extract_nested_data(labels)
+            except:
+                return BcipEnums.INITIALIZATION_FAILURE
+
+        
+        
+        # set the output size, as needed
+        if init_out.virtual:
+            init_out.shape = init_in.shape
+
+        sts = self._process_data(init_in, init_out)
+
+        # pass on labels
+        self.copy_init_labels_to_output()
 
         return sts
 
@@ -35,35 +68,37 @@ class Unary:
         """
 
         # input/output must be a tensor or scalar
-        if not (
-            (
-                self._inA._bcip_type == BcipEnums.TENSOR
-                and self._outA._bcip_type == BcipEnums.TENSOR
-            )
-            or (
-                self._inA._bcip_type == BcipEnums.SCALAR
-                and self._outA._bcip_type == BcipEnums.SCALAR
-            )
-        ):
-            return BcipEnums.INVALID_PARAMETERS
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
 
-        if self._inA._bcip_type == BcipEnums.TENSOR:
+        # ensure that the parameters are valid types
+        for param in (d_in, d_out):
+            if param.bcip_type not in (BcipEnums.TENSOR, BcipEnums.SCALAR):
+                return BcipEnums.INVALID_PARAMETERS
+        
+        # ensure that the input and output are the same type
+        if d_in.bcip_type != d_out.bcip_type:
+            return BcipEnums.INVALID_PARAMETERS
+        
+
+        if d_in.bcip_type == BcipEnums.TENSOR:
             # input tensor must contain some values
-            if len(self._inA.shape) == 0:
+            if len(d_in.shape) == 0:
                 return BcipEnums.INVALID_PARAMETERS
 
-        if self._outA._bcip_type == BcipEnums.TENSOR:
-            if self._outA.virtual and len(self._outA.shape) == 0:
-                self._outA.shape = self._inA.shape
+        # check output shape
+        if d_out.bcip_type == BcipEnums.TENSOR:
+            if d_out.virtual and len(d_out.shape) == 0:
+                d_out.shape = d_in.shape
 
-            if self._outA.shape != self._inA.shape:
+            if d_out.shape != d_in.shape:
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
-            if not (self._inA.data_type in Scalar.valid_numeric_types()):
+            if not (d_in.data_type in Scalar.valid_numeric_types()):
                 return BcipEnums.INVALID_PARAMETERS
 
-            if self._outA.data_type != self._inA.data_type:
+            if d_out.data_type != d_in.data_type:
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
@@ -72,7 +107,7 @@ class Unary:
         """
         Execute the kernel function with the input trial data
         """
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0], self.outputs[0])
 
 
 class AbsoluteKernel(Unary, Kernel):
@@ -89,22 +124,6 @@ class AbsoluteKernel(Unary, Kernel):
     outA : Tensor or Scalar
         Output trial data
 
-    
-
-    Attributes
-    ----------
-    _inA : Tensor or Scalar
-        Input trial data
-    _outA : Tensor or Scalar
-        Output trial data
-    _init_labels_in : Tensor
-        Initialization labels for input data
-    _init_labels_out : Tensor 
-        Initialization labels for output data
-    _init_inA : Tensor or Scalar 
-        Initialization input data
-    _init_outA : Tensor or Scalar 
-        Initialization output data
     """
 
     def __init__(self, graph, inA, outA):
@@ -112,22 +131,15 @@ class AbsoluteKernel(Unary, Kernel):
         Constructor for the absolute value kernel
         """
         super().__init__("Absolute", BcipEnums.INIT_FROM_NONE, graph)
-        self._inA = inA
-        """Input trial data"""
-        self._outA = outA
-
-        self._init_labels_in = None
-        self._init_labels_out = None
-
-        self._init_inA = None
-        self._init_outA = None
+        self.inputs = [inA]
+        self.outputs = [outA]
 
     def _process_data(self, input_data, output_data):
         """
         Calculate the absolute value of the input data, and assign it to the output data
         """
         try:
-            if input_data._bcip_type == BcipEnums.TENSOR:
+            if input_data.bcip_type == BcipEnums.TENSOR:
                 output_data.data = np.absolute(input_data.data)
             else:
                 output_data.data = abs(input_data.data)
@@ -190,32 +202,12 @@ class LogKernel(Unary, Kernel):
     outA : Tensor or Scalar 
         Output trial data
 
-    Attributes
-    ----------
-    _inA : Tensor or Scalar 
-        Input trial data
-    _outA : Tensor or Scalar 
-        Output trial data
-    _init_labels_in : Tensor 
-        Initialization labels for input data
-    _init_labels_out : Tensor 
-        Initialization labels for output data
-    _init_inA : Tensor or Scalar 
-        Initialization input data
-    _init_outA : Tensor or Scalar 
-        Initialization output data
     """
 
     def __init__(self, graph, inA, outA):
         super().__init__("Log", BcipEnums.INIT_FROM_NONE, graph)
-        self._inA = inA
-        self._outA = outA
-
-        self._init_inA = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
+        self.inputs = [inA]
+        self.outputs = [outA]
 
     def _process_data(self, input_data, output_data):
         """
@@ -239,7 +231,7 @@ class LogKernel(Unary, Kernel):
 
         try:
             data = np.log(input_data.data)
-            if output_data._bcip_type == BcipEnums.SCALAR:
+            if output_data.bcip_type == BcipEnums.SCALAR:
                 output_data.data = data.item()
             else:
                 output_data.data = data
@@ -297,18 +289,62 @@ class Binary:
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
-            # determine output dimensions and adjust init_outA shape
-            inA = self._init_inA.data
-            inB = self._init_inB.data
+        # get the initialization params
+        init_inA = self.init_inputs[0]
+        init_inB = self.init_inputs[1]
+        labels = self.init_input_labels
+        init_out = self.init_outputs[0]
+
+        # check if initialization is needed
+        if init_inA is None or init_inB is None or init_out is None:
+            # init not needed, return success
+            return sts
+
+        accepted_data_inputs = (BcipEnums.TENSOR, BcipEnums.ARRAY,
+                                BcipEnums.CIRCLE_BUFFER, BcipEnums.SCALAR)
+        
+        # check the init inputs are in valid data objects
+        for init_obj in (init_inA, init_inB):
+            if init_obj.bcip_type not in accepted_data_inputs:
+                return BcipEnums.INITIALIZATION_FAILURE
+            
+        if (labels.bcip_type != BcipEnums.TENSOR and
+            labels.bcip_type != BcipEnums.ARRAY and
+            labels.bcip_type != BcipEnums.CIRCLE_BUFFER):
+            return BcipEnums.INITIALIZATION_FAILURE
+    
+        # extract the data from the input
+        X = [None] * 2
+        for i, i_in in enumerate((init_inA, init_inB)):
+            if i_in.bcip_type == BcipEnums.TENSOR: 
+                X[i] = i_in.data
+            else:
+                try:
+                    # extract the data from a potentially nested array of tensors
+                    X[i] = extract_nested_data(i_in)
+                except:
+                    return BcipEnums.INITIALIZATION_FAILURE
+
+        if labels.bcip_type == BcipEnums.TENSOR:    
+            y = labels.data
+        else:
             try:
-                phony_out = inA + inB
-                self._init_outA.shape = phony_out.shape
-                sts = self._process_data(
-                    self._init_inA, self._init_inB, self._init_outA
-                )
+                y = extract_nested_data(labels)
             except:
-                sts = BcipEnums.INIT_FAILURE
+                return BcipEnums.INITIALIZATION_FAILURE
+
+        # determine output dimensions and adjust init_out shape
+        try:
+            phony_out = X[0] + X[1]
+            init_out.shape = phony_out.shape
+            tmp_inA = Tensor.create_from_data(self.session, X[0].shape, X[0])
+            tmp_inB = Tensor.create_from_data(self.session, X[1].shape, X[1])
+            sts = self._process_data(tmp_inA, tmp_inB, init_out)
+        except:
+            sts = BcipEnums.INIT_FAILURE
+
+        # pass on labels
+        self.copy_input_labels_to_output()
 
         return sts
 
@@ -316,42 +352,40 @@ class Binary:
         """
         Verify the inputs and outputs are appropriately sized
         """
+        # get the input and output parameters
+        d_inA = self.inputs[0]
+        d_inB = self.inputs[1]
+        d_out = self.outputs[0]
 
         # first ensure the inputs and outputs are the appropriate type
-        for operand in (self._inA, self._inB):
-            if not (
-                operand._bcip_type == BcipEnums.TENSOR
-                or operand._bcip_type == BcipEnums.SCALAR
-            ):
+        accepted_types = (BcipEnums.TENSOR, BcipEnums.SCALAR)
+        for operand in (d_inA, d_inB):
+            if operand.bcip_type not in accepted_types:
                 return BcipEnums.INVALID_PARAMETERS
 
-        if (
-            self._inA._bcip_type == BcipEnums.TENSOR
-            or self._inB._bcip_type == BcipEnums.TENSOR
-        ):
-            if self._outA._bcip_type != BcipEnums.TENSOR:
+        if (d_inA.bcip_type == BcipEnums.TENSOR
+            or d_inB.bcip_type == BcipEnums.TENSOR):
+            if d_out.bcip_type != BcipEnums.TENSOR:
                 # if one of the inputs is a tensor, the output will be a tensor
                 return BcipEnums.INVALID_PARAMETERS
-        elif self._outA._bcip_type != BcipEnums.SCALAR:
+        elif d_out.bcip_type != BcipEnums.SCALAR:
             # o.w. the output should be a scalar
             return BcipEnums.INVALID_PARAMETERS
 
         # if the inputs are scalars, ensure they are numeric
-        for param in (self._inA, self._inB, self._outA):
-            if (
-                param._bcip_type == BcipEnums.SCALAR
-                and param.data_type not in Scalar.valid_numeric_types()
-            ):
+        for param in (d_inA, d_inB, d_out):
+            if (param.bcip_type == BcipEnums.SCALAR
+                and param.data_type not in Scalar.valid_numeric_types()):
                 return BcipEnums.INVALID_PARAMETERS
 
         # check the shapes
-        if self._inA._bcip_type == BcipEnums.TENSOR:
-            inA_shape = self._inA.shape
+        if d_inA.bcip_type == BcipEnums.TENSOR:
+            inA_shape = d_inA.shape
         else:
             inA_shape = (1,)
 
-        if self._inB._bcip_type == BcipEnums.TENSOR:
-            inB_shape = self._inB.shape
+        if d_inB.bcip_type == BcipEnums.TENSOR:
+            inB_shape = d_inB.shape
         else:
             inB_shape = (1,)
 
@@ -370,16 +404,16 @@ class Binary:
 
         # if the output is a virtual tensor and has no defined shape, set the shape now
         if (
-            self._outA._bcip_type == BcipEnums.TENSOR
-            and self._outA.virtual
-            and len(self._outA.shape) == 0
+            d_out.bcip_type == BcipEnums.TENSOR
+            and d_out.virtual
+            and len(d_out.shape) == 0
         ):
-            self._outA.shape = out_shape
+            d_out.shape = out_shape
 
         # ensure the output shape equals the expected output shape
-        if self._outA._bcip_type == BcipEnums.TENSOR and self._outA.shape != out_shape:
+        if d_out.bcip_type == BcipEnums.TENSOR and d_out.shape != out_shape:
             return BcipEnums.INVALID_PARAMETERS
-        elif self._outA._bcip_type == BcipEnums.SCALAR and out_shape != (1,):
+        elif d_out.bcip_type == BcipEnums.SCALAR and out_shape != (1,):
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
@@ -388,7 +422,7 @@ class Binary:
         """
         Execute the kernel function using numpy function
         """
-        return self._process_data(self._inA, self._inB, self._outA)
+        return self._process_data(self.inputs[0], self.inputs[1], self.outputs[0])
 
 
 class AdditionKernel(Binary, Kernel):
@@ -406,37 +440,12 @@ class AdditionKernel(Binary, Kernel):
     outA : Tensor or Scalar 
         Output trial data
 
-    Attributes
-    ----------
-    _inA : Tensor or Scalar 
-        First input trial data
-    _inB : Tensor or Scalar 
-        Second input trial data
-    _outA : Tensor or Scalar 
-        Output trial data
-    _init_inA : Tensor or Scalar 
-        First input initialization data
-    _init_inB : Tensor or Scalar 
-        Second input initialization data
-    _init_outA : Tensor or Scalar 
-        Output initialization data
-    _init_labels_in : Tensor or Scalar 
-        Labels for the initialization data
-    _init_labels_out : Tensor or Scalar 
     """
 
     def __init__(self, graph, inA, inB, outA):
         super().__init__("Addition", BcipEnums.INIT_FROM_NONE, graph)
-        self._inA = inA
-        self._inB = inB
-        self._outA = outA
-
-        self._init_inA = None
-        self._init_inB = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
+        self.inputs = [inA, inB]
+        self.outputs = [outA]
 
     def _process_data(self, input_data1, input_data2, output_data):
         """
@@ -532,24 +541,6 @@ class DivisionKernel(Binary, Kernel):
     outA : Tensor or Scalar 
         Output trial data
 
-    Attributes
-    ----------
-    _inA : Tensor or Scalar 
-        First input trial data
-    _inB : Tensor or Scalar 
-        Second input trial data
-    _outA : Tensor or Scalar 
-        Output trial data
-    _init_inA : Tensor or Scalar 
-        First input initialization data
-    _init_inB : Tensor or Scalar 
-        Second input initialization data
-    _init_outA : Tensor or Scalar 
-        Output initialization data
-    _init_labels_in : Tensor or Scalar 
-        Labels for the initialization data
-    _init_labels_out : Tensor or Scalar 
-        Labels for the output initialization data
     """
 
     def __init__(self, graph, inA, inB, outA):
@@ -557,16 +548,8 @@ class DivisionKernel(Binary, Kernel):
         Constructor for the division kernel
         """
         super().__init__("Division", BcipEnums.INIT_FROM_NONE, graph)
-        self._inA = inA
-        self._inB = inB
-        self._outA = outA
-
-        self._init_inA = None
-        self._init_inB = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
+        self.inputs = [inA, inB]
+        self.outputs = [outA]
 
     def _process_data(self, input_data1, input_data2, output_data):
         """
@@ -662,39 +645,12 @@ class MultiplicationKernel(Binary, Kernel):
     outA : Tensor or Scalar 
         Output trial data
 
-    Attributes
-    ----------
-    _inA : Tensor or Scalar 
-        First input trial data
-    _inB : Tensor or Scalar 
-        Second input trial data
-    _outA : Tensor or Scalar 
-        Output trial data
-    _init_inA : Tensor or Scalar 
-        First input initialization data
-    _init_inB : Tensor or Scalar 
-        Second input initialization data
-    _init_outA : Tensor or Scalar 
-        Output initialization data
-    _init_labels_in : Tensor or Scalar 
-        Labels for the initialization data
-    _init_labels_out : Tensor or Scalar 
-        Labels for the output initialization data
-
     """
 
     def __init__(self, graph, inA, inB, outA):
         super().__init__("Multiplication", BcipEnums.INIT_FROM_NONE, graph)
-        self._inA = inA
-        self._inB = inB
-        self._outA = outA
-
-        self._init_inA = None
-        self._init_inB = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
+        self.inputs = [inA, inB]
+        self.outputs = [outA]
 
     def _process_data(self, input_data1, input_data2, output_data):
         """
@@ -790,39 +746,12 @@ class SubtractionKernel(Binary, Kernel):
     outA : Tensor or Scalar 
         Output trial data
 
-    Attributes
-    ----------
-    _inA : Tensor or Scalar 
-        First input trial data
-    _inB : Tensor or Scalar 
-        Second input trial data
-    _outA : Tensor or Scalar 
-        Output trial data
-    _init_inA : Tensor or Scalar 
-        First input initialization data
-    _init_inB : Tensor or Scalar 
-        Second input initialization data
-    _init_outA : Tensor or Scalar 
-        Output initialization data
-    _init_labels_in : Tensor or Scalar 
-        Labels for the initialization data
-    _init_labels_out : Tensor or Scalar 
-        Labels for the output initialization data
-
     """
 
     def __init__(self, graph, inA, inB, outA):
         super().__init__("Subtraction", BcipEnums.INIT_FROM_NONE, graph)
-        self._inA = inA
-        self._inB = inB
-        self._outA = outA
-
-        self._init_inA = None
-        self._init_inB = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
+        self.inputs = [inA, inB]
+        self.outputs = [outA]
 
     def _process_data(self, input_data1, input_data2, output_data):
         """
