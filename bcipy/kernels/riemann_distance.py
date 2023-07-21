@@ -1,4 +1,4 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
@@ -32,17 +32,9 @@ class RiemannDistanceKernel(Kernel):
         Kernel computes pairwise distances between 2D tensors
         """
         super().__init__('RiemannDistance',BcipEnums.INIT_FROM_NONE,graph)
-        self._inA  = inA
-        self._inB  = inB
-        self._outA = outA
+        self.inputs = [inA,inB]
+        self.outputs = [outA]
 
-        self._init_inA = None
-        self._init_inB = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
-    
     def initialize(self):
         """
         This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data
@@ -51,20 +43,19 @@ class RiemannDistanceKernel(Kernel):
 
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
-            # update output size, as needed
-            if self._init_outA.virtual:
-                output_sz = self._compute_output_shape(self._init_inA, self._init_inB)
-                self._init_outA.shape = output_sz
+        init_inA, init_inB = self.init_inputs
+        init_out = self.init_outputs[0]
 
-            sts = self._process_data(self._init_inA, self._init_inB, self._init_outA)
+        if init_out is not None and (init_inA is not None and init_inA.shape != ()):
+            # update output size, as needed
+            if init_out.virtual:
+                output_sz = self._compute_output_shape(init_inA, init_inB)
+                init_out.shape = output_sz
+
+            sts = self._process_data(init_inA, init_inB, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
         
         return sts
         
@@ -109,50 +100,43 @@ class RiemannDistanceKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
+
+        inA, inB = self.inputs
+        outA = self.outputs[0]
         
         # first ensure the input and output are tensors or Arrays of Tensors
-        for param in (self._inA, self._inB, self._outA):
+        for param in (inA, inB, outA):
             if (param._bcip_type != BcipEnums.TENSOR and
                 param._bcip_type != BcipEnums.ARRAY):
                 return BcipEnums.INVALID_PARAMETERS
 
-        out_sz = self._compute_output_shape(self._inA, self._inB)
+        out_sz = self._compute_output_shape(inA, inB)
         num_combos = out_sz[0]*out_sz[1]
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self._outA.virtual and len(self._outA.shape) == 0):
-            self._outA.shape = out_sz
+        if (outA.virtual and len(outA.shape) == 0):
+            outA.shape = out_sz
         
         
-        if (self._outA._bcip_type != BcipEnums.TENSOR and
-            self._outA.shape != out_sz):
+        if (outA.bcip_type != BcipEnums.TENSOR and
+            outA.shape != out_sz):
             return BcipEnums.INVALID_PARAMETERS
-        elif self._outA._bcip_type == BcipEnums.ARRAY:
-            if self._outA.capacity != num_combos:
+        elif outA.bcip_type == BcipEnums.ARRAY:
+            if outA.capacity != num_combos:
                 return BcipEnums.INVALID_PARAMETERS
             
-            for i in range(self._outA.capacity):
-                e = self._outA.get_element(i)
-                if ((e._bcip_type != BcipEnums.TENSOR and
-                     e._bcip_type != BcipEnums.SCALAR) or 
-                    (e._bcip_type == BcipEnums.TENSOR and e.shape != (1,1)) or
-                    (e._bcip_type == BcipEnums.SCALAR and e.data_type != float)):
+            for i in range(outA.capacity):
+                e = outA.get_element(i)
+                if ((e.bcip_type != BcipEnums.TENSOR and
+                     e.bcip_type != BcipEnums.SCALAR) or 
+                    (e.bcip_type == BcipEnums.TENSOR and e.shape != (1,1)) or
+                    (e.bcip_type == BcipEnums.SCALAR and e.data_type != float)):
                     return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
 
-    def initialization_execution(self):
-        """
-        Process initialization data if downstream nodes are missing training data
-        """
-        sts = self.process_data(self._init_inA, self._init_inB, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
-        
+       
     def _process_data(self, inputA, inputB, outputA):
         """
         Execute the kernel and calculate the mean
@@ -212,7 +196,7 @@ class RiemannDistanceKernel(Kernel):
         """
         Execute the kernel
         """
-        return self.process_data(self._inA, self._inB, self._outA)
+        return self.process_data(self.inputs[0], self.inputs[1], self.outputs[0])
     
     @classmethod
     def add_riemann_distance_node(cls,graph,inA,inB,outA):

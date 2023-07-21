@@ -1,4 +1,4 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Scalar
@@ -38,35 +38,28 @@ class CDFKernel(Kernel):
         Kernel takes tensor input of RVs
         """
         super().__init__('CDF',BcipEnums.INIT_FROM_NONE,graph)
-        self._inA  = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._dist = dist
         self._loc = loc
         self._scale = scale
         self._df = df        
     
-        self._init_inA = None
-        self._init_outA = None
-        
-        self._init_labels_in = None
-        self._init_labels_out = None
-
     def initialize(self):
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
-            # update output size, as needed
-            if self._init_outA.virtual:
-                self._init_outA.shape = self._init_inA.shape
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
 
-            sts = self._process_data(self._init_inA, self._init_outA)
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            # update output size, as needed
+            if init_out.virtual:
+                init_out.shape = init_in.shape
+
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
         
         return BcipEnums.SUCCESS
         
@@ -76,22 +69,25 @@ class CDFKernel(Kernel):
         Verify the inputs and outputs are appropriately sized and typed
         """
         
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
         # first ensure the input and output are tensors
-        if (self._inA._bcip_type != BcipEnums.TENSOR or 
-            self._outA._bcip_type != BcipEnums.TENSOR):
+        if (d_in.bcip_type != BcipEnums.TENSOR or 
+            d_out.bcip_type != BcipEnums.TENSOR):
                 return BcipEnums.INVALID_PARAMETERS
         
-        input_shape = self._inA.shape        
+        input_shape = d_in.shape        
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self._outA.virtual and len(self._outA.shape) == 0):
-            self._outA.shape = input_shape
+        if (d_out.virtual and len(d_out.shape) == 0):
+            d_out.shape = input_shape
         
         
         # check that the dimensions of the output match the dimensions of
         # input
-        if self._inA.shape != self._outA.shape:
+        if d_in.shape != d_out.shape:
             return BcipEnums.INVALID_PARAMETERS
         
         # check that the distribution is supported
@@ -123,7 +119,7 @@ class CDFKernel(Kernel):
         """
         Execute the kernel and calculate the CDF
         """
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0],self.outputs[0])
     
     @classmethod
     def add_cdf_node(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1):
@@ -186,15 +182,9 @@ class CovarianceKernel(Kernel):
     
     def __init__(self,graph,inputA,outputA,regularization):
         super().__init__('Covariance',BcipEnums.INIT_FROM_NONE,graph)
-        self._inputA  = inputA
-        self._outputA = outputA
+        self.inputs = [inputA]
+        self.outputs = [outputA]
         self._r = regularization
-
-        self._init_inA = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
 
     def initialize(self):
         """
@@ -202,21 +192,20 @@ class CovarianceKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
-            # update output size, as needed
-            if self._init_outA.virtual:
-                shape = list(self._init_inA.shape)
-                shape[-1] = shape[-2]
-                self._init_outA.shape = tuple(shape)
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
 
-            sts = self._process_data(self._init_inA, self._init_outA)
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            # update output size, as needed
+            if init_out.virtual:
+                shape = list(init_in.shape)
+                shape[-1] = shape[-2]
+                init_out.shape = tuple(shape)
+
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
 
         return BcipEnums.SUCCESS
 
@@ -224,17 +213,20 @@ class CovarianceKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized
         """
+
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
         
         # first ensure the input and output are tensors
-        if (self._inputA._bcip_type != BcipEnums.TENSOR or 
-            self._outputA._bcip_type != BcipEnums.TENSOR):
+        if (d_in.bcip_type != BcipEnums.TENSOR or 
+            d_out.bcip_type != BcipEnums.TENSOR):
             return BcipEnums.INVALID_PARAMETERS
         
         if self._r > 1 or self._r < 0:
             return BcipEnums.INVALID_PARAMETERS
         
         # check the shape
-        input_shape = self._inputA.shape
+        input_shape = d_in.shape
         input_rank = len(input_shape)
         
         # determine what the output shape should be
@@ -248,11 +240,11 @@ class CovarianceKernel(Kernel):
             output_shape = tuple(output_shape)
         
         # if the output is virtual and has no defined shape, set the shape now
-        if self._outputA.virtual and len(self._outputA.shape) == 0:
-            self._outputA.shape = output_shape
+        if d_out.virtual and len(d_out.shape) == 0:
+            d_out.shape = output_shape
         
         # ensure the output tensor's shape equals the expected output shape
-        if self._outputA.shape != output_shape:
+        if d_out.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
@@ -292,7 +284,7 @@ class CovarianceKernel(Kernel):
         """
         Execute the kernel function
         """
-        return self._process_data(self._inputA, self._outputA)
+        return self._process_data(self.inputs[0],self.outputs[0])
     
     @classmethod
     def add_covariance_node(cls,graph,inputA,outputA,regularization=0):
@@ -352,33 +344,31 @@ class Descriptive:
         """
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
-            # update the output shape
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            # update the output shape, as needed
             axis_adjusted = False
-            if (len(self._inA.shape) != len(self._init_inA.shape) and
+            if (len(self.inputs[0].shape) != len(init_in.shape) and
                 self._axis >= 0):
                 self._axis += 1 # adjust axis assuming stacked data
                 axis_adjusted = True
                 
-            if self._init_outA.virtual:
-                phony_out = np.mean(self._init_inA.data,
+            if init_out.virtual:
+                phony_out = np.mean(init_in.data,
                                     axis=self._axis,
                                     keepdims=self._keepdims)
-                self._init_outA.shape = phony_out.shape
+                init_out.shape = phony_out.shape
             
-            sts = self._process_data(self._init_inA,self._init_outA)
+            sts = self._process_data(init_in,init_out)
             
             if axis_adjusted:
                 self._axis -= 1 # re-adjust axis
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
 
-                
         return sts
  
 
@@ -387,52 +377,54 @@ class Descriptive:
         Verify the inputs and outputs are appropriately sized
         """
         
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
         # input must be a tensor
-        if self._inA._bcip_type != BcipEnums.TENSOR:
+        if d_in.bcip_type != BcipEnums.TENSOR:
             return BcipEnums.INVALID_PARAMETERS
 
         # output must be a tensor or scalar
-        if (self._outA._bcip_type != BcipEnums.TENSOR and 
-            self._outA._bcip_type != BcipEnums.SCALAR):
+        if (d_out.bcip_type != BcipEnums.TENSOR and 
+            d_out.bcip_type != BcipEnums.SCALAR):
             return BcipEnums.INVALID_PARAMETERS
 
         # input tensor must contain some values
-        if len(self._inA.shape) == 0:
+        if len(d_in.shape) == 0:
             return BcipEnums.INVALID_PARAMETERS
 
         # attempt a phony execution to check if axis and keepdims are valid
         # and get the shape of the output
         try:
-            phony_in = np.zeros(self._inA.shape)
+            phony_in = np.zeros(d_in.shape)
             phony_out = np.mean(phony_in, axis=self._axis, keepdims=self._keepdims)
         except:
             return BcipEnums.INVALID_PARAMETERS
 
         # check shape and format of output
-        if self._outA._bcip_type == BcipEnums.TENSOR:
+        if d_out.bcip_type == BcipEnums.TENSOR:
             output_shape = phony_out.shape
 
-            if self._outA.virtual and len(self._outA.shape) == 0:
-                self._outA.shape = output_shape
+            if d_out.virtual and len(d_out.shape) == 0:
+                d_out.shape = output_shape
 
-            if self._outA.shape != output_shape:
+            if d_out.shape != output_shape:
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
             # if the output is a scalar, the operation must produce a single value
-            if (self._outA.data_type != float or
+            if (d_out.data_type != float or
                 self._axis != None or
                 self._keepdims):
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
 
-
     def execute(self):
         """
         Execute the kernel function using numpy function
         """
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0],self.outputs[0])
     
 
 
@@ -460,21 +452,15 @@ class MaxKernel(Descriptive, Kernel):
     
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
         super().__init__('Max',BcipEnums.INIT_FROM_NONE,graph)
-        self._inA   = inA
-        self._outA  = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
 
         self._axis = axis
         self._keepdims = keepdims
 
-        self._init_inA = None
-        self._init_outA = None
-        
-        self._init_labels_in = None
-        self._init_labels_out = None
-   
     def _process_data(self, input_data, output_data):
         try:
-            if output_data._bcip_type == BcipEnums.SCALAR:
+            if output_data.bcip_type == BcipEnums.SCALAR:
                 output_data.data = np.amax(input_data.data).item()
             else:
                 result = np.amax(input_data.data,
@@ -552,20 +538,15 @@ class MinKernel(Descriptive, Kernel):
     
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
         super().__init__('Min',BcipEnums.INIT_FROM_NONE,graph)
-        self._in   = inA
-        self._out  = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._axis = axis
         self._keepdims = keepdims
 
-        self._init_inA = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
 
     def _process_data(self, input_data, output_data):
         try:
-            if output_data._bcip_type == BcipEnums.SCALAR:
+            if output_data.bcip_type == BcipEnums.SCALAR:
                 output_data.data = np.amin(input_data.data).item()
             else:
                 result = np.amin(input_data.data,
@@ -648,20 +629,14 @@ class MeanKernel(Descriptive, Kernel):
         Kernal calculates arithmetic mean of values in tensor or array
         """
         super().__init__('Mean',BcipEnums.INIT_FROM_NONE,graph)
-        self._inA  = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._axis = axis
         self._keepdims = keepdims
 
-        self._init_inA = None
-        self._init_outA = None
-        
-        self._init_labels_in = None
-        self._init_labels_out = None
-
     def _process_data(self, input_data, output_data):
         try:
-            if output_data._bcip_type == BcipEnums.SCALAR:
+            if output_data.bcip_type == BcipEnums.SCALAR:
                 output_data.data = np.mean(input_data.data).item()
             else:
                 result = np.mean(input_data.data,
@@ -743,29 +718,25 @@ class StdKernel(Descriptive, Kernel):
         Kernal calculates arithmetic standard deviation of values in tensor
         """
         super().__init__('Std',BcipEnums.INIT_FROM_NONE,graph)
-        self._inA  = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._axis = axis
         self._ddof = ddof
         self._keepdims = keepdims
         
-        self._init_inA = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
- 
     def verify(self):
         sts = super().verify()
 
+        d_in = self.inputs[0]
+
         # verify ddof is valid
         if isinstance(self._axis, int):
-            N = self._inA.shape[self._axis]
+            N = d_in.shape[self._axis]
         else:
             if self._axis == None:
-                dims = self._inA.shape
+                dims = d_in.shape
             else:
-                dims = [self._inA.shape[a] for a in self._axis]
+                dims = [d_in.shape[a] for a in self._axis]
             N = 1
             for dim in dims:
                 N *= dim
@@ -785,7 +756,7 @@ class StdKernel(Descriptive, Kernel):
                             ddof=self._ddof,
                             keepdims=self._keepdims)
 
-            if output_data._bcip_type == BcipEnums.SCALAR:
+            if output_data.bcip_type == BcipEnums.SCALAR:
                 output_data.data = result.item()
             else:
                 if np.isscalar(result):
@@ -866,30 +837,25 @@ class VarKernel(Descriptive, Kernel):
         Kernal calculates arithmetic variance of values in tensor
         """
         super().__init__('Var',BcipEnums.INIT_FROM_NONE,graph)
-        self._inA  = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._axis = axis
         self._ddof = ddof
         self._keepdims = keep_dims
         
-        self._init_inA = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
-
-
     def verify(self):
         sts = super().verify()
 
+        d_in = self.inputs[0]
+
         # verify ddof is valid
         if isinstance(self._axis, int):
-            N = self._inA.shape[self._axis]
+            N = d_in.shape[self._axis]
         else:
             if self._axis == None:
-                dims = self._inA.shape
+                dims = d_in.shape
             else:
-                dims = [self._inA.shape[a] for a in self._axis]
+                dims = [d_in.shape[a] for a in self._axis]
             N = 1
             for dim in dims:
                 N *= dim
@@ -909,7 +875,7 @@ class VarKernel(Descriptive, Kernel):
                             ddof=self._ddof,
                             keepdims=self._keepdims)
 
-            if output_data._bcip_type == BcipEnums.SCALAR:
+            if output_data.bcip_type == BcipEnums.SCALAR:
                 output_data.data = result.item()
             else:
                 if np.isscalar(result):
@@ -980,54 +946,51 @@ class ZScoreKernel(Kernel):
     
     def __init__(self,graph,inA,outA,init_data):
         super().__init__('Zscore',BcipEnums.INIT_FROM_DATA,graph)
-        self._inA   = inA
-        self._out  = outA
-        self.initialization_data = init_data
+        self.inputs = [inA]
+        self.outputs = [outA]
 
-        self._init_inA = None
-        self._init_outA = None
+        if init_data is not None:
+            self.init_inputs = [init_data]
 
         self._mu = 0
         self._sigma = 0
         self._initialized = False
 
-        self._init_labels_in = None
-        self._init_labels_out = None
-
     def initialize(self):
         """
         Initialize the mean and std. Call initialization_execution if downstream nodes are missing training data
         """
-        if self.initialization_data == None:
-            self.initialization_data = self._init_inA
 
-        if (self.initialization_data._bcip_type != BcipEnums.ARRAY and
-            self.initialization_data._bcip_type != BcipEnums.TENSOR and
-            self.initialization_data._bcip_type != BcipEnums.CIRCLE_BUFFER):
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        if (init_in.bcip_type != BcipEnums.ARRAY and
+            init_in.bcip_type != BcipEnums.TENSOR and
+            init_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
             return BcipEnums.INITIALIZATION_FAILURE
 
-        if self.initialization_data._bcip_type == BcipEnums.TENSOR:
-            if len(self.initialization_data.data.squeeze().shape) != 1:
+        if init_in.bcip_type == BcipEnums.TENSOR:
+            if len(init_in.squeeze().shape) != 1:
                 return BcipEnums.INITIALIZATION_FAILURE
         else:
-            e = self.initialization_data.get_element(0)
-            if e._bcip_type == BcipEnums.TENSOR:
+            e = init_in.get_element(0)
+            if e.bcip_type == BcipEnums.TENSOR:
                 if (e.shape != (1,)) and (e.shape != (1,1)):
                     return BcipEnums.INITIALIZATION_FAILURE
-            elif e._bcip_type == BcipEnums.SCALAR:
+            elif e.bcip_type == BcipEnums.SCALAR:
                 if not e.data_type in Scalar.valid_numeric_types():
                     return BcipEnums.INITIALIZATION_FAILURE
             else:
                 return BcipEnums.INITIALIZATION_FAILURE
 
-        if self.initialization_data._bcip_type == BcipEnums.TENSOR:
-            d = self.initialization_data.data.squeeze()
+        if init_in.bcip_type == BcipEnums.TENSOR:
+            d = init_in.data.squeeze()
         else:
-            e = self.initialization_data.get_element(0)
+            e = init_in.get_element(0)
             dl = []
-            for i in range(self.initialization_data.capacity):
-                elem_data = self.initialization_data.get_element(i).data
-                if e._bcip_type == BcipEnums.TENSOR:
+            for i in range(init_in.capacity):
+                elem_data = init_in.get_element(i).data
+                if e.bcip_type == BcipEnums.TENSOR:
                     dl.append(elem_data)
                 else:
                     # convert scalar values to numpy arrays
@@ -1045,19 +1008,15 @@ class ZScoreKernel(Kernel):
         self._initialized = True
 
         sts = BcipEnums.SUCCESS
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
             # set output size, as needed
-            if self._init_outA.virtual:
-                self._init_outA.shape = self._init_inA.shape
+            if init_out.virtual:
+                init_out.shape = init_in.shape
 
-            sts = self._process_data(self._init_inA, self._init_outA)
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
         
         return sts
 
@@ -1066,43 +1025,47 @@ class ZScoreKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
+
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
         # input and output must be scalar or tensor
-        for param in (self._inA, self._out):
-            if (param._bcip_type != BcipEnums.SCALAR and
-                param._bcip_type != BcipEnums.TENSOR):
+        for param in (d_in, d_out):
+            if (param.bcip_type != BcipEnums.SCALAR and
+                param.bcip_type != BcipEnums.TENSOR):
                 return BcipEnums.INVALID_PARAMETERS
 
-        if self._inA._bcip_type == BcipEnums.TENSOR:
+        if d_in.bcip_type == BcipEnums.TENSOR:
             # input tensor must contain some values
-            if len(self._inA.shape) == 0:
+            if len(d_in.shape) == 0:
                 return BcipEnums.INVALID_PARAMETERS
 
             # must contain only one non-singleton dimension
-            if len(self._inA.data.squeeze().shape) > 1:
+            if len(d_in.data.squeeze().shape) > 1:
                 return BcipEnums.INVALID_PARAMETERS
 
             # if output is a scalar, tensor must contain a single element
-            if (self._out._bcip_type == BcipEnums.SCALAR and
-                len(self._inA.data.squeeze().shape) != 0):
+            if (d_out.bcip_type == BcipEnums.SCALAR and
+                len(d_in.data.squeeze().shape) != 0):
                 return BcipEnums.INVALID_PARAMETERS
 
         else:
             # input scalar must contain a number
-            if not self._inA.data_type in Scalar.valid_numeric_types():
+            if not d_in.data_type in Scalar.valid_numeric_types():
                 return BcipEnums.INVALID_PARAMETERS
 
-            if self._out._bcip_type == BcipEnums.SCALAR and self._out.data_type != float:
+            if d_out.bcip_type == BcipEnums.SCALAR and d_out.data_type != float:
                 return BcipEnums.INVALID_PARAMETERS
 
-            if self._out._bcip_type == BcipEnums.TENSOR and self._out.shape != (1,1):
+            if d_out.bcip_type == BcipEnums.TENSOR and d_out.shape != (1,1):
                 return BcipEnums.INVALID_PARAMETERS
             
 
-        if self._out._bcip_type == BcipEnums.TENSOR:
-            if self._out.virtual() and len(self._out.shape) == 0:
-                self._out.shape = self._inA.shape
+        if d_out.bcip_type == BcipEnums.TENSOR:
+            if d_out.virtual and len(d_out.shape) == 0:
+                d_out.shape = d_in.shape
 
-            if self._out.shape != self._inA.shape:
+            if d_out.shape != d_in.shape:
                 return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
@@ -1117,14 +1080,14 @@ class ZScoreKernel(Kernel):
         try:
             out_data = (input_data.data - self._mu) / self._sigma
 
-            if (input_data._bcip_type == BcipEnums.TENSOR and
-                output_data._bcip_type == BcipEnums.SCALAR):
+            if (input_data.bcip_type == BcipEnums.TENSOR and
+                output_data.bcip_type == BcipEnums.SCALAR):
                 # peel back layers of array until the value is extracted
                 while isinstance(out_data,np.ndarry):
                     out_data = out_data[0]
                 output_data.data = out_data
-            elif (input_data._bcip_type == BcipEnums.SCALAR and
-                  output_data._bcip_type == BcipEnums.TENSOR):
+            elif (input_data.bcip_type == BcipEnums.SCALAR and
+                  output_data.bcip_type == BcipEnums.TENSOR):
                 output_data.data = np.asarray([[out_data]])
             else:
                 output_data.data = out_data
@@ -1139,7 +1102,7 @@ class ZScoreKernel(Kernel):
         """
         Execute the kernel function using numpy function
         """
-        return self._process_data(self._inA, self._out)
+        return self._process_data(self.inputs[0],self.outputs[0])
     
     @classmethod
     def add_zscore_node(cls,graph,inA,outA,init_data):

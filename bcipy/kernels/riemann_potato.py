@@ -1,9 +1,8 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
+from ..containers import Tensor
 from .kernel_utils import extract_nested_data
-
-from ..containers import Scalar
 
 import numpy as np
 
@@ -40,19 +39,16 @@ class RiemannPotatoKernel(Kernel):
         the predicted class
         """
         super().__init__('RiemannPotato',BcipEnums.INIT_FROM_DATA,graph)
-        self._inA  = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
 
         self._thresh = thresh
         self._max_iter = max_iter
         self._r = regulization
         
+        if initialization_data is not None:
+            self.init_inputs = [initialization_data]
 
-        self._init_inA = initialization_data
-        self._init_labels_in = None
-        self._init_labels_out = None
-        self._init_outA = None
- 
         # model will be trained using data in tensor object at later time
         self._initialized = False
         self._potato_filter = None
@@ -65,28 +61,36 @@ class RiemannPotatoKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
         
-        if self.init_style == BcipEnums.INIT_FROM_DATA:
-            self._initialized = False # clear initialized flag
-            sts = self._fit_filter()
-
-        # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_inA is not None:
-            # adjust the shape of init output tensor
-            if len(self._init_inA.shape) == 3:
-                self._init_outA.shape = (self._init_inA.shape[0],)
- 
-            sts = self._process_data(self._init_inA, self._init_outA)
-
-            # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+        self._initialized = False # clear initialized flag
+        sts = self._fit_filter()
 
         if sts == BcipEnums.SUCCESS:
             self._initialized = True
-        
+
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        # compute init output
+        if sts == BcipEnums.SUCCESS and init_out is not None and init_in is not None:
+            # adjust the shape of init output tensor
+            if init_in.bcip_type != BcipEnums.TENSOR:
+                init_in = init_in.to_tensor()
+            if len(init_in.shape) == 3:
+                init_out.shape = (init_in.shape[0],)
+
+            # if the init input is trial data, compute the covariances
+            if init_in.shape[-2] != init_in.shape[-1]:
+                init_trial_data = init_in.data
+                init_covs = covariances(init_trial_data)
+                init_in = Tensor.create_from_data(self.session, init_covs.shape, init_covs)
+ 
+            sts = self._process_data(init_in, init_out)
+
+            # pass on the labels
+            if self.init_input_labels is not None:
+                self.copy_init_labels_to_output()
+
+       
         return sts
         
        
@@ -94,18 +98,19 @@ class RiemannPotatoKernel(Kernel):
         """
         fit the potato filter using the initialization data
         """
+        init_in = self.init_inputs[0]
 
-        if (self._init_inA._bcip_type != BcipEnums.TENSOR and
-            self._init_inA._bcip_type != BcipEnums.ARRAY  and
-            self._init_inA._bcip_type != BcipEnums.CIRCLE_BUFFER):
+        if (init_in.bcip_type != BcipEnums.TENSOR and
+            init_in.bcip_type != BcipEnums.ARRAY  and
+            init_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if self._init_inA._bcip_type == BcipEnums.TENSOR: 
-            X = self._init_params['initialization_data'].data
+        if init_in.bcip_type == BcipEnums.TENSOR: 
+            X = init_in.data
         else:
             try:
                 # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._init_inA)
+                X = extract_nested_data(init_in)
             except:
                 return BcipEnums.INITIALIZATION_FAILURE
             
@@ -127,13 +132,17 @@ class RiemannPotatoKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
+
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
         # first ensure the input is a tensor
-        if self._inA._bcip_type != BcipEnums.TENSOR:
+        if d_in.bcip_type != BcipEnums.TENSOR:
             return BcipEnums.INVALID_PARAMETERS
 
         # ensure the output is a tensor or scalar
-        if (self._outA._bcip_type != BcipEnums.TENSOR and
-            self._outA._bcip_type != BcipEnums.SCALAR):
+        if (d_out.bcip_type != BcipEnums.TENSOR and
+            d_out.bcip_type != BcipEnums.SCALAR):
             return BcipEnums.INVALID_PARAMETERS
 
         # check thresh and max iterations
@@ -141,7 +150,7 @@ class RiemannPotatoKernel(Kernel):
             return BcipEnums.INVALID_PARAMETERS
 
         # check in/out dimensions        
-        input_shape = self._inA.shape
+        input_shape = d_in.shape
         input_rank = len(input_shape)
         
         # input tensor should not be greater than rank 3
@@ -154,33 +163,32 @@ class RiemannPotatoKernel(Kernel):
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self._outA._bcip_type == BcipEnums.TENSOR and 
-            self._outA.virtual and
-            len(self._outA.shape) == 0):
+        if (d_out.bcip_type == BcipEnums.TENSOR and 
+            d_out.virtual and
+            len(d_out.shape) == 0):
             if input_rank == 2:
-                self._outA.shape = (1,)
+                d_out.shape = (1,)
             else:
-                self._outA.shape = (input_shape[0],)
+                d_out.shape = (input_shape[0],)
         
         # check for dimensional alignment
-        if self._outA._bcip_type == BcipEnums.SCALAR:
+        if d_out.bcip_type == BcipEnums.SCALAR:
             # input tensor should only be a single trial
-            if len(self._inA.shape) == 3:
+            if len(d_in.shape) == 3:
                 # first dimension must be equal to one
-                if self._inA.shape[0] != 1:
+                if d_in.shape[0] != 1:
                     return BcipEnums.INVALID_PARAMETERS
         else:
             # check that the dimensions of the output match the dimensions of
             # input
-            if self._inA.shape[0] != self._outA.shape[0]:
+            if d_in.shape[0] != d_out.shape[0]:
                 return BcipEnums.INVALID_PARAMETERS
 
             # output tensor should be one dimensional
-            if len(self._outA.shape) > 1:
+            if len(d_out.shape) > 1:
                 return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
-
 
 
     def _process_data(self, inA, outA):
@@ -194,7 +202,7 @@ class RiemannPotatoKernel(Kernel):
             input_data = (1-self._r)*input_data + self._r*np.eye(inA.shape[-1])
             output = self._potato_filter.predict(input_data)
 
-            if outA._bcip_type == BcipEnums.SCALAR:
+            if outA.bcip_type == BcipEnums.SCALAR:
                 outA.data = int(output)
             else:
                 outA.data = output
@@ -213,7 +221,7 @@ class RiemannPotatoKernel(Kernel):
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         else:
-            return self._process_data(self._inA, self._outA)
+            return self._process_data(self.inputs[0], self.outputs[0])
 
        
     @classmethod
@@ -239,4 +247,3 @@ class RiemannPotatoKernel(Kernel):
         graph.add_node(node)
         
         return node
-
