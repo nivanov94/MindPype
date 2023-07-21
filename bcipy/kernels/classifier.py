@@ -115,9 +115,11 @@ class ClassifierKernel(Kernel):
             init_tensor = Tensor.create_from_data(self.session, X.shape, X)
 
             # adjust output shapes if necessary
-            for init_out in self.init_outputs:
-                if init_out is not None and init_out.virtual:
-                    init_out.shape = (X.shape[0],)
+            if self.init_outputs[0] is not None and self.init_outputs[0].virtual:
+                self.init_outputs[0].shape = (X.shape[0],)
+            
+            if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
+                self.init_outputs[1].shape = (X.shape[0], self._classifier._classifier.n_classes_)
 
             sts = self._process_data(init_tensor, 
                                      self.init_outputs[0], 
@@ -169,7 +171,7 @@ class ClassifierKernel(Kernel):
             input_sz = (d_in.capacity,) + d_in.get_element(0).shape
 
 
-        for d_out in self.outputs:
+        for i_o, d_out in enumerate(self.outputs):
             if d_out is not None: # skip optional outputs not used
                 # output must be scalar or tensor
                 accepted_output_types = (BcipEnums.SCALAR, BcipEnums.TENSOR)
@@ -181,12 +183,22 @@ class ClassifierKernel(Kernel):
                     if len(input_sz) == 1:
                         # single trial/sample mode
                         if d_out.bcip_type == BcipEnums.TENSOR:
-                            output_sz = (1,)
+                            if i_o == 0:
+                                # predicted label output
+                                output_sz = (1,)
+                            else:
+                                # probability output
+                                output_sz = (1, self._classifier._classifier.n_classes_)
                 
                     elif len(input_sz) == 2:
                         #single trial or multi-trial batch mode
                         if d_out.bcip_type == BcipEnums.TENSOR:
-                            output_sz = (input_sz[0],)
+                            if i_o == 0:
+                                # predicted label output
+                                output_sz = (input_sz[0],)
+                            else:
+                                # probability output
+                                output_sz = (input_sz[0], self._classifier._classifier.n_classes_)
 
                     elif (d_out.bcip_type == BcipEnums.SCALAR and
                           input_sz[0] != 1):
@@ -198,7 +210,12 @@ class ClassifierKernel(Kernel):
 
                     # check elements are correct shape
                     if len(input_sz) == 2:
-                        output_sz = (d_in.capacity,)
+                        if i_o == 0:
+                            # predicted label output
+                            output_sz = (d_in.capacity,)
+                        else:
+                            # probability output
+                            output_sz = (d_in.capacity, self._classifier._classifier.n_classes_)
                     else:
                         return BcipEnums.INVALID_PARAMETERS
 
