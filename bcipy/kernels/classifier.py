@@ -55,8 +55,6 @@ class ClassifierKernel(Kernel):
 
     def initialize(self):
 
-        sts = BcipEnums.SUCCESS
-
         self._initialized = False # clear initialized flag
         
         # check that the input init data is in the correct type
@@ -66,7 +64,7 @@ class ClassifierKernel(Kernel):
         
         for init_obj in (init_in,labels):
             if init_obj.bcip_type not in accepted_inputs:
-                return BcipEnums.INITIALIZATION_FAILURE
+                raise TypeError('Initialization data must be a tensor or array of tensors')
     
         # extract the initialization data from a potentially nested array of tensors 
         X = extract_init_inputs(init_in)
@@ -80,19 +78,8 @@ class ClassifierKernel(Kernel):
         if len(y.shape) == 2:
             y = np.squeeze(y)
 
-
-        if (len(X.shape) != 2 or len(y.shape) != 1):
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        if X.shape[0] != y.shape[0]:
-            return BcipEnums.INITIALIZATION_FAILURE
-
         # initialize the classifier
-        try:
-            self._classifier._classifier.fit(X, y)
-        except:
-            return BcipEnums.INITIALIZATION_FAILURE
-
+        self._classifier._classifier.fit(X, y)
         self._initialized = True
 
         # set the initialization output        
@@ -107,14 +94,12 @@ class ClassifierKernel(Kernel):
             if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
                 self.init_outputs[1].shape = (X.shape[0], self._classifier._classifier.n_classes_)
 
-            sts = self._process_data(init_tensor, 
-                                     self.init_outputs[0], 
-                                     self.init_outputs[1])
+            self._process_data(init_tensor, 
+                               self.init_outputs[0], 
+                               self.init_outputs[1])
 
             # pass on the labels
             self.copy_init_labels_to_output()
-        
-        return sts
         
 
     def verify(self):
