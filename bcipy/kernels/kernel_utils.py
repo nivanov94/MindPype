@@ -61,7 +61,8 @@ def extract_init_inputs(init_in):
         try:
             # extract the data from a potentially nested array of tensors
             init_input_data = extract_nested_data(init_in)
-        except:
-            return None
+        except Exception as e:
+            e.add_note("Unable to extract initialization data from input")
+            raise
         
     return init_input_data

@@ -1,8 +1,8 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Scalar, Tensor
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 import numpy as np
 
@@ -30,35 +30,18 @@ class Unary:
                 raise TypeError("Invalid initialization input type")
     
         # extract the data from the input
-        if init_in.bcip_type == BcipEnums.TENSOR: 
-            X = init_in.data
-        else:
-            try:
-                # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(init_in)
-            except Exception as e:
-                e.add_note("Failure extracting initialization data from initialization input")
-                raise    
+        X = extract_init_inputs(init_in)
+        y = extract_init_inputs(labels)
     
-        if labels.bcip_type == BcipEnums.TENSOR:    
-            y = labels.data
-        else:
-            try:
-                y = extract_nested_data(labels)
-            except Exception as e:
-                e.add_note("Failure extracting initialization labels")
-                raise
-        
         # set the output size, as needed
         if init_out.virtual:
             init_out.shape = init_in.shape
 
-        sts = self._process_data(init_in, init_out)
+        self._process_data(init_in, init_out)
 
         # pass on labels
         self.copy_init_labels_to_output()
 
-        return sts
 
     def verify(self):
         """
@@ -102,7 +85,7 @@ class Unary:
         """
         Execute the kernel function with the input trial data
         """
-        return self._process_data(self.inputs[0], self.outputs[0])
+        self._process_data(self.inputs[0], self.outputs[0])
 
 
 class AbsoluteKernel(Unary, Kernel):
@@ -210,13 +193,6 @@ class LogKernel(Unary, Kernel):
         output_data : Tensor or Scalar 
             Output trial data
 
-        Return
-        ------
-        BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
-
-        Return Type
-        -----------
-        BcipEnums
         """
 
         data = np.log(input_data.data)
@@ -299,36 +275,19 @@ class Binary:
         # extract the data from the input
         X = [None] * 2
         for i, i_in in enumerate((init_inA, init_inB)):
-            if i_in.bcip_type == BcipEnums.TENSOR: 
-                X[i] = i_in.data
-            else:
-                try:
-                    # extract the data from a potentially nested array of tensors
-                    X[i] = extract_nested_data(i_in)
-                except Exception as e:
-                    e.add_note("Failure extracting initialization data from initialization input")
-                    raise
+            X[i] = extract_init_inputs(i_in)
 
-        if labels.bcip_type == BcipEnums.TENSOR:    
-            y = labels.data
-        else:
-            try:
-                y = extract_nested_data(labels)
-            except Exception as e:
-                e.add_note("Failure extracting initialization labels")
-                raise
+        y = extract_init_inputs(labels)    
 
         # determine output dimensions and adjust init_out shape
         phony_out = X[0] + X[1]
         init_out.shape = phony_out.shape
         tmp_inA = Tensor.create_from_data(self.session, X[0].shape, X[0])
         tmp_inB = Tensor.create_from_data(self.session, X[1].shape, X[1])
-        sts = self._process_data(tmp_inA, tmp_inB, init_out)
+        self._process_data(tmp_inA, tmp_inB, init_out)
 
         # pass on labels
         self.copy_input_labels_to_output()
-
-        return sts
 
     def verify(self):
         """
@@ -395,7 +354,7 @@ class Binary:
         """
         Execute the kernel function using numpy function
         """
-        return self._process_data(self.inputs[0], self.inputs[1], self.outputs[0])
+        self._process_data(self.inputs[0], self.inputs[1], self.outputs[0])
 
 
 class AdditionKernel(Binary, Kernel):
@@ -433,14 +392,6 @@ class AdditionKernel(Binary, Kernel):
         output_data : Tensor or Scalar 
             Output trial data
 
-        Returns
-        -------
-        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
-            Status of the execution
-
-        Return type
-        -----------
-        BcipEnums
         """
         output_data.data = input_data1.data + input_data2.data
 
@@ -531,14 +482,6 @@ class DivisionKernel(Binary, Kernel):
         output_data : Tensor or Scalar 
             Output trial data
 
-        Returns
-        -------
-        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
-            Status of the execution
-
-        Return type
-        -----------
-        BcipEnums
         """
         output_data.data = input_data1.data / input_data2.data
 
@@ -626,14 +569,6 @@ class MultiplicationKernel(Binary, Kernel):
         output_data : Tensor or Scalar 
             Output trial data
 
-        Returns
-        -------
-        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
-            Status of the execution
-
-        Return type
-        -----------
-        BcipEnums
         """
         output_data.data = input_data1.data * input_data2.data
 
@@ -721,14 +656,6 @@ class SubtractionKernel(Binary, Kernel):
         output_data : Tensor or Scalar 
             Output trial data
 
-        Returns
-        -------
-        sts : BcipEnums.SUCCESS or BcipEnums.EXE_FAILURE
-            Status of the execution
-
-        Return type
-        -----------
-        BcipEnums
         """
         output_data.data = input_data1.data - input_data2.data
 

@@ -83,8 +83,7 @@ class ClassifierKernel(Kernel):
         self._initialized = True
 
         # set the initialization output        
-        if (sts == BcipEnums.SUCCESS and 
-            (self.init_outputs[0] is not None or self.init_outputs[1] is not None)):
+        if self.init_outputs[0] is not None or self.init_outputs[1] is not None:
             init_tensor = Tensor.create_from_data(self.session, X.shape, X)
 
             # adjust output shapes if necessary
@@ -111,29 +110,29 @@ class ClassifierKernel(Kernel):
                                 BcipEnums.CIRCLE_BUFFER)
         
         d_in = self.inputs[0]
-        if d_in._bcip_type not in accepted_input_types:
-            return BcipEnums.INVALID_PARAMETERS
+        if d_in.bcip_type not in accepted_input_types:
+            raise TypeError('Input data must be a tensor or array of tensors')
 
         # if input is an array, check that its elements are tensors
         if (d_in.bcip_type != BcipEnums.TENSOR):
             e = d_in.get_element(0)
             if e.bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError('Input data must be a tensor or array of tensors')
 
         # check that the classifier is valid
         if (self._classifier.bcip_type != BcipEnums.CLASSIFIER):
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError('Classifier must be a BCIP Classifier object')
         
         # ensure the classifier has a predict method
         if (not hasattr(self._classifier._classifier, 'predict') or 
             not callable(self._classifier._classifier.predict)):
-            return BcipEnums.INVALID_PARAMETERS
+            raise Exception('Classifier does not have a predict method')
         
         # if using probability output, ensure the classifier has a predict_proba method
         if (self.outputs[1] is not None and
             (not hasattr(self._classifier._classifier, 'predict_proba') or
              not callable(self._classifier._classifier.predict_proba))):
-            return BcipEnums.INVALID_PARAMETERS
+            raise Exception('Classifier does not have a predict_proba method')
 
         # verify type and shape of outputs
         if d_in.bcip_type == BcipEnums.TENSOR:
@@ -147,7 +146,7 @@ class ClassifierKernel(Kernel):
                 # output must be scalar or tensor
                 accepted_output_types = (BcipEnums.SCALAR, BcipEnums.TENSOR)
                 if d_out.bcip_type not in accepted_output_types:
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise TypeError('Output data must be a scalar or tensor')
         
                 # verify input and output dimensions
                 if d_in.bcip_type == BcipEnums.TENSOR:
@@ -171,13 +170,13 @@ class ClassifierKernel(Kernel):
                                 # probability output
                                 output_sz = (input_sz[0], self._classifier._classifier.n_classes_)
 
-                    elif (d_out.bcip_type == BcipEnums.SCALAR and
+                    elif (i_o == 0 and d_out.bcip_type == BcipEnums.SCALAR and
                           input_sz[0] != 1):
-                        return BcipEnums.INVALID_PARAMETERS
+                        raise Exception('Input data must be a 1xN vector for scalar output')
                 else:
                     # input is an array
                     if (d_out.bcip_type == BcipEnums.SCALAR):
-                        return BcipEnums.INVALID_PARAMETERS
+                        raise Exception('Output data must be a tensor for array input')
 
                     # check elements are correct shape
                     if len(input_sz) == 2:
@@ -188,17 +187,15 @@ class ClassifierKernel(Kernel):
                             # probability output
                             output_sz = (d_in.capacity, self._classifier._classifier.n_classes_)
                     else:
-                        return BcipEnums.INVALID_PARAMETERS
+                        raise Exception('Input data arrays must contain only 1D vectors')
 
                 if d_out.bcip_type == BcipEnums.TENSOR:
                     if d_out.virtual and len(d_out.shape) == 0:
                         d_out.shape = output_sz
 
-                    if d_out.shape != output_sz:
-                        return BcipEnums.INVALID_PARAMETERS
+                    # test if output shape is valid, exception will be thrown if shape is not valid
+                    d_out.data = np.zeros(output_sz)
 
-        return BcipEnums.SUCCESS
-        
 
     def execute(self):
         """
@@ -210,7 +207,7 @@ class ClassifierKernel(Kernel):
         else:
             input_tensor = self.inputs[0]
 
-        return self._process_data(input_tensor, self.outputs[0], self.outputs[1])
+        self._process_data(input_tensor, self.outputs[0], self.outputs[1])
 
 
     def _process_data(self, inA, outA, outB=None):
@@ -218,7 +215,7 @@ class ClassifierKernel(Kernel):
         Process data according to outlined kernel function
         """
         if not self._initialized:
-            return BcipEnums.EXE_FAILURE_UNINITIALIZED
+            raise Exception('Classifier has not been initialized')
         
         if len(inA.shape) == 1:
             input_data = np.expand_dims(inA.data,axis=0)
@@ -239,8 +236,6 @@ class ClassifierKernel(Kernel):
         else:
             outA.data = output_data
         
-        return BcipEnums.SUCCESS
-
 
     @classmethod
     def add_classifier_node(cls, graph, inA, classifier, outA, outB = None, initialization_data = None, labels = None):
