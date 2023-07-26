@@ -299,9 +299,13 @@ class Graph(BCIP):
                 
                 if root_data_node:
                     # copy the default init data to the node's init input
+                    if default_init_data.bcip_type != BcipEnums.TENSOR:
+                        default_init_data = default_init_data.to_tensor()
                     default_init_data.copy_to(n.kernel.init_inputs[init_data_input_index])
 
                     # link the default init labels to this node
+                    if default_init_labels.bcip_type != BcipEnums.TENSOR:
+                        default_init_labels = default_init_labels.to_tensor()
                     default_init_labels.copy_to(n.kernel.init_input_labels)
 
         # execute initialization for each node in the graph
@@ -446,6 +450,8 @@ class Node(BCIP):
         
         self._kernel = kernel
         self._params = params
+
+        self._graph = graph
         
     
     # API getters
@@ -550,6 +556,30 @@ class Node(BCIP):
             SUCCESS
         """
         return self.kernel.initialize()
+
+    def update_parameters(self, parameter, value):
+        """
+        Update the parameters of the node
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        BCIP Status Code
+
+        Examples
+        --------
+        >>> status = example_node.update_parameters()
+        >>> print(status)
+
+            SUCCESS
+        """
+
+        self.kernel.update_parameters(parameter, value)
+
+        return self._graph.verify()
 
 
 class Edge:

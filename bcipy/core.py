@@ -511,10 +511,16 @@ class Session(BCIP):
         return None
     
 
-    def save_session(self: object, file: str) -> None:
+    def save_session(self: object, file: str, additional_params=None) -> None:
         """
         Save the session object and all of its contents to a file
 
+        Parameters
+        ----------
+        file : str
+            File path to save the session to
+        additional_params : dict, optional
+            Additional parameters to save with the session. The default is None.
         Returns
         -------
         Pickle object : Pickle
@@ -522,10 +528,15 @@ class Session(BCIP):
 
         """
         new_object = copy.deepcopy(self)
+        output = additional_params if additional_params else {}
         
+        output['pipeline'] = new_object
+
         sfile = open(file, 'wb')
-        pickle.dump(new_object, sfile)
+        pickle.dump(output, sfile)
         sfile.close()
+
+        return output
         
     @classmethod
     def create(cls):

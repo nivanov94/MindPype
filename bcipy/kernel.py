@@ -329,3 +329,19 @@ class Kernel(BCIP, ABC):
             self.init_output_labels = Tensor.create_virtual(self.session)
 
         labels.copy_to(self.init_output_labels)
+
+
+    def update_parameters(self, parameter, value):
+        """
+        Update the kernel parameters
+
+        Parameters
+        ----------
+        kwargs : dict
+            Dictionary of parameters to be updated
+        """
+        try:
+            setattr(self, str(parameter), value)
+
+        except AttributeError:
+            raise AttributeError("Kernel {} does not have parameter {}".format(self.name, parameter))
