@@ -24,8 +24,8 @@ class PadKernel(Kernel):
 
     def __init__(self, graph, inA, outA, pad_width = None, mode = 'constant', stat_length = None, constant_values = 0, end_values = 0, reflect_type = 'even', **kwargs):
         super().__init__('BaselineCorrection', BcipEnums.INIT_FROM_NONE, graph)
-        self._inA = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._pad_width = pad_width
         self._mode = mode
         self._stat_length = stat_length
@@ -34,12 +34,6 @@ class PadKernel(Kernel):
         self._reflect_type = reflect_type
 
         self._kwargs_dict = kwargs
-        
-        self._init_inA = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
 
     def verify(self):
         """
@@ -47,20 +41,20 @@ class PadKernel(Kernel):
         """
         
         # inA, inB, and outA must be a tensor
-        for param in (self._inA, self._outA):
+        for param in (self.inputs[0], self.outputs[0]):
             if param._bcip_type != BcipEnums.TENSOR:
                 return BcipEnums.INVALID_PARAMETERS
     
         
         # check the input dimensions are valid
-        if  not 0 < len(self._inA.shape) < 4:
+        if  not 0 < len(self.inputs[0].shape):
             return BcipEnums.INVALID_PARAMETERS
         
         # check the output dimensions are valid
-        if self._outA.virtual and len(self._outA.shape) == 0:
+        if self.outputs[0].virtual and len(self.outputs[0].shape) == 0:
             test_output = Tensor.create_virtual(self.session)
-            self._process_data(self._inA, test_output)
-            self._outA.shape = test_output.shape
+            self._process_data(self.inputs[0], test_output)
+            self.outputs[0].shape = test_output.shape
 
         return BcipEnums.SUCCESS
 
@@ -68,16 +62,36 @@ class PadKernel(Kernel):
     def initialize(self):
         sts = BcipEnums.SUCCESS
 
-        if self._init_outA is not None and (self._init_inA is not None and self._init_inA.shape != ()):
+        init_in = self.init_inputs[0]
+        init_labels = self.init_input_labels
+    
+        init_out = self.init_outputs[0]
 
-            sts = self._process_data(self._init_inA, self._init_outA)
 
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+
+            params_adjusted = False
+            # check if there's an additional dimension for init
+            if len(init_in.shape) != len(self.inputs[0].shape):
+                params_adjusted = True
+                orig_pad_width = self._pad_width
+                if isinstance(self._pad_width, int):
+                    self._pad_width = ((0,0),) + ((self._pad_width, self._pad_width),) * len(self.inputs[0].shape)
+                
+                elif isinstance(self._pad_width[0], int):
+                    self._pad_width = ((0,0),) + ((self._pad_width[0],self._pad_width[1]),) * len(self.inputs[0].shape)
+                    
+                else:
+                    self._pad_width = ((0,0),) + tuple([tuple(pad) for pad in self._pad_width])
+
+                
+            sts = self._process_data(init_in, init_out)
+            
+            if params_adjusted:
+                self._pad_width = orig_pad_width
+            
             # pass on labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR: # type: ignore
-                input_labels = self._init_labels_in.to_tensor() # type: ignore
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out) # type: ignore
+            self.copy_init_labels_to_output()
         
         return sts
 
@@ -85,7 +99,7 @@ class PadKernel(Kernel):
         """
         Execute the kernel
         """
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0], self.outputs[0])
     
 
     def _process_data(self, inp, out):
@@ -127,9 +141,65 @@ class PadKernel(Kernel):
         return BcipEnums.SUCCESS
 
     @classmethod
-    def add_pad_kernel(cls, graph, inA, outA, pad_width = None, mode = 'constant', stat_length = None, constant_values = 0, end_values = 0, reflect_type = 'even', **kwargs):
+    def add_pad_node(cls, graph, inA, outA, pad_width = None, mode = 'constant', stat_length = None, constant_values = 0, end_values = 0, reflect_type = 'even', **kwargs):
         """
         Add a pad kernel to the graph
+
+        Parameters
+        ----------
+
+        graph : Graph
+            Graph that the kernel should be added to
+        inA : Tensor
+            Input trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
+        outA : Tensor
+            Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
+        pad_width : int or sequence of ints, optional
+            Number of values padded to the edges of each axis. ((before_1, after_1), ... (before_N, after_N)) unique pad widths for each axis. ((before, after),) yields same before and after pad for each axis. (pad,) or int is a shortcut for before = after = pad width for all axes. Default is None, in which case no padding is added.
+        mode : str or function, optional
+            One of the following string values or a user supplied function.
+            'constant' (default)
+                Pads with a constant value.
+            'edge'
+                Pads with the edge values of array.
+            'linear_ramp'
+                Pads with the linear ramp between end_value and the array edge value.
+            'maximum'
+                Pads with the maximum value of all or part of the vector along each axis.
+            'mean'
+                Pads with the mean value of all or part of the vector along each axis.
+            'median'
+                Pads with the median value of all or part of the vector along each axis.
+            'minimum'
+                Pads with the minimum value of all or part of the vector along each axis.                                                                   
+            'reflect'
+                Pads with the reflection of the vector mirrored on the first and last values of the vector along each axis.
+            'symmetric'
+                Pads with the reflection of the vector mirrored along the edge of the array.                            
+            'wrap'                                                                              
+                Pads with the wrap of the vector along the axis. The first values are used to pad the end and the end values are used to pad the beginning.                                         
+            'empty'
+                Pads with undefined values.
+            <function>                              
+                Padding function, see Notes in numpy.pad documentation, linked `here <https://numpy.org/doc/stable/reference/generated/numpy.pad.html#numpy.pad>` _ .           
+        stat_length : sequence or int, optional
+            Number of values at edge of each axis except the concatenation axis from which the median/mean is calculated. Default is None.
+        constant_values : sequence or int, optional
+            Used in 'constant'. The values to set the padded values for each axis. Default is 0.
+        end_values : sequence or int, optional
+            Used in 'linear_ramp'. The values used for the ending value of the linear_ramp and that will form the edge of the padded array. Default is 0.
+        reflect_type : str, optional
+            Used in 'reflect' and 'symmetric'. The 'reflect' type is the default which reflects the values at the edge of the array. The 'symmetric' type extends the array in both directions with the reflection of the array on the nearest edge. Default is 'even'.
+        kwargs : dict, optional
+            Keyword arguments for other modes. See Notes linked above.
+        
+        Returns
+        -------
+        node : Node
+            Node that was added to the graph containing the kernel and parameters
+
+        
+            
         """
 
         k = cls(graph, inA, outA, pad_width, mode, stat_length, constant_values, end_values, reflect_type, **kwargs)

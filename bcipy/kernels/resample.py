@@ -73,7 +73,7 @@ class ResampleKernel(Kernel):
             d_out.bcip_type != BcipEnums.TENSOR):
             return BcipEnums.INVALID_PARAMETERS
         
-        if self._axis >= len(self._in.shape) or self._axis < -len(self._in.shape):
+        if self._axis >= len(d_in.shape) or self._axis < -len(d_in.shape):
             return BcipEnums.INVALID_PARAMETERS
         
         # if output is virtual, set the dimensions

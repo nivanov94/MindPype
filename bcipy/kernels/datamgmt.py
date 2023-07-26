@@ -429,7 +429,7 @@ class ExtractKernel(Kernel):
                     return BcipEnums.INVALID_PARAMETERS
 
             # if the output is a scalar, check that the input is an array of compatible scalars
-            elif (d_out.bcip_type == BcipEnums.SCARLAR):
+            elif (d_out.bcip_type == BcipEnums.SCALAR):
                 if (in_element.bcip_type != BcipEnums.SCALAR or
                     in_element.data_type != d_out.data_type):
                     return BcipEnums.INVALID_PARAMETERS
