@@ -1082,8 +1082,8 @@ class InputLSLStream(BCIP):
 
     """
 
-    def __init__(self,sess,pred,channels=None, relative_start = 0,
-                 marker=True,marker_fmt=None,marker_pred=None, stream_info=None):
+    def __init__(self,sess,pred=None,channels=None, relative_start = 0,
+                 marker=True,marker_fmt=None,marker_pred=None, stream_info=None, marker_stream_info=None, active=True):
         """
         Create a new LSL inlet stream object
         Parameters
@@ -1106,54 +1106,61 @@ class InputLSLStream(BCIP):
             The predicate string for the marker stream
         stream_info : pylsl.StreamInfo
             The stream info object for the stream can be passed instead of the predicate to avoid the need to resolve the stream
+        marker_stream_info : pylsl.StreamInfo
+            The stream info object for the marker stream can be passed instead of the predicate to avoid the need to resolve the stream
         """
         super().__init__(BcipEnums.SRC,sess)
         
-        if not stream_info:
-            # resolve the stream on the LSL network
-            available_streams = pylsl.resolve_bypred(pred)
-        else:
-            available_streams = [stream_info]
-        
-        if len(available_streams) == 0:
-            # TODO log error
-            return
-        
-        # TODO - Warn about more than one available stream
-        self.data_buffer = {'EEG':None,'time_stamps':None}
-        self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
-        
-        self.marker_inlet = None
-        self.marker_pattern = None
-        self.relative_start = relative_start
-        self._already_peeked = False
-        self._peeked_marker = None
-
-        self.timestamps = []
-        
-        # TODO - check if the stream has enough input channels to match the
-        # channels parameter
-        if channels:
-            self.channels = channels
-        else:
-            self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
-
-        if marker:
-            marker_streams = pylsl.resolve_bypred(marker_pred)
-            print(len(marker_streams))
-            self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
-            self.peek_marker_inlet = pylsl.StreamInlet(marker_streams[0]) 
+        if active:
+            if not stream_info:
+                # resolve the stream on the LSL network
+                available_streams = pylsl.resolve_bypred(pred)
+            else:
+                available_streams = [stream_info]
             
-            # open the inlet
-            self.marker_inlet.open_stream()
-            self.peek_marker_inlet.open_stream()
-        
-            if marker_fmt:
-            #    if isinstance(marker_fmt,list):
-            #        marker_fmt = '$|^'.join(marker_fmt)
-            #       marker_fmt = '^' + marker_fmt + '$' 
+            if len(available_streams) == 0:
+                # TODO log error
+                return
+            
+            # TODO - Warn about more than one available stream
+            self.data_buffer = {'EEG':None,'time_stamps':None}
+            self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
+            
+            self.marker_inlet = None
+            self.marker_pattern = None
+            self.relative_start = relative_start
+            self._already_peeked = False
+            self._peeked_marker = None
+
+            self.timestamps = []
+            
+            # TODO - check if the stream has enough input channels to match the
+            # channels parameter
+            if channels:
+                self.channels = channels
+            else:
+                self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
+
+            if marker:
+                if not marker_stream_info:
+                    # resolve the stream on the LSL network
+                    marker_streams = pylsl.resolve_bypred(marker_pred)
+                else:
+                    marker_streams = [marker_stream_info]
+
+                self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
+                self.peek_marker_inlet = pylsl.StreamInlet(marker_streams[0]) 
                 
-                self.marker_pattern = re.compile(marker_fmt)
+                # open the inlet
+                self.marker_inlet.open_stream()
+                self.peek_marker_inlet.open_stream()
+            
+                if marker_fmt:
+                #    if isinstance(marker_fmt,list):
+                #        marker_fmt = '$|^'.join(marker_fmt)
+                #       marker_fmt = '^' + marker_fmt + '$' 
+                    
+                    self.marker_pattern = re.compile(marker_fmt)
 
         
 
@@ -1272,6 +1279,87 @@ class InputLSLStream(BCIP):
                
         return None
         
+
+    #TODO: It is technically safe to recall self.__init__ here instead of doing this by hand (since the object reference won't be changed),
+    # this method was used to avoid confusion and to make the code more readable
+    def update_input_streams(self,pred=None,channels=None, relative_start = 0,
+                 marker=True,marker_fmt=None,marker_pred=None, stream_info=None, marker_stream_info=None ):
+
+        """
+        Update the input stream with new parameters
+
+        Parameters
+        ----------
+        pred : str
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
+            count(description/desc/channels/channel)=32"
+        channels : tuple of ints
+            Index value of channels to poll from the stream, if None all channels will be polled
+        relative_start : float, default = 0 
+            Duration of tiem before marker from which samples should be extracted during polling.
+        marker : bool
+            true if there is an associated marker to indicate relative time where data should begin to be polled
+        marker_fmt : Regex or list
+            Regular expression template of the marker to be matched, if none all markers will be matched. Alternatively, a list of markers can be provided.
+        marker_pred : str
+            The predicate string for the marker stream
+        stream_info : pylsl.StreamInfo
+            The stream info object for the stream can be passed instead of the predicate to avoid the need to resolve the stream
+        marker_stream_info : pylsl.StreamInfo 
+            The stream info object for the marker stream can be passed instead of the predicate to avoid the need to resolve the stream
+
+        """
+        
+        if not stream_info:
+            # resolve the stream on the LSL network
+            available_streams = pylsl.resolve_bypred(pred)
+        else:
+            available_streams = [stream_info]
+        
+        if len(available_streams) == 0:
+            # TODO log error
+            return
+        
+        # TODO - Warn about more than one available stream
+        self.data_buffer = {'EEG':None,'time_stamps':None}
+        self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
+        
+        self.marker_inlet = None
+        self.marker_pattern = None
+        self.relative_start = relative_start
+        self._already_peeked = False
+        self._peeked_marker = None
+
+        self.timestamps = []
+        
+        # TODO - check if the stream has enough input channels to match the
+        # channels parameter
+        if channels:
+            self.channels = channels
+        else:
+            self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
+
+        if marker:
+            if not marker_stream_info:
+                # resolve the stream on the LSL network
+                marker_streams = pylsl.resolve_bypred(marker_pred)
+            else:
+                marker_streams = [marker_stream_info]
+
+            self.marker_inlet = pylsl.StreamInlet(marker_streams[0]) # for now, just take the first available marker stream
+            self.peek_marker_inlet = pylsl.StreamInlet(marker_streams[0]) 
+            
+            # open the inlet
+            self.marker_inlet.open_stream()
+            self.peek_marker_inlet.open_stream()
+        
+            if marker_fmt:
+            #    if isinstance(marker_fmt,list):
+            #        marker_fmt = '$|^'.join(marker_fmt)
+            #       marker_fmt = '^' + marker_fmt + '$' 
+                
+                self.marker_pattern = re.compile(marker_fmt)
+
 
     @classmethod
     def create_marker_coupled_data_stream(cls,sess,pred, channels = None, relative_start=0,
