@@ -26,6 +26,7 @@ class PadKernel(Kernel):
         super().__init__('BaselineCorrection', BcipEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
+        
         self._pad_width = pad_width
         self._mode = mode
         self._stat_length = stat_length
@@ -40,21 +41,23 @@ class PadKernel(Kernel):
         Verify the inputs and outputs are appropriately sized
         """
         
-        # inA, inB, and outA must be a tensor
-        for param in (self.inputs[0], self.outputs[0]):
-            if param._bcip_type != BcipEnums.TENSOR:
+        inA = self.inputs[0]
+        outA = self.outputs[0]
+
+        # inA and outA must be a tensor
+        for param in (inA, outA):
+            if param.bcip_type != BcipEnums.TENSOR:
                 return BcipEnums.INVALID_PARAMETERS
     
-        
-        # check the input dimensions are valid
-        if  not 0 < len(self.inputs[0].shape):
-            return BcipEnums.INVALID_PARAMETERS
         
         # check the output dimensions are valid
         if self.outputs[0].virtual and len(self.outputs[0].shape) == 0:
             test_output = Tensor.create_virtual(self.session)
             self._process_data(self.inputs[0], test_output)
             self.outputs[0].shape = test_output.shape
+
+        if outA.shape != test_output.shape:
+            return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
 
@@ -100,6 +103,7 @@ class PadKernel(Kernel):
         Execute the kernel
         """
         return self._process_data(self.inputs[0], self.outputs[0])
+        return self._process_data(self.inputs[0], self.outputs[0])
     
 
     def _process_data(self, inp, out):
@@ -109,34 +113,20 @@ class PadKernel(Kernel):
 
         # TODO: make this more efficient/reduce code duplication
         if self._mode in ('maximum', 'mean', 'median', 'minimum'):
-            out_data = np.pad(inp.data, self._pad_width, self._mode, stat_length = self._stat_length) # type: ignore
-            out.shape = out_data.shape
-            out.data = out_data
-
+            out_data = np.pad(inp.data, self._pad_width, self._mode, stat_length = self._stat_length)
         elif self._mode in ('constant'):
-            out_data = np.pad(inp.data, self._pad_width, self._mode, constant_values = self._constant_values) # type: ignore
-            out.shape = out_data.shape
-            out.data = out_data
-
+            out_data = np.pad(inp.data, self._pad_width, self._mode, constant_values = self._constant_values)
         elif self._mode in ('linear_ramp'):
-            out_data = np.pad(inp.data, self._pad_width, self._mode, end_values = self._end_values) # type: ignore
-            out.shape = out_data.shape
-            out.data = out_data
-
+            out_data = np.pad(inp.data, self._pad_width, self._mode, end_values = self._end_values)
         elif self._mode in ('reflect', 'symmetric'):
-            out_data = np.pad(inp.data, self._pad_width, self._mode, reflect_type = self._reflect_type) # type: ignore
-            out.shape = out_data.shape
-            out.data = out_data
-
-
+            out_data = np.pad(inp.data, self._pad_width, self._mode, reflect_type = self._reflect_type)
         elif self._mode in ('wrap', 'empty', 'edge'):
-            out_data = np.pad(inp.data, self._pad_width, self._mode) # type: ignore
-            out.shape = out_data.shape
-            out.data = out_data
+            out_data = np.pad(inp.data, self._pad_width, self._mode)
         else:
-            out_data = np.pad(inp.data, self._pad_width, self._mode, **self._kwargs_dict) # type: ignore
-            out.shape = out_data.shape
-            out.data = out_data
+            out_data = np.pad(inp.data, self._pad_width, self._mode, **self._kwargs_dict)
+
+        out.shape = out_data.shape
+        out.data = out_data
 
         return BcipEnums.SUCCESS
 

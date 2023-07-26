@@ -2,7 +2,7 @@ from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 import numpy as np
 
@@ -105,15 +105,9 @@ class RiemannPotatoKernel(Kernel):
             init_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
             return BcipEnums.INITIALIZATION_FAILURE
         
-        if init_in.bcip_type == BcipEnums.TENSOR: 
-            X = init_in.data
-        else:
-            try:
-                # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(init_in)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE
-            
+        # extract the initialization data
+        X = extract_init_inputs(init_in)
+
         if len(X.shape) != 3:
             return BcipEnums.INITIALIZATION_FAILURE
         

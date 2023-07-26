@@ -1,7 +1,7 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 from ..containers import Scalar
 
@@ -100,20 +100,10 @@ class RiemannMDMClassifierKernel(Kernel):
              init_labels.bcip_type != BcipEnums. ARRAY)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if init_in.bcip_type == BcipEnums.TENSOR: 
-            X = init_in.data
-        else:
-            try:
-                # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(init_in)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE
+        # extract the initialiation data
+        X = extract_init_inputs(init_in)
+        y = extract_init_inputs(init_labels)
             
-        if init_labels.bcip_type == BcipEnums.TENSOR:
-            y = init_labels.data
-        else:
-            y = extract_nested_data(init_labels)
-        
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:
             return BcipEnums.INITIALIZATION_FAILURE

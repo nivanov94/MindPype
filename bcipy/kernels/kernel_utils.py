@@ -40,3 +40,28 @@ def extract_nested_data(bcip_obj):
             X = np.append(X,elem_data,axis=0)
     
     return X
+
+def extract_init_inputs(init_in):
+    """
+    Extracts the initialization parameters from a potentially nested data structure
+    
+    Parameters
+    ----------
+    init_in : BCIP Object
+        The input to be extracted from
+
+    Returns
+    -------
+    init_input_data : np array
+        The initialization inputs as a numpy array
+    """
+    if init_in.bcip_type == BcipEnums.TENSOR: 
+            init_input_data = init_in.data
+    else:
+        try:
+            # extract the data from a potentially nested array of tensors
+            init_input_data = extract_nested_data(init_in)
+        except:
+            return None
+        
+    return init_input_data
