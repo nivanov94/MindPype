@@ -74,10 +74,13 @@ class PadKernel(Kernel):
         if init_out is not None and (init_in is not None and init_in.shape != ()):
 
             params_adjusted = False
+
             # check if there's an additional dimension for init
             if len(init_in.shape) != len(self.inputs[0].shape):
                 params_adjusted = True
                 orig_pad_width = self._pad_width
+                
+                # Modify the pad width to account for the additional dimension
                 if isinstance(self._pad_width, int):
                     self._pad_width = ((0,0),) + ((self._pad_width, self._pad_width),) * len(self.inputs[0].shape)
                 

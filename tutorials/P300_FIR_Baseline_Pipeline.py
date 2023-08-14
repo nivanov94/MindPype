@@ -115,32 +115,35 @@ def main(file):
 
     classifier = bcipy.Classifier.create_logistic_regression(sess)
 
-    start_time = -0.2
-    end_time = 0.8
+    start_time = 0.2
+    end_time = 1.2
     
-    extract_indices = [":", # all channels
-                       [_ for _ in range(int(start_time*resample_fs),int(end_time*resample_fs))]] # central 1s
+    extract_indices = [":", 
+                       [_ for _ in range(int(start_time*Fs + len(f.coeffs['fir'])),int(end_time*Fs + len(f.coeffs['fir'])))]]# All epochs, all channels, start_time to end_time
+
     
-    extract_indices1 = [":", # all epochs
-                        ":", # all channels
-                       [_ for _ in range(int(start_time*resample_fs),int(end_time*resample_fs))] # central 1s
-                      ]
+    extract_indices1 = [":", ":", [_ for _ in range(int(start_time*Fs + len(f.coeffs['fir'])),int(end_time*Fs + len(f.coeffs['fir'])))]]# All epochs, all channels, start_time to end_time
+
     
     extract_indices2 = [":", # all epochs
                         ":", # all channels
-                       [_ for _ in range(int(-.2*resample_fs),int(0*resample_fs))]
+                       [_ for _ in range(int(0*Fs +len(f.coeffs['fir'])),int(0.2*Fs + len(f.coeffs['fir'])))]
                       ]
     
 
     preprocessing_tensors = [bcipy.Tensor.create_virtual(sess), # output of baseline extraction,
+                              bcipy.Tensor.create_virtual(sess),
+                              bcipy.Tensor.create_virtual(sess),
                               bcipy.Tensor.create_virtual(sess)]
 
     
 
     #bcipy.kernels.FiltFiltKernel.add_filtfilt_node(preprocessing_graph, xdf_tensor, f1, extra_tensor, axis = 2)
-    bcipy.kernels.FilterKernel.add_filter_node(preprocessing_graph, xdf_tensor, f, extra_tensor, axis = 2)
-    bcipy.kernels.ExtractKernel.add_extract_node(preprocessing_graph, extra_tensor, extract_indices2, preprocessing_tensors[0])
-    bcipy.kernels.MeanKernel.add_mean_node(preprocessing_graph, preprocessing_tensors[0],  outA = preprocessing_tensors[1], axis=2, keepdims=True)
+    bcipy.kernels.PadKernel.add_pad_node(preprocessing_graph, xdf_tensor, preprocessing_tensors[0], pad_width=((0,0), (0,0), (len(f.coeffs['fir']), len(f.coeffs['fir']))), mode='edge')
+    bcipy.kernels.FilterKernel.add_filter_node(preprocessing_graph, preprocessing_tensors[0], f, preprocessing_tensors[1], axis = 2)
+    bcipy.kernels.ExtractKernel.add_extract_node(preprocessing_graph, preprocessing_tensors[1], extract_indices1, extra_tensor)
+    bcipy.kernels.ExtractKernel.add_extract_node(preprocessing_graph, preprocessing_tensors[1], extract_indices2, preprocessing_tensors[2])
+    bcipy.kernels.MeanKernel.add_mean_node(preprocessing_graph, preprocessing_tensors[2],  outA = preprocessing_tensors[3], axis=2, keepdims=True)
 
     if preprocessing_graph.verify() != bcipy.BcipEnums.SUCCESS:
         return bcipy.BcipEnums.FAILURE
@@ -181,45 +184,16 @@ def main(file):
     #
     #plt.show()
 
-    target_average = np.zeros((extra_tensor.shape[1],extra_tensor.shape[2]-6))
-    nontarget_average = np.zeros((extra_tensor.shape[1],extra_tensor.shape[2]-6))
-    #print(train_virt.data.shape, running_average.shape)
-    for epoch in range(extra_tensor.data.shape[0]):
-        if task_series_list[epoch] == 1:
-            target_average =  target_average + extra_tensor.data[epoch,:,5:-1]
-        else:
-            nontarget_average = nontarget_average + extra_tensor.data[epoch,:,5:-1]
-    
-    target_average = target_average/sum(task_series_list)
-    nontarget_average = nontarget_average/(len(task_series_list)-sum(task_series_list))
-       
-    # Plot the filtered data from the first channel along time
-
-    x_axis = np.linspace(0, extra_tensor.data.shape[2]/Fs, extra_tensor.data.shape[2]-6)
 
 
-    for i in range(extra_tensor.shape[1]-8):
-        fig = plt.subplot(2,3,i+1)
-        fig.plot(x_axis, nontarget_average[i,:])
-        fig.plot(x_axis, target_average[i,:])
-        #fig.plot(x_axis, target_average[i,:] - nontarget_average[i,:])
-        fig.axes.set_xlabel('Time (s)')
-        fig.axes.set_ylabel('Amplitude')
-        fig.axes.set_xticks([0, .3, .5, 1.0])
-    
-    fig.legend(['nontarget', 'target', 'difference'])
-    
-    plt.show()
 
-
-    mean = preprocessing_tensors[1].data # mean of baseline
-    repeated_mean = np.repeat(mean, 180, axis=2) # repeat mean for each epoch
+    mean = preprocessing_tensors[3].data # mean of baseline
+    repeated_mean = np.repeat(mean, 128, axis=2) # repeat mean for each epoch
 
     mean_tensor = bcipy.Tensor.create_from_data(sess, repeated_mean.shape, repeated_mean)
 
     bcipy.kernels.SubtractionKernel.add_subtraction_node(training_graph, extra_tensor, mean_tensor, train_virt)
-    bcipy.kernels.ResampleKernel.add_resample_node(training_graph, train_virt, resample_fs/Fs, train_virt2, axis = 2)
-    bcipy.kernels.ExtractKernel.add_extract_node(training_graph, train_virt2, extract_indices1, processed_xdf_tensor)
+    bcipy.kernels.ResampleKernel.add_resample_node(training_graph, train_virt, resample_fs/Fs, processed_xdf_tensor, axis = 2)
 
     # Enqueue training data and labels to appropriate circle buffers
     # Training data is the result of the tangent space transform
@@ -228,9 +202,11 @@ def main(file):
 
     # online graph nodes 
     #bcipy.kernels.FiltFiltKernel.add_filtfilt_node(online_graph, online_input_data, f1, t_virt[0], axis=1)
+    bcipy.kernels.PadKernel.add_pad_node(online_graph, online_input_data, t_virt[0], pad_width=((0,0), (len(f.coeffs['fir']), len(f.coeffs['fir']))), mode='edge')
     bcipy.kernels.FilterKernel.add_filter_node(online_graph, online_input_data, f, t_virt[0], axis=1)
-    bcipy.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[0], resample_fs/Fs, t_virt[1], axis=1)
     bcipy.kernels.ExtractKernel.add_extract_node(online_graph, t_virt[1], extract_indices, t_virt[2])
+    bcipy.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[0], resample_fs/Fs, t_virt[1], axis=1)
+    bcipy.kernels.BaselineCorrectionKernel.add_baseline_node(online_graph, t_virt[3], t_virt[4], baseline_period=[0*Fs, 0.2*Fs])
     bcipy.kernels.XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[2], 
                                                     t_virt[3], training_data['data'], 
                                                     training_data['labels'])
@@ -251,68 +227,7 @@ def main(file):
     #for i in range(xdf_tensor.shape[1]-8):
     #    fig = plt.subplot(2,3,i+1)
     #    fig.plot(xdf_tensor.data[0,i,:])
-#
-    #plt.show()
 
-    #target_average = np.zeros((train_virt.shape[1],train_virt.shape[2]-6))
-    #nontarget_average = np.zeros((train_virt.shape[1],train_virt.shape[2]-6))
-    ##print(train_virt.data.shape, running_average.shape)
-    #for epoch in range(train_virt.data.shape[0]):
-    #    if task_series_list[epoch] == 1:
-    #        target_average =  target_average + train_virt.data[epoch,:,5:-1]
-    #    else:
-    #        nontarget_average = nontarget_average + train_virt.data[epoch,:,5:-1]
-    #
-    #target_average = target_average/sum(task_series_list)
-    #nontarget_average = nontarget_average/(len(task_series_list)-sum(task_series_list))
-    #   
-    ## Plot the filtered data from the first channel along time
-#
-    #x_axis = np.linspace(0, train_virt.data.shape[2]/Fs, train_virt.data.shape[2]-6)
-#
-#
-    #for i in range(train_virt.shape[1]-8):
-    #    fig = plt.subplot(2,3,i+1)
-    #    fig.plot(x_axis, nontarget_average[i,:])
-    #    fig.plot(x_axis, target_average[i,:])
-    #    #fig.plot(x_axis, target_average[i,:] - nontarget_average[i,:])
-    #    fig.axes.set_xlabel('Time (s)')
-    #    fig.axes.set_ylabel('Amplitude')
-    #    fig.axes.set_xticks([0, .3, .5, 1.0])
-    #
-    #fig.legend(['nontarget', 'target', 'difference'])
-    #
-    #plt.show()
-
-#
-    #target_average = np.zeros((processed_xdf_tensor.shape[1],processed_xdf_tensor.shape[2]-6))
-    #nontarget_average = np.zeros((processed_xdf_tensor.shape[1],processed_xdf_tensor.shape[2]-6))
-    ##print(train_virt.data.shape, running_average.shape)
-    #for epoch in range(processed_xdf_tensor.data.shape[0]):
-    #    if task_series_list[epoch] == 1:
-    #        target_average =  target_average + processed_xdf_tensor.data[epoch,:,5:-1]
-    #    else:
-    #        nontarget_average = nontarget_average + processed_xdf_tensor.data[epoch,:,5:-1]
-    #
-    #target_average = target_average/sum(task_series_list)
-    #nontarget_average = nontarget_average/(len(task_series_list)-sum(task_series_list))
-    #   
-    ## Plot the filtered data from the first channel along time
-#
-    #x_axis = np.linspace(0, processed_xdf_tensor.data.shape[2]/Fs, processed_xdf_tensor.data.shape[2]-6)
-#
-#
-    #for i in range(processed_xdf_tensor.shape[1]-8):
-    #    fig = plt.subplot(2,3,i+1)
-    #    fig.plot(x_axis, nontarget_average[i,:])
-    #    fig.plot(x_axis, target_average[i,:])
-    #    #fig.plot(x_axis, target_average[i,:] - nontarget_average[i,:])
-    #    fig.axes.set_xlabel('Time (s)')
-    #    fig.axes.set_ylabel('Amplitude')
-    #
-    #fig.legend(['nontarget', 'target', 'difference'])
-    #
-    #plt.show()
 
     if training_graph_sts != bcipy.BcipEnums.SUCCESS:
         return

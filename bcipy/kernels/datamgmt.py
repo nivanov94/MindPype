@@ -357,10 +357,17 @@ class ExtractKernel(Kernel):
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # determine init output shape
-            init_output_shape = (init_in.shape[0],) + self.outputs[0].shape
+        
+            add_batch_dim = False
+            if len(init_in.shape) == (len(self.inputs[0].shape)+1):
+                init_output_shape = (init_in.shape[0],) + self.outputs[0].shape
+                add_batch_dim = True
+            
+            elif len(init_in.shape) == len(self.inputs[0].shape):
+                init_output_shape =  (init_in.shape[0],) + self.outputs[0].shape[1:]
+
             if init_out.virtual:
-                if len(init_in.shape) == (len(self.inputs[0].shape)+1):
-                    init_out.shape = init_output_shape
+                init_out.shape = init_output_shape
 
                 if init_out.shape != init_output_shape:
                     sts = BcipEnums.INITIALIZATION_FAILURE
@@ -373,13 +380,13 @@ class ExtractKernel(Kernel):
                         init_in = init_in.to_tensor()
 
                     # insert an additional slice for the batch dimension
-                    if (init_in.bcip_type == BcipEnums.TENSOR):
+                    if add_batch_dim and (init_in.bcip_type == BcipEnums.TENSOR):
                         self._indices.insert(0, ":")
 
                     self._process_data(init_in, init_out)
 
                     # remove the additional slice for the batch dimension
-                    if (init_in.bcip_type == BcipEnums.TENSOR):
+                    if add_batch_dim and (init_in.bcip_type == BcipEnums.TENSOR):
                         self._indices.pop(0)
 
                     # pass on the labels

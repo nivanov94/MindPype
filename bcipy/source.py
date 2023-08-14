@@ -1124,15 +1124,18 @@ class InputLSLStream(BCIP):
             
             # TODO - Warn about more than one available stream
             self.data_buffer = {'EEG':None,'time_stamps':None}
-            self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
-            
+            self.data_inlet = pylsl.StreamInlet(available_streams[0], processing_flags=pylsl.proc_clocksync | pylsl.proc_dejitter, recover=False) # for now, just take the first available stream that matches the property
+            self.data_inlet.open_stream()
+
             self.marker_inlet = None
             self.marker_pattern = None
             self.relative_start = relative_start
             self._already_peeked = False
             self._peeked_marker = None
 
-            self.timestamps = []
+            self.marker_timestamps = []
+            self.first_data_timestamp = None
+            self.time_correction = None
             
             # TODO - check if the stream has enough input channels to match the
             # channels parameter
@@ -1155,16 +1158,17 @@ class InputLSLStream(BCIP):
                 self.marker_inlet.open_stream()
                 self.peek_marker_inlet.open_stream()
             
+            
                 if marker_fmt:
                 #    if isinstance(marker_fmt,list):
                 #        marker_fmt = '$|^'.join(marker_fmt)
                 #       marker_fmt = '^' + marker_fmt + '$' 
                     
                     self.marker_pattern = re.compile(marker_fmt)
+            
+            
 
         
-
-
     def poll_data(self, Ns, label=None):
         """
         Pull data from the inlet stream until we have Ns data points for each
@@ -1190,12 +1194,13 @@ class InputLSLStream(BCIP):
                     if (self.marker_pattern == None) or self.marker_pattern.match(marker):
                         t_begin = t
                         #print(t_begin)
-                        self.timestamps.append(t_begin)
+                        self.marker_timestamps.append(t_begin)
                     
         else:
             t_begin = 0 # i.e. all data is valid
         
         t_begin += self.relative_start
+        print(t_begin)
         # pull the data in chunks until we get the total number of samples
         trial_data = np.zeros((len(self.channels), Ns)) # allocate the array
         trial_timestamps = np.zeros((Ns,))
@@ -1210,52 +1215,57 @@ class InputLSLStream(BCIP):
             #print(self.data_buffer['time_stamps'])
             try:
                 trial_data[:,:samples_polled] = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
-            except:
+            except ValueError:
                 data = self.data_buffer['EEG'][:,:][:,eeg_index_bool]
                 trial_data[:,:samples_polled] = data[:,:][:,:Ns]
             #print(trial_timestamps)
             try:
                 trial_timestamps[:samples_polled] = self.data_buffer['time_stamps'][eeg_index_bool]
-            except:
+            except ValueError:
                 stamps = self.data_buffer['time_stamps'][eeg_index_bool]
                 trial_timestamps[:samples_polled] = stamps[:Ns]
 
         #print(f"T-BEGIN:`{t_begin}`")
         while samples_polled < Ns:
-            data, timestamps = self.data_inlet.pull_chunk()
+            data, timestamps = self.data_inlet.pull_chunk(timeout=0.0)
             timestamps = np.asarray(timestamps)
 
-            if len(timestamps) != -1 and np.any(timestamps >= t_begin):
-                #print(f"Number of new trials added to trial data: {np.sum(timestamps >= t_begin)}")
-                # convert data to numpy arrays
-                data = np.asarray(data).T
-                timestamps_index_bool = timestamps >= t_begin
+            if len(timestamps) > 0:
+                self.time_correction = self.data_inlet.time_correction()
+                timestamps += self.time_correction
 
-                data = data[self.channels,:][:,timestamps_index_bool]
-                timestamps = timestamps[timestamps_index_bool]
-                
-                if len(data.shape) > 1:
-                    chunk_sz = data.shape[1]
-                    # append the latest chunk to the trial_data array
-                    if samples_polled + chunk_sz > Ns:
-                        dest_end_index = Ns
-                        src_end_index = Ns - samples_polled
+                if np.any(timestamps >= t_begin):
                     
-                    else:
-                        dest_end_index = samples_polled + chunk_sz
-                        src_end_index = chunk_sz
-                    
-                    trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
-                    trial_timestamps[samples_polled:dest_end_index] = timestamps[:src_end_index]
+                    #print(f"Number of new trials added to trial data: {np.sum(timestamps >= t_begin)}")
+                    # convert data to numpy arrays
+                    data = np.asarray(data).T
+                    timestamps_index_bool = timestamps >= t_begin
 
-                    if dest_end_index == Ns:
-                        self.data_buffer['EEG'] = np.concatenate((trial_data, data[:, src_end_index:]), axis=1)                                
-                        self.data_buffer['time_stamps'] = np.concatenate((trial_timestamps, timestamps[src_end_index:]))
+                    data = data[self.channels,:][:,timestamps_index_bool]
+                    timestamps = timestamps[timestamps_index_bool]
                     
-
-                    samples_polled += chunk_sz 
+                    if len(data.shape) > 1:
+                        chunk_sz = data.shape[1]
+                        # append the latest chunk to the trial_data array
+                        if samples_polled + chunk_sz > Ns:
+                            dest_end_index = Ns
+                            src_end_index = Ns - samples_polled
                         
-                
+                        else:
+                            dest_end_index = samples_polled + chunk_sz
+                            src_end_index = chunk_sz
+                        
+                        trial_data[:, samples_polled:dest_end_index] = data[:,:src_end_index]
+                        trial_timestamps[samples_polled:dest_end_index] = timestamps[:src_end_index]
+
+                        if dest_end_index == Ns:
+                            self.data_buffer['EEG'] = np.concatenate((trial_data, data[:, src_end_index:]), axis=1)                                
+                            self.data_buffer['time_stamps'] = np.concatenate((trial_timestamps, timestamps[src_end_index:]))
+                        
+
+                        samples_polled += chunk_sz 
+                        
+        self.first_data_timestamp = trial_timestamps[0]
         trial_data = trial_data[:, :Ns] # TODO remove?
 
         return trial_data
@@ -1283,7 +1293,7 @@ class InputLSLStream(BCIP):
     #TODO: It is technically safe to recall self.__init__ here instead of doing this by hand (since the object reference won't be changed),
     # this method was used to avoid confusion and to make the code more readable
     def update_input_streams(self,pred=None,channels=None, relative_start = 0,
-                 marker=True,marker_fmt=None,marker_pred=None, stream_info=None, marker_stream_info=None ):
+                 marker=True,marker_fmt=None,marker_pred=None, stream_info=None, marker_stream_info=None):
 
         """
         Update the input stream with new parameters
@@ -1323,14 +1333,15 @@ class InputLSLStream(BCIP):
         # TODO - Warn about more than one available stream
         self.data_buffer = {'EEG':None,'time_stamps':None}
         self.data_inlet = pylsl.StreamInlet(available_streams[0]) # for now, just take the first available stream that matches the property
-        
+        self.data_inlet.open_stream()
+
         self.marker_inlet = None
         self.marker_pattern = None
         self.relative_start = relative_start
         self._already_peeked = False
         self._peeked_marker = None
 
-        self.timestamps = []
+        self.marker_timestamps = []
         
         # TODO - check if the stream has enough input channels to match the
         # channels parameter
@@ -1360,10 +1371,11 @@ class InputLSLStream(BCIP):
                 
                 self.marker_pattern = re.compile(marker_fmt)
 
+        
 
     @classmethod
-    def create_marker_coupled_data_stream(cls,sess,pred, channels = None, relative_start=0,
-                                          marker_fmt=None, marker_pred="type='Markers'", stream_info=None):
+    def create_marker_coupled_data_stream(cls,sess,pred=None, channels = None, relative_start=0,
+                                          marker_fmt=None, marker_pred="type='Markers'", stream_info=None, marker_stream_info = None, active=True):
         """
         Create a LSLStream data object that maintains a data stream and a
         marker stream
@@ -1388,7 +1400,7 @@ class InputLSLStream(BCIP):
         Examples
         --------
         """
-        src = cls(sess,pred,channels,relative_start,True,marker_fmt,marker_pred)
+        src = cls(sess,pred,channels,relative_start,True,marker_fmt,marker_pred, stream_info, marker_stream_info, active)
         sess.add_ext_src(src)
         
         return src

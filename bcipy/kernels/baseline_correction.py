@@ -127,13 +127,13 @@ class BaselineCorrectionKernel(Kernel):
             # if the baseline period is a 1D tensor, calculate mean of same indices across all trials
             if len(self._baseline_period.shape) == 1:
                 baseline_period = self._baseline_period
-                baseline_corrected_data = input.data - np.mean(input.data[..., baseline_period[0]:baseline_period[1]], axis = -1, keepdims = True)
+                baseline_corrected_data = input.data - np.mean(input.data[..., int(baseline_period[0]):int(baseline_period[1])], axis = -1, keepdims = True)
 
             else:
                 baseline_corrected_data = np.zeros(input.shape)
                 for i in range(input.shape[0]):
                     baseline_period = self._baseline_period[i]
-                    baseline_corrected_data[i] = input.data[i] - np.mean(input.data[i, ..., baseline_period[0]:baseline_period[1]], axis = -1, keepdims = True)
+                    baseline_corrected_data[i] = input.data[i] - np.mean(input.data[i, ..., int(baseline_period[0]):int(np.ceil(baseline_period[1]))], axis = -1, keepdims = True)
             
             # copy the baseline corrected data to the output
             output.data = baseline_corrected_data

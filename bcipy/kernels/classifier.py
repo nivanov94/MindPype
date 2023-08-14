@@ -105,7 +105,7 @@ class ClassifierKernel(Kernel):
                 self.init_outputs[0].shape = (X.shape[0],)
             
             if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
-                self.init_outputs[1].shape = (X.shape[0], self._classifier._classifier.n_classes_)
+                self.init_outputs[1].shape = (X.shape[0], self._classifier.n_classes)
 
             sts = self._process_data(init_tensor, 
                                      self.init_outputs[0], 
@@ -174,7 +174,7 @@ class ClassifierKernel(Kernel):
                                 output_sz = (1,)
                             else:
                                 # probability output
-                                output_sz = (1, self._classifier._classifier.n_classes_)
+                                output_sz = (1, self._classifier.n_classes)
                 
                     elif len(input_sz) == 2:
                         #single trial or multi-trial batch mode
@@ -184,7 +184,7 @@ class ClassifierKernel(Kernel):
                                 output_sz = (input_sz[0],)
                             else:
                                 # probability output
-                                output_sz = (input_sz[0], self._classifier._classifier.n_classes_)
+                                output_sz = (input_sz[0], self._classifier.n_classes)
 
                     elif (d_out.bcip_type == BcipEnums.SCALAR and
                           input_sz[0] != 1):
@@ -201,7 +201,7 @@ class ClassifierKernel(Kernel):
                             output_sz = (d_in.capacity,)
                         else:
                             # probability output
-                            output_sz = (d_in.capacity, self._classifier._classifier.n_classes_)
+                            output_sz = (d_in.capacity, self._classifier.n_classes)
                     else:
                         return BcipEnums.INVALID_PARAMETERS
 

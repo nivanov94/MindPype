@@ -67,6 +67,11 @@ class Classifier(BCIP):
         self._ctype = ctype
         self._classifier = classifier
 
+        if ctype == 'logistic regression':
+            self.n_classes = 2
+        else:
+            self.n_classes = classifier.n_classes_
+
         super().__init__(BcipEnums.CLASSIFIER, sess)
 
     def __str__(self):

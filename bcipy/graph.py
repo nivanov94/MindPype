@@ -292,7 +292,7 @@ class Graph(BCIP):
 
                 # check whether this node ingests data from a volatile source
                 for index, n_i in enumerate(n_inputs):
-                    if self._edges[n_i.session_id].data.volatile:
+                    if len(self._edges[n_i.session_id].producers) == 0:
                         root_data_node = True
                         init_data_input_index = index
                         break

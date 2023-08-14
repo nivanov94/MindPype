@@ -6,6 +6,7 @@ from ..containers import Scalar
 from scipy import signal
 import numpy as np
 import warnings
+from mne.filter import _overlap_add_filter
 
 class Filter:
     def initialize(self):
@@ -19,11 +20,22 @@ class Filter:
         
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             
+            axis_adjusted = False
+            if (len(self.inputs[0].shape) != len(init_in.shape) and
+                self._axis >= 0):
+                self._axis += 1 # adjust axis assuming stacked data
+                axis_adjusted = True
+            
+            
             # adjust init output shape if virtual
             if init_out.virtual:
                 init_out.shape = init_in.shape
             
+
             sts = self._process_data(init_in, init_out)
+
+            if axis_adjusted:
+                self._axis -= 1 # re-adjust axis
 
             # pass on the labels
             self.copy_init_labels_to_output()
@@ -124,7 +136,8 @@ class FilterKernel(Filter, Kernel):
                                                 axis=self._axis)
 
             elif self._filt.implementation == 'fir':
-                output_data.data = np.apply_along_axis(lambda x: signal.convolve(x, self._filt.coeffs['fir'], mode='same'), arr=input_data.data, axis=self._axis)
+                output_data.data = _overlap_add_filter(input_data.data, self._filt.coeffs['fir'], None, self._filt.coeffs['phase'])
+                #output_data.data = np.apply_along_axis(lambda x: signal.convolve(x, self._filt.coeffs['fir'], mode='same'), arr=input_data.data, axis=self._axis)
             
             return BcipEnums.SUCCESS
 

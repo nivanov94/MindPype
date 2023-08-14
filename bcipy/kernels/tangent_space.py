@@ -1,6 +1,7 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
+from ..containers import Tensor
 
 from pyriemann.tangentspace import TangentSpace
 import numpy as np
@@ -95,9 +96,10 @@ class TangentSpaceKernel(Kernel):
             try:
                 self._tangent_space = TangentSpace()
                 # add regularization
-                r = 0.001
-                init_in.data = (1-r)*init_in.data + r*np.eye(init_in.shape[1])
-                self._tangent_space = self._tangent_space.fit(init_in.data, 
+                r = 0.0
+                d_in = (1-r)*init_in.data + r*np.eye(init_in.shape[1])
+                d_in = Tensor.create_from_data(self.session, d_in.shape, d_in)
+                self._tangent_space = self._tangent_space.fit(d_in.data, 
                                                               sample_weight=self._sample_weight)
             except:
                 sts = BcipEnums.INITIALIZATION_FAILURE
@@ -109,7 +111,7 @@ class TangentSpaceKernel(Kernel):
             if init_out.virtual:
                 init_out.shape = (Nt, Nc*(Nc+1)//2)
             
-            sts = self._process_data(init_in, init_out)
+            sts = self._process_data(d_in, init_out)
 
             # pass on the labels
             self.copy_init_labels_to_output()
