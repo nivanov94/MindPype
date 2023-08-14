@@ -1,5 +1,3 @@
-# Example Package
+# BCIPy
 
-This is a simple example package. You can use
-[Github-flavored Markdown](https://guides.github.com/features/mastering-markdown/)
-to write your content.
+BCIPy is a Python-based software library that enables rapid prototyping, development, and implementation of BCI processing pipelines. [Learn more about the library here.](https://nivanov94.github.io/bcipy/index.html)
