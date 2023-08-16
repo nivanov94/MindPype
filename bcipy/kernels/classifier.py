@@ -53,13 +53,10 @@ class ClassifierKernel(Kernel):
             self.init_input_labels = labels
 
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
 
-        self._initialized = False # clear initialized flag
-        
         # check that the input init data is in the correct type
-        init_in = self.init_inputs[0]
-        labels = self.init_input_labels
+        init_in = init_inputs[0]
         accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
         
         for init_obj in (init_in,labels):
@@ -80,10 +77,9 @@ class ClassifierKernel(Kernel):
 
         # initialize the classifier
         self._classifier._classifier.fit(X, y)
-        self._initialized = True
 
         # set the initialization output        
-        if self.init_outputs[0] is not None or self.init_outputs[1] is not None:
+        if init_outputs[0] is not None or init_outputs[1] is not None:
             init_tensor = Tensor.create_from_data(self.session, X.shape, X)
 
             # adjust output shapes if necessary
@@ -93,13 +89,9 @@ class ClassifierKernel(Kernel):
             if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
                 self.init_outputs[1].shape = (X.shape[0], self._classifier._classifier.n_classes_)
 
-            self._process_data(init_tensor, 
-                               self.init_outputs[0], 
-                               self.init_outputs[1])
+            self._process_data([init_tensor], 
+                               self.init_outputs) 
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
 
     def verify(self):
         """similar verification process to individual classifier kernels"""
@@ -140,63 +132,6 @@ class ClassifierKernel(Kernel):
         else:
             input_sz = (d_in.capacity,) + d_in.get_element(0).shape
 
-
-        for i_o, d_out in enumerate(self.outputs):
-            if d_out is not None: # skip optional outputs not used
-                # output must be scalar or tensor
-                accepted_output_types = (BcipEnums.SCALAR, BcipEnums.TENSOR)
-                if d_out.bcip_type not in accepted_output_types:
-                    raise TypeError('Output data must be a scalar or tensor')
-        
-                # verify input and output dimensions
-                if d_in.bcip_type == BcipEnums.TENSOR:
-                    if len(input_sz) == 1:
-                        # single trial/sample mode
-                        if d_out.bcip_type == BcipEnums.TENSOR:
-                            if i_o == 0:
-                                # predicted label output
-                                output_sz = (1,)
-                            else:
-                                # probability output
-                                output_sz = (1, self._classifier._classifier.n_classes_)
-                
-                    elif len(input_sz) == 2:
-                        #single trial or multi-trial batch mode
-                        if d_out.bcip_type == BcipEnums.TENSOR:
-                            if i_o == 0:
-                                # predicted label output
-                                output_sz = (input_sz[0],)
-                            else:
-                                # probability output
-                                output_sz = (input_sz[0], self._classifier._classifier.n_classes_)
-
-                    elif (i_o == 0 and d_out.bcip_type == BcipEnums.SCALAR and
-                          input_sz[0] != 1):
-                        raise Exception('Input data must be a 1xN vector for scalar output')
-                else:
-                    # input is an array
-                    if (d_out.bcip_type == BcipEnums.SCALAR):
-                        raise Exception('Output data must be a tensor for array input')
-
-                    # check elements are correct shape
-                    if len(input_sz) == 2:
-                        if i_o == 0:
-                            # predicted label output
-                            output_sz = (d_in.capacity,)
-                        else:
-                            # probability output
-                            output_sz = (d_in.capacity, self._classifier._classifier.n_classes_)
-                    else:
-                        raise Exception('Input data arrays must contain only 1D vectors')
-
-                if d_out.bcip_type == BcipEnums.TENSOR:
-                    if d_out.virtual and len(d_out.shape) == 0:
-                        d_out.shape = output_sz
-
-                    # test if output shape is valid, exception will be thrown if shape is not valid
-                    d_out.data = np.zeros(output_sz)
-
-
     def execute(self):
         """
         Execute single trial classification
@@ -210,27 +145,27 @@ class ClassifierKernel(Kernel):
         self._process_data(input_tensor, self.outputs[0], self.outputs[1])
 
 
-    def _process_data(self, inA, outA, outB=None):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
         """
-        if not self._initialized:
-            raise Exception('Classifier has not been initialized')
-        
+        inA = inputs[0]
+        outA, outB = outputs
+
+        # convert input to tensor if needed
+        if inA.bcip_type != BcipEnums.TENSOR:
+            inA = inA.to_tensor()
+
+        # extract and reshape data
         if len(inA.shape) == 1:
             input_data = np.expand_dims(inA.data,axis=0)
         else:
             input_data = inA.data
         
         if outB is not None:
-            output_prob = self._classifier._classifier.predict_proba(input_data)
-            if outB.bcip_type == BcipEnums.SCALAR:
-                outB.data = float(output_prob)
-            else:
-                outB.data = output_prob
+            outB.data = self._classifier._classifier.predict_proba(input_data)
 
         output_data = self._classifier._classifier.predict(input_data)
-
         if outA.bcip_type == BcipEnums.SCALAR:
             outA.data = int(output_data)
         else:

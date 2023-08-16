@@ -231,19 +231,19 @@ class Kernel(BCIP, ABC):
         """
         self._init_outputs = outputs
 
-    @abstractmethod
-    def verify(self):
-        """
-        Generic verification abstract method to be defined by individual kernels.
-        """
-        pass
+    #@abstractmethod
+    #def verify(self):
+    #    """
+    #    Generic verification abstract method to be defined by individual kernels.
+    #    """
+    #    pass
     
-    @abstractmethod
-    def execute(self):
-        """
-        Generic execution abstract method to be defined by individual kernels.
-        """
-        pass
+    #@abstractmethod
+    #def execute(self):
+    #    """
+    #    Generic execution abstract method to be defined by individual kernels.
+    #    """
+    #    pass
     
     @abstractmethod
     def initialize(self):
@@ -329,3 +329,65 @@ class Kernel(BCIP, ABC):
             self.init_output_labels = Tensor.create_virtual(self.session)
 
         labels.copy_to(self.init_output_labels)
+
+
+    def verification(self):
+        """
+        Basic verification method that can be applied to all kernels.
+        Generates phony inputs and attemps to execute the kernel.
+        """
+
+        # generate phony inputs
+        phony_inputs = []
+        for input in self.inputs:
+            phony_input = input.copy()
+            phony_input.assign_random_data()
+            phony_inputs.append(phony_input)
+
+        # generate phony outputs
+        phony_outputs = []
+        for output in self.outputs:
+            phony_output = output.copy()
+            phony_outputs.append(phony_output)
+
+        # if the kernel requires initialization, generate phony init inputs
+        if self.init_style == BcipEnums.INIT_REQUIRED:
+            phony_init_inputs = []
+            for init_input in self.init_inputs:
+                phony_init_input = init_input.copy()
+                phony_init_input.assign_random_data()
+                phony_init_inputs.append(phony_init_input)
+
+            # generate phony init outputs
+            phony_init_outputs = []
+            for init_output in self.init_outputs:
+                phony_init_output = init_output.copy()
+                phony_init_outputs.append(phony_init_output)
+
+            # attempt initialization
+            try:
+                self._initialize(phony_init_inputs, phony_init_outputs)
+            except Exception as e:
+                raise type(e)(f"{str(e)}\nTest initialization of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
+
+        # attempt kernel execution
+        try:
+            self._process_data(phony_inputs, phony_outputs)
+        except Exception as e:
+            raise type(e)(f"{str(e)}\nTest execution of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
+
+
+    def initialize(self):
+        """
+        Initialize kernel
+        """
+        if hasattr(self,'_initialize'):
+            self._initialized = False
+            self._initialize(self.init_inputs, self.init_outputs)
+            self._initialized = True
+
+    def execute(self):
+        """
+        Execute kernel to process data
+        """
+        self._process_data(self.inputs, self.outputs)

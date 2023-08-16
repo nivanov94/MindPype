@@ -58,32 +58,27 @@ class CommonSpatialPatternKernel(Kernel):
             self._initialized = True
     
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set the filter values
         """
-        self._initialized = False # clear initialized flag
-        
         # check that the input init data is in the correct type
-        init_in = self.init_inputs[0]
-        labels = self.init_input_labels
+        init_in = init_inputs[0]
         accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
         
         for init_obj in (init_in,labels):
             if init_obj.bcip_type not in accepted_inputs:
                 raise TypeError('Initialization data must be a tensor, array, or circle buffer')
     
-        # extract the initialization data
-        X = extract_init_inputs(init_in)
-        y = extract_init_inputs(labels) 
-
         if self.init_style == BcipEnums.INIT_FROM_DATA:
+            # extract the initialization data
+            X = extract_init_inputs(init_in)
+            y = extract_init_inputs(labels) 
             self._compute_filters(X,y)
         
         # compute init output
-        if sts == BcipEnums.SUCCESS:
-            init_out = self.init_outputs[0]
-
+        init_out = init_outputs[0]
+        if init_out is not None:
             if init_in.bcip_type != BcipEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
@@ -91,20 +86,15 @@ class CommonSpatialPatternKernel(Kernel):
             if len(init_in.shape) == 3:
                 init_out.shape = (init_in.shape[0], self._W.shape[1], init_in.shape[2])
  
-            self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
 
-        self._initialized = True
-        
-
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process input data according to outlined kernel function
         """
 
-        output_data.data = np.matmul(self._W.T, input_data.data) 
+        outputs[0].data = np.matmul(self._W.T, inputs[0].data) 
 
     def _compute_filters(self,X,y):
         """
@@ -218,7 +208,7 @@ class CommonSpatialPatternKernel(Kernel):
         return W
     
     
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
@@ -263,12 +253,6 @@ class CommonSpatialPatternKernel(Kernel):
         # verify that output tensor can accept data of this size
         d_out.data = np.zeros(out_sz)
         
-    def execute(self):
-        """
-        Execute the kernel by classifying the input trials
-        """
-        self._process_data(self.inputs[0], self.outputs[0])
-    
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
                                    initialization_data,labels,

@@ -8,14 +8,13 @@ import numpy as np
 
 
 class Unary:
-    def initialize(self):
+    def _initialize(self,init_inputs, init_outputs, labels):
         """
         Initialize the kernel if there is an internal state to initialize, including downstream initialization data
         """
         # get the initialization params
-        init_in = self.init_inputs[0]
-        labels = self.init_input_labels
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         # check if initialization is needed
         if init_in is None or init_out is None:
@@ -37,55 +36,7 @@ class Unary:
         if init_out.virtual:
             init_out.shape = init_in.shape
 
-        self._process_data(init_in, init_out)
-
-        # pass on labels
-        self.copy_init_labels_to_output()
-
-
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-
-        # input/output must be a tensor or scalar
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        # ensure that the parameters are valid types
-        for param in (d_in, d_out):
-            if param.bcip_type not in (BcipEnums.TENSOR, BcipEnums.SCALAR):
-                raise TypeError("Invalid input/output type")
-        
-        # ensure that the input and output are the same type
-        if d_in.bcip_type != d_out.bcip_type:
-            raise TypeError("Input and output types must match")
-
-        if d_in.bcip_type == BcipEnums.TENSOR:
-            # input tensor must contain some values
-            if len(d_in.shape) == 0:
-                raise ValueError("Input tensor must contain some values")
-
-        # check output shape
-        if d_out.bcip_type == BcipEnums.TENSOR:
-            if d_out.virtual and len(d_out.shape) == 0:
-                d_out.shape = d_in.shape
-
-            if d_out.shape != d_in.shape:
-                raise ValueError("Output shape must match input shape")
-
-        else:
-            if not (d_in.data_type in Scalar.valid_numeric_types()):
-                raise TypeError("Invalid Scalar data type")
-
-            if d_out.data_type != d_in.data_type:
-                raise TypeError("Input and output data types must match")
-
-    def execute(self):
-        """
-        Execute the kernel function with the input trial data
-        """
-        self._process_data(self.inputs[0], self.outputs[0])
+        self._process_data(init_inputs, init_outputs)
 
 
 class AbsoluteKernel(Unary, Kernel):
@@ -112,14 +63,11 @@ class AbsoluteKernel(Unary, Kernel):
         self.inputs = [inA]
         self.outputs = [outA]
 
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Calculate the absolute value of the input data, and assign it to the output data
         """
-        if input_data.bcip_type == BcipEnums.TENSOR:
-            output_data.data = np.absolute(input_data.data)
-        else:
-            output_data.data = abs(input_data.data)
+        outputs[0].data = np.absolute(inputs[0].data)
 
     @classmethod
     def add_absolute_node(cls, graph, inA, outA):
@@ -182,7 +130,7 @@ class LogKernel(Unary, Kernel):
         self.inputs = [inA]
         self.outputs = [outA]
 
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Calculate the natural logarithm of the input data, and assign it to the output data
 
@@ -194,12 +142,7 @@ class LogKernel(Unary, Kernel):
             Output trial data
 
         """
-
-        data = np.log(input_data.data)
-        if output_data.bcip_type == BcipEnums.SCALAR:
-            output_data.data = data.item()
-        else:
-            output_data.data = data
+        outputs[0].data = np.log(inputs[0].data)
 
     @classmethod
     def add_log_node(cls, graph, inA, outA):
@@ -244,15 +187,14 @@ class LogKernel(Unary, Kernel):
 
 
 class Binary:
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
         # get the initialization params
-        init_inA = self.init_inputs[0]
-        init_inB = self.init_inputs[1]
-        labels = self.init_input_labels
-        init_out = self.init_outputs[0]
+        init_inA = init_inputs[0]
+        init_inB = init_inputs[1]
+        init_out = init_outputs[0]
 
         # check if initialization is needed
         if init_inA is None or init_inB is None or init_out is None:
@@ -277,84 +219,12 @@ class Binary:
         for i, i_in in enumerate((init_inA, init_inB)):
             X[i] = extract_init_inputs(i_in)
 
-        y = extract_init_inputs(labels)    
-
         # determine output dimensions and adjust init_out shape
         phony_out = X[0] + X[1]
         init_out.shape = phony_out.shape
         tmp_inA = Tensor.create_from_data(self.session, X[0].shape, X[0])
         tmp_inB = Tensor.create_from_data(self.session, X[1].shape, X[1])
-        self._process_data(tmp_inA, tmp_inB, init_out)
-
-        # pass on labels
-        self.copy_input_labels_to_output()
-
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        # get the input and output parameters
-        d_inA = self.inputs[0]
-        d_inB = self.inputs[1]
-        d_out = self.outputs[0]
-
-        # first ensure the inputs and outputs are the appropriate type
-        accepted_types = (BcipEnums.TENSOR, BcipEnums.SCALAR)
-        for operand in (d_inA, d_inB):
-            if operand.bcip_type not in accepted_types:
-                raise TypeError("Invalid input type")
-
-        if (d_inA.bcip_type == BcipEnums.TENSOR
-            or d_inB.bcip_type == BcipEnums.TENSOR):
-            if d_out.bcip_type != BcipEnums.TENSOR:
-                # if one of the inputs is a tensor, the output will be a tensor
-                raise TypeError("Invalid output type")
-        elif d_out.bcip_type != BcipEnums.SCALAR:
-            # o.w. the output should be a scalar
-            raise TypeError("Invalid output type")
-
-        # if the inputs are scalars, ensure they are numeric
-        for param in (d_inA, d_inB, d_out):
-            if (param.bcip_type == BcipEnums.SCALAR
-                and param.data_type not in Scalar.valid_numeric_types()):
-                raise TypeError("Invalid Scalar data type")
-
-        # check the shapes
-        if d_inA.bcip_type == BcipEnums.TENSOR:
-            inA_shape = d_inA.shape
-        else:
-            inA_shape = (1,)
-
-        if d_inB.bcip_type == BcipEnums.TENSOR:
-            inB_shape = d_inB.shape
-        else:
-            inB_shape = (1,)
-
-        # determine what the output shape should be
-        if d_out.bcip_type == BcipEnums.TENSOR:
-            phony_a = np.zeros(inA_shape)
-            phony_b = np.zeros(inB_shape)
-            phony_out = phony_a + phony_b
-
-            out_shape = phony_out.shape
-
-            # if the output is a virtual tensor and has no defined shape, set the shape now
-            if (
-                d_out.bcip_type == BcipEnums.TENSOR
-                and d_out.virtual
-                and len(d_out.shape) == 0
-            ):
-                d_out.shape = out_shape
-
-            # verify the output shape is valid by checking if the phony output data can be set to the output
-            # if it cannot, an exception will be raised
-            d_out.data = np.zeros(out_shape)
-
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
-        self._process_data(self.inputs[0], self.inputs[1], self.outputs[0])
+        self._process_data([tmp_inA, tmp_inB], init_outputs)
 
 
 class AdditionKernel(Binary, Kernel):
@@ -379,21 +249,8 @@ class AdditionKernel(Binary, Kernel):
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
-        """
-        Calculate the absolute value of the input data, and assign it to the output data
-
-        Parameters
-        ----------
-        input_data1 : Tensor or Scalar 
-            First input trial data
-        input_data2 : Tensor or Scalar 
-            Second input trial data
-        output_data : Tensor or Scalar 
-            Output trial data
-
-        """
-        output_data.data = input_data1.data + input_data2.data
+    def _process_data(self, inputs, outputs):
+        outputs[0].data = inputs[0].data + inputs[1].data
 
     @classmethod
     def add_addition_node(cls, graph, inA, inB, outA):
@@ -469,21 +326,11 @@ class DivisionKernel(Binary, Kernel):
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Calculate the quotient of the input tensors, and assign it to the output data
-
-        Parameters
-        ----------
-        input_data1 : Tensor or Scalar 
-            First input trial data
-        input_data2 : Tensor or Scalar 
-            Second input trial data
-        output_data : Tensor or Scalar 
-            Output trial data
-
         """
-        output_data.data = input_data1.data / input_data2.data
+        outputs[0].data = inputs[0].data / inputs[1].data
 
     @classmethod
     def add_division_node(cls, graph, inA, inB, outA):
@@ -556,21 +403,11 @@ class MultiplicationKernel(Binary, Kernel):
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Calculate the product of the input tensors, and assign it to the output data
-
-        Parameters
-        ----------
-        input_data1 : Tensor or Scalar 
-            First input trial data
-        input_data2 : Tensor or Scalar 
-            Second input trial data
-        output_data : Tensor or Scalar 
-            Output trial data
-
         """
-        output_data.data = input_data1.data * input_data2.data
+        outputs[0].data = inputs[0].data * inputs[1].data
 
     @classmethod
     def add_multiplication_node(cls, graph, inA, inB, outA):
@@ -643,21 +480,11 @@ class SubtractionKernel(Binary, Kernel):
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
-
-        Parameters
-        ----------
-        input_data1 : Tensor or Scalar 
-            First input trial data
-        input_data2 : Tensor or Scalar 
-            Second input trial data
-        output_data : Tensor or Scalar 
-            Output trial data
-
         """
-        output_data.data = input_data1.data - input_data2.data
+        outputs[0].data = inputs[0].data - inputs[1].data
 
     @classmethod
     def add_subtraction_node(cls, graph, inA, inB, outA):
