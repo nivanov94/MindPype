@@ -42,105 +42,48 @@ class TangentSpaceKernel(Kernel):
         self._tsupdate = tsupdate
         
         
-    def verify(self):
-        """
-        Verify inputs and outputs are appropriate shape and type
-        """
-
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        if (d_in.bcip_type != BcipEnums.TENSOR or
-            d_out.bcip_type != BcipEnums.TENSOR):
-            return BcipEnums.INVALID_PARAMETERS
-
-        if len(d_in.shape) not in (2, 3):
-            return BcipEnums.INVALID_PARAMETERS
-
-        if d_in.shape[-1] != d_in.shape[-2]:
-            return BcipEnums.INVALID_PARAMETERS
-    
-
-        # if output is virtual, set the output dims 
-        Nc = d_in.shape[-1]
-        ts_vect_len = Nc*(Nc+1)//2
-        if d_out.virtual and len(d_out.shape) == 0:
-            if len(d_in.shape) == 3:
-                output_shape = (d_in.shape[0], ts_vect_len)
-            else:
-                output_shape = (1, ts_vect_len)
-
-            d_out.shape = output_shape
-
-        # verify the output dimensions
-        if d_out.shape != output_shape:
-            return BcipEnums.INVALID_PARAMETERS
-                
-        return BcipEnums.SUCCESS
-
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Initialize internal state of the kernel and update initialization data if downstream nodes are missing data
         """
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_in.bcip_type != BcipEnums.TENSOR:
-            sts = BcipEnums.INITIALIZATION_FAILURE
+            raise TypeError("Tangent Space Kernel: Initialization input must be a Tensor")
 
         # fit the tangent space
-        if sts == BcipEnums.SUCCESS:
-            try:
-                self._tangent_space = TangentSpace()
-                # add regularization
-                r = 0.001
-                init_in.data = (1-r)*init_in.data + r*np.eye(init_in.shape[1])
-                self._tangent_space = self._tangent_space.fit(init_in.data, 
-                                                              sample_weight=self._sample_weight)
-            except:
-                sts = BcipEnums.INITIALIZATION_FAILURE
+        self._tangent_space = TangentSpace()
+        # add regularization
+        r = 0.001 # TODO make this a parameter
+        init_in.data = (1-r)*init_in.data + r*np.eye(init_in.shape[1])
+        self._tangent_space = self._tangent_space.fit(init_in.data, 
+                                                      sample_weight=self._sample_weight)
         
         # compute init output
-        if sts == BcipEnums.SUCCESS and init_in is not None and init_out is not None:
+        if init_in is not None and init_out is not None:
             # set output shape
             Nt, Nc, _ = init_in.shape
             if init_out.virtual:
                 init_out.shape = (Nt, Nc*(Nc+1)//2)
             
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
-    
-    def execute(self):
-        """
-        Execute single trial processing
-        """
-        return self._process_data(self.inputs[0], self.outputs[0])
-
-    def _process_data(self, inA, outA):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
         """
-        
+        inA = inputs[0]
+
         if len(inA.shape) == 2:
             local_input_data = np.expand_dims(inA.data,0)
         else:
             local_input_data = inA.data
             
-        try:
-            # add regularization
-            r = 0.001
-            local_input_data = (1-r)*local_input_data + r*np.eye(local_input_data.shape[1])
-            outA.data = self._tangent_space.transform(local_input_data)
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+        # add regularization TODO make this a parameter
+        r = 0.001
+        local_input_data = (1-r)*local_input_data + r*np.eye(local_input_data.shape[1])
+        outputs[0].data = self._tangent_space.transform(local_input_data)
 
 
     @classmethod
@@ -181,4 +124,3 @@ class TangentSpaceKernel(Kernel):
         graph.add_node(node)
 
         return node
-

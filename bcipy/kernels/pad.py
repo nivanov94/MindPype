@@ -1,7 +1,6 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Tensor
 
 import numpy as np
 
@@ -36,61 +35,20 @@ class PadKernel(Kernel):
 
         self._kwargs_dict = kwargs
         
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        
-        inA = self.inputs[0]
-        outA = self.outputs[0]
+    def _initialize(self, init_inputs, init_outputs, labels):
 
-        # inA and outA must be a tensor
-        for param in (inA, outA):
-            if param.bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
-    
-        
-        # check the output dimensions are valid
-        test_output = Tensor.create_virtual(self.session)
-        self._process_data(inA, test_output)
-
-        if outA.virtual and len(self._outA.shape) == 0:
-            self._outA.shape = test_output.shape
-
-        if outA.shape != test_output.shape:
-            return BcipEnums.INVALID_PARAMETERS
-
-        return BcipEnums.SUCCESS
-
-
-    def initialize(self):
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
-        labels = self.init_input_labels
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # TODO need to correct padding dimensions for potentially differently shaped init inputs
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on labels
-            self.copy_init_labels_to_output()
-        
-        return sts
-
-    def execute(self):
-        """
-        Execute the kernel
-        """
-        return self._process_data(self.inputs[0], self.outputs[0])
-    
-
-    def _process_data(self, inp, out):
+    def _process_data(self, inputs, outputs):
         """
         Process the data
         """
-
+        inp = inputs[0]
         # TODO: make this more efficient/reduce code duplication
         if self._mode in ('maximum', 'mean', 'median', 'minimum'):
             out_data = np.pad(inp.data, self._pad_width, self._mode, stat_length = self._stat_length)
@@ -105,8 +63,7 @@ class PadKernel(Kernel):
         else:
             out_data = np.pad(inp.data, self._pad_width, self._mode, **self._kwargs_dict)
 
-        out.shape = out_data.shape
-        out.data = out_data
+        outputs[0].data = out_data
 
         return BcipEnums.SUCCESS
 
@@ -116,7 +73,10 @@ class PadKernel(Kernel):
         Add a pad kernel to the graph
         """
 
-        k = cls(graph, inA, outA, pad_width, mode, stat_length, constant_values, end_values, reflect_type, **kwargs)
+        k = cls(graph, inA, outA, pad_width, 
+                mode, stat_length, constant_values, 
+                end_values, reflect_type, **kwargs)
+        
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))

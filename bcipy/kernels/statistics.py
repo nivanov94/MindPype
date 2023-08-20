@@ -45,26 +45,20 @@ class CDFKernel(Kernel):
         self._scale = scale
         self._df = df        
     
-    def initialize(self):
-        sts = BcipEnums.SUCCESS
+    def _initialize(self, init_inputs, init_outputs, labels):
 
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # update output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
 
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return BcipEnums.SUCCESS
-        
     
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
@@ -75,7 +69,7 @@ class CDFKernel(Kernel):
         # first ensure the input and output are tensors
         if (d_in.bcip_type != BcipEnums.TENSOR or 
             d_out.bcip_type != BcipEnums.TENSOR):
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError("CDF Kernel: Input and output must be tensors")
         
         input_shape = d_in.shape        
         
@@ -88,39 +82,26 @@ class CDFKernel(Kernel):
         # check that the dimensions of the output match the dimensions of
         # input
         if d_in.shape != d_out.shape:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("CDF Kernel: Input and output must have the same shape")
         
         # check that the distribution is supported
         if not self._dist in ('norm','chi2'):
-            return BcipEnums.INVALID_NODE
+            raise ValueError("CDF Kernel: Distribution must be 'norm' or 'chi2'")
         
         if self._dist == 'chi2' and self._df == None:
-            return BcipEnums.INVALID_NODE
+            raise ValueError("CDF Kernel: Chi2 distribution requires a df parameter")
         
-        return BcipEnums.SUCCESS
-        
-    def _process_data(self, input_data, output_data):
-        try:
-            if self._dist == 'norm':
-                output_data.data = norm.cdf(input_data.data,
-                                           loc=self._loc,
-                                           scale=self._scale)
-            elif self._dist == 'chi2':
-                output_data.data = chi2.cdf(input_data.data,
-                                           self._df,
-                                           loc=self._loc,
-                                           scale=self._scale)
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        if self._dist == 'norm':
+            outputs[0].data = norm.cdf(inputs[0].data,
+                                       loc=self._loc,
+                                       scale=self._scale)
+        elif self._dist == 'chi2':
+            outputs[0].data = chi2.cdf(inputs[0].data,
+                                       self._df,
+                                       loc=self._loc,
+                                       scale=self._scale)
 
-    def execute(self):
-        """
-        Execute the kernel and calculate the CDF
-        """
-        return self._process_data(self.inputs[0],self.outputs[0])
-    
     @classmethod
     def add_cdf_node(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1):
         """
@@ -186,14 +167,13 @@ class CovarianceKernel(Kernel):
         self.outputs = [outputA]
         self._r = regularization
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Initialize internal state and initialization output of the kernel
         """
-        sts = BcipEnums.SUCCESS
 
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # update output size, as needed
@@ -202,14 +182,10 @@ class CovarianceKernel(Kernel):
                 shape[-1] = shape[-2]
                 init_out.shape = tuple(shape)
 
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
 
-        return BcipEnums.SUCCESS
-
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -220,10 +196,10 @@ class CovarianceKernel(Kernel):
         # first ensure the input and output are tensors
         if (d_in.bcip_type != BcipEnums.TENSOR or 
             d_out.bcip_type != BcipEnums.TENSOR):
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("Covariance Kernel: Input and output must be tensors")
         
         if self._r > 1 or self._r < 0:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("Covariance Kernel: Regularization parameter must be between 0 and 1")
         
         # check the shape
         input_shape = d_in.shape
@@ -231,7 +207,7 @@ class CovarianceKernel(Kernel):
         
         # determine what the output shape should be
         if input_rank < 1 or input_rank > 3:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("Covariance Kernel: Input must be rank 1, 2, or 3")
         elif input_rank == 1:
             output_shape = (1,)
         else:
@@ -245,23 +221,20 @@ class CovarianceKernel(Kernel):
         
         # ensure the output tensor's shape equals the expected output shape
         if d_out.shape != output_shape:
-            return BcipEnums.INVALID_PARAMETERS
-        else:
-            return BcipEnums.SUCCESS
+            raise ValueError("Covariance Kernel: Output shape does not match expected shape")
         
-    def _process_data(self, input_data1, output_data1):
+    def _process_data(self, inputs, outputs):
         """
         Process input data according to outlined kernel function
         """
-        shape = input_data1.shape
+        shape = inputs[0].shape
         rank = len(shape)
         
-        input_data = input_data1.data
-        
+        input_data = inputs[0].data
         
         if rank <= 2:
             covmat = np.cov(input_data)
-            output_data1.data = (1/(1+self._r) * 
+            outputs[0].data = (1/(1+self._r) * 
                                     (covmat + self._r*np.eye(covmat.shape[0])))
         else:
             # reshape the input data so it's rank 3
@@ -276,15 +249,8 @@ class CovarianceKernel(Kernel):
                                         (covmat + self._r*np.eye(covmat.shape[0])))
             
             # reshape the output
-            output_data1.data = np.reshape(output_data,self._outputA.shape)
+            outputs[0].data = np.reshape(output_data,outputs[0].shape)
             
-        return BcipEnums.SUCCESS
-    
-    def execute(self):
-        """
-        Execute the kernel function
-        """
-        return self._process_data(self.inputs[0],self.outputs[0])
     
     @classmethod
     def add_covariance_node(cls,graph,inputA,outputA,regularization=0):
@@ -338,14 +304,12 @@ class CovarianceKernel(Kernel):
 
 
 class Descriptive:
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # update the output shape, as needed
@@ -361,71 +325,10 @@ class Descriptive:
                                     keepdims=self._keepdims)
                 init_out.shape = phony_out.shape
             
-            sts = self._process_data(init_in,init_out)
+            self._process_data(init_inputs,init_outputs)
             
             if axis_adjusted:
                 self._axis -= 1 # re-adjust axis
-
-            # pass on the labels
-            self.copy_init_labels_to_output()
-
-        return sts
- 
-
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        # input must be a tensor
-        if d_in.bcip_type != BcipEnums.TENSOR:
-            return BcipEnums.INVALID_PARAMETERS
-
-        # output must be a tensor or scalar
-        if (d_out.bcip_type != BcipEnums.TENSOR and 
-            d_out.bcip_type != BcipEnums.SCALAR):
-            return BcipEnums.INVALID_PARAMETERS
-
-        # input tensor must contain some values
-        if len(d_in.shape) == 0:
-            return BcipEnums.INVALID_PARAMETERS
-
-        # attempt a phony execution to check if axis and keepdims are valid
-        # and get the shape of the output
-        try:
-            phony_in = np.zeros(d_in.shape)
-            phony_out = np.mean(phony_in, axis=self._axis, keepdims=self._keepdims)
-        except:
-            return BcipEnums.INVALID_PARAMETERS
-
-        # check shape and format of output
-        if d_out.bcip_type == BcipEnums.TENSOR:
-            output_shape = phony_out.shape
-
-            if d_out.virtual and len(d_out.shape) == 0:
-                d_out.shape = output_shape
-
-            if d_out.shape != output_shape:
-                return BcipEnums.INVALID_PARAMETERS
-
-        else:
-            # if the output is a scalar, the operation must produce a single value
-            if (d_out.data_type != float or
-                self._axis != None or
-                self._keepdims):
-                return BcipEnums.INVALID_PARAMETERS
-
-        return BcipEnums.SUCCESS
-
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
-        return self._process_data(self.inputs[0],self.outputs[0])
-    
 
 
 class MaxKernel(Descriptive, Kernel):
@@ -458,21 +361,13 @@ class MaxKernel(Descriptive, Kernel):
         self._axis = axis
         self._keepdims = keepdims
 
-    def _process_data(self, input_data, output_data):
-        try:
-            if output_data.bcip_type == BcipEnums.SCALAR:
-                output_data.data = np.amax(input_data.data).item()
-            else:
-                result = np.amax(input_data.data,
-                                 axis=self._axis,
-                                 keepdims=self._keepdims)
-                if np.isscalar(result):
-                    result = np.asarray([result])
-                output_data.data = result
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        if outputs[0].bcip_type == BcipEnums.SCALAR:
+            outputs[0].data = np.amax(inputs[0].data).item()
+        else:
+            outputs[0].data = np.amax(inputs[0].data,
+                                      axis=self._axis,
+                                      keepdims=self._keepdims)
 
     @classmethod
     def add_max_node(cls,graph,inA,outA,axis=None,keepdims=False):
@@ -544,21 +439,13 @@ class MinKernel(Descriptive, Kernel):
         self._keepdims = keepdims
 
 
-    def _process_data(self, input_data, output_data):
-        try:
-            if output_data.bcip_type == BcipEnums.SCALAR:
-                output_data.data = np.amin(input_data.data).item()
-            else:
-                result = np.amin(input_data.data,
-                                 axis=self._axis,
-                                 keepdims=self._keepdims)
-                if np.isscalar(result):
-                    result = np.asarray([result])
-                output_data.data = result
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        if outputs[0].bcip_type == BcipEnums.SCALAR:
+            outputs[0].data = np.amin(inputs[0].data).item()
+        else:
+            outputs[0].data = np.amin(inputs[0].data,
+                                      axis=self._axis,
+                                      keepdims=self._keepdims)
 
     @classmethod
     def add_min_node(cls,graph,inA,outA,axis=None,keepdims=False):
@@ -634,21 +521,13 @@ class MeanKernel(Descriptive, Kernel):
         self._axis = axis
         self._keepdims = keepdims
 
-    def _process_data(self, input_data, output_data):
-        try:
-            if output_data.bcip_type == BcipEnums.SCALAR:
-                output_data.data = np.mean(input_data.data).item()
-            else:
-                result = np.mean(input_data.data,
-                                 axis=self._axis,
-                                 keepdims=self._keepdims)
-                if np.isscalar(result):
-                    result = np.asarray([result])
-                output_data.data = result
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        if outputs[0].bcip_type == BcipEnums.SCALAR:
+            outputs[0].data = np.mean(inputs[0].data).item()
+        else:
+            outputs[0].data = np.mean(inputs[0].data,
+                                      axis=self._axis,
+                                      keepdims=self._keepdims)
 
     @classmethod
     def add_mean_node(cls,graph,inA,outA,axis=None,keepdims=False):
@@ -724,8 +603,8 @@ class StdKernel(Descriptive, Kernel):
         self._ddof = ddof
         self._keepdims = keepdims
         
-    def verify(self):
-        sts = super().verify()
+    def _verify(self):
+        super()._verify()
 
         d_in = self.inputs[0]
 
@@ -742,31 +621,16 @@ class StdKernel(Descriptive, Kernel):
                 N *= dim
 
         if N <= self._ddof:
-            sts = BcipEnums.INVALID_PARAMETERS
+            raise ValueError("Std Kernel: ddof must be less than the number of elements in the tensor")
 
-        return sts
-
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
         """
-        try:
-            result = np.std(input_data.data,
-                            axis=self._axis,
-                            ddof=self._ddof,
-                            keepdims=self._keepdims)
-
-            if output_data.bcip_type == BcipEnums.SCALAR:
-                output_data.data = result.item()
-            else:
-                if np.isscalar(result):
-                    result = np.asarray([result])
-                output_data.data = result
-                
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+        outputs[0].data = np.std(inputs[0].data,
+                                 axis=self._axis,
+                                 ddof=self._ddof,
+                                keepdims=self._keepdims)
 
     @classmethod
     def add_std_node(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False):
@@ -844,7 +708,7 @@ class VarKernel(Descriptive, Kernel):
         self._keepdims = keep_dims
         
     def verify(self):
-        sts = super().verify()
+        super()._verify()
 
         d_in = self.inputs[0]
 
@@ -861,31 +725,16 @@ class VarKernel(Descriptive, Kernel):
                 N *= dim
 
         if N <= self._ddof:
-            sts = BcipEnums.INVALID_PARAMETERS
+            raise ValueError("Var Kernel: ddof must be less than the number of elements in the tensor")
 
-        return sts
-
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
         """
-        try:
-            result = np.var(input_data.data,
-                            axis=self._axis,
-                            ddof=self._ddof,
-                            keepdims=self._keepdims)
-
-            if output_data.bcip_type == BcipEnums.SCALAR:
-                output_data.data = result.item()
-            else:
-                if np.isscalar(result):
-                    result = np.asarray([result])
-                output_data.data = result
-                
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
+        outputs[0].data = np.var(inputs[0].data,
+                                 axis=self._axis,
+                                 ddof=self._ddof,
+                                 keepdims=self._keepdims)
 
     @classmethod
     def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keep_dims=False):
@@ -956,32 +805,32 @@ class ZScoreKernel(Kernel):
         self._sigma = 0
         self._initialized = False
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Initialize the mean and std. Call initialization_execution if downstream nodes are missing training data
         """
 
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if (init_in.bcip_type != BcipEnums.ARRAY and
             init_in.bcip_type != BcipEnums.TENSOR and
             init_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
-            return BcipEnums.INITIALIZATION_FAILURE
+            raise TypeError("ZScore Kernel: Initialization data must be an array or tensor")
 
         if init_in.bcip_type == BcipEnums.TENSOR:
             if len(init_in.squeeze().shape) != 1:
-                return BcipEnums.INITIALIZATION_FAILURE
+                raise ValueError("ZScore Kernel: Initialization data must be rank 1")
         else:
             e = init_in.get_element(0)
             if e.bcip_type == BcipEnums.TENSOR:
-                if (e.shape != (1,)) and (e.shape != (1,1)):
-                    return BcipEnums.INITIALIZATION_FAILURE
+                if (np.squeeze(e.shape != ())):
+                    raise ValueError("ZScore Kernel: Initialization data must be rank 1")
             elif e.bcip_type == BcipEnums.SCALAR:
                 if not e.data_type in Scalar.valid_numeric_types():
-                    return BcipEnums.INITIALIZATION_FAILURE
+                    raise ValueError("ZScore Kernel: Initialization data must be numeric")
             else:
-                return BcipEnums.INITIALIZATION_FAILURE
+                raise ValueError("ZScore Kernel: Initialization data Arrays must contain tensors or scalars")
 
         if init_in.bcip_type == BcipEnums.TENSOR:
             d = init_in.data.squeeze()
@@ -1005,105 +854,21 @@ class ZScoreKernel(Kernel):
         self._mu = np.sum(d) / N
         self._sigma = np.sqrt(np.sum((d - self._mu)**2) / (N-1))
 
-        self._initialized = True
-
-        sts = BcipEnums.SUCCESS
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # set output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
 
-            sts = self._process_data(init_in, init_out)
-
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
+            self._process_data(init_inputs, init_outputs)
 
     
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized and typed
-        """
-
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        # input and output must be scalar or tensor
-        for param in (d_in, d_out):
-            if (param.bcip_type != BcipEnums.SCALAR and
-                param.bcip_type != BcipEnums.TENSOR):
-                return BcipEnums.INVALID_PARAMETERS
-
-        if d_in.bcip_type == BcipEnums.TENSOR:
-            # input tensor must contain some values
-            if len(d_in.shape) == 0:
-                return BcipEnums.INVALID_PARAMETERS
-
-            # must contain only one non-singleton dimension
-            if len(d_in.data.squeeze().shape) > 1:
-                return BcipEnums.INVALID_PARAMETERS
-
-            # if output is a scalar, tensor must contain a single element
-            if (d_out.bcip_type == BcipEnums.SCALAR and
-                len(d_in.data.squeeze().shape) != 0):
-                return BcipEnums.INVALID_PARAMETERS
-
-        else:
-            # input scalar must contain a number
-            if not d_in.data_type in Scalar.valid_numeric_types():
-                return BcipEnums.INVALID_PARAMETERS
-
-            if d_out.bcip_type == BcipEnums.SCALAR and d_out.data_type != float:
-                return BcipEnums.INVALID_PARAMETERS
-
-            if d_out.bcip_type == BcipEnums.TENSOR and d_out.shape != (1,1):
-                return BcipEnums.INVALID_PARAMETERS
-            
-
-        if d_out.bcip_type == BcipEnums.TENSOR:
-            if d_out.virtual and len(d_out.shape) == 0:
-                d_out.shape = d_in.shape
-
-            if d_out.shape != d_in.shape:
-                return BcipEnums.INVALID_PARAMETERS
-
-        return BcipEnums.SUCCESS
-
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
         """
-        if not self._initialized:
-            return BcipEnums.EXE_FAILURE
-
-        try:
-            out_data = (input_data.data - self._mu) / self._sigma
-
-            if (input_data.bcip_type == BcipEnums.TENSOR and
-                output_data.bcip_type == BcipEnums.SCALAR):
-                # peel back layers of array until the value is extracted
-                while isinstance(out_data,np.ndarry):
-                    out_data = out_data[0]
-                output_data.data = out_data
-            elif (input_data.bcip_type == BcipEnums.SCALAR and
-                  output_data.bcip_type == BcipEnums.TENSOR):
-                output_data.data = np.asarray([[out_data]])
-            else:
-                output_data.data = out_data
-            
-        except:
-            return BcipEnums.EXE_FAILURE
         
-        return BcipEnums.SUCCESS
+        outputs[0].data = (inputs[0].data - self._mu) / self._sigma
 
-
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
-        return self._process_data(self.inputs[0],self.outputs[0])
-    
     @classmethod
     def add_zscore_node(cls,graph,inA,outA,init_data):
         """
@@ -1137,5 +902,3 @@ class ZScoreKernel(Kernel):
         graph.add_node(node)
         
         return node
-
-

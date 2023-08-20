@@ -1,83 +1,28 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar
+from ..containers import Scalar, Tensor
+from .kernel_utils import extract_init_inputs
 
 import numpy as np
 
 class Unary:
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
-
         # get the input and output initialization parameters
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # set the output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
 
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
-
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        # first ensure the inputs and outputs are the appropriate type
-        if d_in.bcip_type != BcipEnums.TENSOR and d_in.bcip_type != BcipEnums.SCALAR:
-            return BcipEnums.INVALID_PARAMETERS
-        
-        if d_in.bcip_type == BcipEnums.TENSOR and d_out.bcip_type != BcipEnums.TENSOR:
-            # if  the input is a tensor, the output will be a tensor
-            return BcipEnums.INVALID_PARAMETERS
-        elif d_out.bcip_type != BcipEnums.SCALAR:
-            # o.w. the output should be a scalar
-            return BcipEnums.INVALID_PARAMETERS
-        
-        # if the params are scalars, ensure they are logical
-        for param in (d_in, d_out):
-            if (param.bcip_type == BcipEnums.SCALAR and 
-                param.data_type != bool):
-                return BcipEnums.INVALID_PARAMETERS
-
-        # check the shapes
-        if d_in.bcip_type == BcipEnums.TENSOR:
-            param_shape = d_in.shape
-        else:
-            param_shape = (1,)
-        
-        # if the output is a virtual tensor and has no defined shape, set the shape now
-        if (d_out.bcip_type == BcipEnums.TENSOR and d_out.virtual 
-            and len(d_out.shape) == 0):
-            d_out.shape = param_shape
-        
-        # ensure the output shape equals the expected output shape
-        if d_out.bcip_type == BcipEnums.TENSOR and d_out.shape != param_shape:
-            return BcipEnums.INVALID_PARAMETERS
-        elif d_out.bcip_type == BcipEnums.SCALAR and param_shape != (1,):
-            return BcipEnums.INVALID_PARAMETERS
-        else:
-            return BcipEnums.SUCCESS
-
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
-        return self._process_data(self.inputs[0], self.outputs[0])
- 
-
+    
 class NotKernel(Unary, Kernel):
     """
     Kernel to perform logical NOT operation elementwise on
@@ -102,18 +47,8 @@ class NotKernel(Unary, Kernel):
         self.inputs = [inA]
         self.outputs = [outA]
  
-    def _process_data(self, input_data, output_data):
-        try:
-            data = np.logical_not(input_data.data)
-            if isinstance(output_data,Scalar):
-               output_data.data = data.item()
-            else:
-                output_data.data = data
-
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        outputs[0].data = np.logical_not(inputs[0].data)
 
     @classmethod
     def add_not_node(cls,graph,inA,outA):
@@ -138,99 +73,37 @@ class NotKernel(Unary, Kernel):
         return node
 
 class Binary:
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
-        init_inA, init_inB = self.init_inputs
-        init_out = self.init_outputs[0]
+        init_inA, init_inB = init_inputs
+        init_out = init_outputs[0]
 
-        if init_out is not None and (init_inA is not None and init_inA.shape != ()):
-            # determine output dimensions and adjust init_outA shape
-            try:
-                phony_out = np.logical_and(init_inA.data, init_inB.data)
-                init_out.shape = phony_out.shape
-                sts = self._process_data(init_inA, init_inB, init_out)
-            except:
-                sts = BcipEnums.INIT_FAILURE
+        # check if initialization is needed
+        if init_inA is None or init_inB is None or init_out is None:
+            # init not needed
+            return
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
+        accepted_data_inputs = (BcipEnums.TENSOR, BcipEnums.ARRAY,
+                                BcipEnums.CIRCLE_BUFFER, BcipEnums.SCALAR)
         
-        return sts
-
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        
-        inA, inB = self.inputs
-        outA = self.outputs[0]
-
-        # first ensure the inputs and outputs are the appropriate type
-        for operand in (inA, inB):
-            if (operand.bcip_type != BcipEnums.TENSOR and
-                operand.bcip_type != BcipEnums.SCALAR):
-                return BcipEnums.INVALID_PARAMETERS
-        
-        if (inA.bcip_type == BcipEnums.TENSOR or 
-            inB.bcip_type == BcipEnums.TENSOR): 
-            if outA.bcip_type != BcipEnums.TENSOR:
-                # if one of the inputs is a tensor, the output will be a tensor
-                return BcipEnums.INVALID_PARAMETERS
-        elif outA.bcip_type != BcipEnums.SCALAR:
-            # o.w. the output should be a scalar
-            return BcipEnums.INVALID_PARAMETERS
-        
-        # if the inputs are scalars, ensure they are logical
-        for param in (inA, inB, outA):
-            if (param.bcip_type == BcipEnums.SCALAR and 
-                param.data_type != bool):
-                return BcipEnums.INVALID_PARAMETERS
-        
-        # check the shapes
-        if inA.bcip_type == BcipEnums.TENSOR:
-            inA_shape = inA.shape
-        else:
-            inA_shape = (1,)
-        
-        if inB.bcip_type == BcipEnums.TENSOR:
-            inB_shape = inB.shape
-        else:
-            inB_shape = (1,)
-        
-        # determine what the output shape should be
-        try:
-            phony_a = np.zeros(inA_shape)
-            phony_b = np.zeros(inB_shape)
+        # check the init inputs are in valid data objects
+        for init_obj in (init_inA, init_inB):
+            if init_obj.bcip_type not in accepted_data_inputs:
+                raise TypeError("Invalid initialization input type")
             
-            phony_out = np.logical_and(phony_a,phony_b)
-        
-        except ValueError:
-            # these dimensions cannot be broadbast together
-            return BcipEnums.INVALID_PARAMETERS
-        
-        out_shape = phony_out.shape
-        
-        # if the output is a virtual tensor and has no defined shape, set the shape now
-        if (outA.bcip_type == BcipEnums.TENSOR and outA.virtual 
-            and len(outA.shape) == 0):
-            outA.shape = out_shape
-        
-        # ensure the output shape equals the expected output shape
-        if outA.bcip_type == BcipEnums.TENSOR and outA.shape != out_shape:
-            return BcipEnums.INVALID_PARAMETERS
-        elif outA.bcip_type == BcipEnums.SCALAR and out_shape != (1,):
-            return BcipEnums.INVALID_PARAMETERS
-        else:
-            return BcipEnums.SUCCESS
+        # extract the data from the input
+        X = [None] * 2
+        for i, i_in in enumerate((init_inA, init_inB)):
+            X[i] = extract_init_inputs(i_in)
 
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
-        return self._process_data(self.inputs[0], self.inputs[1], self.outputs[0])
+        # determine output dimensions and adjust init_out shape
+        phony_out = np.logical_and(X[0],X[1])
+        init_out.shape = phony_out.shape
+        tmp_inA = Tensor.create_from_data(self.session, X[0].shape, X[0])
+        tmp_inB = Tensor.create_from_data(self.session, X[1].shape, X[1])
+        self._process_data([tmp_inA, tmp_inB], init_outputs)
 
 
 class AndKernel(Binary,Kernel):
@@ -260,21 +133,11 @@ class AndKernel(Binary,Kernel):
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to the outlined kernel function
         """
-        try:
-            data = np.logical_and(input_data1.data,input_data2.data)
-            if isinstance(output_data,Scalar):
-                output_data.data = data.item()
-            else:
-                output_data.data = data
-
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
+        outputs[0].data = np.logical_and(inputs[0].data, inputs[1].data)
 
     @classmethod
     def add_and_node(cls,graph,inA,inB,outA):
@@ -341,18 +204,11 @@ class OrKernel(Binary,Kernel):
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
-        try:
-            data = np.logical_or(input_data1.data, input_data2.data)
-            if isinstance(output_data,Scalar):
-               output_data.data = data.item()
-            else:
-                output_data.data = data
-
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        """
+        Process data according to the outlined kernel function
+        """
+        outputs[0].data = np.logical_or(inputs[0].data, inputs[1].data)
 
     @classmethod
     def add_or_node(cls,graph,inA,inB,outA):
@@ -417,20 +273,12 @@ class XorKernel(Binary,Kernel):
         super().__init__('XOR',BcipEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
- 
-    def process_data(self, input_data1, input_data2, output_data):
-        try:
-            data = np.logical_xor(input_data1.data, input_data2.data)
-            if isinstance(output_data,Scalar):
-               output_data.data = data.item()
-            else:
-                output_data.data = data
 
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
-
+    def _process_data(self, inputs, outputs):
+        """
+        Process data according to the outlined kernel function
+        """
+        outputs[0].data = np.logical_xor(inputs[0].data, inputs[1].data)
 
     @classmethod
     def add_xor_node(cls,graph,inA,inB,outA):
@@ -497,14 +345,12 @@ class GreaterKernel(Binary,Kernel):
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
-        try:
-            output_data.data = input_data1.data > input_data2.data
 
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        """
+        Process data according to the outlined kernel function
+        """
+        outputs[0].data = inputs[0].data > inputs[1].data
 
     @classmethod
     def add_greater_node(cls,graph,inA,inB,outA):
@@ -575,15 +421,11 @@ class LessKernel(Binary,Kernel):
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
-        """Process data according to the kernel function using numpy data"""
-        try:
-            output_data.data = input_data1.data < input_data2.data
-
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        """
+        Process data according to the outlined kernel function
+        """
+        outputs[0].data = inputs[0].data < inputs[1].data
 
     @classmethod
     def add_less_node(cls,graph,inA,inB,outA):
@@ -647,14 +489,11 @@ class EqualKernel(Binary,Kernel):
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
-    def _process_data(self, input_data1, input_data2, output_data):
-        try:
-            output_data.data = input_data1.data == input_data2.data
-
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        """
+        Process data according to the outlined kernel function
+        """
+        outputs[0].data = inputs[0].data == inputs[1].data
 
     @classmethod
     def add_equal_node(cls,graph,inA,inB,outA):

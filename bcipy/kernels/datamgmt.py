@@ -35,16 +35,15 @@ class ConcatenationKernel(Kernel):
         self.outputs = [outA]
         self._axis = axis
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
 
         # get the init inputs and outputs
-        init_inA = self.init_inputs[0]
-        init_inB = self.init_inputs[1]
-        init_out = self.init_outputs[0]
+        init_inA = init_inputs[0]
+        init_inB = init_inputs[1]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
             # determine if the axis needs to be adjusted for init
@@ -65,20 +64,12 @@ class ConcatenationKernel(Kernel):
                 init_out.shape = output_sz
 
             # process the init data
-            sts = self._process_data(init_inA, init_inB, init_out)
+            self._process_data(init_inA, init_inB, init_out)
 
             # adjust the axis back if it was adjusted
             if axis_adjusted:
                 self._axis -= 1
 
-            # pass on labels
-            labels = self.init_input_labels
-            if labels.bcip_type != BcipEnums.TENSOR:
-                labels = labels.to_tensor()
-            labels.copy_to(self.init_output_labels)
-        
-        return sts
-    
     def _resolve_dims(self, inA, inB):
         sz_A = inA.shape
         sz_B = inB.shape
@@ -107,7 +98,7 @@ class ConcatenationKernel(Kernel):
 
         return tuple(output_sz), noncat_sz_A, noncat_sz_B
 
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -116,39 +107,36 @@ class ConcatenationKernel(Kernel):
         d_inA, d_inB = self.inputs
         d_out = self.outputs[0]
         for param in (d_inA, d_inB, d_out):
-            if param._bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
+            if param.bcip_type != BcipEnums.TENSOR:
+                raise TypeError("ConcatenationKernel requires Tensor inputs and outputs")
             
         # the dimensions along the catcat axis must be equal
         output_sz, noncat_sz_A, noncat_sz_B = self._resolve_dims(d_inA,d_inB)
         if len(output_sz) == 0:
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("ConcatenationKernel could not resolve output dimensions")
         
         # check if the remaining dimensions are the same
         if ((len(noncat_sz_A) != len(noncat_sz_B)) or 
              len(noncat_sz_A) != sum([1 for i,j in 
                                      zip(noncat_sz_A,noncat_sz_B) if i==j])):
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("ConcatenationKernel requires non-concatenation dimensions to be equal")
         
-        # check the output dimensions are valid
         if d_out.virtual and len(d_out.shape) == 0:
             d_out.shape = output_sz
         
         # ensure the output shape equals the expected output shape
         if d_out.shape != output_sz:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("ConcatenationKernel output shape does not match expected output shape")
 
-        return BcipEnums.SUCCESS
 
-    def _process_data(self, input_data1, input_data2, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process input data according to outlined kernel function
         """
+        inA_data = inputs[0].data
+        inB_data = inputs[1].data
 
         concat_axis = self._axis if self._axis != None else 0
-        
-        inA_data = input_data1.data
-        inB_data = input_data2.data
         
         if len(inA_data.shape) == len(inB_data.shape)+1:
             # add a leading dimension for input B
@@ -156,25 +144,11 @@ class ConcatenationKernel(Kernel):
         elif len(inB_data.shape) == len(inA_data.shape)+1:
             inA_data = np.expand_dims(inA_data,axis=0)
         
-        try:
-            out_tensor = np.concatenate((inA_data,
-                                         inB_data),
-                                        axis=concat_axis)
-        except:
-            # dimensions are invalid
-            return BcipEnums.EXE_FAILURE
+        outputs[0].data = np.concatenate((inA_data,
+                                          inB_data),
+                                         axis=concat_axis)
         
-        # set the data in the output tensor
-        output_data.data = out_tensor
-        
-        return BcipEnums.SUCCESS
 
-    def execute(self):
-        """
-        Execute the kernel function using numpy functions
-        """
-        return self._process_data(self.inputs[0], self.inputs[1], self.outputs[0])
-    
     @classmethod
     def add_concatenation_node(cls,graph,inA,inB,outA,axis=0):
         """
@@ -239,13 +213,7 @@ class EnqueueKernel(Kernel):
         else:
             self._gated = False
 
-    def initialize(self):
-        """
-        This kernel has no internal state that must be initialized
-        """
-        return BcipEnums.SUCCESS
-    
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -255,32 +223,31 @@ class EnqueueKernel(Kernel):
         d_out = self.outputs[0]
 
         if not isinstance(d_in,BCIP):
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("EnqueueKernel requires BCIP input")
         
         if d_out.bcip_type != BcipEnums.CIRCLE_BUFFER:
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("EnqueueKernel requires CircleBuffer output")
 
         # check that the buffer's capacity is at least 1
         if d_out.capacity <= 1:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("EnqueueKernel requires CircleBuffer capacity to be at least 1")
         
         # if gated, check that the flag is a scalar
         if self._gated:
             enqueue_flag = self.inputs[1]
             if (enqueue_flag.bcip_type != BcipEnums.SCALAR or
                 enqueue_flag.data_type not in (int, bool)):
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError("EnqueueKernel requires enqueue flag to be a scalar boolean")
             
-        return BcipEnums.SUCCESS
     
-    def execute(self):
+    def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy function
         """
         # need to make a deep copy of the object to enqueue
-        if not self._gated or self.inputs[1].data:
-            cpy = self.inputs[0].make_copy()
-            self.outputs[0].enqueue(cpy)
+        if not self._gated or inputs[1].data:
+            cpy = inputs[0].make_copy()
+            outputs[0].enqueue(cpy)
             
         return BcipEnums.SUCCESS
     
@@ -346,14 +313,12 @@ class ExtractKernel(Kernel):
         self._indices = indices
         self._reduce_dims = reduce_dims
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # determine init output shape
@@ -363,31 +328,25 @@ class ExtractKernel(Kernel):
                     init_out.shape = init_output_shape
 
                 if init_out.shape != init_output_shape:
-                    sts = BcipEnums.INITIALIZATION_FAILURE
+                    raise ValueError("ExtractKernel initialization output shape does not match expected output shape")
 
-                if sts == BcipEnums.SUCCESS:
-                    # TODO a lot of repeated code from execute below, determine how best to refactor
-                    d_in = self.inputs[0]
-                    if (init_in.bcip_type != BcipEnums.TENSOR and
-                        d_in.bcip_type == BcipEnums.TENSOR):
-                        init_in = init_in.to_tensor()
+                # TODO a lot of repeated code from execute below, determine how best to refactor
+                d_in = self.inputs[0]
+                if (init_in.bcip_type != BcipEnums.TENSOR and
+                    d_in.bcip_type == BcipEnums.TENSOR):
+                    init_in = init_in.to_tensor()
 
-                    # insert an additional slice for the batch dimension
-                    if (init_in.bcip_type == BcipEnums.TENSOR):
-                        self._indices.insert(0, ":")
+                # insert an additional slice for the batch dimension
+                if (init_in.bcip_type == BcipEnums.TENSOR):
+                    self._indices.insert(0, ":")
 
-                    self._process_data(init_in, init_out)
+                self._process_data(init_in, init_out)
 
-                    # remove the additional slice for the batch dimension
-                    if (init_in.bcip_type == BcipEnums.TENSOR):
-                        self._indices.pop(0)
-
-                    # pass on the labels
-                    self.copy_init_labels_to_output()
-
-        return sts
+                # remove the additional slice for the batch dimension
+                if (init_in.bcip_type == BcipEnums.TENSOR):
+                    self._indices.pop(0)
     
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -399,22 +358,21 @@ class ExtractKernel(Kernel):
         d_out = self.outputs[0]
         if (d_in.bcip_type == BcipEnums.TENSOR):
             if (d_out.bcip_type != BcipEnums.TENSOR):
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError("ExtractKernel requires Tensor output if input is a Tensor")
         elif (d_in.bcip_type != BcipEnums.ARRAY and
               d_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
-            return BcipEnums.INVALID_PARAMETERS
-
+            raise TypeError("ExtractKernel requires Tensor or Array input")
 
         # if the input is an array, then the there should only be a single 
-        # dimension to extract with a value of zero
+        # dimension to extract
         if d_in.bcip_type != BcipEnums.TENSOR:
             for index in self._indices:
                 if not isinstance(index, int):
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise TypeError("ExtractKernel requires integer extraction indicies if input is an Array")
             
                 # check that the index to extract do not exceed the capacity
                 if index >= self._in.capacity or index < -self._in.capacity:
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise ValueError("ExtractKernel requires extraction indicies to be within the capacity of the input Array")
 
             # if the output is another array, validate that the types match
             in_element = d_in.get_element(0)
@@ -422,21 +380,21 @@ class ExtractKernel(Kernel):
                 d_out.bcip_type == BcipEnums.CIRCLE_BUFFER):
                 out_element = d_out.get_element(0)
                 if (in_element.bcip_type != out_element.bcip_type):
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise TypeError("ExtractKernel requires Array output to have the same type as the input Array")
 
                 # also check that the output has sufficient capacity
                 if d_out.capacity < len(self._indices):
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise ValueError("ExtractKernel requires Array output to have sufficient capacity to store the extracted elements")
 
             # if the output is a scalar, check that the input is an array of compatible scalars
             elif (d_out.bcip_type == BcipEnums.SCARLAR):
                 if (in_element.bcip_type != BcipEnums.SCALAR or
                     in_element.data_type != d_out.data_type):
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise TypeError("ExtractKernel requires Scalar output to have the same type as the input Array")
 
                 # also verify that only one index is being extracted
                 if len(self._indices) != 1:
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise ValueError("ExtractKernel requires only one index extracted when output is a Scalar")
 
             # if the output is a tensor, ensure its dimensions are valid
             elif d_out.bcip_type == BcipEnums.TENSOR:
@@ -449,7 +407,7 @@ class ExtractKernel(Kernel):
                     out_shape = (len(self._indices),1)
 
                 else:
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise TypeError("ExtractKernel requires Array input to contain only Scalars or Tensors")
 
                 # if output is virtual, set the shape
                 if d_out.virtual and len(d_out.shape) == 0:
@@ -457,17 +415,17 @@ class ExtractKernel(Kernel):
 
                 # check that the shape is valid
                 if d_out.shape != out_shape:
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
        
         elif d_in.bcip_type == BcipEnums.TENSOR:
             if d_out.bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError("ExtractKernel requires Tensor output if input is a Tensor")
 
             # check that the number of dimensions indicated does not exceed 
             # the tensor's rank
             if len(self._indices) != len(d_in.shape):
                 warnings.warn("Number of dimensions to extract exceeds the tensor's rank")
-                return BcipEnums.INVALID_PARAMETERS
+                raise ValueError("ExtractKernel requires number of dimensions to extract to be less than or equal to the tensor's rank")
             
             output_sz = []
             for axis in range(len(self._indices)):
@@ -478,7 +436,7 @@ class ExtractKernel(Kernel):
                     for index in axis_indices:
                         # check that the index is valid for the given axis
                         if index < -d_in.shape[axis] or index >= d_in.shape[axis]:
-                            return BcipEnums.INVALID_PARAMETERS
+                            raise ValueError("ExtractKernel extraction index in dimension {} exceeds the input Tensor's shape".format(axis))
                     
                     if not self._reduce_dims or len(self._indices[axis]) > 1:
                         output_sz.append(len(axis_indices))
@@ -492,11 +450,13 @@ class ExtractKernel(Kernel):
                 d_out.shape = output_sz
             
             if d_out.shape != output_sz:
-                return BcipEnums.INVALID_PARAMETERS
+                raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
         
-        return BcipEnums.SUCCESS
 
-    def _process_data(self, inA, outA):
+    def _process_data(self, inputs, outputs):
+        inA = inputs[0]
+        outA = outputs[0]
+
         if inA.bcip_type != BcipEnums.TENSOR:
             # extract the elements and set in the output array
             if (outA.bcip_type == BcipEnums.ARRAY or
@@ -536,15 +496,7 @@ class ExtractKernel(Kernel):
                 
             outA.data = extr_data
         
-        return BcipEnums.SUCCESS
-       
 
-    def execute(self):
-        """
-        Execute the kernel function
-        """
-        return self._process_data(self.inputs[0], self.outputs[0])
-            
     @classmethod
     def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False):
         """
@@ -605,13 +557,7 @@ class StackKernel(Kernel):
         self.outputs = [outA]
         self._axis = axis
 
-    def initialize(self):
-        """
-        This kernel has no internal state that must be initialized
-        """
-        return BcipEnums.SUCCESS
-    
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -622,11 +568,11 @@ class StackKernel(Kernel):
         if (not ((inA.bcip_type == BcipEnums.ARRAY or 
                   inA.bcip_type == BcipEnums.CIRCLE_BUFFER) and 
             outA.bcip_type == BcipEnums.TENSOR)):
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("StackKernel requires Array input and Tensor output")
         
         # if an axis was provided, it must be a scalar
         if self._axis != None and self._axis.bcip_type != BcipEnums.SCALAR:
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("StackKernel requires Scalar axis")
         
         stack_axis = self._axis.data if self._axis != None else 0
         
@@ -635,7 +581,7 @@ class StackKernel(Kernel):
         
         if len(set(tensor_shapes)) != 1:
             # tensors in array are different sizes OR array is empty
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("StackKernel requires all tensors in input array to be the same size")
         
         # determine the output dimensions
         output_shape = (tensor_shapes[0][:stack_axis] + (inA.capacity,) 
@@ -647,36 +593,23 @@ class StackKernel(Kernel):
         
         # ensure the output shape equals the expected output shape
         if outA.shape != output_shape:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("StackKernel output shape does not match expected output shape")
 
-        return BcipEnums.SUCCESS
-
-
-    def execute(self):
+    def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy functions
         """
 
-        inA = self.inputs[0]
-        outA = self.outputs[0]
+        inA = inputs[0]
+        outA = outputs[0]
 
         stack_axis = self._axis.data if self._axis != None else 0
         
-        try:
-            input_tensors = [inA.get_element(i) for i in range(inA.capacity)]
-            
-            input_data = [t.data for t in input_tensors]
-            output_data = np.stack(input_data,axis=stack_axis)
+        input_tensors = [inA.get_element(i) for i in range(inA.capacity)]
         
-        except ValueError:
-            return BcipEnums.EXE_FAILURE
+        input_data = [t.data for t in input_tensors]
+        outA.data = np.stack(input_data,axis=stack_axis)
         
-        # set the data of the output tensor
-        outA.data = output_data
-        
-        return BcipEnums.SUCCESS
-    
-    
     @classmethod
     def add_stack_node(cls,graph,inA,outA,axis=None):
         """
@@ -724,27 +657,31 @@ class TensorStackKernel(Kernel):
         self.outputs = [outA]
         self._axis = axis
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized. 
         """
-        sts = BcipEnums.SUCCESS
 
-        init_inA, init_inB = self.init_inputs
-        init_out = self.init_outputs[0]
+        init_inA, init_inB = init_inputs
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
             # adjust the init output shape
             if init_out.virtual:
-                init_out.shape = int_inA.shape[:self._axis+1] + (2,) + init_inA.shape[self._axis+1:]
+                init_out.shape = init_inA.shape[:self._axis+1] + (2,) + init_inA.shape[self._axis+1:]
 
-            self._axis += 1 # adjust for batch processing in init TODO will this always be the case?
-            sts = self._process_data(init_inA, init_inB, init_out)
-            self._axis -= 1 # adjust back for trial processing
+            axis_adjusted = False
+            if len(init_inA.shape) == len(self.inputs[0].shape)+1 and self._axis >= 0:
+                # adjust axis to accomodate stack of input data
+                self._axis += 1
+                axis_adjusted = True
+            self._process_data(init_inputs, init_outputs)
 
-        return sts
+            if axis_adjusted:
+                self._axis -= 1 # adjust back for trial processing
+
         
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -755,16 +692,18 @@ class TensorStackKernel(Kernel):
         # all params must be tensors
         for param in (inA, inB, outA):
             if param.bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError("TensorStackKernel requires Tensor inputs and outputs")
         
         stack_axis = self._axis
+        if stack_axis >= len(inA.shape) and stack_axis < -len(inA.shape):
+            raise ValueError("TensorStackKernel requires stack axis to be within the rank of the input tensors")
         
         # ensure that all the tensors in inA are the same size
         tensor_shapes = [inA.shape, inB.shape]
         
         if len(set(tensor_shapes)) != 1:
             # tensors in array are different sizes OR array is empty
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("TensorStackKernel requires all tensors in input array to be the same size")   
         
         # determine the output dimensions
         output_shape = inA.shape[:stack_axis] + (2,) + inA.shape[stack_axis:]
@@ -775,33 +714,16 @@ class TensorStackKernel(Kernel):
         
         # ensure the output shape equals the expected output shape
         if outA.shape != output_shape:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("TensorStackKernel output shape does not match expected output shape")
 
-        return BcipEnums.SUCCESS
 
-    def _process_data(self, input_data1, input_data2, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function.
         """
-        stack_axis = self._axis
+        input_tensors = [inputs[i].data for i in range(len(inputs))]
+        outputs[0].data = np.stack(input_tensors,axis=self._axis)
         
-        try:
-            input_tensors = [input_data1.data, input_data2.data]
-            
-            output_data.data = np.stack(input_tensors,axis=stack_axis)
-        
-        except:
-            return BcipEnums.EXE_FAILURE
-    
-        
-        return BcipEnums.SUCCESS
-
-    def execute(self):
-        """
-        Execute a single trial
-        """
-        return self._process_data(self.inputs[0], self.inputs[1], self.outputs[0])
-    
     
     @classmethod
     def add_tensor_stack_node(cls,graph,inA,inB,outA,axis=0):

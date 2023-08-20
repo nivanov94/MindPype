@@ -2,7 +2,6 @@ from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from .kernel_utils import extract_init_inputs
-from ..containers import Tensor
 
 import numpy as np
 import pyriemann
@@ -100,7 +99,6 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Compute CSP filters
         """
-
         # ensure the shapes are valid
         if len(X.shape) == 2:
             X = X[np.newaxis, :, :]

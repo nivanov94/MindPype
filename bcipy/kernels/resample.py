@@ -33,86 +33,33 @@ class ResampleKernel(Kernel):
         self._factor = factor
         self._axis = axis
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
         
         if init_out is not None and (init_in is not None and init_in.shape != ()):
-            if len(init_in.shape) == 3 and self._axis == 1:
-                axis = 2
-            else:
-                axis = self._axis
-            # set the output size, as needed
-            if init_out.virtual:
-                output_shape = list(init_in.shape)
-                output_shape[axis] = int(output_shape[axis] * self._factor)
-                init_out.shape = tuple(output_shape)
-            
-            sts = self._process_data(init_in, init_out)
+            axis_adjusted = False
+            if len(init_in.shape) == len(self.inputs[0].shape)+1 and self._axis >= 0:
+                self._axis += 1
+                axis_adjusted = True
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
+            self._process_data(init_inputs, init_outputs)
+
+            if axis_adjusted:
+                self._axis -= 1
     
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
 
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-        
-        # input and output must be a tensor 
-        if (d_in.bcip_type != BcipEnums.TENSOR or
-            d_out.bcip_type != BcipEnums.TENSOR):
-            return BcipEnums.INVALID_PARAMETERS
-        
-        if self._axis >= len(self._in.shape) or self._axis < -len(self._in.shape):
-            return BcipEnums.INVALID_PARAMETERS
-        
-        # if output is virtual, set the dimensions
-        output_shape = list(d_in.shape)
-        output_shape[self._axis] = int(output_shape[self._axis] * self._factor)
-        output_shape = tuple(output_shape)
-        if d_out.virtual and len(d_out.shape) == 0:
-            d_out.shape = output_shape
-      
-        if d_out.shape != output_shape:
-            return BcipEnums.INVALID_PARAMETERS
-        
-        return BcipEnums.SUCCESS
-        
+    def _process_data(self, inputs, outputs):
+        """
+        Process trial data according to the scipy function
+        """
+        outputs[0].data = signal.resample(inputs[0].data,
+                                          inputs[0].shape[self._axis] * self._factor,
+                                          axis=self._axis)
 
-    def _process_data(self, input_data, output_data):
-        """
-        Process trial data according to the Numpy function
-        """
-        if len(input_data.shape) == 3 and self._axis == 1:
-            axis = 2
-        else:
-            axis = self._axis
-        
-        try:
-            output_data.data = signal.resample(input_data.data,
-                                               output_data.shape[axis],
-                                               axis=axis)
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
-
-    def execute(self):
-        """
-        Execute the kernel function
-        """
-        
-        return self._process_data(self.inputs[0], self.outputs[0])
     
     @classmethod
     def add_resample_node(cls,graph,inA,factor,outA,axis=1):

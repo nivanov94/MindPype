@@ -57,16 +57,13 @@ class ReducedSumKernel(Kernel):
         return out_shape
 
 
-
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
 
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # adjust the shape of init output tensor, as needed
@@ -75,13 +72,8 @@ class ReducedSumKernel(Kernel):
                 output_sz = self._compute_output_sz(input_sz)
                 init_out.shape = output_sz
 
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-
-        return sts
-    
     def verify(self):
         """
         Verify the inputs and outputs are appropriately sized
@@ -92,15 +84,15 @@ class ReducedSumKernel(Kernel):
         
         # first ensure the inputs and outputs are the appropriate type
         if inA.bcip_type != BcipEnums.TENSOR:
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError('ReducedSum kernel requires Tensor input')
         
         if (outA.bcip_type != BcipEnums.TENSOR and
             outA.bcip_type != BcipEnums.SCALAR):
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError('ReducedSum kernel requires Tensor or Scalar output')
 
         if (outA.bcip_type == BcipEnums.SCALAR and 
             (outA.data_type not in Scalar.valid_numeric_types())):
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError('ReducedSum kernel requires Scalar output to be numeric')
         
         inA_shape = inA.shape
         out_shape = self._compute_output_sz(inA_shape)
@@ -113,29 +105,14 @@ class ReducedSumKernel(Kernel):
         
         # ensure the output shape equals the expected output shape
         if outA.bcip_type == BcipEnums.TENSOR and outA.shape != out_shape:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError('ReducedSum kernel: output tensor shape does not match expected shape')
         elif outA.bcip_type == BcipEnums.SCALAR and out_shape != (1,):
-            return BcipEnums.INVALID_PARAMETERS
-        else:
-            return BcipEnums.SUCCESS
+            raise ValueError('ReducedSum kernel: Multidimensional output cannot be assigned to a Scalar')
 
-    def _process_data(self, input_data, output_data):
-        try:
-            output_data.data = np.sum(input_data.data, 
-                                      axis=self._axis,
-                                      keepdims=self._keep_dims)
-
-        except:
-            return BcipEnums.EXE_FAILURE
-            
-        return BcipEnums.SUCCESS
-
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
-        
-        return self._process_data(self.inputs[0], self.outputs[0])
+    def _process_data(self, inputs, outputs):
+        outputs[0].data = np.sum(inputs[0].data, 
+                                 axis=self._axis,
+                                 keepdims=self._keep_dims)
     
     @classmethod
     def add_reduced_sum_node(cls,graph,inA,outA,axis=None,keep_dims=False):

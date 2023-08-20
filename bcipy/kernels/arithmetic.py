@@ -209,11 +209,6 @@ class Binary:
             if init_obj.bcip_type not in accepted_data_inputs:
                 raise TypeError("Invalid initialization input type")
             
-        if (labels.bcip_type != BcipEnums.TENSOR and
-            labels.bcip_type != BcipEnums.ARRAY and
-            labels.bcip_type != BcipEnums.CIRCLE_BUFFER):
-            raise TypeError("Invalid initialization label type")
-    
         # extract the data from the input
         X = [None] * 2
         for i, i_in in enumerate((init_inA, init_inB)):

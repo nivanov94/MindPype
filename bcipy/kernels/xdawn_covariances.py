@@ -56,42 +56,13 @@ class XDawnCovarianceKernel(Kernel):
         self._itialized = False
         self._xdawn_estimator = XdawnCovariances(num_filters, applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
 
-    def verify(self):
-        """
-        Verify that the input and output data are in the correct format and size
-        """
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        if (d_in.bcip_type != BcipEnums.TENSOR or
-            d_out.bcip_type != BcipEnums.TENSOR):
-            return BcipEnums.INVALID_PARAMETERS
-
-        if len(d_in.shape) != 2 and len(d_in.shape) != 3:
-            return BcipEnums.INVALID_PARAMETERS
-
-        n_classes = 2 # TODO may need to make this a required input
-        Nc = self._xdawn_estimator.nfilter*(n_classes**2)
-
-        if len(d_in.shape) == 2:
-            d_out.shape = (Nc, Nc)
-
-        elif len(d_in.shape) == 3:
-            d_out.shape = (d_in.shape[0], Nc, Nc)
-
-        return BcipEnums.SUCCESS
-
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Initialize the internal state of the kernel. Fit the xdawn_estimator classifier, etc.
         """
 
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        labels = self.init_input_labels
-        init_out = self.init_outputs[0]
-
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
         
         # check if the initialization data is in a Tensor, if not convert it
         if init_in.bcip_type != BcipEnums.TENSOR:
@@ -104,14 +75,9 @@ class XDawnCovarianceKernel(Kernel):
         if len(labels.shape) == 2:
             y = np.squeeze(labels.data)
             
-        try:
-            self._xdawn_estimator.fit(init_in.data, y)
-        except Exception as e:
-            print("XDawnCovarianceKernel could not be properly fitted. Please check the shape of your initialization data and labels. See the following exception:")
-            print(e)
-            sts = BcipEnums.INITIALIZATION_FAILURE
+        self._xdawn_estimator.fit(init_in.data, y)
         
-        if sts == BcipEnums.SUCCESS and init_in is not None and init_out is not None:
+        if init_in is not None and init_out is not None:
             # update the init output shape as needed
             n_classes = np.unique(y).shape[0]
             Nt = init_in.shape[0]
@@ -119,16 +85,8 @@ class XDawnCovarianceKernel(Kernel):
             if init_out.shape != (Nt,Nc,Nc):
                 init_out.shape = (Nt,Nc,Nc)
             # process the initialization data
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        if sts == BcipEnums.SUCCESS:
-            self._initialzed = True
-
-        return sts
-    
     def execute(self):
         """
         Execute processing of trial data
@@ -139,7 +97,7 @@ class XDawnCovarianceKernel(Kernel):
         tmp_tensor = Tensor.create_from_data(self._session, tmp_data.shape, tmp_data)
         return self._process_data(tmp_tensor, self.outputs[0])
 
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process input data according to outlined kernel function
 
@@ -155,18 +113,13 @@ class XDawnCovarianceKernel(Kernel):
         sts : BcipEnums
             Status of the processing
         """
-        if output_data.bcip_type == BcipEnums.TENSOR:
-            result = self._xdawn_estimator.transform(input_data.data)
-            
-            if len(output_data.shape) == 2 and result.shape[0] == 1:
-                result = np.squeeze(result)
-            
-            output_data.data = result
-            return BcipEnums.SUCCESS
-        else:
-            return BcipEnums.EXE_FAILURE
+        input_data = inputs[0].data
 
-
+        if len(inputs[0].shape) == 2:
+            input_data = input_data[np.newaxis, :, :] # input must be 3D
+        
+        outputs[0].data = self._xdawn_estimator.transform(input_data.data)
+        
     @classmethod
     def add_xdawn_covariance_node(cls, graph, inA, outA, initialization_data=None, labels=None,
                                   num_filters=4, applyfilters=True, classes=None, 
