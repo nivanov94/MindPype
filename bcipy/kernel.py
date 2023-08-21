@@ -246,12 +246,12 @@ class Kernel(BCIP, ABC):
     #    """
     #    pass
     
-    @abstractmethod
-    def initialize(self):
-        """
-        Generic initialization abstract method to be defined by individual kernels.
-        """
-        pass
+    #@abstractmethod
+    #def initialize(self):
+    #    """
+    #    Generic initialization abstract method to be defined by individual kernels.
+    #    """
+    #    pass
 
     ## INPUT and OUTPUT getter methods
     def get_input(self,index):
@@ -332,11 +332,16 @@ class Kernel(BCIP, ABC):
         labels.copy_to(self.init_output_labels)
 
 
-    def verification(self):
+    def verify(self):
         """
         Basic verification method that can be applied to all kernels.
         Generates phony inputs and attemps to execute the kernel.
         """
+
+        if hasattr(self,'_verify'):
+            # execute any kernel-specific verification
+            self._verify()
+
         # generate phony inputs
         phony_inputs = []
         for input in self.inputs:
@@ -351,7 +356,7 @@ class Kernel(BCIP, ABC):
             phony_outputs.append(phony_output)
 
         # if the kernel requires initialization, generate phony init inputs
-        if self.init_style == BcipEnums.INIT_REQUIRED:
+        if self.init_style == BcipEnums.INIT_FROM_DATA:
             phony_init_inputs = []
             for init_input in self.init_inputs:
                 phony_init_input = init_input.make_copy()

@@ -297,7 +297,7 @@ class Session(BCIP):
             try:
                 graph.verify()
             except Exception as e:
-                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exec_info()[2])
+                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exc_info()[2])
             
         self._verified = True
         #logging.info("Session verified successfully")

@@ -188,7 +188,7 @@ class Graph(BCIP):
             try:
                 n.verify()
             except Exception as e:
-                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exec_info()[2])
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exc_info()[2])
 
             # check for missing init data
             if n.kernel.init_style == BcipEnums.INIT_FROM_DATA:
@@ -290,7 +290,7 @@ class Graph(BCIP):
             try:
                 n.initialize()
             except Exception as e:
-                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed initialization").with_traceback(sys.exec_info()[2])
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed initialization").with_traceback(sys.exc_info()[2])
                 
 
  
@@ -334,7 +334,7 @@ class Graph(BCIP):
             try:
                 n.kernel.execute()
             except Exception as e:
-                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed execution").with_traceback(sys.exec_info()[2])
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed execution").with_traceback(sys.exc_info()[2])
 
         if push_volatile_outputs:
             self.push_volatile_outputs(label)
