@@ -277,6 +277,22 @@ class Scalar(BCIP):
         
         # for now, don't copy the type, virtual and ext_src attributes because these
         # should really be set during creation not later
+
+    def assign_random_data(self, whole_number=False, vmin=0, vmax=1):
+        """
+        Assign random data to the scalar. This is useful for testing and verification purposes.
+        """
+        if self.data_type == int or whole_number:
+            self.data = np.random.randint(vmin,vmax+1)
+        elif self.data_type == float:
+            vrange = vmax - vmin
+            self.data = vrange * np.random.rand() + vmin
+        elif self.data_type == complex:
+            self.data = complex(np.random.rand(),np.random.rand())
+        elif self.data_type == str:
+            self.data = str(np.random.rand())
+        elif self.data_type == bool:
+            self.data = np.random.choice([True,False])
     
     
     def poll_volatile_data(self,label=None):
@@ -660,6 +676,16 @@ class Tensor(BCIP):
         # Not copying virtual and ext_src attributes because these should 
         # only be set during creation and modifying could cause unintended
         # consequences
+
+    def assign_random_data(self, whole_number=False, vmin=0, vmax=1):
+        """
+        Assign random data to the tensor. This is useful for testing and verification purposes.
+        """
+        if whole_number:
+            self.data = np.random.randint(vmin,vmax+1,size=self.shape)
+        else:
+            num_range = vmax - vmin
+            self.data = num_range * np.random.rand(*self.shape) + vmin
     
     def poll_volatile_data(self,label=None):
         """
@@ -989,6 +1015,13 @@ class Array(BCIP):
         dest_array.capacity = self.capacity
         for i in range(self.capacity):
             dest_array.set_element(i,self.get_element(i))
+
+    def assign_random_data(self, whole_number=False, vmin=0, vmax=1):
+        """
+        Assign random data to the array. This is useful for testing and verification purposes.
+        """
+        for i in range(self.capacity):
+            self.get_element(i).assign_random_data(whole_number, vmin, vmax)
             
     def to_tensor(self):
         """
