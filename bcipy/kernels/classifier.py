@@ -93,7 +93,7 @@ class ClassifierKernel(Kernel):
                                self.init_outputs) 
 
 
-    def verify(self):
+    def _verify(self):
         """similar verification process to individual classifier kernels"""
 
         # inputs must be a tensor or array of tensors

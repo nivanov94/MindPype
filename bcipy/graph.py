@@ -9,6 +9,7 @@ from .core import BCIP, BcipEnums
 from .containers import Tensor
 import logging
 import warnings
+import sys
 
 class Graph(BCIP):
     """
@@ -77,10 +78,6 @@ class Graph(BCIP):
         --------
         example_graph.add_node(example_node)
         
-        Return
-        ------
-        sts : BcipEnums Status Code
-            Returns a status code indicating the success or failure of the operation
         """
         self._verified = False
         self._nodes.append(node)
@@ -89,21 +86,9 @@ class Graph(BCIP):
         """
         Verify the processing graph is valid. This method orders the nodes
         for execution if the graph is valid
-
-        Return
-        ------
-        BCIP Status Code
-
-        Examples
-        --------
-        >>> status = example_graph.verify()
-        >>> print(status)
-            
-            SUCCESS
-
         """
         if self._verified:
-            return BcipEnums.SUCCESS
+            return 
         
         # begin by scheduling the nodes in execution order
         
@@ -139,8 +124,7 @@ class Graph(BCIP):
                     if len(self._edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
-                        print("scheduling failed")
-                        return BcipEnums.INVALID_GRAPH
+                        raise Exception("Invalid graph, multiple nodes write to single data object")
                     else:
                         # add the producer to the edge
                         self._edges[n_o.session_id].add_producer(n)
@@ -193,7 +177,7 @@ class Graph(BCIP):
 
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled
-                return BcipEnums.INVALID_GRAPH
+                raise Exception("Invalid graph, nodes cannot be scheduled, check connections between nodes.")
         
         
         # now all the nodes are in execution order, validate each node
@@ -201,10 +185,10 @@ class Graph(BCIP):
         init_required = False # flag to indicate if any nodes in the graph require initialization
         init_links_missing = False # flag to indicate if any initialization data will need to be propagated through the graph
         for n in self._nodes:
-            valid = n.verify()
-            if valid != BcipEnums.SUCCESS:
-                print("Node {} failed verification".format(n.kernel.name))
-                return valid           
+            try:
+                n.verify()
+            except Exception as e:
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exec_info()[2])
 
             # check for missing init data
             if n.kernel.init_style == BcipEnums.INIT_FROM_DATA:
@@ -248,7 +232,6 @@ class Graph(BCIP):
 
         # Done, all nodes scheduled and verified!
         self._verified = True
-        return BcipEnums.SUCCESS
 
 
     def initialize(self, default_init_data = None, default_init_labels = None):
@@ -276,14 +259,12 @@ class Graph(BCIP):
         # 1. Check whether nodes in the graph are missing initialization links
 
         if self._default_init_required and default_init_data is None:
-            warnings.warn("No default initialization data provided, graph is not initialized correctly")
-            return BcipEnums.INVALID_GRAPH
+            raise Exception("No default initialization data provided, graph is not initialized correctly")
 
         if self._default_init_required and default_init_data is not None:
             # ensure training labels have been provided as well
             if default_init_labels is None:
-                warnings.warn("No default initialization labels provided, graph is not initialized correctly")
-                return BcipEnums.INVALID_GRAPH
+                raise Exception("No default initialization labels provided, graph is not initialized correctly")
 
             # link the default initialization data to all nodes that ingest volatile data
             for n in self._nodes:
@@ -306,12 +287,11 @@ class Graph(BCIP):
 
         # execute initialization for each node in the graph
         for n in self._nodes:
-            sts = n.initialize()
+            try:
+                n.initialize()
+            except Exception as e:
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed initialization").with_traceback(sys.exec_info()[2])
                 
-            if sts != BcipEnums.SUCCESS:
-                return sts
-        
-        return BcipEnums.SUCCESS
 
  
     def execute(self, label = None, poll_volatile_sources = True, push_volatile_outputs = True):
@@ -339,12 +319,10 @@ class Graph(BCIP):
 
             SUCCESS
         """
-        # first ensure the block's processing graph has been verified,
+        # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
         if not self._verified:
-            executable = self.verify()
-            if executable != BcipEnums.SUCCESS:
-                return executable
+            self.verify()
 
         if poll_volatile_sources:
             self.poll_volatile_sources(label)
@@ -353,16 +331,14 @@ class Graph(BCIP):
         
         # iterate over all the nodes and execute the kernel
         for n in self._nodes:
-            sts = n.kernel.execute()
-            if sts != BcipEnums.SUCCESS:
-                logging.warning(f"Trial execution failed with status {sts} in kernel: {n.kernel.name}. This trial will be disregarded.", stacklevel=2)
-                return sts
+            try:
+                n.kernel.execute()
+            except Exception as e:
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed execution").with_traceback(sys.exec_info()[2])
 
         if push_volatile_outputs:
             self.push_volatile_outputs(label)
 
-        return BcipEnums.SUCCESS
-    
     def poll_volatile_sources(self, label = None):
         """
         Poll data (update input data) from volatile sources within the graph.

@@ -1181,7 +1181,7 @@ class CircleBuffer(Array):
 
         >>> is_empty = example_buffer.is_empty()
         >>> print(is_empty)
-            
+        
             True
         """
 

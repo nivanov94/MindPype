@@ -289,10 +289,11 @@ class Session(BCIP):
             SUCCESS
         """
         print("Verifying session...")
-        graph_count = 1
-        for graph in self.graphs:
-            print("\tVerifying graph {} of {}".format(graph_count,len(self.graphs)))
-            verified = graph.verify()
+        for i_g, graph in enumerate(self.graphs):
+            print("\tVerifying graph {} of {}".format(i_g+1,len(self.graphs)))
+            try:
+                graph.verify()
+          
             
             if verified != BcipEnums.SUCCESS:
                 self._verified = False

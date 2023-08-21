@@ -1,6 +1,7 @@
 from .core import BCIP, BcipEnums
 from abc import ABC, abstractmethod
 from .containers import Tensor
+import sys
 
 class Kernel(BCIP, ABC):
     """
