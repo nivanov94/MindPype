@@ -21,16 +21,10 @@ class Unary:
             # init not needed
             return
 
-        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
-        
         # check the init inputs are in valid data objects
-        for init_obj in (init_in,labels):
-            if init_obj.bcip_type not in accepted_inputs:
-                raise TypeError("Invalid initialization input type")
-    
-        # extract the data from the input
-        X = extract_init_inputs(init_in)
-        y = extract_init_inputs(labels)
+        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
+        if init_in.bcip_type not in accepted_inputs:
+            raise TypeError("Invalid initialization input type")
     
         # set the output size, as needed
         if init_out.virtual:
