@@ -1029,8 +1029,8 @@ class Array(BCIP):
         """
         element = self.get_element(0)
 
-        if not (element._bcip_type == BcipEnums.TENSOR or
-                (element._bcip_type == BcipEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
+        if not (element.bcip_type == BcipEnums.TENSOR or
+                (element.bcip_type == BcipEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
             return None
 
         # extract elements and stack into numpy array
