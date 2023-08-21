@@ -37,19 +37,19 @@ def main(file):
     online_graph = bcipy.Graph.create(sess)
 
     # Cosntants
-    Fs = 128
+    Fs = 500
     trial_len = 1.4
     resample_fs = 50
 
     # create a filter
     f = bcipy.Filter.create_fir(sess, fs=Fs, low_freq=1, high_freq=25, method='fir', fir_design='firwin', phase='minimum')
-    channels = tuple([_ for _ in range(3,17)])
+    channels = tuple([_ for _ in range(32)])
 
     # Data sources from LSL
-    offline_data_src = bcipy.source.BcipXDF.create_class_separated(sess, r"s:\mindset_0518_prism\Summer Students\2023 - Shreya Jain\Data\Jason Data\sub-P001_ses-S001_task-vP300+2x2_run-009.xdf", ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs))
+    offline_data_src = bcipy.source.BcipXDF.create_class_separated(sess, r"c:\Users\lioa\Downloads\sub-P001_ses-S001_task-vP300+2x2_run-039.xdf", ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs))
 
     # training data sources from XDF file
-    online_data_src = bcipy.source.BcipXDF.create_class_separated(sess, r"s:\mindset_0518_prism\Summer Students\2023 - Shreya Jain\Data\Jason Data\sub-P001_ses-S001_task-vP300+2x2_run-011.xdf", ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs)) 
+    online_data_src = bcipy.source.BcipXDF.create_class_separated(sess, r"c:\Users\lioa\Downloads\sub-P001_ses-S001_task-vP300+2x2_run-039.xdf", ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs)) 
 
     #offline_data_src.trial_data['EEG']['time_series']['flash'] = offline_data_src.trial_data['EEG']['time_series']['flash']
     online_xdf_tensor = bcipy.containers.Tensor.create_from_data(sess, online_data_src.trial_data['EEG']['time_series']['flash'].shape, online_data_src.trial_data['EEG']['time_series']['flash'])
@@ -155,7 +155,8 @@ def main(file):
     start_time = 0.0
     end_time = 1
     extract_indices = [":", ":", [_ for _ in range(int(start_time*Fs + len(f.coeffs['fir'])),int(np.ceil(end_time*Fs + len(f.coeffs['fir']))))]]# All epochs, all channels, start_time to end_time
-    
+    print(min(extract_indices[2]), max(extract_indices[2]))
+
     classifier = bcipy.Classifier.create_logistic_regression(sess)
    
     node_1 = bcipy.kernels.PadKernel.add_pad_node(online_graph, online_xdf_tensor, t_virt[0], pad_width=((0,0), (0,0), (len(f.coeffs['fir']), len(f.coeffs['fir']))), mode='edge')
@@ -182,7 +183,7 @@ def main(file):
 
     init_probs = node_9._kernel.init_outputs[1].data
     
-    pickle.dump(init_probs, open("init_probs.pkl", "wb"))
+    #pickle.dump(init_probs, open("init_probs.pkl", "wb"))
     
     sts = online_graph.execute()
 

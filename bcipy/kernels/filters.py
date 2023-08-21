@@ -136,7 +136,7 @@ class FilterKernel(Filter, Kernel):
                                                 axis=self._axis)
 
             elif self._filt.implementation == 'fir':
-                output_data.data = _overlap_add_filter(input_data.data, self._filt.coeffs['fir'], None, self._filt.coeffs['phase'])
+                output_data.data = signal.lfilter(self._filt.coeffs['fir'], [1], input_data.data, axis= self._axis)
                 #output_data.data = np.apply_along_axis(lambda x: signal.convolve(x, self._filt.coeffs['fir'], mode='same'), arr=input_data.data, axis=self._axis)
             
             return BcipEnums.SUCCESS

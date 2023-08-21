@@ -106,8 +106,7 @@ class PadKernel(Kernel):
         Execute the kernel
         """
         return self._process_data(self.inputs[0], self.outputs[0])
-        return self._process_data(self.inputs[0], self.outputs[0])
-    
+        
 
     def _process_data(self, inp, out):
         """
