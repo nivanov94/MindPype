@@ -6,6 +6,7 @@
 """
 
 from enum import IntEnum
+import sys
 import logging, pickle, copy
 
 class BCIP(object):
@@ -200,7 +201,7 @@ class BcipEnums(IntEnum):
     SRC           = 111
     CLASSIFIER    = 112
     
-    # Status Codes - Leading '2'
+    # Status Codes - Leading '2' TODO DEPRECIATED
 
     SUCCESS = 200
     FAILURE = 201
@@ -289,23 +290,19 @@ class Session(BCIP):
             SUCCESS
         """
         print("Verifying session...")
+        self._verified = False
+
         for i_g, graph in enumerate(self.graphs):
             print("\tVerifying graph {} of {}".format(i_g+1,len(self.graphs)))
             try:
                 graph.verify()
-          
+            except Exception as e:
+                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exec_info()[2])
             
-            if verified != BcipEnums.SUCCESS:
-                self._verified = False
-                return verified
-            
-            graph_count += 1
-        
         self._verified = True
         #logging.info("Session verified successfully")
-        return BcipEnums.SUCCESS
     
-    def initialize_graph(self, graph):
+    def initialize_graph(self, graph): #TODO remove, this is a graph method
         """
         Initialize a graph
 
