@@ -11,7 +11,12 @@ from mne.filter import _overlap_add_filter
 class Filter:
     def initialize(self):
         """
-        This kernel has no internal state that must be initialized
+        Method to initialize the filter kernel. This method will make the necessary adjustments to the axis attributes for initialization processing
+
+        Returns
+        -------
+        sts : BcipEnums
+            Status of the initialization
         """
         sts = BcipEnums.SUCCESS
 
@@ -25,8 +30,7 @@ class Filter:
                 self._axis >= 0):
                 self._axis += 1 # adjust axis assuming stacked data
                 axis_adjusted = True
-            
-            
+        
             # adjust init output shape if virtual
             if init_out.virtual:
                 init_out.shape = init_in.shape

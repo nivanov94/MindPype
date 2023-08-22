@@ -20,9 +20,9 @@ class BaselineCorrectionKernel(Kernel):
     outA : Tensor
         Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
     
-    baseline_period : np.array or Tensor
+    baseline_period : array-like, np.array, or Tensor
         Baseline period to use for baseline correction (n_trials, 2) where column 1 is the start index and column 2 is the end index
-        If the same baseline period is to be used for all trials, then the baseline period can be a 1D tensor (2, ) where the first element is the start index and the second element is the end index
+        If the same baseline period is to be used for all trials, then the baseline period can be a list of length 2, or a 1D tensor (2, ) where the first element is the start index and the second element is the end index
     
     """
 
@@ -59,9 +59,9 @@ class BaselineCorrectionKernel(Kernel):
                     return BcipEnums.INVALID_PARAMETERS
                 
                 # start index must be less than end index and both must be within the range of the data
-                if (self._baseline_period[0] > self._baseline_period[1])\
-                    or (self._baseline_period[0] < 0)\
-                    or (self._baseline_period[1] > d_in.shape[-1]):
+                if ((self._baseline_period[0] > self._baseline_period[1]) or 
+                    (self._baseline_period[0] < 0) or 
+                    (self._baseline_period[1] > d_in.shape[-1])):
                     return BcipEnums.INVALID_PARAMETERS
 
             if len(self._baseline_period.shape) == 2:
@@ -84,6 +84,9 @@ class BaselineCorrectionKernel(Kernel):
 
 
     def initialize(self):
+        """
+        Initialize the kernel by processing the initialization inputs
+        """
         
         sts = BcipEnums.SUCCESS
 
@@ -144,21 +147,22 @@ class BaselineCorrectionKernel(Kernel):
     def add_baseline_node(cls, graph, inputA, outputA, baseline_period):
         """
         Factory method to add a baseline correction kernel to a graph
-        
+
         Parameters
         ----------
         graph : Graph 
             Graph that the kernel should be added to
 
-        inputA : Tensor or Scalar 
-            Input trial data
+        inputA : Tensor
+            Input trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
 
-        outputA : Tensor or Scalar 
-            Output trial data
-        
-        baseline_period : Tensor
+        outputA : Tensor
+            Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
+
+        baseline_period : array-like, np.array, or Tensor
             Baseline period to use for baseline correction (n_trials, 2) where column 1 is the start index and column 2 is the end index
-            If the same baseline period is to be used for all trials, then the baseline period can be a 1D tensor (2, ) where the first element is the start index and the second element is the end index
+            If the same baseline period is to be used for all trials, then the baseline period can be a list of length 2, or a 1D tensor (2, ) where the first element is the start index and the second element is the end index
+    
         """
 
         # create the kernel object

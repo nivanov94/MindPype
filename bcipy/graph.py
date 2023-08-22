@@ -5,10 +5,12 @@ graph.py - Defines the graph object
 
 @author: ivanovn
 """
-from .core import BCIP, BcipEnums
-from .containers import Tensor
+
 import logging
 import warnings
+
+from .core import BCIP, BcipEnums
+from .containers import Tensor
 
 class Graph(BCIP):
     """
@@ -125,7 +127,7 @@ class Graph(BCIP):
                 self._edges[n_i.session_id].add_consumer(n)
                 
             for n_o in n_outputs:
-                if not (n_o.session_id in self._edges):
+                if not n_o.session_id in self._edges:
                     # no edge created for this output yet, so create a new one
                     self._edges[n_o.session_id] = Edge(n_o)
                     
@@ -359,7 +361,7 @@ class Graph(BCIP):
         for n in self._nodes:
             sts = n.kernel.execute()
             if sts != BcipEnums.SUCCESS:
-                logging.warning(f"Trial execution failed with status {sts} in kernel: {n.kernel.name}. This trial will be disregarded.", stacklevel=2)
+                logging.warning("Trial execution failed with status %s in kernel: %s. This trial will be disregarded.", sts, n.kernel.name)
                 return sts
 
         if push_volatile_outputs:
@@ -453,7 +455,6 @@ class Node(BCIP):
 
         self._graph = graph
         
-    
     # API getters
     @property
     def kernel(self):
