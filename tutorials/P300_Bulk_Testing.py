@@ -2,6 +2,9 @@
 """
 Created on Tues July 26 16:12:30 2022
 @author: aaronlio
+
+This file is used to test the P300 graph on offline training and testing data.
+This can be used to test the accuracy of the P300 graph following changes to any of its components.
 """
 
 # Create a simple graph for testing
@@ -38,7 +41,7 @@ def main(file):
 
     # Cosntants
     Fs = 500
-    trial_len = 1.4
+
     resample_fs = 50
 
     # create a filter

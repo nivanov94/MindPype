@@ -1,3 +1,8 @@
+"""
+This file was used to confirm that a generic pipeline could be created and saved to a pickle file.
+
+"""
+
 from bcipy import bcipy
 import numpy as np
 import pickle
@@ -53,5 +58,4 @@ if __name__ == '__main__':
         p.s = pickle.load(pickle_file)
     
     p.initialize()
-    
     p.execute()

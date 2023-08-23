@@ -2,6 +2,9 @@
 """
 Created on Tues July 26 16:12:30 2022
 @author: aaronlio
+
+This is a test script for the P300 dataset from Kaggle. The goal is to test the initialization accuracy of the classifier
+on a large scale dataset.
 """
 
 # Create a simple graph for testing
@@ -32,7 +35,7 @@ def plot_func2(data, name, tnum, Fs):
         plt.close(fig)
     
 
-def main(file):
+def main():
     # Create a session and graph   
     sess = bcipy.Session.create()
     online_graph = bcipy.Graph.create(sess)
@@ -154,12 +157,5 @@ def main(file):
     print(online_C_A, num_ones_online/len(probs))
     
 if __name__ == "__main__":
-    #files = ["C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S002_task-vP300+2x2_run-001.xdf",
-    #         "C:/Users/lioa/Documents/Mindset_Data/data/sub-P003/sourcedata/sub-P003_ses-S002_task-vP300+2x2_run-002.xdf"]
-    files = [r'c:\Users\lioa\Documents\Mindset_Data\data\sub-P004\sourcedata\sub-P004_ses-S001_task-vP300+2x2_run-001.xdf']
-    #files = ["C:/Users/student_admin.PRISMLAB/Documents/Mindset_Data/data/sub-P002/sourcedata/sub-P002_ses-S001_task-vP300+2x2_run-001.xdf",
-    #         "C:/Users/student_admin.PRISMLAB/Documents/Mindset_Data/data/sub-P002/sourcedata/sub-P002_ses-S001_task-vP300+2x2_run-002.xdf",
-    #         "C:/Users/student_admin.PRISMLAB/Documents/Mindset_Data/data/sub-P002/sourcedata/sub-P002_ses-S001_task-vP300+2x2_run-003.xdf",
-    #         "C:/Users/student_admin.PRISMLAB/Documents/Mindset_Data/data/sub-P002/sourcedata/sub-P002_ses-S001_task-vP300+2x2_run-004.xdf"]
-    main(files)
+    main()
 

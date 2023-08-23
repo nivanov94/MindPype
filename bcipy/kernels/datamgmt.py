@@ -257,25 +257,25 @@ class EnqueueKernel(Kernel):
         This kernel has no internal state that must be initialized
         """
 
-        self._initialized = False
+        sts = BcipEnums.SUCCESS
 
         # get the init inputs and outputs
         init_in = self.init_inputs[0]
         init_out = self.init_outputs[0]
 
-        if init_in.bcip_type != BcipEnums.TENSOR:
-            init_in = init_in.to_tensor()
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
+            
+            if init_in.bcip_type != BcipEnums.TENSOR:
+                init_in = init_in.to_tensor()
+            
             # Pass on init data
-            init_in.copy_to(init_out)
+            sts = init_in.copy_to(init_out)
 
             # pass on the labels
             self.copy_init_labels_to_output()
 
-            self._initialized = True
-
-        return BcipEnums.SUCCESS
+        return sts
 
 
     def verify(self):

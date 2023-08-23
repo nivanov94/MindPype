@@ -8,12 +8,12 @@ def LSL_test(channels, start, samples):
     graph = bcipy.Graph.create(session)
 
 
-    lsl_object = bcipy.source.V2LSLStream.create_marker_coupled_data_stream(
+    lsl_object = bcipy.source.InputLSLStream.create_marker_coupled_data_stream(
         session, "type='EEG'",
         channels, -0.2, marker_fmt="^SPACE pressed$"
         )
     
-    t_in = bcipy.Tensor.create_from_handle(session, (len(channels), samples), lsl_object)
+    t_in = bcipy.Tensor.create_from_handle(session, (len(channels), 1), lsl_object)
     
     t_in_2 = bcipy.Tensor.create_from_data(session, shape=t_in.shape, data=np.zeros(t_in.shape))
 
@@ -36,23 +36,14 @@ def LSL_test(channels, start, samples):
         print("Test Failed D=")
         return sts2
     
+
     i = 0
 
-    marker_stream = pylsl.StreamInlet(pylsl.resolve_bypred("type='Markers'")[0])
-
-
     sts = bcipy.BcipEnums.SUCCESS
-    while i < 10 and sts == bcipy.BcipEnums.SUCCESS:
-        marker = marker_stream.pull_sample(timeout=1)
-        print(marker, flush=True)
-        if marker[0] == None:
-            print("Waiting for marker")
-        elif marker[0][0] == 'SPACE pressed':
-            sts = graph.execute(500)
-            print(t_in.data[23,50])
-            print(t_out.data[23,50])   
-            i+=1 
-
+    while i < 1000 and sts == bcipy.BcipEnums.SUCCESS:
+        # Execute the graph. The execute method will automatically wait for the correct marker 
+        sts = graph.execute()   
+        i+=1 
 
 
 ch_map =  {'FCz': 0, 'Fz': 1, 'F3': 2, 'F7': 3, 'FC3': 4, 'T7': 5, 'C5': 6, 'C3': 7, 'C1': 8, 
@@ -96,5 +87,5 @@ sel_chs = ('FCz',
 
 if __name__ == '__main__':
     
-    channels = [ch_map[ch] for ch in sel_chs]
+    channels = [i for i in range(3, 17)]
     trial_data = LSL_test(channels, -.2, 500)

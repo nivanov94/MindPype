@@ -213,6 +213,7 @@ class ClassifierKernel(Kernel):
                         d_out.shape = output_sz
 
                     if d_out.shape != output_sz:
+                        warnings.warn("Output {} shape {} does not match expected shape {}".format(i_o, d_out.shape, output_sz))
                         return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
