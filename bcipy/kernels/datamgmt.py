@@ -12,15 +12,18 @@ class ConcatenationKernel(Kernel):
 
     Parameters
     ----------
-
     graph : Graph 
         Graph that the kernel should be added to
+
     inA : Tensor 
         First input trial data
+    
     inB : Tensor 
         Second input trial data
+    
     outA : Tensor 
         Output trial data
+    
     axis : int or tuple of ints, default = 0
         The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
         See numpy.concatenate for more information
@@ -194,6 +197,11 @@ class ConcatenationKernel(Kernel):
         axis : int or tuple of ints, default = 0
             The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
             See numpy.concatenate for more information
+
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the concatenation kernel
         """
         
         # create the kernel object
@@ -218,6 +226,8 @@ class EnqueueKernel(Kernel):
     """
     Kernel to enqueue a BCIP object into a BCIP circle buffer
 
+    Parameters
+    ----------
     graph : Graph 
         Graph that the kernel should be added to
 
@@ -230,6 +240,9 @@ class EnqueueKernel(Kernel):
     """
     
     def __init__(self,graph,inA,queue,enqueue_flag):
+        """
+        Constructor for the Enqueue kernel
+        """
         super().__init__('Enqueue',BcipEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA, enqueue_flag]
         self.outputs = [queue]
@@ -243,8 +256,28 @@ class EnqueueKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
+
+        self._initialized = False
+
+        # get the init inputs and outputs
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        if init_in.bcip_type != BcipEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            # Pass on init data
+            init_in.copy_to(init_out)
+
+            # pass on the labels
+            self.copy_init_labels_to_output()
+
+            self._initialized = True
+
         return BcipEnums.SUCCESS
-    
+
+
     def verify(self):
         """
         Verify the inputs and outputs are appropriately sized
@@ -289,6 +322,8 @@ class EnqueueKernel(Kernel):
         """
         Factory method to create a enqueue kernel and add it to a graph as a generic node object.
 
+        Parameters
+        ----------
         graph : Graph 
             Graph that the kernel should be added to
 
@@ -300,6 +335,11 @@ class EnqueueKernel(Kernel):
             
         enqueue_flag : bool
             (optional) Scalar boolean used to determine if the inputis to be added to the queue
+
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the enqueue kernel
         """
         
         # create the kernel object
@@ -326,15 +366,18 @@ class ExtractKernel(Kernel):
 
     Parameters
     ----------
-
     graph : Graph 
         Graph that the kernel should be added to
+    
     inA : Tensor or Array 
         Input trial data
+    
     Indicies : list slices, list of ints
         Indicies within inA from which to extract data
+    
     outA : Tensor 
         Extracted trial data
+    
     reduce_dims : bool, default = False
         Remove singleton dimensions if true, don't squeeze otherwise
     """
@@ -558,7 +601,9 @@ class ExtractKernel(Kernel):
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
 
-         graph : Graph 
+        Parameters
+        ----------
+        graph : Graph 
             Graph that the kernel should be added to
 
         inA : Tensor or Array 
@@ -572,6 +617,11 @@ class ExtractKernel(Kernel):
 
         reduce_dims : bool, default = False
             Remove singleton dimensions if true, don't squeeze otherwise
+
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the extract kernel
         """
         
         # create the kernel object
@@ -595,18 +645,23 @@ class StackKernel(Kernel):
 
     Parameters
     ----------
-
     graph : Graph
         The graph where the RunningAverageKernel object should be added
+    
     inA : Array 
         Container where specified data will be added to
+    
     outA : Tensor
         Tensor of stacked tensors
+    
     axis : int or None, default = None
         The axis in the result array along which the input arrays are stacked.
     """
     
     def __init__(self,graph,inA,outA,axis=None):
+        """
+        Constructor for the Stack kernel
+        """
         super().__init__('stack',BcipEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -616,6 +671,24 @@ class StackKernel(Kernel):
         """
         This kernel has no internal state that must be initialized
         """
+        self._initialized = False
+
+        # get the init inputs and outputs
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        if init_in.bcip_type != BcipEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            # Pass on init data
+            init_in.copy_to(init_out)
+
+            # pass on the labels
+            self.copy_init_labels_to_output()
+
+            self._initialized = True
+
         return BcipEnums.SUCCESS
     
     def verify(self):
@@ -689,6 +762,25 @@ class StackKernel(Kernel):
         """
         Factory method to create a stack kernel and add it to a graph
         as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph
+            The graph where the RunningAverageKernel object should be added
+
+        inA : Array
+            Container where specified data will be added to
+
+        outA : Tensor
+            Tensor of stacked tensors
+
+        axis : int or None, default = None
+            The axis in the result array along which the input arrays are stacked.
+
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the stack kernel
         """
         
         # create the kernel object
@@ -712,20 +804,26 @@ class TensorStackKernel(Kernel):
 
     Parameters
     ----------
-
     graph : Graph 
         Graph that the kernel should be added to
+    
     inA : Tensor 
         First input trial data
+    
     inB : Tensor
         Second input trial data
+    
     outA : Tensor 
         Output trial data
+    
     axis : int, default=None
         Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
     """
     
     def __init__(self,graph,inA,inB,outA,axis=None):
+        """
+        Constructor for the TensorStack kernel
+        """
         super().__init__('TensorStack',BcipEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
@@ -743,7 +841,7 @@ class TensorStackKernel(Kernel):
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
             # adjust the init output shape
             if init_out.virtual:
-                init_out.shape = int_inA.shape[:self._axis+1] + (2,) + init_inA.shape[self._axis+1:]
+                init_out.shape = init_inA.shape[:self._axis+1] + (2,) + init_inA.shape[self._axis+1:]
 
             self._axis += 1 # adjust for batch processing in init TODO will this always be the case?
             sts = self._process_data(init_inA, init_inB, init_out)
@@ -818,7 +916,6 @@ class TensorStackKernel(Kernel):
 
         Parameters
         ----------
-
         graph : Graph 
             Graph that the kernel should be added to
         inA : Tensor or Scalar 
@@ -830,6 +927,10 @@ class TensorStackKernel(Kernel):
         axis : int, default=None
             Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
         
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the tensor stack kernel
         """
         
         # create the kernel object
