@@ -320,7 +320,7 @@ class Graph(BCIP):
         return BcipEnums.SUCCESS
 
  
-    def execute(self, label = None, poll_volatile_sources = True, push_volatile_outputs = True):
+    def execute(self, label = None):
         """
         Execute the graph by iterating over all the nodes within the graph and executing each one
 
@@ -329,10 +329,8 @@ class Graph(BCIP):
         ----------
 
         Label : int, default = None
-            * If the trial label is known, it can be passed when a trial is executed. This is required for epoched input data
-        
-        poll_volatile_sources : bool, default = True
-            * If true, volatile sources (ie. LSL input data), will be updated. If false, the input data will not be updated
+            * If the trial label is known, it can be passed when a trial is executed. This is required for class-separated input data
+            * If the trial label is not known, it will be polled from the data source
 
         Return
         ------
@@ -352,7 +350,9 @@ class Graph(BCIP):
             if executable != BcipEnums.SUCCESS:
                 return executable
 
-        if poll_volatile_sources:
+        # Check whether first node has volatile input
+        # if so, poll the volatile data
+        if len(self._volatile_sources) > 0:
             self.poll_volatile_sources(label)
             
         print("Executing trial with label: {}".format(label))
@@ -364,7 +364,7 @@ class Graph(BCIP):
                 logging.warning("Trial execution failed with status %s in kernel: %s. This trial will be disregarded.", sts, n.kernel.name)
                 return sts
 
-        if push_volatile_outputs:
+        if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
         return BcipEnums.SUCCESS
