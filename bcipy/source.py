@@ -765,19 +765,35 @@ class BcipXDF(BCIP):
             
             # Counter to track how many trials have been extracted previously
             self.cont_trial_num = 0
-            
-
             eeg_stream = None
             marker_stream = None
 
+            first_marker = []
+
             for filename in files:
                 data, header = pyxdf.load_xdf(filename)
-
+                
+                # First order the files by the first marker value
                 for stream in data:
                     if (
                         stream["info"]["type"][0] == "Marker"
                         or stream["info"]["type"][0] == "Markers"
                     ):  
+                        first_marker.append(stream["time_series"][0][0])
+                    
+            # Sort the files by the first marker value
+            files = [x for _, x in sorted(zip(first_marker, files))]
+                
+            for filename in files:
+                data, header = pyxdf.load_xdf(filename)
+                
+                # Iterate through all streams in every file, add current file's data to the previously loaded data
+                for stream in data:
+                    if (
+                        stream["info"]["type"][0] == "Marker"
+                        or stream["info"]["type"][0] == "Markers"
+                    ):  
+                        # If the marker stream already exists, concatenate the new data to the existing data
                         if marker_stream:
                             marker_stream["time_series"] = np.concatenate(
                                 (marker_stream["time_series"], stream["time_series"]),
@@ -790,28 +806,23 @@ class BcipXDF(BCIP):
                         else:
                             marker_stream = stream
 
+                    # If the EEG stream already exists, concatenate the new data to the existing data
                     elif stream["info"]["type"][0] == "EEG":
                         if eeg_stream:
                             eeg_stream["time_series"] = np.concatenate(
-                                (
-                                    eeg_stream["time_series"],
-                                    stream["time_series"].T[channels, :][:, :],
-                                ),
+                                (eeg_stream["time_series"], stream["time_series"]),
                                 axis=0,
                             )
                             eeg_stream["time_stamps"] = np.concatenate(
-                                (
-                                    eeg_stream["time_stamps"],
-                                    stream["time_stamps"][channels, :],
-                                ),
+                                (eeg_stream["time_stamps"], stream["time_stamps"]),
                                 axis=0,
                             )
                         else:
                             eeg_stream = stream
-                            eeg_stream["time_series"] = stream["time_series"].T[
-                                channels, :
-                            ][:, :]
-                            eeg_stream["time_stamps"] = stream["time_stamps"][channels,]
+
+            # Extract the data from the eeg stream
+            eeg_stream["time_series"] = eeg_stream["time_series"][:, channels].T
+
 
             self.trial_data = {"EEG": eeg_stream, "Markers": marker_stream}
             self.label_counter = {task: 0 for task in tasks}
