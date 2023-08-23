@@ -1279,7 +1279,7 @@ class InputLSLStream(BCIP):
             self.relative_start = relative_start
             self._already_peeked = False
             self._peeked_marker = None
-
+            self._used_markers = []
             self.marker_timestamps = []
             self.first_data_timestamp = None
             self.time_correction = None
@@ -1327,7 +1327,7 @@ class InputLSLStream(BCIP):
         """
 
         if not self.active:
-            raise RuntimeError("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
+            raise RuntimeWarning("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
         if self.marker_inlet != None:
             # start by getting the timestamp for this trial's marker
@@ -1343,6 +1343,7 @@ class InputLSLStream(BCIP):
                     ):
                         t_begin = t
                         self.marker_timestamps.append(t_begin)
+                        self._used_markers.append(marker)
 
         else:
             t_begin = 0  # i.e. all data is valid
@@ -1391,7 +1392,11 @@ class InputLSLStream(BCIP):
                     data = np.asarray(data).T
                     timestamps_index_bool = timestamps >= t_begin
 
-                    data = data[self.channels, :][:, timestamps_index_bool]
+                    try:
+                        data = data[self.channels, :][:, timestamps_index_bool]
+                    except IndexError as e:
+                        print("The number of channels in the stream does not match the number of channels specified in the channels parameter. Please check the channels parameter and try again.")
+
                     timestamps = timestamps[timestamps_index_bool]
 
                     if len(data.shape) > 1:
@@ -1457,6 +1462,24 @@ class InputLSLStream(BCIP):
                 return marker[0]
 
         return None
+
+    def last_marker(self):
+        """
+        Get the last marker in the marker stream
+
+        Returns
+        -------
+        marker : str
+            The last marker string
+
+        """
+        if not self.active:
+            raise RuntimeError("InputLSLStream.last_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
+
+        if len(self._used_markers) > 0:
+            return self._used_markers[-1]
+        else:
+            return None
 
     def update_input_streams(
         self,
