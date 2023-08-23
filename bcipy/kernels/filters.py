@@ -12,11 +12,6 @@ class Filter:
     def initialize(self):
         """
         Method to initialize the filter kernel. This method will make the necessary adjustments to the axis attributes for initialization processing
-
-        Returns
-        -------
-        sts : BcipEnums
-            Status of the initialization
         """
         sts = BcipEnums.SUCCESS
 
@@ -120,6 +115,9 @@ class FilterKernel(Filter, Kernel):
     """
     
     def __init__(self,graph,inA,filt,outA,axis):
+        """
+        Constructor for the FilterKernel class
+        """
         super().__init__('Filter',BcipEnums.INIT_FROM_COPY,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -128,6 +126,9 @@ class FilterKernel(Filter, Kernel):
         self._axis = axis
     
     def _process_data(self, input_data, output_data):
+        """
+        Process the data
+        """
         try:
             if self._filt.implementation == 'ba':
                 output_data.data = signal.lfilter(self._filt.coeffs['b'],
@@ -157,6 +158,8 @@ class FilterKernel(Filter, Kernel):
         Factory method to create a filter kernel and add it to a graph
         as a generic node object.
 
+        Parameters
+        ----------
         graph : Graph 
             Graph that the node should be added to
 
@@ -171,6 +174,11 @@ class FilterKernel(Filter, Kernel):
 
         axis : int
             Axis along which to apply the filter
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel
         """
         
         # create the kernel object
@@ -211,6 +219,9 @@ class FiltFiltKernel(Filter, Kernel):
     """
     
     def __init__(self,graph,inA,filt,outA,axis):
+        """
+        Constructor for the FiltFiltKernel class
+        """
         super().__init__('FiltFilt',BcipEnums.INIT_FROM_COPY,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -219,7 +230,9 @@ class FiltFiltKernel(Filter, Kernel):
         self._axis = axis
         
     def _process_data(self, input_data, output_data):
-        
+        """
+        Process the data
+        """        
         if len(input_data.shape) == 3 and self._axis == 1:
             axis = 2
         else:
@@ -236,8 +249,8 @@ class FiltFiltKernel(Filter, Kernel):
                                                        input_data.data,
                                                        axis=axis)
             elif self._filt.implementation == 'fir':
-                output_data.data = signal.lfilter(self._filt.coeffs['fir'], 1.0, input_data.data, axis=axis)
-            
+                warnings.warn(f"filtfilt does not support FIR filters. Using Filter Kernel instead.", RuntimeWarning)
+                return BcipEnums.EXE_FAILURE            
 
         except Exception as e:
             warnings.warn(f"{e}", RuntimeWarning)
@@ -252,6 +265,8 @@ class FiltFiltKernel(Filter, Kernel):
         Factory method to create a filtfilt kernel and add it to a graph
         as a generic node object.
 
+        Parameters
+        ----------
         graph : Graph 
             Graph that the node should be added to
 
@@ -266,6 +281,11 @@ class FiltFiltKernel(Filter, Kernel):
 
         axis : int
             axis along which to apply the filter
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel
         """
         
         # create the kernel object

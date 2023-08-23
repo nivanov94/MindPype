@@ -113,6 +113,19 @@ class RiemannMeanKernel(Kernel):
     def add_riemann_mean_node(cls,graph,inA,outA,weights=None):
         """
         Factory method to create a Riemann mean calculating kernel
+
+        Parameters
+        ----------
+        graph : Graph
+            Graph that the kernel should be added to
+
+        inA : Tensor
+            Input data
+        
+        outA : Tensor
+            Output trial data
+
+        weights : array_like, default=None
         """
         
         # create the kernel object

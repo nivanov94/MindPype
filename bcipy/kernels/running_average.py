@@ -31,6 +31,8 @@ class RunningAverageKernel(Kernel):
     axis : None or 0:
         Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
 
+    flush_on_init : bool, default = False
+        If true, flushes the buffer on initialization.
     
     """
     def __init__(self, graph, inA, outA, running_average_len, axis = 0, flush_on_init = False):
@@ -154,6 +156,11 @@ class RunningAverageKernel(Kernel):
 
         flush_on_init : bool
             If true, flushes the buffer on initialization.
+
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the running average kernel
     
     """
         kernel = cls(graph, inA, outA, running_average_len, axis, flush_on_init)

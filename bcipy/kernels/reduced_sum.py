@@ -23,10 +23,10 @@ class ReducedSumKernel(Kernel):
         Output trial data
 
     axis : int or tuple of ints, default = None
-        What is this for
+        Axis or axes along which the sum is computed.
 
     keep_dims : bool, default = False
-        Or this
+        If true, the reduced dimensions are retained with length 1
 
     """
     
@@ -155,10 +155,15 @@ class ReducedSumKernel(Kernel):
             Output trial data
 
         axis : int or tuple of ints, default = None
-            What is this for
+            Axis or axes along which the sum is computed.
 
         keep_dims : bool, default = False
-            Or this
+            If true, the reduced dimensions are retained with length 1
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel and its parameters            
 
         """
         

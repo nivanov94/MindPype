@@ -19,15 +19,21 @@ class FeatureNormalizationKernel(Kernel):
 
     outA : Tensor 
         Extracted trial data
-
-    init_data : Tensor 
-        Initialization data
+    
+    initialization_data : Tensor
+        Initialization data to train the classifier (n_trials, n_channels, n_samples)
+    
+    labels : Tensor
+        Labels corresponding to initialization data class labels (n_trials, )
 
     method : {'min-max', 'mean-norm', 'zscore-norm'}
         Feature normalization method
+
+    axis : int, default = 1
+        Axis along which to apply the filter
     """
     
-    def __init__(self,graph,inA,outA,init_data,labels,method,axis):
+    def __init__(self,graph,inA,outA, initialization_data, labels ,method,axis=1):
         """
         Kernal normalizes features for classification
         """
@@ -39,7 +45,11 @@ class FeatureNormalizationKernel(Kernel):
         self._translate = 0
         self._scale = 1
 
-        self.initialized = False
+        if initialization_data is not None:
+            self.init_inputs = [initialization_data]
+
+        if labels is not None:
+            self.init_input_labels = labels
 
 
     def initialize(self):
@@ -120,6 +130,9 @@ class FeatureNormalizationKernel(Kernel):
         return BcipEnums.SUCCESS
 
     def _process_data(self, inA, outA):
+        """
+        Normalize the data
+        """
         try:
             outA.data = (inA.data - self._translate) / self._scale
             return BcipEnums.SUCCESS
@@ -135,13 +148,41 @@ class FeatureNormalizationKernel(Kernel):
     
     @classmethod
     def add_feature_normalization_node(cls,graph,inA,outA,
-                                       init_data=None,labels=None,axis=0,method='zscore-norm'):
+                                       init_data=None,labels=None,method='zscore-norm', axis=1):
         """
         Factory method to create a feature normalization kernel
+
+        Parameters
+        ----------
+        graph : Graph
+            Graph that the kernel should be added to
+
+        inA : Tensor
+            Input trial data
+
+        outA : Tensor
+            Extracted trial data
+
+        init_data : Tensor, default = None
+            Initialization data
+
+        labels : Tensor, default = None
+            Initialization labels
+
+        method : {'min-max', 'mean-norm', 'zscore-norm'}
+            Feature normalization method
+
+        axis : int, default = 1
+            Axis along which to apply the filter
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,init_data, labels,method,axis)
+        k = cls(graph,inA,outA,method,axis)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),

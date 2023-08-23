@@ -139,6 +139,11 @@ class ThresholdKernel(Kernel):
 
         thresh : float
             Threshold value
+        
+        Returns
+        -------
+        node : Node
+            Node object that was added to the graph containing the kernel
         """
         
         # create the kernel object

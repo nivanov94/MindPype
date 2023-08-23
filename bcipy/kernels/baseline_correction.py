@@ -20,7 +20,7 @@ class BaselineCorrectionKernel(Kernel):
     outA : Tensor
         Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
     
-    baseline_period : array-like, np.array, or Tensor
+    baseline_period : array-like, np.array, or Tensor, default = None
         Baseline period to use for baseline correction (n_trials, 2) where column 1 is the start index and column 2 is the end index
         If the same baseline period is to be used for all trials, then the baseline period can be a list of length 2, or a 1D tensor (2, ) where the first element is the start index and the second element is the end index
     
@@ -94,7 +94,7 @@ class BaselineCorrectionKernel(Kernel):
         init_out = self.init_outputs[0]
         
         if init_out is not None and (init_in is not None and init_in.shape != ()):
-
+            # Set the initialization output shape
             if init_out.virtual:
                 output_shape = list(init_in.shape)
                 init_out.shape = tuple(output_shape)

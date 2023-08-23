@@ -4,6 +4,16 @@ import numpy as np
 def extract_nested_data(bcip_obj):
     """
     Recursively extract Tensor data within a BCIP array or array-of-arrays
+
+    Parameters
+    ----------
+    bcip_obj : BCIP array or array-of-arrays
+        The input to be extracted from
+    
+    Returns
+    -------
+    X : np array
+        The extracted data as a numpy array
     """
     if (bcip_obj._bcip_type != BcipEnums.ARRAY and 
         bcip_obj._bcip_type != BcipEnums.CIRCLE_BUFFER):

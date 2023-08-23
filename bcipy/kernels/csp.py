@@ -60,7 +60,7 @@ class CommonSpatialPatternKernel(Kernel):
 
     def initialize(self):
         """
-        Set the filter values
+        Set the filter values based on the provided initialization data
         """
         sts = BcipEnums.SUCCESS
         

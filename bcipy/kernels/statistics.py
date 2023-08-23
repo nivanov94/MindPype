@@ -152,7 +152,6 @@ class CovarianceKernel(Kernel):
     
     Parameters
     ----------
-
     graph : Graph 
         Graph that the kernel should be added to
 

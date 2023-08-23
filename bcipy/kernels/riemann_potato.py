@@ -223,6 +223,29 @@ class RiemannPotatoKernel(Kernel):
                                 thresh=3,max_iter=100,regularization=0.01):
         """
         Factory method to create a riemann potato artifact detector
+
+        Parameters
+        ----------
+        graph : Graph
+            Graph that the kernel should be added to
+
+        inA : Tensor or Array
+            Input data
+
+        outA : Tensor or Scalar
+            Output data
+
+        initialization_data : Tensor or Array
+            Data used to initialize the model
+
+        thresh : float, default = 3
+            Threshold for the potato filter
+
+        max_iter : int, default = 100
+            Maximum number of iterations for the potato filter
+
+        regularization : float, default = 0.01
+            Regularization parameter for the potato filter
         """
         
         # create the kernel object            

@@ -120,6 +120,22 @@ class NotKernel(Unary, Kernel):
         """
         Factory method to create a logical NOT kernel 
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph
+            Graph that the node should be added to
+        
+        inA : Tensor or Scalar
+            Input trial data
+
+        outA : Tensor or Scalar
+            Output trial data
+        
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel
         """
         
         # create the kernel object

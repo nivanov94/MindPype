@@ -120,7 +120,9 @@ class ResampleKernel(Kernel):
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
 
-         graph : Graph 
+        Parameters
+        ----------
+        graph : Graph 
             Graph that the kernel should be added to
 
         inA : Tensor or Array 
@@ -132,9 +134,13 @@ class ResampleKernel(Kernel):
         outA : Tensor 
             Resampled timeseries data
         
-        axis :
+        axis : int, default = 1
             The axis that is to be resampled
-
+        
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel and its parameters
         """
         
         # create the kernel object

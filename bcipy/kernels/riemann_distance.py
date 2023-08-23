@@ -216,6 +216,11 @@ class RiemannDistanceKernel(Kernel):
 
         outA : Tensor or Scalar 
             Output trial data
+        
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel and parameters
         """
         
         # create the kernel object

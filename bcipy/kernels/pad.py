@@ -23,6 +23,9 @@ class PadKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, pad_width = None, mode = 'constant', stat_length = None, constant_values = 0, end_values = 0, reflect_type = 'even', **kwargs):
+        """
+        Constructor for the PadKernel class
+        """
         super().__init__('BaselineCorrection', BcipEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -63,6 +66,9 @@ class PadKernel(Kernel):
 
 
     def initialize(self):
+        """
+        Initialize the kernel
+        """
         sts = BcipEnums.SUCCESS
 
         init_in = self.init_inputs[0]
@@ -188,10 +194,7 @@ class PadKernel(Kernel):
         Returns
         -------
         node : Node
-            Node that was added to the graph containing the kernel and parameters
-
-        
-            
+            Node that was added to the graph containing the kernel and parameters            
         """
 
         k = cls(graph, inA, outA, pad_width, mode, stat_length, constant_values, end_values, reflect_type, **kwargs)

@@ -54,6 +54,9 @@ class ClassifierKernel(Kernel):
 
 
     def initialize(self):
+        """
+        Initialize the classifier with the provided data   
+        """
 
         sts = BcipEnums.SUCCESS
 

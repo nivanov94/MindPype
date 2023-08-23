@@ -230,6 +230,11 @@ class RiemannMDMClassifierKernel(Kernel):
 
         labels : Tensor 
             Class labels for initialization data (n_trials,)
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel
         """
         
         # create the kernel object            
