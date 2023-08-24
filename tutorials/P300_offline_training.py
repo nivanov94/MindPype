@@ -157,29 +157,6 @@ def main(file):
 
     initialize_outputs = [deepcopy(in1), deepcopy(out3), deepcopy(out4), deepcopy(out6), deepcopy(P_7), deepcopy(ref_8), deepcopy(out9)]
     pickle.dump(initialize_outputs, open("new_outputs.pkl", "wb"))
-
-    """x = np.arange(0, 8.015625, 1/Fs)
-    fig = plt.figure() 
-    plt.plot(x, node_2.kernel.init_outputs[0].data[0,0,:])
-    plt.savefig('filtered.png')
-    plt.close(fig)
-
-    x = np.arange(0, 1.4, 1/Fs)
-    fig2 = plt.figure() 
-    plt.plot(x, node_4.kernel.init_outputs[0].data[0,0,:])
-    plt.savefig('baseline.png')
-    plt.close(fig2)
-
-    x = np.arange(0, 1, 1/resample_fs)
-    fig3 = plt.figure()
-    plt.plot(x, node_6.kernel.init_outputs[0].data[0,0,:])
-    plt.savefig('resampled.png')
-    plt.close(fig3)"""
-
-    #create .log file in scrap folder to write timestamps
-    
-
-    
     
     # Run the online trials
     for t_num in range(100):
@@ -198,8 +175,6 @@ def main(file):
         #file.write(f"First 10 Data samples from channel 1: {online_input_data.data[0,0:10]}" + "\n")
         #file.write(f"Output probabilities: {pred_probs.data}" + "\n")
         #file.close()
-        in1 = node_1.kernel.inputs[0].data
-        out3 = node_3.kernel.outputs[0].data
         out4 = node_4.kernel.outputs[0].data
         out6 = node_6.kernel.outputs[0].data
         P_7 = node_7.kernel.outputs[0].data
