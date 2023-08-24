@@ -28,38 +28,35 @@ class ResampleKernel(Kernel):
     
     def __init__(self,graph,inA,factor,outA,axis = 1):
         super().__init__('Resample',BcipEnums.INIT_FROM_NONE,graph)
-        self._in = inA
-        self._out = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._factor = factor
         self._axis = axis
 
-        self._init_inA = None
-        self._init_outA = None
-
-        self._init_labels_in = None
-        self._init_labels_out = None
-    
     def initialize(self):
         """
         This kernel has no internal state that must be initialized
         """
         sts = BcipEnums.SUCCESS
+
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
         
-        if self._init_outA != None:
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            if len(init_in.shape) == 3 and self._axis == 1:
+                axis = 2
+            else:
+                axis = self._axis
             # set the output size, as needed
-            if self._init_outA.virtual:
-                output_shape = list(self._init_inA.shape)
-                output_shape[self._axis] = int(output_shape[self._axis] * self._factor)
-                self._init_outA.shape = output_shape
+            if init_out.virtual:
+                output_shape = list(init_in.shape)
+                output_shape[axis] = int(output_shape[axis] * self._factor)
+                init_out.shape = tuple(output_shape)
             
-            sts = self._process_data(self._init_inA, self._init_outA)
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
         
         return sts
     
@@ -67,23 +64,26 @@ class ResampleKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized
         """
+
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
         
         # input and output must be a tensor 
-        if (self._in._bcip_type != BcipEnums.TENSOR or
-            self._out._bcip_type != BcipEnums.TENSOR):
+        if (d_in.bcip_type != BcipEnums.TENSOR or
+            d_out.bcip_type != BcipEnums.TENSOR):
             return BcipEnums.INVALID_PARAMETERS
         
-        if self._axis >= len(self._in.shape) or self._axis < -len(self._in.shape):
+        if self._axis >= len(d_in.shape) or self._axis < -len(d_in.shape):
             return BcipEnums.INVALID_PARAMETERS
         
         # if output is virtual, set the dimensions
-        output_shape = list(self._in.shape)
+        output_shape = list(d_in.shape)
         output_shape[self._axis] = int(output_shape[self._axis] * self._factor)
         output_shape = tuple(output_shape)
-        if self._out._virtual and len(self._out.shape) == 0:
-            self._out.shape = output_shape
+        if d_out.virtual and len(d_out.shape) == 0:
+            d_out.shape = output_shape
       
-        if self._out.shape != output_shape:
+        if d_out.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
@@ -93,11 +93,15 @@ class ResampleKernel(Kernel):
         """
         Process trial data according to the Numpy function
         """
+        if len(input_data.shape) == 3 and self._axis == 1:
+            axis = 2
+        else:
+            axis = self._axis
         
         try:
             output_data.data = signal.resample(input_data.data,
-                                               output_data.shape[self._axis],
-                                               axis=self._axis)
+                                               output_data.shape[axis],
+                                               axis=axis)
         except:
             return BcipEnums.EXE_FAILURE
         
@@ -108,7 +112,7 @@ class ResampleKernel(Kernel):
         Execute the kernel function
         """
         
-        return self._process_data(self._in, self._out)
+        return self._process_data(self.inputs[0], self.outputs[0])
     
     @classmethod
     def add_resample_node(cls,graph,inA,factor,outA,axis=1):
@@ -116,7 +120,9 @@ class ResampleKernel(Kernel):
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
 
-         graph : Graph 
+        Parameters
+        ----------
+        graph : Graph 
             Graph that the kernel should be added to
 
         inA : Tensor or Array 
@@ -128,9 +134,13 @@ class ResampleKernel(Kernel):
         outA : Tensor 
             Resampled timeseries data
         
-        axis :
+        axis : int, default = 1
             The axis that is to be resampled
-
+        
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel and its parameters
         """
         
         # create the kernel object

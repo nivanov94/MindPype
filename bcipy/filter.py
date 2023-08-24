@@ -9,6 +9,7 @@ filter.py - Defines the filter Class for BCIP
 
 from .core import BCIP, BcipEnums
 from scipy import signal
+import mne
 
 class Filter(BCIP):
     """
@@ -33,9 +34,9 @@ class Filter(BCIP):
     
     # these are the possible internal methods for storing the filter 
     # parameters which determine how it will be executed
-    implementations = ['ba', 'zpk', 'sos']
+    implementations = ['ba', 'zpk', 'sos', 'fir']
     btypes = ['lowpass','highpass','bandpass','bandstop']
-    ftypes = ['butter','cheby1','cheby2','ellip','bessel']
+    ftypes = ['butter','cheby1','cheby2','ellip','bessel', 'fir']
     
     def __init__(self,sess,ftype,btype,implementation,crit_frqs,fs,coeffs):
         """
@@ -431,4 +432,65 @@ class Filter(BCIP):
         # add the filter to the session
         sess.add_misc_bcip_obj(f)
         
+        return f
+    
+    @classmethod
+    def create_fir(
+        cls, 
+        sess,
+        fs, 
+        low_freq=None, 
+        high_freq=None,  
+        filter_length="auto",
+        l_trans_bandwidth="auto",
+        h_trans_bandwidth="auto",
+        method="fir",
+        iir_params=None,
+        phase="zero",
+        fir_window="hamming",
+        fir_design="firwin"):
+        """
+        Factory method to create a FIR BCIP filter object. Creates a Scipy.signal.firwin object and stores it in the filter object.
+
+        .. note::
+            The FIR is based on the Scipy firwin class, visit the `Scipy documentation <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.firwin.html>`_ for more information on the parameters.
+
+        Parameters
+        ----------
+
+        sess : BCIPy Session object
+            The session object to which the filter will be added
+
+        Other Parameters are the same as the MNE create_filter method, see the `MNE documentation <https://mne.tools/stable/generated/mne.filter.create_filter.html>`_ for more information on the parameters.
+            
+        Return
+        ------
+        BCIPy Filter object : Filter
+            The filter object containing the filter and its parameters
+
+        Raises
+        ------
+        ValueError
+            If any value in cutoff is less than or equal to 0 or greater than or equal to fs/2, if the values in cutoff are not strictly monotonically increasing.
+        """
+
+        coeffs = {}
+        
+        #coeffs['fir_params'] = [fs,low_freq,high_freq,filter_length,l_trans_bandwidth,h_trans_bandwidth,method,iir_params,phase,fir_window,fir_design]
+        coeffs['fir'] = mne.filter.create_filter(None, fs, low_freq, high_freq, filter_length, l_trans_bandwidth, h_trans_bandwidth, method, None, phase, fir_window, fir_design)
+        coeffs['phase'] = phase
+        if low_freq is None and high_freq is not None:
+            btype = 'lowpass'
+        elif low_freq is not None and high_freq is None:
+            btype = 'highpass'
+        elif (low_freq is not None and high_freq is not None) and (low_freq < high_freq):
+            btype = 'bandpass'
+        elif (low_freq is not None and high_freq is not None) and (low_freq > high_freq):
+            btype = 'bandstop'
+
+        f = cls(sess,'fir',btype,'fir',crit_frqs = [low_freq, high_freq], fs=fs, coeffs=coeffs)
+
+        # add the filter to the session
+        sess.add_misc_bcip_obj(f)
+
         return f

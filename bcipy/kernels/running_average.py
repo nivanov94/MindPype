@@ -7,8 +7,9 @@ Created on Thurs Aug 8 14:13:13 2022
 
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Tensor, Scalar, Array, CircleBuffer
+from ..containers import Tensor, CircleBuffer
 from ..core import BcipEnums
+from .kernel_utils import extract_nested_data
 import numpy as np
 
 class RunningAverageKernel(Kernel):
@@ -18,43 +19,46 @@ class RunningAverageKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph
-        The graph where the RunningAverageKernel object should be added
-    
     inA : Tensor or Scalar
         Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
 
     outA : Tensor or Scalar
         Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
 
-    running_average_cap : int
+    running_average_len : int
         Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
 
     axis : None or 0:
         Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
 
+    flush_on_init : bool, default = False
+        If true, flushes the buffer on initialization.
     
     """
-    def __init__(self, graph, inA, outA, running_average_cap, axis = 0):
+    def __init__(self, graph, inA, outA, running_average_len, axis = 0, flush_on_init = False):
         super().__init__('RunningAverage',BcipEnums.INIT_FROM_NONE,graph)
+        self.inputs = [inA]
+        self.outputs = [outA]
 
-        self._graph = graph
-        self._inA = inA 
-        
-        self._running_average_cap = running_average_cap
+        self._running_average_len = running_average_len
+        self._flush_on_init = flush_on_init
         self._axis = axis
-        self._init_inA = None
-        self._init_outA = None     
-        self._outA = outA
+        self._data_buff = None
 
     def verify(self):
-        if not (isinstance(self._inA,Tensor) or isinstance(self._inA,Scalar)):
+
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
+        #Check that input is a tensor or scalar
+        if d_in.bcip_type != BcipEnums.TENSOR and d_in.bcip_type != BcipEnums.SCALAR:
             return BcipEnums.INVALID_PARAMETERS
 
-        self._prev_data = CircleBuffer.create(self.session, self._running_average_cap, Tensor.create(self.session, self._inA.shape))
+        self._data_buff = CircleBuffer.create(self.session, self._running_average_len,
+                                              Tensor.create(self.session, d_in.shape))
 
-        #Check that expected numpy output dims are the same as the _outA tensor
-        input_shape = self._inA.shape
+        #Check that expected numpy output dims are the same as the output tensor
+        input_shape = d_in.shape
         
         if self._axis == None:
             output_shape = (1,1)
@@ -64,18 +68,16 @@ class RunningAverageKernel(Kernel):
 
         else:
             return BcipEnums.INVALID_PARAMETERS
+
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self._outA.virtual and len(self._outA.shape) == 0):
-            self._outA.shape = output_shape
+        if (d_out.virtual and len(d_out.shape) == 0):
+            d_out.shape = output_shape
         
         # check output shape
-        if self._outA.shape != output_shape:
+        if d_out.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
   
-
-        print(input_shape, output_shape)
-
         return BcipEnums.SUCCESS
 
 
@@ -83,64 +85,55 @@ class RunningAverageKernel(Kernel):
         """
         This kernel has no internal state to be initialized. Call initialization_execution if downstream nodes are missing training data.
         """
-        if self._init_outA != None:
-            return self.initialization_execution()
+
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        if self._flush_on_init:
+            self._data_buff.flush()
+
+        if init_in is not None:
+            # check that the input is a tensor or array
+            accepted_inputs = (BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
+            if init_in.bcip_type not in accepted_inputs:
+                return BcipEnums.INITIALIZATION_FAILURE
+
+            # extract the data fron the input and place it into the buffer
+            for i in range(init_in.num_elements):
+                data = extract_nested_data(init_in,i)
+                self._data_buff.enqueue(data)
+
+        if init_out is not None:
+            if init_out.virtual:
+                init_out.shape = self.outputs[0].shape
+
+            # extract the data from the buffer
+            X = extract_nested_data(self._data_buff)
+            init_out.data = np.mean(X,axis=self._axis)
         
         return BcipEnums.SUCCESS
 
-    def initialization_execution(self):
-        """
-        Process initialization data
-        """
-        sts = self.process_data(self._init_inA, self._init_outA)
-        
-        if sts != BcipEnums.SUCCESS:
-            return BcipEnums.INITIALIZATION_FAILURE
-        
-        return sts
-
-    def process_data(self, input_data, output_data):
-        """
-        Process data according to the outlined kernel function
-        """
-        try:
-            if isinstance(input_data, Tensor):
-                if self._axis == None:
-                    output_data.data = np.mean(input_data.data)
-                else:
-                    output_data.data = np.mean(input_data.data,axis=0)
-
-            return BcipEnums.SUCCESS
-
-        except:
-            return BcipEnums.EXE_FAILURE
-     
 
     def execute(self):
         """
         Add input data to data object storing previous trials and process the stacked data
         """
-        stacked_data = np.zeros((self._prev_data.num_elements + 1, self._inA.shape[0], self._inA.shape[1]))
-        stacked_data[0,:,:] = self._inA.data
 
-        for i in range(1, self._prev_data.num_elements+1):
-            stacked_data[i, :, :] = self._prev_data.get_queued_element(i).data
+        try:
+            # enqueue the input data
+            self._data_buff.enqueue(self.inputs[0])
 
-        if len(stacked_data.shape) == 2:
-            stacked_data = stacked_data[np.newaxis, :, :]
-        
-        stacked_tensor = Tensor.create_from_data(self.session, stacked_data.shape, stacked_data)
+            # extract the data from the buffer
+            X = extract_nested_data(self._data_buff)
+            self.outputs[0].data = np.mean(X,axis=self._axis)
+        except:
+            return BcipEnums.EXE_FAILURE
 
-        self._prev_data.enqueue(self._inA)
-
-        return self.process_data(stacked_tensor, self._outA)
-          
-            
-            
+        return BcipEnums.SUCCESS
 
 
     @classmethod
-    def add_running_average_node(cls, graph, inA, outA, running_average_cap, axis):
+    def add_running_average_node(cls, graph, inA, outA, running_average_len, axis=0, flush_on_init=False):
         """
         Factory method to create running average node and add it to the specified graph
 
@@ -155,17 +148,24 @@ class RunningAverageKernel(Kernel):
         outA : Tensor or Scalar
             Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
 
-        running_average_cap : int
+        running_average_len : int
             Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
 
         axis : None or 0:
             Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
 
+        flush_on_init : bool
+            If true, flushes the buffer on initialization.
+
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the running average kernel
     
     """
-        kernel = cls(graph, inA, outA, running_average_cap, axis)
+        kernel = cls(graph, inA, outA, running_average_len, axis, flush_on_init)
 
-        params = (Parameter(inA,BcipEnums.INPUT), \
+        params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))
 
         node = Node(graph, kernel, params)

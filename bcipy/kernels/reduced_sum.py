@@ -1,7 +1,6 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .kernel_utils import extract_nested_data
 
 from ..containers import Scalar
 
@@ -24,26 +23,20 @@ class ReducedSumKernel(Kernel):
         Output trial data
 
     axis : int or tuple of ints, default = None
-        What is this for
+        Axis or axes along which the sum is computed.
 
     keep_dims : bool, default = False
-        Or this
+        If true, the reduced dimensions are retained with length 1
 
     """
     
     def __init__(self,graph,inA,outA,axis=None,keep_dims=False):
         super().__init__('ReducedSum',BcipEnums.INIT_FROM_NONE,graph)
-        self._inA  = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._axis = axis
         self._keep_dims = keep_dims
 
-        self._init_inA = None
-        self._init_outA = None
-    
-        self._init_labels_in = None
-        self._init_labels_out = None
-    
 
     def _compute_output_sz(self, input_sz):
         if self._axis != None:
@@ -71,21 +64,21 @@ class ReducedSumKernel(Kernel):
         """
 
         sts = BcipEnums.SUCCESS
-        if self._init_outA != None:
-            # adjust the shape of init output tensor, as needed
-            if self._init_outA.virtual:
-                input_sz = list(self._init_inA.shape)
-                output_sz = self._compute_output_sz(input_sz)
-                self._outA.shape = output_sz
 
-            sts = self._process_data(self._init_inA, self._init_outA)
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            # adjust the shape of init output tensor, as needed
+            if init_out.virtual:
+                input_sz = list(init_in.shape)
+                output_sz = self._compute_output_sz(input_sz)
+                init_out.shape = output_sz
+
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
 
         return sts
     
@@ -93,32 +86,35 @@ class ReducedSumKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized
         """
+
+        inA = self.inputs[0]
+        outA = self.outputs[0]
         
         # first ensure the inputs and outputs are the appropriate type
-        if self._inA._bcip_type != BcipEnums.TENSOR:
+        if inA.bcip_type != BcipEnums.TENSOR:
             return BcipEnums.INVALID_PARAMETERS
         
-        if (self._outA._bcip_type != BcipEnums.TENSOR and
-            self._outA._bcip_type != BcipEnums.SCALAR):
+        if (outA.bcip_type != BcipEnums.TENSOR and
+            outA.bcip_type != BcipEnums.SCALAR):
             return BcipEnums.INVALID_PARAMETERS
 
-        if (self._outA._bcip_type == BcipEnums.SCALAR and 
-            (self._outA.data_type not in Scalar.valid_numeric_types())):
+        if (outA.bcip_type == BcipEnums.SCALAR and 
+            (outA.data_type not in Scalar.valid_numeric_types())):
             return BcipEnums.INVALID_PARAMETERS
         
-        inA_shape = self._inA.shape
+        inA_shape = inA.shape
         out_shape = self._compute_output_sz(inA_shape)
 
         # if the output is a virtual tensor and has no defined shape, set the shape now
-        if (self._outA._bcip_type == BcipEnums.TENSOR 
-            and self._outA.virtual 
-            and len(self._outA.shape) == 0):
-            self._outA.shape = out_shape
+        if (outA.bcip_type == BcipEnums.TENSOR 
+            and outA.virtual 
+            and len(outA.shape) == 0):
+            outA.shape = out_shape
         
         # ensure the output shape equals the expected output shape
-        if self._outA._bcip_type == BcipEnums.TENSOR and self._outA.shape != out_shape:
+        if outA.bcip_type == BcipEnums.TENSOR and outA.shape != out_shape:
             return BcipEnums.INVALID_PARAMETERS
-        elif self._outA._bcip_type == BcipEnums.SCALAR and out_shape != (1,):
+        elif outA.bcip_type == BcipEnums.SCALAR and out_shape != (1,):
             return BcipEnums.INVALID_PARAMETERS
         else:
             return BcipEnums.SUCCESS
@@ -139,7 +135,7 @@ class ReducedSumKernel(Kernel):
         Execute the kernel function using numpy function
         """
         
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0], self.outputs[0])
     
     @classmethod
     def add_reduced_sum_node(cls,graph,inA,outA,axis=None,keep_dims=False):
@@ -159,10 +155,15 @@ class ReducedSumKernel(Kernel):
             Output trial data
 
         axis : int or tuple of ints, default = None
-            What is this for
+            Axis or axes along which the sum is computed.
 
         keep_dims : bool, default = False
-            Or this
+            If true, the reduced dimensions are retained with length 1
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel and its parameters            
 
         """
         

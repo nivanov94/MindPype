@@ -6,7 +6,7 @@ from .statistics import (CDFKernel, CovarianceKernel, MaxKernel, MinKernel,
                          MeanKernel, StdKernel, VarKernel, ZScoreKernel)
 from .filters import (FilterKernel, FiltFiltKernel)
 
-from .datamgmt import (SetKernel, StackKernel, TensorStackKernel, 
+from .datamgmt import (StackKernel, TensorStackKernel, 
                        ExtractKernel, EnqueueKernel, ConcatenationKernel)
 
 from .classifier import ClassifierKernel
@@ -23,4 +23,6 @@ from .transpose import TransposeKernel
 from .xdawn_covariances import XDawnCovarianceKernel
 from .tangent_space import TangentSpaceKernel
 from .running_average import RunningAverageKernel
-from .kernel_utils import extract_nested_data
+from .pad import PadKernel
+from .baseline_correction import BaselineCorrectionKernel
+from .kernel_utils import extract_nested_data, extract_init_inputs

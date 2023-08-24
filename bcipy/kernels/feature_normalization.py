@@ -1,12 +1,9 @@
 from ..core import BCIP, BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 import numpy as np
-
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 
 class FeatureNormalizationKernel(Kernel):
     """
@@ -22,31 +19,37 @@ class FeatureNormalizationKernel(Kernel):
 
     outA : Tensor 
         Extracted trial data
-
-    init_data : Tensor 
-        Initialization data
+    
+    initialization_data : Tensor
+        Initialization data to train the classifier (n_trials, n_channels, n_samples)
+    
+    labels : Tensor
+        Labels corresponding to initialization data class labels (n_trials, )
 
     method : {'min-max', 'mean-norm', 'zscore-norm'}
         Feature normalization method
+
+    axis : int, default = 1
+        Axis along which to apply the filter
     """
     
-    def __init__(self,graph,inA,outA,init_data,method,axis):
+    def __init__(self,graph,inA,outA, initialization_data, labels ,method,axis=1):
         """
         Kernal normalizes features for classification
         """
         super().__init__('FeatureNormalization',BcipEnums.INIT_FROM_DATA,graph)
-        self._inA  = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
         self._method = method
         self._axis = axis
         self._translate = 0
         self._scale = 1
-        
 
-        self._init_inA = init_data
-        self._init_labels_in = None
-        self._init_outA = None
-        self._init_labels_out = None
+        if initialization_data is not None:
+            self.init_inputs = [initialization_data]
+
+        if labels is not None:
+            self.init_input_labels = labels
 
 
     def initialize(self):
@@ -55,18 +58,12 @@ class FeatureNormalizationKernel(Kernel):
         """
 
         sts = BcipEnums.SUCCESS
+        self.initialized = False
 
-        if self._init_inA._bcip_type == BcipEnums.TENSOR:
-            X = self.initialization_data.data
-        elif self._init_inA._bcip_type == BcipEnums.ARRAY:
-            try:
-                X = extract_nested_data(self._init_inA)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE
-        else:
-            return BcipEnums.INVALID_NODE
+        # get the initialization input
+        init_in = self.init_inputs[0]
 
-
+        X = extract_init_inputs(init_in)
         
         if self._method == 'min-max':
             self._translate = np.min(X,axis=self._axis)
@@ -83,26 +80,20 @@ class FeatureNormalizationKernel(Kernel):
         else:
             return BcipEnums.INVALID_NODE
 
+        self.initialized = True
 
         # process initialization data
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        init_out = self.init_outputs[0]
+        if sts == BcipEnums.SUCCESS and init_out is not None:
             # adjust the shape of init output tensor, as needed
-            if self._init_outA.virtual:
-                self._init_outA.shape = self._init_inA.shape
+            if init_out.virtual:
+                init_out.shape = init_in.shape
 
-            sts = self._process_data(self._init_inA, self._init_outA)
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
 
-        if sts == BcipEnums.SUCCESS:
-            self._initialized = True
-
-        
         return BcipEnums.SUCCESS
         
     
@@ -111,33 +102,39 @@ class FeatureNormalizationKernel(Kernel):
         Verify the inputs and outputs are appropriately sized and typed
         """
         
+        inA = self.inputs[0]
+        outA = self.outputs[0]
+
         # first ensure the input and output are tensors
-        if (self._inA._bcip_type != BcipEnums.TENSOR or
-            self._outA._bcip_type != BcipEnums.TENSOR):
+        if (inA.bcip_type != BcipEnums.TENSOR or
+            outA.bcip_type != BcipEnums.TENSOR):
                 return BcipEnums.INVALID_PARAMETERS
         
         if self._method not in ('min-max','mean-norm','zscore-norm'):
             return BcipEnums.INVALID_PARAMETERS
         
-        Nd = self._inA.shape
+        Nd = inA.shape
         if (-(Nd+1) > abs(self._axis) or
             (Nd+1) <= abs(self._axis)):
             return BcipEnums.INVALID_PARAMETERS
 
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self._outA.virtual and len(self._outA.shape) == 0):
-            self._outA.shape = self._inA.shape
+        if (outA.virtual and len(outA.shape) == 0):
+            outA.shape = inA.shape
         
         # check output shape
-        if self._outA.shape != self._inA.shape:
+        if outA.shape != inA.shape:
             return BcipEnums.INVALID_PARAMETERS
   
         return BcipEnums.SUCCESS
 
     def _process_data(self, inA, outA):
+        """
+        Normalize the data
+        """
         try:
-            outA.data = (inA - self._translate) / self._scale
+            outA.data = (inA.data - self._translate) / self._scale
             return BcipEnums.SUCCESS
         except:
             return BcipEnums.EXE_FAILURE
@@ -147,17 +144,45 @@ class FeatureNormalizationKernel(Kernel):
         Execute the kernel and calculate the mean
         """
             
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0], self.outputs[0])
     
     @classmethod
     def add_feature_normalization_node(cls,graph,inA,outA,
-                                       init_data,axis=0,method='zscore-norm'):
+                                       init_data=None,labels=None,method='zscore-norm', axis=1):
         """
         Factory method to create a feature normalization kernel
+
+        Parameters
+        ----------
+        graph : Graph
+            Graph that the kernel should be added to
+
+        inA : Tensor
+            Input trial data
+
+        outA : Tensor
+            Extracted trial data
+
+        init_data : Tensor, default = None
+            Initialization data
+
+        labels : Tensor, default = None
+            Initialization labels
+
+        method : {'min-max', 'mean-norm', 'zscore-norm'}
+            Feature normalization method
+
+        axis : int, default = 1
+            Axis along which to apply the filter
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,init_data,method,axis)
+        k = cls(graph,inA,outA,method,axis)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),

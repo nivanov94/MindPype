@@ -1,7 +1,7 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 from ..containers import Tensor
 
 import numpy as np
@@ -28,32 +28,25 @@ class CommonSpatialPatternKernel(Kernel):
     
     def __init__(self,graph,inA,outA,
                  init_style,init_params,
-                 num_filts,Ncls,multi_class_mode):
+                 num_filts=2,Ncls=2,multi_class_mode='OVA'):
         """
         Constructor for CSP filter kernel
         """
         super().__init__('CSP',init_style,graph)
-        self._inA = inA
-        self._outA = outA     
+        self.inputs = [inA]
+        self.outputs = [outA]
         
-        self._num_filts = num_filts
+        self.num_filts = num_filts
         self._init_params = init_params
         self.multi_class_mode = multi_class_mode
         self.num_classes = Ncls
 
         if 'initialization_data' in init_params:
-            self._init_inA = init_params['initialization_data']
-        else:
-            self._init_inA = None
+            self.init_inputs = [init_params['initialization_data']]
 
         if 'labels' in init_params:
-            self._init_labels_in = init_params['labels']
-        else:
-            self._init_labels_in = None
+            self.init_input_labels = init_params['labels']
 
-        self._init_outA = None
-        self._init_labels_out = None
-        
         if init_style == BcipEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
             self._initialized = False
@@ -67,60 +60,43 @@ class CommonSpatialPatternKernel(Kernel):
 
     def initialize(self):
         """
-        Set the filter values
+        Set the filter values based on the provided initialization data
         """
         sts = BcipEnums.SUCCESS
         
-        if self.init_style == BcipEnums.INIT_FROM_DATA:
-            self._initialized = False # clear initialized flag
-            
-            if ((self._init_inA._bcip_type != BcipEnums.TENSOR and
-                 self._init_inA._bcip_type != BcipEnums.ARRAY  and
-                 self._init_inA._bcip_type != BcipEnums.CIRCLE_BUFFER) or
-                (self._init_labels_in._bcip_type != BcipEnums.TENSOR and
-                 self._init_labels_in._bcip_type != BcipEnums.ARRAY  and
-                 self._init_labels_in._bcip_type != BcipEnums.CIRCLE_BUFFER)):
+        self._initialized = False # clear initialized flag
+        
+        # check that the input init data is in the correct type
+        init_in = self.init_inputs[0]
+        labels = self.init_input_labels
+        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
+        
+        for init_obj in (init_in,labels):
+            if init_obj.bcip_type not in accepted_inputs:
                 return BcipEnums.INITIALIZATION_FAILURE
-        
-        
-            if self._init_inA._bcip_type == BcipEnums.TENSOR: 
-                X = self._init_inA.data
-            else:
-                try:
-                    # extract the data from a potentially nested array of tensors
-                    X = extract_nested_data(self._init_inA)
-                except:
-                    return BcipEnums.INITIALIZATION_FAILURE    
-        
-            if self._init_labels_in._bcip_type == BcipEnums.TENSOR:    
-                y = self._init_labels_in.data
-            else:
-                try:
-                    y = extract_nested_data(self._init_labels_in)
-                except:
-                    return BcipEnums.INITIALIZATION_FAILURE
-            
+    
+        # extract the initialization data
+        X = extract_init_inputs(init_in)
+        y = extract_init_inputs(labels) 
+
+        if self.init_style == BcipEnums.INIT_FROM_DATA:
             sts = self._compute_filters(X,y)
         
         # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
-            if self._init_inA._bcip_type != BcipEnums.TENSOR:
-                init_input_tensor = Tensor.create_from_data(self.session, X.shape, X)
-            else:
-                init_input_tensor = self._init_inA
-                
+        if sts == BcipEnums.SUCCESS:
+            init_out = self.init_outputs[0]
+
+            if init_in.bcip_type != BcipEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
             # adjust the shape of init output tensor
-            if len(init_input_tensor.shape) == 3:
-                self._init_outA.shape = (init_input_tensor.shape[0], self._W.shape[1], init_input_tensor.shape[2])
+            if len(init_in.shape) == 3:
+                init_out.shape = (init_in.shape[0], self._W.shape[1], init_in.shape[2])
  
-            sts = self._process_data(init_input_tensor, self._init_outA)
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
 
         if sts == BcipEnums.SUCCESS:
             self._initialized = True
@@ -175,18 +151,18 @@ class CommonSpatialPatternKernel(Kernel):
 
             if self.multi_class_mode == 'OVA':
                 # one vs. all
-                self._W = np.zeros((Nc,Nl*self._num_filts))
+                self._W = np.zeros((Nc,Nl*self.num_filts))
 
                 for il, l in enumerate(unique_labels):
                     yl = np.copy(y)
                     yl[y==l] = 1 # target
                     yl[y!=l] = 0 # non-target
-                    self._W[:, il*self._num_filts:(il+1)*self._num_filts] = self._compute_binary_filters(X,yl)
+                    self._W[:, il*self.num_filts:(il+1)*self.num_filts] = self._compute_binary_filters(X,yl)
 
             else:
                 # pairwise 
                 Nf = int(binom(Nl,2)) # number of pairs
-                self._W = np.zeros((Nc, Nf*self._num_filts))
+                self._W = np.zeros((Nc, Nf*self.num_filts))
 
                 for il, (l1,l2) in enumerate(iter_combs(unique_labels,2)):
                     # get trials from each label
@@ -200,7 +176,7 @@ class CommonSpatialPatternKernel(Kernel):
                     Xl = np.concatenate((Xl1,Xl2),
                                         axis=0)
 
-                    self._W[:, il*self._num_filts:(il+1)*self._num_filts] = self.compute_binary_filters(Xl, yl)
+                    self._W[:, il*self.num_filts:(il+1)*self.num_filts] = self.compute_binary_filters(Xl, yl)
     
         return BcipEnums.SUCCESS
 
@@ -248,7 +224,7 @@ class CommonSpatialPatternKernel(Kernel):
         V = V[:,ix]
         
         # extract the specified number of filters
-        m = self._num_filts // 2
+        m = self.num_filts // 2
         W = np.concatenate((V[:,:m], V[:,-m:]), axis=1)
 
         # rotate the filters back into the channel space
@@ -263,12 +239,15 @@ class CommonSpatialPatternKernel(Kernel):
         """
         
         # first ensure the input and output are tensors
-        if (self._inA._bcip_type != BcipEnums.TENSOR or 
-            self._outA._bcip_type != BcipEnums.TENSOR):
-            return BcipEnums.INVALID_PARAMETERS
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
+        for param in (d_in, d_out):
+            if param.bcip_type != BcipEnums.TENSOR:
+                return BcipEnums.INVALID_PARAMETERS
         
         # input tensor should be two- or three-dimensional
-        if len(self._inA.shape) != 2 and len(self._inA.shape) != 3:
+        if len(d_in.shape) != 2 and len(d_in.shape) != 3:
             return BcipEnums.INVALID_PARAMETERS
         
         if self.num_classes < 2:
@@ -288,15 +267,15 @@ class CommonSpatialPatternKernel(Kernel):
             else:
                 filt_multiplier = int(binom(self.num_classes,2))
                 
-        if len(self._inA.shape) == 2:
-            out_sz = (self._num_filts*filt_multiplier,self._inA.shape[1])
+        if len(d_in.shape) == 2:
+            out_sz = (self.num_filts*filt_multiplier,d_in.shape[1])
         else:
-            out_sz =  (self._inA.shape[0], self._num_filts*filt_multiplier, self._inA.shape[2])
+            out_sz =  (d_in.shape[0], self.num_filts*filt_multiplier, d_in.shape[2])
         
-        if self._outA.virtual and len(self._outA.shape) == 0:
-            self._outA.shape = out_sz
+        if d_out.virtual and len(d_out.shape) == 0:
+            d_out.shape = out_sz
 
-        if self._outA.shape != out_sz:
+        if d_out.shape != out_sz:
             return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
@@ -305,12 +284,12 @@ class CommonSpatialPatternKernel(Kernel):
         """
         Execute the kernel by classifying the input trials
         """
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0], self.outputs[0])
     
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
                                    initialization_data,labels,
-                                   num_filts,Ncls=2,multi_class_mode='OVA'):
+                                   num_filts=2,Ncls=2,multi_class_mode='OVA'):
         """
         Factory method to create a CSP filter node and add it to a graph
         

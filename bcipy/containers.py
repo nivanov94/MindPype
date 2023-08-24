@@ -6,7 +6,7 @@ Defines data container classes for BCIPy. These classes are used to represent da
 
 from .core import BCIP, BcipEnums
 
-import numpy as np
+import numpy as np, warnings
 
 class Scalar(BCIP):
 
@@ -682,7 +682,7 @@ class Tensor(BCIP):
 
             BcipEnums.SUCCESS
         """
-        if dest_tensor.virtual:
+        if dest_tensor.virtual and dest_tensor.shape != self.shape:
             dest_tensor.shape = self.shape
         dest_tensor.data = self.data
         
@@ -705,12 +705,13 @@ class Tensor(BCIP):
         try:
             # if we only pulled one trial, remove the first dimension
             data = np.squeeze(data)
+            self.data = data
         except ValueError:
-            pass # just ignore the error for now
+            # Bug found where if we pull only one sample, the data should not be squeezed
+            data = data.reshape(self.shape)
+            self.data = data
         
-        # set the data 
-        self.data = data
-        
+
         return BcipEnums.SUCCESS
     
     def push_volatile_outputs(self, label=None):
@@ -794,6 +795,7 @@ class Tensor(BCIP):
         # make sure data is valid
         if not cls.validate_data(shape,data):
             # data invalid!
+            raise RuntimeError("Data or shape passed to tensor constructor is not valid. Ensure data is a numpy ndarray and shape is a tuple of ints, and matches the data shape")
             return 
         t = cls(sess,shape,data,False,None)
         
@@ -827,7 +829,23 @@ class Tensor(BCIP):
     
     @classmethod
     def create_for_volatile_output(cls, sess, shape, out):
-        t = cls(sess,shape,None,False,None,out)
+        """
+        
+
+        Parameters
+        ----------
+        sess : Session object
+            Session where Tensor will exist
+        
+        shape : shape_like
+            Shape of the Tensor
+        
+        out : BCIPy output Source
+            Data source the tensor pushes data to (only applies to Tensors created for volatile output)
+        """
+        # These tensors should be non-volatile but since init and trial data can be different sizes, they need to be virtual until that is addressed
+        
+        t = cls(sess,shape,None,True,None,out)
         sess.add_data(t)
         return t
     

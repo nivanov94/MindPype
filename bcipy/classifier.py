@@ -67,6 +67,11 @@ class Classifier(BCIP):
         self._ctype = ctype
         self._classifier = classifier
 
+        if ctype == 'logistic regression':
+            self.n_classes = 2
+        else:
+            self.n_classes = classifier.n_classes_
+
         super().__init__(BcipEnums.CLASSIFIER, sess)
 
     def __str__(self):
@@ -120,8 +125,7 @@ class Classifier(BCIP):
            
         .. note:: 
             All unlisted parameters are the same as the sklearn SVC object. 
-            Check out the sklearn documentation
-            `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
+            Check out the `sklearn documentation <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
             for more information.
 
         Parameters

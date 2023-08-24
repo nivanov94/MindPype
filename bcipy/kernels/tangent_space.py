@@ -1,6 +1,7 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
+from ..containers import Tensor
 
 from pyriemann.tangentspace import TangentSpace
 import numpy as np
@@ -29,15 +30,14 @@ class TangentSpaceKernel(Kernel):
     """
 
 
-    def __init__(self, graph, inA, outA, initialization_data, metric = 'riemann', tsupdate = False, sample_weight = None):
+    def __init__(self, graph, inA, outA, initialization_data = None, 
+                 metric = 'riemann', tsupdate = False, sample_weight = None):
         super().__init__("TangentSpaceKernel", BcipEnums.INIT_FROM_DATA, graph)
-        self._inA = inA
-        self._outA = outA
+        self.inputs = [inA]
+        self.outputs = [outA]
 
-        self._init_inA = initialization_data
-        self._init_outA = None
-        self._init_labels_in = None
-        self._init_labels_out = None
+        if initialization_data is not None:
+            self.init_inputs = [initialization_data]
 
         self._sample_weight = sample_weight
         self._tsupdate = tsupdate
@@ -47,32 +47,35 @@ class TangentSpaceKernel(Kernel):
         """
         Verify inputs and outputs are appropriate shape and type
         """
-        if (self._inA._bcip_type != BcipEnums.TENSOR or
-            self._outA._bcip_type != BcipEnums.TENSOR):
+
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
+        if (d_in.bcip_type != BcipEnums.TENSOR or
+            d_out.bcip_type != BcipEnums.TENSOR):
             return BcipEnums.INVALID_PARAMETERS
 
-        if len(self._inA.shape) not in (2, 3):
+        if len(d_in.shape) not in (2, 3):
             return BcipEnums.INVALID_PARAMETERS
 
-        if self._inA.shape[-1] != self._inA.shape[-2]:
+        if d_in.shape[-1] != d_in.shape[-2]:
             return BcipEnums.INVALID_PARAMETERS
     
 
         # if output is virtual, set the output dims 
-        Nc = self._inA.shape[-1]
+        Nc = d_in.shape[-1]
         ts_vect_len = Nc*(Nc+1)//2
-        if self._outA._virtual and len(self._outA.shape) == 0:
-            if len(self._inA.shape) == 3:
-                output_shape = (self._inA.shape[0], ts_vect_len)
+        if d_out.virtual and len(d_out.shape) == 0:
+            if len(d_in.shape) == 3:
+                output_shape = (d_in.shape[0], ts_vect_len)
             else:
                 output_shape = (1, ts_vect_len)
 
-            self._outA.shape = output_shape
+            d_out.shape = output_shape
 
         # verify the output dimensions
-        if self._outA.shape != output_shape:
+        if d_out.shape != output_shape:
             return BcipEnums.INVALID_PARAMETERS
-            
                 
         return BcipEnums.SUCCESS
 
@@ -81,33 +84,37 @@ class TangentSpaceKernel(Kernel):
         Initialize internal state of the kernel and update initialization data if downstream nodes are missing data
         """
         sts = BcipEnums.SUCCESS
-        if self._init_inA._bcip_type != BcipEnums.TENSOR:
+
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
+
+        if init_in.bcip_type != BcipEnums.TENSOR:
             sts = BcipEnums.INITIALIZATION_FAILURE
 
         # fit the tangent space
         if sts == BcipEnums.SUCCESS:
-            #try:
+            try:
                 self._tangent_space = TangentSpace()
-                self._init_inA.data = .99*self._init_inA.data + .01*np.eye(self._init_inA.shape[1])
-                self._tangent_space = self._tangent_space.fit(self._init_inA.data, 
+                # add regularization
+                r = 0.0
+                d_in = (1-r)*init_in.data + r*np.eye(init_in.shape[1])
+                d_in = Tensor.create_from_data(self.session, d_in.shape, d_in)
+                self._tangent_space = self._tangent_space.fit(d_in.data, 
                                                               sample_weight=self._sample_weight)
-            #except:
-                #sts = BcipEnums.INITIALIZATION_FAILURE
+            except:
+                sts = BcipEnums.INITIALIZATION_FAILURE
         
         # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and init_in is not None and init_out is not None:
             # set output shape
-            Nt, Nc, _ = self._init_inA.shape
-            self._init_outA.shape = (Nt, Nc*(Nc+1)//2)
-            self._init_inA.data = .99*self._init_inA.data + .01*np.eye(Nc)
-            sts = self._process_data(self._init_inA, self._init_outA)
+            Nt, Nc, _ = init_in.shape
+            if init_out.virtual:
+                init_out.shape = (Nt, Nc*(Nc+1)//2)
+            
+            sts = self._process_data(d_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
         
         return sts
     
@@ -115,7 +122,7 @@ class TangentSpaceKernel(Kernel):
         """
         Execute single trial processing
         """
-        return self._process_data(self._inA, self._outA)
+        return self._process_data(self.inputs[0], self.outputs[0])
 
     def _process_data(self, inA, outA):
         """
@@ -128,8 +135,9 @@ class TangentSpaceKernel(Kernel):
             local_input_data = inA.data
             
         try:
-
-            local_input_data = .99*local_input_data + .01*np.eye(local_input_data.shape[1])
+            # add regularization
+            r = 0.001
+            local_input_data = (1-r)*local_input_data + r*np.eye(local_input_data.shape[1])
             outA.data = self._tangent_space.transform(local_input_data)
         except:
             return BcipEnums.EXE_FAILURE

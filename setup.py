@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='bci_py',
+    name='bcipy',
     version='0.1.0',
     description='A python library to enhance BCI data processing pipeline design and development',
     author='Nicolas Ivanov and Aaron Lio',

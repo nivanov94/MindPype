@@ -2,10 +2,11 @@ from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 
 import numpy as np
+import warnings
 
 class ClassifierKernel(Kernel):
     """
@@ -23,8 +24,8 @@ class ClassifierKernel(Kernel):
     classifier : Classifier 
         BCIP Classifier object to be used for classification
 
-    outA : Scalar 
-        Output trial data
+    Prediction : Scalar 
+        Classifier prediction
 
     output_probs : Tensor
         If not None, the output will be the probability of each class. Default is None.
@@ -37,50 +38,43 @@ class ClassifierKernel(Kernel):
         (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
     """
 
-    def __init__(self, graph, inA, classifier, outA, output_probs, initialization_data, labels):
+    def __init__(self, graph, inA, classifier, prediction, output_probs, initialization_data = None, labels = None):
         super().__init__('Classifier', BcipEnums.INIT_FROM_DATA, graph)
-        self._inA = inA
+        self.inputs = [inA]
         self._classifier = classifier
-        self._outA = outA
+        self.outputs = [prediction, output_probs]
         
         self._initialized = False
-        self._init_inA = initialization_data
-        self._init_outA = None
-        self._init_labels_in = labels
-        self.output_probs = output_probs
+
+        if initialization_data is not None:
+            self.init_inputs = [initialization_data]
+
+        if labels is not None:
+            self.init_input_labels = labels
 
 
     def initialize(self):
+        """
+        Initialize the classifier with the provided data   
+        """
 
         sts = BcipEnums.SUCCESS
+
+        self._initialized = False # clear initialized flag
         
-        if ((self._init_inA._bcip_type != BcipEnums.TENSOR and
-             self._init_inA._bcip_type != BcipEnums.ARRAY  and
-             self._init_inA._bcip_type != BcipEnums.CIRCLE_BUFFER) or
-            (self._init_labels_in._bcip_type != BcipEnums.TENSOR and
-             self._init_labels_in._bcip_type != BcipEnums.ARRAY  and
-             self._init_labels_in._bcip_type != BcipEnums.CIRCLE_BUFFER)):
-            return BcipEnums.INITIALIZATION_FAILURE
+        # check that the input init data is in the correct type
+        init_in = self.init_inputs[0]
+        labels = self.init_input_labels
+        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
         
-        
-        if self._init_inA._bcip_type == BcipEnums.TENSOR: 
-            X = self._init_inA.data
-        else:
-            try:
-                # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._init_inA)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE    
-        
-        if self._init_labels_in._bcip_type == BcipEnums.TENSOR:    
-            y = self._init_labels_in.data
-        else:
-            try:
-                y = extract_nested_data(self._init_labels_in)
-            except:
+        for init_obj in (init_in,labels):
+            if init_obj.bcip_type not in accepted_inputs:
                 return BcipEnums.INITIALIZATION_FAILURE
-        
-        
+    
+        # extract the initialization data from a potentially nested array of tensors 
+        X = extract_init_inputs(init_in)
+        y = extract_init_inputs(labels)
+
         # ensure the shapes are valid
         if len(X.shape) == 3:
             index1, index2, index3 = X.shape
@@ -96,24 +90,32 @@ class ClassifierKernel(Kernel):
         if X.shape[0] != y.shape[0]:
             return BcipEnums.INITIALIZATION_FAILURE
 
-
+        # initialize the classifier
         try:
             self._classifier._classifier.fit(X, y)
         except:
             return BcipEnums.INITIALIZATION_FAILURE
 
         self._initialized = True
-        
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+
+        # set the initialization output        
+        if (sts == BcipEnums.SUCCESS and 
+            (self.init_outputs[0] is not None or self.init_outputs[1] is not None)):
             init_tensor = Tensor.create_from_data(self.session, X.shape, X)
-            sts = self._process_data(init_tensor, self._init_outA)
+
+            # adjust output shapes if necessary
+            if self.init_outputs[0] is not None and self.init_outputs[0].virtual:
+                self.init_outputs[0].shape = (X.shape[0],)
+            
+            if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
+                self.init_outputs[1].shape = (X.shape[0], self._classifier.n_classes)
+
+            sts = self._process_data(init_tensor, 
+                                     self.init_outputs[0], 
+                                     self.init_outputs[1])
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
         
         return sts
         
@@ -121,67 +123,98 @@ class ClassifierKernel(Kernel):
     def verify(self):
         """similar verification process to individual classifier kernels"""
 
-        # input must be a tensor or array of tensors
-        if (self._inA._bcip_type != BcipEnums.TENSOR and
-            self._inA._bcip_type != BcipEnums.ARRAY and
-            self._inA._bcip_type != BcipEnums.CIRCLE_BUFFER):
+        # inputs must be a tensor or array of tensors
+        accepted_input_types = (BcipEnums.TENSOR, 
+                                BcipEnums.ARRAY, 
+                                BcipEnums.CIRCLE_BUFFER)
+        
+        d_in = self.inputs[0]
+        if d_in._bcip_type not in accepted_input_types:
             return BcipEnums.INVALID_PARAMETERS
 
-        if (self._inA._bcip_type != BcipEnums.TENSOR):
-            e = self._inA.get_element(0)
-            if e._bcip_type != BcipEnums.TENSOR:
+        # if input is an array, check that its elements are tensors
+        if (d_in.bcip_type != BcipEnums.TENSOR):
+            e = d_in.get_element(0)
+            if e.bcip_type != BcipEnums.TENSOR:
                 return BcipEnums.INVALID_PARAMETERS
 
-        # output must be scalar, tensor
-        if (self._outA._bcip_type != BcipEnums.TENSOR and
-            self._outA._bcip_type != BcipEnums.SCALAR):
+        # check that the classifier is valid
+        if (self._classifier.bcip_type != BcipEnums.CLASSIFIER):
             return BcipEnums.INVALID_PARAMETERS
         
-        if (self.output_probs):
-            if (self.output_probs._bcip_type != BcipEnums.TENSOR and
-                self.output_probs._bcip_type != BcipEnums.SCALAR):
-                return BcipEnums.INVALID_PARAMETERS
-
-        if (self._classifier._bcip_type != BcipEnums.CLASSIFIER):
+        # ensure the classifier has a predict method
+        if (not hasattr(self._classifier._classifier, 'predict') or 
+            not callable(self._classifier._classifier.predict)):
+            return BcipEnums.INVALID_PARAMETERS
+        
+        # if using probability output, ensure the classifier has a predict_proba method
+        if (self.outputs[1] is not None and
+            (not hasattr(self._classifier._classifier, 'predict_proba') or
+             not callable(self._classifier._classifier.predict_proba))):
             return BcipEnums.INVALID_PARAMETERS
 
-        # verify input and output dimensions
-        if self._inA._bcip_type == BcipEnums.TENSOR:
-            input_sz = self._inA.shape
-
-            if len(input_sz) == 1:
-                # single trial/sample mode
-                if self._outA._bcip_type == BcipEnums.TENSOR:
-                    output_sz = (1,)
-                
-            elif len(input_sz) == 2:
-                #single trial or multi-trial batch mode
-                if self._outA._bcip_type == BcipEnums.TENSOR:
-                    output_sz = (input_sz[0],)
-
-                elif (self._outA._bcip_type == BcipEnums.SCALAR and
-                      input_sz[0] != 1):
-                    return BcipEnums.INVALID_PARAMETERS
+        # verify type and shape of outputs
+        if d_in.bcip_type == BcipEnums.TENSOR:
+            input_sz = d_in.shape
         else:
-            # input is an array
-            if (self._outA._bcip_type == BcipEnums.SCALAR):
-                return BcipEnums.INVALID_PARAMETERS
+            input_sz = (d_in.capacity,) + d_in.get_element(0).shape
 
-            # check elements are correct shape
-            e = self._inA.get_element(0)
-            input_sz = (self._inA.capacity,) + e.shape
 
-            if len(input_sz) == 2:
-                output_sz = (self._inA.capacity,)
-            else:
-                return BcipEnums.INVALID_PARAMETERS
+        for i_o, d_out in enumerate(self.outputs):
+            if d_out is not None: # skip optional outputs not used
+                # output must be scalar or tensor
+                accepted_output_types = (BcipEnums.SCALAR, BcipEnums.TENSOR)
+                if d_out.bcip_type not in accepted_output_types:
+                    return BcipEnums.INVALID_PARAMETERS
+        
+                # verify input and output dimensions
+                if d_in.bcip_type == BcipEnums.TENSOR:
+                    if len(input_sz) == 1:
+                        # single trial/sample mode
+                        if d_out.bcip_type == BcipEnums.TENSOR:
+                            if i_o == 0:
+                                # predicted label output
+                                output_sz = (1,)
+                            else:
+                                # probability output
+                                output_sz = (1, self._classifier.n_classes)
+                
+                    elif len(input_sz) == 2:
+                        #single trial or multi-trial batch mode
+                        if d_out.bcip_type == BcipEnums.TENSOR:
+                            if i_o == 0:
+                                # predicted label output
+                                output_sz = (input_sz[0],)
+                            else:
+                                # probability output
+                                output_sz = (input_sz[0], self._classifier.n_classes)
 
-        if self._outA._bcip_type == BcipEnums.TENSOR:
-            if self._outA.virtual and len(self._outA.shape) == 0:
-                self._outA.shape = output_sz
+                    elif (d_out.bcip_type == BcipEnums.SCALAR and
+                          input_sz[0] != 1):
+                        return BcipEnums.INVALID_PARAMETERS
+                else:
+                    # input is an array
+                    if (d_out.bcip_type == BcipEnums.SCALAR):
+                        return BcipEnums.INVALID_PARAMETERS
 
-            if self._outA.shape != output_sz:
-                return BcipEnums.INVALID_PARAMETERS
+                    # check elements are correct shape
+                    if len(input_sz) == 2:
+                        if i_o == 0:
+                            # predicted label output
+                            output_sz = (d_in.capacity,)
+                        else:
+                            # probability output
+                            output_sz = (d_in.capacity, self._classifier.n_classes)
+                    else:
+                        return BcipEnums.INVALID_PARAMETERS
+
+                if d_out.bcip_type == BcipEnums.TENSOR:
+                    if d_out.virtual and len(d_out.shape) == 0:
+                        d_out.shape = output_sz
+
+                    if d_out.shape != output_sz:
+                        warnings.warn("Output {} shape {} does not match expected shape {}".format(i_o, d_out.shape, output_sz))
+                        return BcipEnums.INVALID_PARAMETERS
 
         return BcipEnums.SUCCESS
         
@@ -191,15 +224,15 @@ class ClassifierKernel(Kernel):
         Execute single trial classification
         """
         # if input is not a tensor, convert
-        if self._inA._bcip_type != BcipEnums.TENSOR:
-            input_tensor = self._inA.to_tensor()
+        if self.inputs[0].bcip_type != BcipEnums.TENSOR:
+            input_tensor = self.inputs[0].to_tensor()
         else:
-            input_tensor = self._inA
+            input_tensor = self.inputs[0]
 
-        return self._process_data(input_tensor, self._outA)
+        return self._process_data(input_tensor, self.outputs[0], self.outputs[1])
 
 
-    def _process_data(self, inA, outA):
+    def _process_data(self, inA, outA, outB=None):
         """
         Process data according to outlined kernel function
         """
@@ -211,18 +244,16 @@ class ClassifierKernel(Kernel):
         else:
             input_data = inA.data
         
-        if self.output_probs:
-            if self.output_probs._bcip_type == BcipEnums.TENSOR:
-                output_probs = self._classifier._classifier.predict_proba(input_data)
-                
-                if output_probs.shape == self.output_probs.shape:
-                    self.output_probs.data = output_probs
-                else:
-                    self.output_probs.data = np.squeeze(output_probs)
-        
+        if outB is not None:
+            output_prob = self._classifier._classifier.predict_proba(input_data)
+            if outB.bcip_type == BcipEnums.SCALAR:
+                outB.data = float(output_prob)
+            else:
+                outB.data = output_prob
+
         output_data = self._classifier._classifier.predict(input_data)
 
-        if outA._bcip_type == BcipEnums.SCALAR:
+        if outA.bcip_type == BcipEnums.SCALAR:
             outA.data = int(output_data)
         else:
             outA.data = output_data
@@ -231,7 +262,7 @@ class ClassifierKernel(Kernel):
 
 
     @classmethod
-    def add_classifier_node(cls, graph, inA, classifier, outA, output_probs = None, initialization_data = None, labels = None):
+    def add_classifier_node(cls, graph, inA, classifier, outA, outB = None, initialization_data = None, labels = None):
         """
         Factory method to create a classifier kernel and add it to a graph as a generic node object
         
@@ -250,7 +281,7 @@ class ClassifierKernel(Kernel):
         outA : Scalar 
             Output trial data
 
-        output_probs : Tensor
+        outB : Tensor
             If not None, the output will be the probability of each class. Default is None
 
         initialization_data : Tensor 
@@ -263,11 +294,13 @@ class ClassifierKernel(Kernel):
         """
 
         #create the kernel object
-        c = cls(graph, inA, classifier, outA, output_probs, initialization_data, labels)
+        c = cls(graph, inA, classifier, outA, outB, initialization_data, labels)
 
         params = (Parameter(inA, BcipEnums.INPUT),
-                  Parameter(outA, BcipEnums.OUTPUT),
-                  Parameter(output_probs, BcipEnums.OUTPUT))
+                  Parameter(outA, BcipEnums.OUTPUT))
+        
+        if outB is not None:
+            params += (Parameter(outB, BcipEnums.OUTPUT),)
 
         node = Node(graph, c, params)
 

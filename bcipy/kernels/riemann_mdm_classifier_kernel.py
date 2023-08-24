@@ -1,7 +1,7 @@
-from ..core import BCIP, BcipEnums
+from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from .kernel_utils import extract_nested_data
+from .kernel_utils import extract_init_inputs
 
 from ..containers import Scalar
 
@@ -26,46 +26,31 @@ class RiemannMDMClassifierKernel(Kernel):
     outA : Tensor or Scalar 
         Output trial data
 
-    init_style : BcipEnums 
-        Indicates the type of classifier kernel (based by class functions)
+    initialization_data : Tensor
+        Initialization data to train the classifier (n_trials, n_channels, n_samples)
+    
+    labels : Tensor
+        Labels corresponding to initialization data class labels (n_trials, )
+        (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
 
-    initialize_params : dict
-        Object passed by classmethods that contains training data and training labels 
     """
     
-    def __init__(self,graph,inA,outA,init_style,init_params):
+    def __init__(self,graph,inA,outA,initialization_data,labels):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
-        super().__init__('RiemannMDM',init_style,graph)
-        self._inA  = inA
-        self._outA = outA
+        super().__init__('RiemannMDM',BcipEnums.INIT_FROM_DATA,graph)
+        self.inputs = [inA]
+        self.outputs = [outA]
 
-        self._init_params = init_params
+        self._initialized = False
 
-        if 'initialization_data' in init_params:
-            self._init_inA = init_params['initialization_data']
-        else:
-            self._init_inA = None
+        if initialization_data is not None:
+            self.init_inputs = [initialization_data]
 
-        if 'labels' in init_params:
-            self._init_labels_in = init_params['labels']
-        else:
-            self._init_labels_in = None
-
-        self._init_outA = None
-        self._init_labels_out = None
- 
-        if init_style == BcipEnums.INIT_FROM_DATA:
-            # model will be trained using data in tensor object at later time
-            self._initialized = False
-            self._classifier = None
-        elif init_style == BcipEnums.INIT_FROM_COPY:
-            # model is copy of predefined MDM model object
-            self._classifier = init_params['model']
-            self._initialized = True
-        
+        if labels is not None:
+            self.init_input_labels = labels
     
     def initialize(self):
         """
@@ -73,31 +58,30 @@ class RiemannMDMClassifierKernel(Kernel):
         """
         sts = BcipEnums.SUCCESS
         
-        if self.init_style == BcipEnums.INIT_FROM_DATA:
-            self._initialized = False # clear initialized flag
-            sts = self.train_classifier()
+        self._initialized = False # clear initialized flag
+        sts = self.train_classifier()
+
+        init_in = self.init_inputs[0]
+        init_out = self.init_outputs[0]
 
         # compute init output
-        if sts == BcipEnums.SUCCESS and self._init_outA != None:
+        if sts == BcipEnums.SUCCESS and init_out is not None:
             # adjust the shape of init output tensor
-            if len(self._init_inA.shape) == 3:
-                self._init_outA.shape = (self._init_inA.shape[0],)
- 
-            sts = self._process_data(self._init_inA, self._init_outA)
+            if len(init_in.shape) == 3:
+                init_out.shape = (init_in.shape[0],)
+
+            # compute the init output
+            sts = self._process_data(init_in, init_out)
 
             # pass on the labels
-            if self._init_labels_in._bcip_type != BcipEnums.TENSOR:
-                input_labels = self._init_labels_in.to_tensor()
-            else:
-                input_labels = self._init_labels_in
-            input_labels.copy_to(self._init_labels_out)
+            self.copy_init_labels_to_output()
 
         if sts == BcipEnums.SUCCESS:
             self._initialized = True
         
         return sts
- 
-        
+
+
     def train_classifier(self):
         """
         Train the classifier
@@ -105,27 +89,21 @@ class RiemannMDMClassifierKernel(Kernel):
         The method will update the kernel's internal representation of the
         classifier
         """
-        
-        if ((self._init_inA._bcip_type != BcipEnums.TENSOR and
-             self._init_inA._bcip_type != BcipEnums.ARRAY)  or
-            (self._init_labels_in._bcip_type != BcipEnums.TENSOR and
-             self._init_labels_in._bcip_type != BcipEnums. ARRAY)):
+
+        init_in = self.init_inputs[0]
+        init_labels = self.init_input_labels
+
+        # check that the input data is valid
+        if ((init_in.bcip_type != BcipEnums.TENSOR and
+             init_in.bcip_type != BcipEnums.ARRAY)  or
+            (init_labels.bcip_type != BcipEnums.TENSOR and
+             init_labels.bcip_type != BcipEnums. ARRAY)):
                 return BcipEnums.INITIALIZATION_FAILURE
         
-        if self._init_inA._bcip_type == BcipEnums.TENSOR: 
-            X = self._init_params['initialization_data'].data
-        else:
-            try:
-                # extract the data from a potentially nested array of tensors
-                X = extract_nested_data(self._init_inA)
-            except:
-                return BcipEnums.INITIALIZATION_FAILURE
+        # extract the initialiation data
+        X = extract_init_inputs(init_in)
+        y = extract_init_inputs(init_labels)
             
-        if self._init_labels_in._bcip_type == BcipEnums.TENSOR:
-            y = self._init_labels_in.data
-        else:
-            y = extract_nested_data(self._init_labels_in)
-        
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:
             return BcipEnums.INITIALIZATION_FAILURE
@@ -144,16 +122,19 @@ class RiemannMDMClassifierKernel(Kernel):
         Verify the inputs and outputs are appropriately sized and typed
         """
 
+        d_in = self.inputs[0]
+        d_out = self.outputs[0]
+
         # first ensure the input is a tensor
-        if self._inA._bcip_type != BcipEnums.TENSOR:
+        if d_in.bcip_type != BcipEnums.TENSOR:
             return BcipEnums.INVALID_PARAMETERS
 
         # ensure the output is a tensor or scalar
-        if (self._outA._bcip_type != BcipEnums.TENSOR and
-            self._outA._bcip_type != BcipEnums.SCALAR):
+        if (d_out.bcip_type != BcipEnums.TENSOR and
+            d_out.bcip_type != BcipEnums.SCALAR):
             return BcipEnums.INVALID_PARAMETERS
         
-        input_shape = self._inA.shape
+        input_shape = d_in.shape
         input_rank = len(input_shape)
         
         # input tensor should not be greater than rank 3
@@ -162,29 +143,29 @@ class RiemannMDMClassifierKernel(Kernel):
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (self._outA._bcip_type == BcipEnums.TENSOR and 
-            self._outA.virtual and
-            len(self._outA.shape) == 0):
+        if (d_out.bcip_type == BcipEnums.TENSOR and 
+            d_out.virtual and
+            len(d_out.shape) == 0):
             if input_rank == 2:
-                self._outA.shape = (1,)
+                d_out.shape = (1,)
             else:
-                self._outA.shape = (input_shape[0],)
+                d_out.shape = (input_shape[0],)
         
         # check for dimensional alignment
-        if self._outA._bcip_type == BcipEnums.SCALAR:
+        if d_out.bcip_type == BcipEnums.SCALAR:
             # input tensor should only be a single trial
-            if len(self._inA.shape) == 3:
+            if len(d_in.shape) == 3:
                 # first dimension must be equal to one
-                if self._inA.shape[0] != 1:
+                if d_in.shape[0] != 1:
                     return BcipEnums.INVALID_PARAMETERS
         else:
             # check that the dimensions of the output match the dimensions of
             # input
-            if self._inA.shape[0] != self._outA.shape[0]:
+            if d_in.shape[0] != d_out.shape[0]:
                 return BcipEnums.INVALID_PARAMETERS
 
             # output tensor should be one dimensional
-            if len(self._outA.shape) > 1:
+            if len(d_out.shape) > 1:
                 return BcipEnums.INVALID_PARAMETERS
         
         return BcipEnums.SUCCESS
@@ -200,7 +181,7 @@ class RiemannMDMClassifierKernel(Kernel):
         try:
             output = self._classifier.predict(input_data)
 
-            if outA._bcip_type == BcipEnums.SCALAR:
+            if outA.bcip_type == BcipEnums.SCALAR:
                 outA.data = int(output)
             else:
                 outA.data = output
@@ -219,12 +200,12 @@ class RiemannMDMClassifierKernel(Kernel):
         if not self._initialized:
             return BcipEnums.EXE_FAILURE_UNINITIALIZED
         else:
-            return self._process_data(self._inA, self._outA)
+            return self._process_data(self.inputs[0], self.outputs[0])
         
     
     @classmethod
-    def add_untrained_riemann_MDM_node(cls,graph,inA,outA,
-                                       initialization_data,labels):
+    def add_riemann_MDM_node(cls,graph,inA,outA,
+                             initialization_data=None,labels=None):
         """
         Factory method to create an untrained riemann minimum distance 
         to the mean classifier kernel and add it to a graph
@@ -249,12 +230,15 @@ class RiemannMDMClassifierKernel(Kernel):
 
         labels : Tensor 
             Class labels for initialization data (n_trials,)
+
+        Returns
+        -------
+        node : Node
+            Node object that contains the kernel
         """
         
         # create the kernel object            
-        init_params = {'initialization_data' : initialization_data, 
-                       'labels'        : labels}
-        k = cls(graph,inA,outA,BcipEnums.INIT_FROM_DATA,init_params)
+        k = cls(graph,inA,outA,initialization_data,labels)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT), 
@@ -268,50 +252,3 @@ class RiemannMDMClassifierKernel(Kernel):
         
         return node
     
-    
-    @classmethod
-    def add_trained_riemann_MDM_node(cls,graph,inA,outA,
-                                     model):
-        """
-        Factory method to create a riemann minimum distance 
-        to the mean classifier kernel containing a copy of a pre-trained
-        MDM classifier and add it to a graph as a generic node object.
-        
-        The kernel will contain a reference to the model rather than making a 
-        deep-copy. Therefore any changes to the classifier object outside
-        will effect the classifier here.
-
-        Parameters
-        ----------
-        graph : Graph 
-            Graph that the kernel should be added to
-
-        inA : Tensor or Array 
-            First input data
-
-        outA : Tensor or Scalar 
-            Output trial data
-
-        model : RiemannMDMClassifierKernel
-            Existing MDM Classifier object that will be added to the node (must be pre-trained)
-        """
-
-        # sanity check that the input is actually an MDM model
-        if not isinstance(model,classification.MDM):
-            return None
-        
-        # create the kernel object
-        init_params = {'model' : model}
-        k = cls(graph,inA,outA,BcipEnums.INIT_FROM_COPY,init_params)
-        
-        # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
-        
-        # add the kernel to a generic node object
-        node = Node(graph,k,params)
-        
-        # add the node to the graph
-        graph.add_node(node)
-        
-        return node
