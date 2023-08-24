@@ -5,6 +5,8 @@ Created on Tues July 26 16:12:30 2022
 
 This file is used to test the P300 graph on offline training and testing data.
 This can be used to test the accuracy of the P300 graph following changes to any of its components.
+
+Change the file paths, sampling frequency (or Ns per trial), and channels to test the graph on different datasets.
 """
 
 # Create a simple graph for testing
@@ -41,12 +43,12 @@ def main(file):
 
     # Cosntants
     Fs = 500
-
+    channels = tuple([_ for _ in range(32)])
     resample_fs = 50
 
     # create a filter
     f = bcipy.Filter.create_fir(sess, fs=Fs, low_freq=1, high_freq=25, method='fir', fir_design='firwin', phase='minimum')
-    channels = tuple([_ for _ in range(32)])
+    
 
     # Data sources from LSL
     offline_data_src = bcipy.source.BcipXDF.create_class_separated(sess, r"c:\Users\lioa\Downloads\sub-P001_ses-S001_task-vP300+2x2_run-039.xdf", ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs))

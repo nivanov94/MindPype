@@ -953,10 +953,8 @@ class BcipXDF(BCIP):
 
             # Construct the boolean array for samples that fall after the marker timestamp
             sample_indices = self.trial_data["EEG"]["time_stamps"] >= eeg_window_start
-            sample_data = self.trial_data["EEG"]["time_series"][sample_indices, :][
-                :, self.channels
-            ].T  # Nc X len(eeg_stream)
-            
+            sample_data = self.trial_data["EEG"]["time_series"][:, sample_indices]
+
             sample_data = sample_data[:, :Ns]  # Nc x Ns
             self.cont_trial_num += 1
             
