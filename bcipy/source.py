@@ -1536,7 +1536,7 @@ class InputLSLStream(BCIP):
             processing_flags=pylsl.proc_clocksync | pylsl.proc_dejitter,
             recover=False,
         )  # for now, just take the first available stream that matches the property
-        self.data_inlet.open_stream(timeout=5.0)
+        self.data_inlet.open_stream()
         
         self.marker_inlet = None
         self.marker_pattern = None

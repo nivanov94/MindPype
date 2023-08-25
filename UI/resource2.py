@@ -34,7 +34,7 @@ class AnnotationView(QtWidgets.QGraphicsView):
         self.setMouseTracking(True)
 
 
-
+# Describes the big window
 class AnnotationWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(AnnotationWindow, self).__init__(parent)
