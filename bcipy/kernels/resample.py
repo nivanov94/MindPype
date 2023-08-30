@@ -3,6 +3,7 @@ from ..kernel import Kernel
 from ..graph import Node, Parameter
 
 from scipy import signal
+import numpy as np
 
 class ResampleKernel(Kernel):
     """
@@ -57,7 +58,7 @@ class ResampleKernel(Kernel):
         Process trial data according to the scipy function
         """
         outputs[0].data = signal.resample(inputs[0].data,
-                                          inputs[0].shape[self._axis] * self._factor,
+                                          np.ceil(inputs[0].shape[self._axis] * self._factor).astype(int),
                                           axis=self._axis)
 
     

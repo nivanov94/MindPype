@@ -179,17 +179,12 @@ class Graph(BCIP):
                 # invalid graph, cannot be scheduled
                 raise Exception("Invalid graph, nodes cannot be scheduled, check connections between nodes.")
         
+        # TODO add phony edges here
         
-        # now all the nodes are in execution order, validate each node
-        # and create any necessary initialization edges
+        # now all the nodes are in execution order create any necessary initialization edges
         init_required = False # flag to indicate if any nodes in the graph require initialization
         init_links_missing = False # flag to indicate if any initialization data will need to be propagated through the graph
         for n in self._nodes:
-            try:
-                n.verify()
-            except Exception as e:
-                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exc_info()[2])
-
             # check for missing init data
             if n.kernel.init_style == BcipEnums.INIT_FROM_DATA:
                 init_required = True
@@ -199,6 +194,7 @@ class Graph(BCIP):
                 for n_ii in n.kernel.init_inputs:
                     if n_ii is None:
                         init_provided = False
+                    # TODO add phony init here
                 
                 # if not provided, flag that graph will need initialization data propagated through the graph
                 if not init_provided:
@@ -229,6 +225,13 @@ class Graph(BCIP):
                                 self._default_init_required = True
                                 warnings.warn("Initialization data not explicitly provided, initialization data will need to be provided during graph initialization.")
 
+
+        # finally, validate each node
+        for n in self._nodes:
+            try:
+                n.verify()
+            except Exception as e:
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exc_info()[2])
 
         # Done, all nodes scheduled and verified!
         self._verified = True

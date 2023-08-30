@@ -278,11 +278,11 @@ class Scalar(BCIP):
         # for now, don't copy the type, virtual and ext_src attributes because these
         # should really be set during creation not later
 
-    def assign_random_data(self, whole_number=False, vmin=0, vmax=1):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
         """
         Assign random data to the scalar. This is useful for testing and verification purposes.
         """
-        if self.data_type == int or whole_number:
+        if self.data_type == int or whole_numbers:
             self.data = np.random.randint(vmin,vmax+1)
         elif self.data_type == float:
             vrange = vmax - vmin
@@ -591,6 +591,9 @@ class Tensor(BCIP):
             while len(self.shape) < len(data.shape):
                 data = np.squeeze(data,axis=0)
         
+        if self.virtual and self.shape != data.shape:
+            self.shape = data.shape
+
         if self.shape == data.shape:
             self._data = data
         else:
@@ -622,7 +625,7 @@ class Tensor(BCIP):
         if self.virtual:
             self._shape = shape
             # when changing the shape write a zero tensor to data
-            self.data = np.zeros(shape)
+            self._data = np.zeros(shape)
         else:
             raise ValueError("Cannot change shape of non-virtual tensor") 
             
@@ -677,11 +680,11 @@ class Tensor(BCIP):
         # only be set during creation and modifying could cause unintended
         # consequences
 
-    def assign_random_data(self, whole_number=False, vmin=0, vmax=1):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
         """
         Assign random data to the tensor. This is useful for testing and verification purposes.
         """
-        if whole_number:
+        if whole_numbers:
             self.data = np.random.randint(vmin,vmax+1,size=self.shape)
         else:
             num_range = vmax - vmin
@@ -1016,12 +1019,12 @@ class Array(BCIP):
         for i in range(self.capacity):
             dest_array.set_element(i,self.get_element(i))
 
-    def assign_random_data(self, whole_number=False, vmin=0, vmax=1):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
         """
         Assign random data to the array. This is useful for testing and verification purposes.
         """
         for i in range(self.capacity):
-            self.get_element(i).assign_random_data(whole_number, vmin, vmax)
+            self.get_element(i).assign_random_data(whole_numbers, vmin, vmax)
             
     def to_tensor(self):
         """

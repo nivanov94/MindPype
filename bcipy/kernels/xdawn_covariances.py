@@ -70,16 +70,13 @@ class XDawnCovarianceKernel(Kernel):
  
         # check if the labels are in a tensor
         if labels.bcip_type != BcipEnums.TENSOR:
-            labels = self._init_labels_in.to_tensor()
+            labels = labels.to_tensor()
 
-        if len(labels.shape) == 2:
-            y = np.squeeze(labels.data)
-            
-        self._xdawn_estimator.fit(init_in.data, y)
+        self._xdawn_estimator.fit(init_in.data, np.squeeze(labels.data))
         
         if init_in is not None and init_out is not None:
             # update the init output shape as needed
-            n_classes = np.unique(y).shape[0]
+            n_classes = np.unique(np.squeeze(labels.data)).shape[0]
             Nt = init_in.shape[0]
             Nc = self._xdawn_estimator.nfilter*(n_classes**2)
             if init_out.shape != (Nt,Nc,Nc):

@@ -370,7 +370,7 @@ class Kernel(BCIP, ABC):
                 phony_init_outputs.append(phony_init_output)
 
             # generate phony init labels
-            phony_init_labels = Tensor.create_virtual(self.session)
+            phony_init_labels = Tensor.create_virtual(self.session, shape=(phony_init_inputs[0].shape[0],))
             phony_init_labels.assign_random_data(whole_numbers=True)
 
             # attempt initialization
@@ -379,11 +379,25 @@ class Kernel(BCIP, ABC):
             except Exception as e:
                 raise type(e)(f"{str(e)}\nTest initialization of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
 
+            # set init output shapes using phony init outputs as needed
+            for init_output, phony_init_output in zip(self.init_outputs, phony_init_outputs):
+                if (init_output.bcip_type == BcipEnums.TENSOR and 
+                    init_output.virtual and
+                    init_output.shape != phony_init_output.shape):
+                    init_output.shape = phony_init_output.shape
+
         # attempt kernel execution
         try:
             self._process_data(phony_inputs, phony_outputs)
         except Exception as e:
             raise type(e)(f"{str(e)}\nTest execution of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
+
+        # set output shapes using phony outputs as needed
+        for output, phony_output in zip(self.outputs, phony_outputs):
+            if (output.bcip_type == BcipEnums.TENSOR and
+                output.virtual and
+                output.shape != phony_output.shape):
+                output.shape = phony_output.shape
 
 
     def initialize(self):
