@@ -2,7 +2,6 @@ from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from .kernel_utils import extract_init_inputs
-from ..containers import Tensor
 
 import numpy as np
 import pyriemann
@@ -58,34 +57,27 @@ class CommonSpatialPatternKernel(Kernel):
             self._initialized = True
     
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set the filter values based on the provided initialization data
         """
-        sts = BcipEnums.SUCCESS
-        
-        self._initialized = False # clear initialized flag
-        
         # check that the input init data is in the correct type
-        init_in = self.init_inputs[0]
-        labels = self.init_input_labels
+        init_in = init_inputs[0]
         accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
         
         for init_obj in (init_in,labels):
             if init_obj.bcip_type not in accepted_inputs:
-                return BcipEnums.INITIALIZATION_FAILURE
+                raise TypeError('Initialization data must be a tensor, array, or circle buffer')
     
-        # extract the initialization data
-        X = extract_init_inputs(init_in)
-        y = extract_init_inputs(labels) 
-
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            sts = self._compute_filters(X,y)
+            # extract the initialization data
+            X = extract_init_inputs(init_in)
+            y = extract_init_inputs(labels) 
+            self._compute_filters(X,y)
         
         # compute init output
-        if sts == BcipEnums.SUCCESS:
-            init_out = self.init_outputs[0]
-
+        init_out = init_outputs[0]
+        if init_out is not None:
             if init_in.bcip_type != BcipEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
@@ -93,34 +85,20 @@ class CommonSpatialPatternKernel(Kernel):
             if len(init_in.shape) == 3:
                 init_out.shape = (init_in.shape[0], self._W.shape[1], init_in.shape[2])
  
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
 
-        if sts == BcipEnums.SUCCESS:
-            self._initialized = True
-        
-        return sts
-    
-
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process input data according to outlined kernel function
         """
 
-        try:
-            output_data.data = np.matmul(self._W.T, input_data.data) 
-            return BcipEnums.SUCCESS
-        except:
-            return BcipEnums.EXE_FAILURE
-
+        outputs[0].data = np.matmul(self._W.T, inputs[0].data) 
 
     def _compute_filters(self,X,y):
         """
         Compute CSP filters
         """
-
         # ensure the shapes are valid
         if len(X.shape) == 2:
             X = X[np.newaxis, :, :]
@@ -129,24 +107,21 @@ class CommonSpatialPatternKernel(Kernel):
             y = np.squeeze(y)
 
         if len(X.shape) != 3 or len(y.shape) != 1:
-            return BcipEnums.INITIALIZATION_FAILURE
+            raise ValueError('Initialization data must be a 3D tensor and labels must be a 1D array')
         
         if X.shape[0] != y.shape[0]:
-            return BcipEnums.INITIALIZATION_FAILURE
+            raise ValueError('Number of trials in initialization data and labels do not match')
 
         unique_labels = np.unique(y)
         Nl = unique_labels.shape[0]
         
         if Nl != self.num_classes:
-            return BcipEnums.INITIALIZATION_FAILURE
+            raise ValueError('Number of unique labels in initialization data does not match number of classes')
         
         if Nl == 2:
             self._W = self._compute_binary_filters(X,y)
 
         else:
-            if self.multi_class_mode not in ('OVA', 'PW'):
-                return BcipEnums.INITIALIZATION_FAILURE
-
             _, Nc, Ns = X.shape
 
             if self.multi_class_mode == 'OVA':
@@ -177,8 +152,6 @@ class CommonSpatialPatternKernel(Kernel):
                                         axis=0)
 
                     self._W[:, il*self.num_filts:(il+1)*self.num_filts] = self.compute_binary_filters(Xl, yl)
-    
-        return BcipEnums.SUCCESS
 
     def _compute_binary_filters(self, X, y):
         """
@@ -233,7 +206,7 @@ class CommonSpatialPatternKernel(Kernel):
         return W
     
     
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
@@ -244,18 +217,18 @@ class CommonSpatialPatternKernel(Kernel):
 
         for param in (d_in, d_out):
             if param.bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError('Input and output parameters must be tensors')
         
         # input tensor should be two- or three-dimensional
         if len(d_in.shape) != 2 and len(d_in.shape) != 3:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError('Input tensor must be two- or three-dimensional')
         
         if self.num_classes < 2:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError('Number of classes must be greater than 1')
         
         if (self.num_classes > 2 and 
             self.multi_class_mode not in ('OVA', 'PW')):
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError('Invalid multi-class mode specified')
 
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
@@ -275,17 +248,9 @@ class CommonSpatialPatternKernel(Kernel):
         if d_out.virtual and len(d_out.shape) == 0:
             d_out.shape = out_sz
 
-        if d_out.shape != out_sz:
-            return BcipEnums.INVALID_PARAMETERS
-
-        return BcipEnums.SUCCESS
+        # verify that output tensor can accept data of this size
+        d_out.data = np.zeros(out_sz)
         
-    def execute(self):
-        """
-        Execute the kernel by classifying the input trials
-        """
-        return self._process_data(self.inputs[0], self.outputs[0])
-    
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
                                    initialization_data,labels,

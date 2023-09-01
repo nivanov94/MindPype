@@ -52,17 +52,12 @@ class FeatureNormalizationKernel(Kernel):
             self.init_input_labels = labels
 
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Calculate the normalization parameters using the setup data
         """
-
-        sts = BcipEnums.SUCCESS
-        self.initialized = False
-
         # get the initialization input
-        init_in = self.init_inputs[0]
-
+        init_in = init_inputs[0]
         X = extract_init_inputs(init_in)
         
         if self._method == 'min-max':
@@ -77,27 +72,17 @@ class FeatureNormalizationKernel(Kernel):
             self._translate = np.mean(X,axis=self._axis)
             self._scale = np.std(X,axis=self._axis)
         
-        else:
-            return BcipEnums.INVALID_NODE
-
-        self.initialized = True
-
         # process initialization data
-        init_out = self.init_outputs[0]
-        if sts == BcipEnums.SUCCESS and init_out is not None:
+        init_out = init_outputs[0]
+        if init_out is not None:
             # adjust the shape of init output tensor, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
 
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-
-        return BcipEnums.SUCCESS
-        
     
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
@@ -108,15 +93,14 @@ class FeatureNormalizationKernel(Kernel):
         # first ensure the input and output are tensors
         if (inA.bcip_type != BcipEnums.TENSOR or
             outA.bcip_type != BcipEnums.TENSOR):
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError('FeatureNormalization kernel requires Tensor inputs and outputs')
         
         if self._method not in ('min-max','mean-norm','zscore-norm'):
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError('FeatureNormalization kernel: Invalid method: {}'.format(self._method))
         
         Nd = inA.shape
-        if (-(Nd+1) > abs(self._axis) or
-            (Nd+1) <= abs(self._axis)):
-            return BcipEnums.INVALID_PARAMETERS
+        if (self._axis < -len(Nd) or self._axis >= len(Nd)):
+            raise ValueError('FeatureNormalization kernel: axis must be within rank of input tensor')
 
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
@@ -125,27 +109,11 @@ class FeatureNormalizationKernel(Kernel):
         
         # check output shape
         if outA.shape != inA.shape:
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError('FeatureNormalization kernel: output shape must match input shape')
   
-        return BcipEnums.SUCCESS
+    def _process_data(self, inputs, outputs):
+        outputs[0].data = (inputs[0].data - self._translate) / self._scale
 
-    def _process_data(self, inA, outA):
-        """
-        Normalize the data
-        """
-        try:
-            outA.data = (inA.data - self._translate) / self._scale
-            return BcipEnums.SUCCESS
-        except:
-            return BcipEnums.EXE_FAILURE
-
-    def execute(self):
-        """
-        Execute the kernel and calculate the mean
-        """
-            
-        return self._process_data(self.inputs[0], self.outputs[0])
-    
     @classmethod
     def add_feature_normalization_node(cls,graph,inA,outA,
                                        init_data=None,labels=None,method='zscore-norm', axis=1):

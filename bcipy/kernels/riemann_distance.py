@@ -35,16 +35,14 @@ class RiemannDistanceKernel(Kernel):
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data
         
         """
 
-        sts = BcipEnums.SUCCESS
-
-        init_inA, init_inB = self.init_inputs
-        init_out = self.init_outputs[0]
+        init_inA, init_inB = init_inputs
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
             # update output size, as needed
@@ -52,12 +50,8 @@ class RiemannDistanceKernel(Kernel):
                 output_sz = self._compute_output_shape(init_inA, init_inB)
                 init_out.shape = output_sz
 
-            sts = self._process_data(init_inA, init_inB, init_out)
+            sts = self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
         
     def _compute_output_shape(self, inA, inB):
         out_sz = []
@@ -85,7 +79,7 @@ class RiemannDistanceKernel(Kernel):
                 for i in range(param_rank):
                     e = param.get_element(i)
                     if not isinstance(e,Tensor) or len(e.shape) != 2:
-                        return BcipEnums.INVALID_PARAMETERS
+                        raise TypeError("RiemannianDistance kernel: All elements of input array must be 2D tensors")
                     
                     if mat_sz == None:
                         mat_sz = e.shape
@@ -96,7 +90,7 @@ class RiemannDistanceKernel(Kernel):
             
         return tuple(out_sz)
  
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
         """
@@ -106,9 +100,9 @@ class RiemannDistanceKernel(Kernel):
         
         # first ensure the input and output are tensors or Arrays of Tensors
         for param in (inA, inB, outA):
-            if (param._bcip_type != BcipEnums.TENSOR and
-                param._bcip_type != BcipEnums.ARRAY):
-                return BcipEnums.INVALID_PARAMETERS
+            if (param.bcip_type != BcipEnums.TENSOR and
+                param.bcip_type != BcipEnums.ARRAY):
+                raise TypeError("RiemannianDistance kernel: All inputs and outputs must be Tensors or Arrays")
 
         out_sz = self._compute_output_shape(inA, inB)
         num_combos = out_sz[0]*out_sz[1]
@@ -121,28 +115,25 @@ class RiemannDistanceKernel(Kernel):
         
         if (outA.bcip_type != BcipEnums.TENSOR and
             outA.shape != out_sz):
-            return BcipEnums.INVALID_PARAMETERS
+            raise ValueError("RiemannianDistance kernel: Output shape does not match expected shape")
         elif outA.bcip_type == BcipEnums.ARRAY:
             if outA.capacity != num_combos:
-                return BcipEnums.INVALID_PARAMETERS
+                raise ValueError("RiemannianDistance kernel: Output array capacity does not match expected capacity")
             
             for i in range(outA.capacity):
                 e = outA.get_element(i)
                 if ((e.bcip_type != BcipEnums.TENSOR and
                      e.bcip_type != BcipEnums.SCALAR) or 
-                    (e.bcip_type == BcipEnums.TENSOR and e.shape != (1,1)) or
+                    (e.bcip_type == BcipEnums.TENSOR and np.squeeze(e.shape) != ()) or
                     (e.bcip_type == BcipEnums.SCALAR and e.data_type != float)):
-                    return BcipEnums.INVALID_PARAMETERS
+                    raise TypeError("RiemannianDistance kernel: All elements of output array must be single-valued Tensors or Scalars")
   
-        return BcipEnums.SUCCESS
-
-       
-    def _process_data(self, inputA, inputB, outputA):
+    def _process_data(self, inputs, outputs):
         """
         Execute the kernel and calculate the mean
         """
         def get_obj_data_at_index(obj,index,rank):
-            if obj._bcip_type == BcipEnums.TENSOR:
+            if obj.bcip_type == BcipEnums.TENSOR:
                 if rank == 1 and len(obj.shape) == 2:
                     return obj.data
                 else:
@@ -151,20 +142,20 @@ class RiemannDistanceKernel(Kernel):
                 return obj.get_element(index).data
             
         def set_obj_data_at_index(obj,index,data):
-            if obj._bcip_type == BcipEnums.TENSOR:
+            if obj.bcip_type == BcipEnums.TENSOR:
                 tensor_data = obj.data # need to extract and edit numpy array b/c tensor currently does not allow sliced modifications
                 tensor_data[index] = data
                 obj.data = tensor_data
             else:
                 e = obj.get_element(index[0]*index[1])
-                if e._bcip_type == BcipEnums.TENSOR:
+                if e.bcip_type == BcipEnums.TENSOR:
                     e.data = np.asarray([[data]])
                 else:
                     e.data = data
         
         out_sz = []
-        for in_param in (inputA,inputB):
-            if in_param._bcip_type == BcipEnums.TENSOR:
+        for in_param in inputs:
+            if in_param.bcip_type == BcipEnums.TENSOR:
                 if len(in_param.shape) == 3:
                     m = in_param.shape[0]
                 else:
@@ -177,27 +168,15 @@ class RiemannDistanceKernel(Kernel):
         
         for i in range(out_sz[0]):
             # extract the ith element from inA
-            x = get_obj_data_at_index(inputA,i,out_sz[0])
+            x = get_obj_data_at_index(inputs[0],i,out_sz[0])
             
             for j in range(out_sz[1]):
                 # extract the jth element from inB
-                y = get_obj_data_at_index(inputB,j,out_sz[1])
+                y = get_obj_data_at_index(inputs[1],j,out_sz[1])
                 
-                try:
-                    set_obj_data_at_index(outputA,(i,j),
-                                          distance_riemann(x,y))
+                set_obj_data_at_index(outputs[0],(i,j),
+                                      distance_riemann(x,y))
                 
-                except:
-                    return BcipEnums.FAILURE
-                    
-        return BcipEnums.SUCCESS
-
-    def execute(self):
-        """
-        Execute the kernel
-        """
-        return self.process_data(self.inputs[0], self.inputs[1], self.outputs[0])
-    
     @classmethod
     def add_riemann_distance_node(cls,graph,inA,inB,outA):
         """

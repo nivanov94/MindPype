@@ -277,6 +277,22 @@ class Scalar(BCIP):
         
         # for now, don't copy the type, virtual and ext_src attributes because these
         # should really be set during creation not later
+
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
+        """
+        Assign random data to the scalar. This is useful for testing and verification purposes.
+        """
+        if self.data_type == int or whole_numbers:
+            self.data = np.random.randint(vmin,vmax+1)
+        elif self.data_type == float:
+            vrange = vmax - vmin
+            self.data = vrange * np.random.rand() + vmin
+        elif self.data_type == complex:
+            self.data = complex(np.random.rand(),np.random.rand())
+        elif self.data_type == str:
+            self.data = str(np.random.rand())
+        elif self.data_type == bool:
+            self.data = np.random.choice([True,False])
     
     
     def poll_volatile_data(self,label=None):
@@ -287,40 +303,17 @@ class Scalar(BCIP):
         ----------
         Label : int, default = None
             Class label corresponding to class data to poll. This is required for epoched data but should be set to None for LSL data
-
-        Return
-        ------
-        BcipEnums.SUCCESS if successful, BcipEnums.FAILURE otherwise
-
-        Return Type
-        -----------
-        BcipEnums
-
-        Examples
-        --------
-        >>> status = example_scalar.poll_data()
-        >>> print(status)
-
-            BcipEnums.SUCCESS
         """
         
-        # check if the data is actually volatile, if not just return
-        if not self.volatile:
-            return BcipEnums.SUCCESS
-        
-        self.data = self.ext_src.poll_data(label)
-        
-        return BcipEnums.SUCCESS
+        # check if the data is actually volatile
+        if self.volatile:
+            self.data = self.ext_src.poll_data(label)
         
     def push_volatile_outputs(self, label=None):
 
-        if not self.volatile_out:
-            return BcipEnums.SUCCESS
-        
-        self.ext_out.push_data(self.data, label)
+        if self.volatile_out:
+            self.ext_out.push_data(self.data, label)
 
-        return BcipEnums.SUCCESS
-    
     @classmethod
     def valid_numeric_types(cls):
         """
@@ -598,6 +591,9 @@ class Tensor(BCIP):
             while len(self.shape) < len(data.shape):
                 data = np.squeeze(data,axis=0)
         
+        if self.virtual and self.shape != data.shape:
+            self.shape = data.shape
+
         if self.shape == data.shape:
             self._data = data
         else:
@@ -629,7 +625,7 @@ class Tensor(BCIP):
         if self.virtual:
             self._shape = shape
             # when changing the shape write a zero tensor to data
-            self.data = np.zeros(shape)
+            self._data = np.zeros(shape)
         else:
             raise ValueError("Cannot change shape of non-virtual tensor") 
             
@@ -669,16 +665,10 @@ class Tensor(BCIP):
         dest_tensor : Tensor object
             Tensor object where the attributes with the referenced Tensor will copied to
 
-        Returns
-        -------
-        BcipEnums.SUCCESS : int
-            If the copy was successful
-
-        Examples
+        Examples # TODO REDO
         --------
         >>> t = Tensor.create_virtual((1,2,3))
         >>> t2 = Tensor.create_virtual((1,3,3))
-        >>> print(t.copy_to(t2))
 
             BcipEnums.SUCCESS
         """
@@ -686,11 +676,19 @@ class Tensor(BCIP):
             dest_tensor.shape = self.shape
         dest_tensor.data = self.data
         
-        return BcipEnums.SUCCESS
-        
         # Not copying virtual and ext_src attributes because these should 
         # only be set during creation and modifying could cause unintended
         # consequences
+
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
+        """
+        Assign random data to the tensor. This is useful for testing and verification purposes.
+        """
+        if whole_numbers:
+            self.data = np.random.randint(vmin,vmax+1,size=self.shape)
+        else:
+            num_range = vmax - vmin
+            self.data = num_range * np.random.rand(*self.shape) + vmin
     
     def poll_volatile_data(self,label=None):
         """
@@ -699,17 +697,13 @@ class Tensor(BCIP):
         
         # check if the data is actually volatile, if not just return
         if not self.volatile:
-            return BcipEnums.SUCCESS
+            return
         
         data = self.ext_src.poll_data(Ns=self.shape[1], label=label)
-        try:
-            # if we only pulled one trial, remove the first dimension
-            data = np.squeeze(data)
-            self.data = data
-        except ValueError:
-            # Bug found where if we pull only one sample, the data should not be squeezed
-            data = data.reshape(self.shape)
-            self.data = data
+        # if we only pulled one trial, remove the first dimension
+        if len(data.shape) > 2:
+            data = np.squeeze(data, axis=0)
+        self.data = data
         
 
         return BcipEnums.SUCCESS
@@ -718,16 +712,11 @@ class Tensor(BCIP):
         """
         Push data to external sources.
         """
-        
-        # check if the output is actually volatile, if not just return
-        if not self.volatile_out:
-            return BcipEnums.SUCCESS
-        
-        # push the data
-        self.ext_out.push_data(self.data)
+        # check if the output is actually volatile first
+        if self.volatile_out:
+            # push the data
+            self.ext_out.push_data(self.data)
 
-        return BcipEnums.SUCCESS
-    
     # Factory Methods
     @classmethod
     def create(cls,sess,shape):
@@ -961,10 +950,9 @@ class Array(BCIP):
         """
 
         if index >= self.capacity or index < 0:
-            return BcipEnums.FAILURE
+            raise ValueError("Index out of bounds") # TODO worth checking?
         
         element.copy_to(self._elements[index])
-        return BcipEnums.SUCCESS
     
     # User Facing Getters
     @property
@@ -1040,21 +1028,23 @@ class Array(BCIP):
         """
         dest_array.capacity = self.capacity
         for i in range(self.capacity):
-            sts = dest_array.set_element(i,self.get_element(i))
-            
-            if sts != BcipEnums.SUCCESS:
-                return sts
-        
-        return BcipEnums.SUCCESS
+            dest_array.set_element(i,self.get_element(i))
 
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
+        """
+        Assign random data to the array. This is useful for testing and verification purposes.
+        """
+        for i in range(self.capacity):
+            self.get_element(i).assign_random_data(whole_numbers, vmin, vmax)
+            
     def to_tensor(self):
         """
         Stack the elements of the array into a Tensor object.
         """
         element = self.get_element(0)
 
-        if not (element._bcip_type == BcipEnums.TENSOR or
-                (element._bcip_type == BcipEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
+        if not (element.bcip_type == BcipEnums.TENSOR or
+                (element.bcip_type == BcipEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
             return None
 
         # extract elements and stack into numpy array
@@ -1183,7 +1173,7 @@ class CircleBuffer(Array):
 
         >>> is_empty = example_buffer.is_empty()
         >>> print(is_empty)
-            
+        
             True
         """
 
@@ -1263,14 +1253,8 @@ class CircleBuffer(Array):
         
         while not cb.is_empty():
             element = cb.dequeue()
-            sts = self.enqueue(element)
+            self.enqueue(element)
             
-            if sts != BcipEnums.SUCCESS:
-                return sts
-        
-        return BcipEnums.SUCCESS
-            
-    
     def dequeue(self):
         if self.is_empty():
             return None
@@ -1316,17 +1300,13 @@ class CircleBuffer(Array):
         """
         dest_array.capacity = self.capacity
         for i in range(self.capacity):
-            sts = dest_array.set_element(i,self.get_element(i))
+            dest_array.set_element(i,self.get_element(i))
             
-            if sts != BcipEnums.SUCCESS:
-                return sts
-        
         if dest_array._bcip_type == BcipEnums.CIRCLE_BUFFER:
             # copy the head and tail as well
             dest_array._tail = self._tail
             dest_array._head = self._head
             
-        return BcipEnums.SUCCESS
     
     def flush(self):
         """
@@ -1351,8 +1331,6 @@ class CircleBuffer(Array):
         while not self.is_empty():
             self.dequeue()
         
-        return BcipEnums.SUCCESS
-    
     
     def to_tensor(self):
         """

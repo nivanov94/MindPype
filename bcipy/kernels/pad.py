@@ -1,7 +1,6 @@
 from ..core import BcipEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Tensor
 
 import numpy as np
 
@@ -39,43 +38,9 @@ class PadKernel(Kernel):
 
         self._kwargs_dict = kwargs
 
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        
-        inA = self.inputs[0]
-        outA = self.outputs[0]
-
-        # inA and outA must be a tensor
-        for param in (inA, outA):
-            if param.bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
-    
-        
-        # check the output dimensions are valid
-        if self.outputs[0].virtual and len(self.outputs[0].shape) == 0:
-            test_output = Tensor.create_virtual(self.session)
-            self._process_data(self.inputs[0], test_output)
-            self.outputs[0].shape = test_output.shape
-
-        if outA.shape != test_output.shape:
-            return BcipEnums.INVALID_PARAMETERS
-
-        return BcipEnums.SUCCESS
-
-
-    def initialize(self):
-        """
-        Initialize the kernel
-        """
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_labels = self.init_input_labels
-    
-        init_out = self.init_outputs[0]
-
+    def _initialize(self, init_inputs, init_outputs, labels):
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
 
@@ -97,28 +62,15 @@ class PadKernel(Kernel):
                     self._pad_width = ((0,0),) + tuple([tuple(pad) for pad in self._pad_width])
 
                 
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_in, init_out)
             
             if params_adjusted:
                 self._pad_width = orig_pad_width
             
-            # pass on labels
-            self.copy_init_labels_to_output()
+
         
-        return sts
-
-    def execute(self):
-        """
-        Execute the kernel
-        """
-        return self._process_data(self.inputs[0], self.outputs[0])
-        
-
-    def _process_data(self, inp, out):
-        """
-        Process the data
-        """
-
+    def _process_data(self, inputs, outputs):
+        inp = inputs[0]
         # TODO: make this more efficient/reduce code duplication
         if self._mode in ('maximum', 'mean', 'median', 'minimum'):
             out_data = np.pad(inp.data, self._pad_width, self._mode, stat_length = self._stat_length)
@@ -133,10 +85,7 @@ class PadKernel(Kernel):
         else:
             out_data = np.pad(inp.data, self._pad_width, self._mode, **self._kwargs_dict)
 
-        out.shape = out_data.shape
-        out.data = out_data
-
-        return BcipEnums.SUCCESS
+        outputs[0].data = out_data
 
     @classmethod
     def add_pad_node(cls, graph, inA, outA, pad_width = None, mode = 'constant', stat_length = None, constant_values = 0, end_values = 0, reflect_type = 'even', **kwargs):
@@ -197,7 +146,10 @@ class PadKernel(Kernel):
             Node that was added to the graph containing the kernel and parameters            
         """
 
-        k = cls(graph, inA, outA, pad_width, mode, stat_length, constant_values, end_values, reflect_type, **kwargs)
+        k = cls(graph, inA, outA, pad_width, 
+                mode, stat_length, constant_values, 
+                end_values, reflect_type, **kwargs)
+        
         # create parameter objects for the input and output
         params = (Parameter(inA,BcipEnums.INPUT),
                   Parameter(outA,BcipEnums.OUTPUT))

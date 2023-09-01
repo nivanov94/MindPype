@@ -30,28 +30,21 @@ class ThresholdKernel(Kernel):
         self.inputs = [inA, thresh]
         self.outputs = [outA]
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # set the output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
 
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
-        
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -63,61 +56,39 @@ class ThresholdKernel(Kernel):
         # input/output must be a tensor or scalar
         if not ((d_in.bcip_type == BcipEnums.TENSOR and d_out.bcip_type == BcipEnums.TENSOR) or 
                 (d_in.bcip_type == BcipEnums.SCALAR and d_out.bcip_type == BcipEnums.SCALAR)):
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("Threshold Kernel: Input and output must be either both tensors or both scalars")
 
         if d_in.bcip_type == BcipEnums.TENSOR:
             # input tensor must contain some values
             if len(d_in.shape) == 0:
-                return BcipEnums.INVALID_PARAMETERS
+                raise ValueError("Threshold Kernel: Input tensor must contain some values")
 
         if thresh.bcip_type != BcipEnums.SCALAR:
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("Threshold Kernel: Threshold value must be a scalar")
 
         if not thresh.data_type in Scalar.valid_numeric_types():
-            return BcipEnums.INVALID_PARAMETERS
+            raise TypeError("Threshold Kernel: Threshold value must be numeric")
 
         if d_out.bcip_type == BcipEnums.TENSOR:
             if d_out.virtual and len(d_out.shape) == 0:
                 d_out.shape = d_in.shape
 
             if d_out.shape != d_in.shape:
-                return BcipEnums.INVALID_PARAMETERS
+                raise ValueError("Threshold Kernel: Input and output tensors must have the same shape")
 
         else:
             if not (d_in.data_type in Scalar.valid_numeric_types()):
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError("Threshold Kernel: Input and output scalars must be numeric")
 
             if d_out.data_type != d_in.data_type:
-                return BcipEnums.INVALID_PARAMETERS
+                raise TypeError("Threshold Kernel: Input and output scalars must have the same data type")
 
-        return BcipEnums.SUCCESS
-
-
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel method
         """
-        try:
-            thresh = self.inputs[1]
-            if isinstance(input_data,Tensor):
-                output_data.data = input_data.data > thresh.data
-            else:
-                gt = input_data.data > thresh.data
-                if output_data.data_type == bool:
-                    output_data.data = gt
-                else:
-                    output_data.data = int(gt)
-        except:
-            return BcipEnums.EXE_FAILURE
-        
-        return BcipEnums.SUCCESS
-    
-
-    def execute(self):
-        """
-        Execute the kernel function using numpy function
-        """
-        return self._process_data(self._inputs[0],self._outputs[0])
+        thresh = inputs[1]
+        outputs[0].data = inputs[0].data > thresh.data
     
     @classmethod
     def add_threshold_node(cls,graph,inA,outA,thresh):

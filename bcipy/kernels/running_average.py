@@ -43,51 +43,23 @@ class RunningAverageKernel(Kernel):
         self._running_average_len = running_average_len
         self._flush_on_init = flush_on_init
         self._axis = axis
+        
         self._data_buff = None
 
-    def verify(self):
-
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        #Check that input is a tensor or scalar
-        if d_in.bcip_type != BcipEnums.TENSOR and d_in.bcip_type != BcipEnums.SCALAR:
-            return BcipEnums.INVALID_PARAMETERS
-
+    def _verify(self):
+        # need to set the CB here to ensure that inA size is available TODO, kinda hacky, might need to require that size is defined by user
         self._data_buff = CircleBuffer.create(self.session, self._running_average_len,
-                                              Tensor.create(self.session, d_in.shape))
-
-        #Check that expected numpy output dims are the same as the output tensor
-        input_shape = d_in.shape
-        
-        if self._axis == None:
-            output_shape = (1,1)
-        elif self._axis == 0:
-            shape = [x for i,x in enumerate(input_shape) if i != self._axis]
-            output_shape = tuple(shape * len(input_shape)) 
-
-        else:
-            return BcipEnums.INVALID_PARAMETERS
-
-        # if the output is a virtual tensor and dimensionless, 
-        # add the dimensions now
-        if (d_out.virtual and len(d_out.shape) == 0):
-            d_out.shape = output_shape
-        
-        # check output shape
-        if d_out.shape != output_shape:
-            return BcipEnums.INVALID_PARAMETERS
-  
-        return BcipEnums.SUCCESS
+                                              Tensor.create(self.session, self.inputs[0].shape))
 
 
-    def initialize(self):
+
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state to be initialized. Call initialization_execution if downstream nodes are missing training data.
         """
 
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if self._flush_on_init:
             self._data_buff.flush()
@@ -96,7 +68,7 @@ class RunningAverageKernel(Kernel):
             # check that the input is a tensor or array
             accepted_inputs = (BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
             if init_in.bcip_type not in accepted_inputs:
-                return BcipEnums.INITIALIZATION_FAILURE
+                raise TypeError("Running Average Kernel: Initialization input must be a Tensor or Circle Buffer")
 
             # extract the data fron the input and place it into the buffer
             for i in range(init_in.num_elements):
@@ -111,25 +83,17 @@ class RunningAverageKernel(Kernel):
             X = extract_nested_data(self._data_buff)
             init_out.data = np.mean(X,axis=self._axis)
         
-        return BcipEnums.SUCCESS
 
-
-    def execute(self):
+    def _process_data(self, inputs, outputs):
         """
         Add input data to data object storing previous trials and process the stacked data
         """
+        # enqueue the input data
+        self._data_buff.enqueue(inputs[0])
 
-        try:
-            # enqueue the input data
-            self._data_buff.enqueue(self.inputs[0])
-
-            # extract the data from the buffer
-            X = extract_nested_data(self._data_buff)
-            self.outputs[0].data = np.mean(X,axis=self._axis)
-        except:
-            return BcipEnums.EXE_FAILURE
-
-        return BcipEnums.SUCCESS
+        # extract the data from the buffer
+        X = extract_nested_data(self._data_buff)
+        outputs[0].data = np.mean(X,axis=self._axis)
 
 
     @classmethod

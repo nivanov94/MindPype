@@ -272,6 +272,7 @@ class BcipClassSeparatedMat(BCIP):
             print("Label does not exist")
             return BcipEnums.EXE_FAILURE
 
+
     def format_continuous_data(self):
         raw_data = loadmat(self.link_to_data, mat_dtype=True, struct_as_record=True)
         raw_data = np.transpose(raw_data[self.mat_data_var_name])
@@ -492,12 +493,8 @@ class BcipContinuousMat(BCIP):
             self._trial_counter += 1
             return trial_data
 
-        except IndexError:
-            # TODO fix bad return type format, log error, raise exception
-            print(
-                "Trial data does not exist here. Please ensure you are not polling at time samples outside the provided data's region."
-            )
-            return BcipEnums.EXE_FAILURE
+        except IndexError as e:
+            raise type(e)(f"{str(e)}\nPoll data error, trial {self._trial_counter} does not exist in the data.".with_traceback(sys.exc_info()[2]))
 
     def get_next_label(self):
         return self.labels[self._trial_counter, 0]
@@ -1744,18 +1741,13 @@ class OutputLSLStream(BCIP):
 
         try:
             self.lsl_marker_outlet.push_sample(data, pylsl.local_clock())
-            return BcipEnums.SUCCESS
 
         except (ValueError, TypeError) as ve:
             try:
                 self.lsl_marker_outlet.push_sample(data[0], pylsl.local_clock())
-                return BcipEnums.SUCCESS
-
+            
             except Exception as e:
-                print(e)
-                print(
-                    "Irreparable Error in LSL Output. No data pushed to output stream\n"
-                )
+                raise type(e)(f"{str(e)}\nPush data - Irreparable Error in LSL Output. No data pushed to output stream").with_traceback(sys.exc_info()[2])
 
     @classmethod
     def create_outlet_from_streaminfo(cls, sess, stream_info, filesave=None):

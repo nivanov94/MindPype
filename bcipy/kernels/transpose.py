@@ -46,14 +46,12 @@ class TransposeKernel(Kernel):
 
         return tuple(output_shape)
 
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-        sts = BcipEnums.SUCCESS
-
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
         
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             
@@ -68,65 +66,13 @@ class TransposeKernel(Kernel):
                     
                 init_out.shape = self._compute_output_shape(init_in, init_axes)
             
-            sts = self._process_data(init_in, init_out)
+            self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
-
-    
-    def verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-
-        # first ensure the input and output are tensors
-        for param in (d_in, d_out):
-            if param.bcip_type != BcipEnums.TENSOR:
-                return BcipEnums.INVALID_PARAMETERS
-
-        # check axes
-        if (self._axes != None and
-            len(self._axes) != len(d_in.shape)):
-            return BcipEnums.INVALID_PARAMETERS
-        
-        # check the shape
-        input_shape = d_in.shape
-        input_rank = len(input_shape)
-        
-        if self._axes == None and input_rank != 2:
-            return BcipEnums.INVALID_PARAMETERS
-
-        # determine what the output shape should be
-        output_shape = self._compute_output_shape(d_in, self._axes)
-               
-        # if the output is virtual and has no defined shape, set the shape now
-        if d_out.virtual and len(d_out.shape) == 0:
-            d_out.shape = output_shape
-        
-        # ensure the output tensor's shape equals the expected output shape
-        if d_out.shape != output_shape:
-            return BcipEnums.INVALID_PARAMETERS
-        else:
-            return BcipEnums.SUCCESS
-
-    def _process_data(self, input_data, output_data):
+    def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
         """
-        output_data.data = np.transpose(input_data.data,axes=self._axes)
-        return BcipEnums.SUCCESS
-
-    def execute(self):
-        """
-        Execute the kernel function using the numpy transpose function
-        """
-        return self._process_data(self.inputs[0], self.outputs[0])
-
+        outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 
     @classmethod
     def add_transpose_node(cls,graph,inputA,outputA,axes=None):

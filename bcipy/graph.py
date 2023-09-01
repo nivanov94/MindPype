@@ -11,6 +11,7 @@ import warnings
 
 from .core import BCIP, BcipEnums
 from .containers import Tensor
+import sys
 
 class Graph(BCIP):
     """
@@ -79,10 +80,6 @@ class Graph(BCIP):
         --------
         example_graph.add_node(example_node)
         
-        Return
-        ------
-        sts : BcipEnums Status Code
-            Returns a status code indicating the success or failure of the operation
         """
         self._verified = False
         self._nodes.append(node)
@@ -91,21 +88,9 @@ class Graph(BCIP):
         """
         Verify the processing graph is valid. This method orders the nodes
         for execution if the graph is valid
-
-        Return
-        ------
-        BCIP Status Code
-
-        Examples
-        --------
-        >>> status = example_graph.verify()
-        >>> print(status)
-            
-            SUCCESS
-
         """
         if self._verified:
-            return BcipEnums.SUCCESS
+            return 
         
         # begin by scheduling the nodes in execution order
         
@@ -141,8 +126,7 @@ class Graph(BCIP):
                     if len(self._edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
-                        print("scheduling failed")
-                        return BcipEnums.INVALID_GRAPH
+                        raise Exception("Invalid graph, multiple nodes write to single data object")
                     else:
                         # add the producer to the edge
                         self._edges[n_o.session_id].add_producer(n)
@@ -195,28 +179,58 @@ class Graph(BCIP):
 
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled
-                return BcipEnums.INVALID_GRAPH
+                raise Exception("Invalid graph, nodes cannot be scheduled, check connections between nodes.")
         
+        # Add phony edges to the graph and it's node to use for validation
+        self._phony_edges = {}
+        self._phony_labels = {}
+        for n in self._nodes:
+            n_params = n.extract_inputs() + n.extract_outputs()
+            for n_p in n_params:
+                if not n_p.virtual and n_p.session_id not in self._phony_edges:
+                    # create a phony edge for this parameter
+                    e_data = n_p.make_copy()
+                    phony_edge = Edge(e_data)
+                    real_edge = self._edges[n_p.session_id]
+                    # copy the producers and consumers from the real edge to the phony edge
+                    for p in real_edge.producers:
+                        phony_edge.add_producer(p)
+                    for c in real_edge.consumers:
+                        phony_edge.add_consumer(c)
+
+                    self._phony_edges[n_p.session_id] = phony_edge
+
+        # add the phony edges to the kernels
+        for p_e in self._phony_edges:
+            self._phony_edges[p_e].populate_phony_params(p_e)
         
-        # now all the nodes are in execution order, validate each node
-        # and create any necessary initialization edges
+        # now all the nodes are in execution order create any necessary initialization edges
         init_required = False # flag to indicate if any nodes in the graph require initialization
         init_links_missing = False # flag to indicate if any initialization data will need to be propagated through the graph
         for n in self._nodes:
-            valid = n.verify()
-            if valid != BcipEnums.SUCCESS:
-                print("Node {} failed verification".format(n.kernel.name))
-                return valid           
-
             # check for missing init data
             if n.kernel.init_style == BcipEnums.INIT_FROM_DATA:
                 init_required = True
 
                 # check whether all init inputs have been provided by the user
                 init_provided = True
-                for n_ii in n.kernel.init_inputs:
+                for i_ii, n_ii in enumerate(n.kernel.init_inputs):
                     if n_ii is None:
                         init_provided = False
+                    else:
+                        # add phony init for verification
+                        e_data = n_ii.make_copy() # create a copy of the data object
+                        phony_edge = Edge(e_data) # create the edge
+                        self._phony_edges[n_ii.session_id] = phony_edge
+                        n.kernel.phony_init_inputs[i_ii] = phony_edge.data # add to the kernel
+
+                        if n.kernel.init_input_labels is not None:
+                            # create phony input labels edge as well
+                            e_data = n.kernel.init_input_labels.make_copy()
+                            phony_edge = Edge(e_data)
+                            self._phony_labels[n.kernel.init_input_labels.session_id] = phony_edge
+                            n.kernel.phony_init_input_labels = phony_edge.data # add to the kernel
+
                 
                 # if not provided, flag that graph will need initialization data propagated through the graph
                 if not init_provided:
@@ -248,9 +262,31 @@ class Graph(BCIP):
                                 warnings.warn("Initialization data not explicitly provided, initialization data will need to be provided during graph initialization.")
 
 
+        # finally, validate each node
+        # set phony inputs with random data for validation
+        self._init_phony_edges()
+
+        for n in self._nodes:
+            try:
+                n.verify()
+            except Exception as e:
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exc_info()[2])
+
+        # delete phony inputs and outputs
+        #self._delete_phony_edges() TODO
+
         # Done, all nodes scheduled and verified!
         self._verified = True
-        return BcipEnums.SUCCESS
+
+    def _init_phony_edges(self):
+        """
+        Initialize phony edges with random data for validation
+        """
+        for e in self._phony_edges:
+            self._phony_edges[e].data.assign_random_data()
+
+        for e in self._phony_labels:
+            self._phony_labels[e].data.assign_random_data(whole_numbers=True)
 
 
     def initialize(self, default_init_data = None, default_init_labels = None):
@@ -278,14 +314,12 @@ class Graph(BCIP):
         # 1. Check whether nodes in the graph are missing initialization links
 
         if self._default_init_required and default_init_data is None:
-            warnings.warn("No default initialization data provided, graph is not initialized correctly")
-            return BcipEnums.INVALID_GRAPH
+            raise Exception("No default initialization data provided, graph is not initialized correctly")
 
         if self._default_init_required and default_init_data is not None:
             # ensure training labels have been provided as well
             if default_init_labels is None:
-                warnings.warn("No default initialization labels provided, graph is not initialized correctly")
-                return BcipEnums.INVALID_GRAPH
+                raise Exception("No default initialization labels provided, graph is not initialized correctly")
 
             # link the default initialization data to all nodes that ingest volatile data
             for n in self._nodes:
@@ -312,12 +346,10 @@ class Graph(BCIP):
 
         # execute initialization for each node in the graph
         for n in self._nodes:
-            sts = n.initialize()
-                
-            if sts != BcipEnums.SUCCESS:
-                return sts
-        
-        return BcipEnums.SUCCESS
+            try:
+                n.initialize()
+            except Exception as e:
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed initialization").with_traceback(sys.exc_info()[2])
 
  
     def execute(self, label = None):
@@ -343,12 +375,10 @@ class Graph(BCIP):
 
             SUCCESS
         """
-        # first ensure the block's processing graph has been verified,
+        # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
         if not self._verified:
-            executable = self.verify()
-            if executable != BcipEnums.SUCCESS:
-                return executable
+            self.verify()
 
         # Check whether first node has volatile input
         # if so, poll the volatile data
@@ -359,16 +389,14 @@ class Graph(BCIP):
         
         # iterate over all the nodes and execute the kernel
         for n in self._nodes:
-            sts = n.kernel.execute()
-            if sts != BcipEnums.SUCCESS:
-                logging.warning("Trial execution failed with status %s in kernel: %s. This trial will be disregarded.", sts, n.kernel.name)
-                return sts
+            try:
+                n.kernel.execute()
+            except Exception as e:
+                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed execution").with_traceback(sys.exc_info()[2])
 
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
-        return BcipEnums.SUCCESS
-    
     def poll_volatile_sources(self, label = None):
         """
         Poll data (update input data) from volatile sources within the graph.
@@ -827,6 +855,39 @@ class Edge:
 
         # if all upstream nodes have init data, then this node has init data
         return True
+    
+    def populate_phony_params(self, session_id):
+        """
+        Populate the phony parameters for the producing and 
+        consuming nodes of this edge
+
+        Parameters
+        ----------
+        session_id : int
+            Session ID of the data object in the corresponding non-phony edge
+        """
+
+        # get the producing node
+        for p in self.producers:
+            # find the index of the data from the producer node (output index)
+            for index, producer_output in enumerate(p.kernel.outputs):
+                if producer_output.session_id == session_id:
+                    output_index = index
+                    break
+
+            # assign the phony tensor to the producer's corresponding phony output
+            p.kernel.phony_outputs[output_index] = self.data
+
+        # get the consuming node
+        for c in self.consumers:
+            # find the index of the data from the consumer node (input index)
+            for index, consumer_input in enumerate(c.kernel.inputs):
+                if consumer_input.session_id == session_id:
+                    input_index = index
+                    break
+
+            # assign the phony tensor to the consumer's corresponding input
+            c.kernel.phony_inputs[input_index] = self.data
 
 
 class Parameter:
