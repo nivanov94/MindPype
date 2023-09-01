@@ -1,4 +1,4 @@
-from .core import BcipEnums, Session
+from .core import MPEnums, Session
 from .containers import Scalar, Tensor, Array, CircleBuffer
 from .graph import Graph
 from . import source

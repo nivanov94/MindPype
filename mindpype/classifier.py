@@ -1,24 +1,24 @@
 """
 
-Use this class to create a classifier object that can be used by the BCIPy Classifier kernel.
+Use this class to create a classifier object that can be used by the MindPype Classifier kernel.
 
 .. note:: 
-   BCIPy Classifier objects must be created in order to be used by the BCIPy Classifier kernel.
+   MindPype Classifier objects must be created in order to be used by the MindPype Classifier kernel.
 
 """
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.svm import SVC
-from .core import BCIP, BcipEnums
+from .core import MPBase, MPEnums
 
 
-class Classifier(BCIP):
+class Classifier(MPBase):
     """
-    A classifier that can be used by different BCIP kernels
+    A classifier that can be used by different MindPype kernels
 
     Args:
-        BCIP (BCIP): The base class for all BCIP objects
+        MPBase (MPBase): The base class for all MindPype objects
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ class Classifier(BCIP):
     ctype : str
        The name of the classifier to be created
     classifier : Classifier 
-       The classifier object to be used within the node (should be the return from a BCIP kernel)
+       The classifier object to be used within the node (should be the return from a MindPype kernel)
 
     Attributes
     ----------
@@ -43,14 +43,14 @@ class Classifier(BCIP):
         
         from bcipy import Classifier
         
-        # Create a BCIPy Classifier object using the factory method
+        # Create a MindPype Classifier object using the factory method
         classifier_object = Classifier.create_LDA(sess, solver='svd', shrinkage=None, priors=None,
         n_components=None, store_covariance=False, tol=0.0001)
 
     Return
     ------
-    BCIPy Classifier object : Classifier
-        The BCIPy Classifier object that can be used by the BCIPy Classifier kernel
+    MindPype Classifier object : Classifier
+        The MindPype Classifier object that can be used by the MindPype Classifier kernel
 
 
 
@@ -72,11 +72,11 @@ class Classifier(BCIP):
         else:
             self.n_classes = 2
 
-        super().__init__(BcipEnums.CLASSIFIER, sess)
+        super().__init__(MPEnums.CLASSIFIER, sess)
 
     def __str__(self):
         return (
-            "BCIP {} Classifier with following"
+            "MindPype {} Classifier with following"
             + f"attributes:\nClassifier Type: {self.ctype}\n"
         )
 
@@ -114,7 +114,7 @@ class Classifier(BCIP):
         random_state=None,
     ):
         """
-        Factory Method to create an SVM BCIP Classifier object.
+        Factory Method to create an SVM MindPype Classifier object.
 
         .. note::
            C-Support Vector Classification. The implementation is based on libsvm. 
@@ -131,7 +131,7 @@ class Classifier(BCIP):
         Parameters
         ----------
         sess : session object
-            Session where the SVM BCIP Classifier object will exist
+            Session where the SVM MindPype Classifier object will exist
 
     
         Examples
@@ -141,8 +141,8 @@ class Classifier(BCIP):
 
         Return
         ------
-        BCIPy Classifier Object : Classifier
-            BCIPy Classifier Object containing the SVM classifier
+        MindPype Classifier Object : Classifier
+            MindPype Classifier Object containing the SVM classifier
 
         """
         
@@ -180,7 +180,7 @@ class Classifier(BCIP):
         covariance_estimator=None,
     ):
         """
-        Factory method to create an LDA BCIP Classifier object.
+        Factory method to create an LDA MindPype Classifier object.
 
         .. note:: 
            All unlisted parameters are the same as the LDA Scikit-Learn object
@@ -191,13 +191,13 @@ class Classifier(BCIP):
         ----------
 
         sess : Session
-            Session where the SVM BCIP Classifier object will exist
+            Session where the SVM MindPype Classifier object will exist
 
     
         Return
         ------
-        BCIPy Classifier : Classifier
-            BCIPy Classifier Object containing the LDA classifier
+        MindPype Classifier : Classifier
+            MindPype Classifier Object containing the LDA classifier
 
 
         Examples
@@ -253,14 +253,14 @@ class Classifier(BCIP):
         Parameters
         ----------
         sess : session object
-            Session where the Logistic Regression BCIP Classifier object will exist
+            Session where the Logistic Regression MindPype Classifier object will exist
 
         
     
         Return
         ------
-        BCIPy Classifier Object : Classifier
-            BCIPy Classifier Object containing the Logistic Regression classifier
+        MindPype Classifier Object : Classifier
+            MindPype Classifier Object containing the Logistic Regression classifier
 
         Examples
         --------
@@ -294,21 +294,21 @@ class Classifier(BCIP):
     @classmethod
     def create_custom_classifier(cls, sess, classifier_object, classifier_type):
         """
-        Factory method to create a generic BCIP Classifier object.
+        Factory method to create a generic MindPype Classifier object.
 
         Parameters
         ----------
-        sess : BCIP Session Object
-            The BCIP Session object to which the classifier will be added.
+        sess : MindPype Session Object
+            The MindPype Session object to which the classifier will be added.
         classifier_object : Sklearn Classifier object
-            The classifier object to be added to the BCIP Session.
+            The classifier object to be added to the MindPype Session.
         classifier_type : str
-            The type of classifier to be added to the BCIP Session.
+            The type of classifier to be added to the MindPype Session.
 
         Return
         ------
         Classifier Object : Classifier
-            BCIPy Classifier object that contains the classifier object and type.
+            MindPype Classifier object that contains the classifier object and type.
 
         Examples
         --------
