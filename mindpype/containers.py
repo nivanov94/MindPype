@@ -1,17 +1,17 @@
 """
-Defines data container classes for BCIPy. These classes are used to represent data in the BCIPy framework.
+Defines data container classes for MindPype. These classes are used to represent data in the MindPype framework.
 
 @author: Nicolas Ivanov, Aaron Lio
 """
 
-from .core import BCIP, BcipEnums
+from .core import MPBase, MPEnums
 
 import numpy as np, warnings
 
-class Scalar(BCIP):
+class Scalar(MPBase):
 
     """
-    BCIP Data type defining scalar-type data. The valid data types are int, float, complex, str, and bool.
+    MPBase Data type defining scalar-type data. The valid data types are int, float, complex, str, and bool.
 
     Parameters
     ----------
@@ -53,7 +53,7 @@ class Scalar(BCIP):
         """
         Constructor for Scalar object
         """
-        super().__init__(BcipEnums.SCALAR,sess)
+        super().__init__(MPEnums.SCALAR,sess)
         self._data_type = value_type
 
         self._ext_src = ext_src
@@ -224,7 +224,7 @@ class Scalar(BCIP):
         if type(data) == self.data_type:
             self._data = data
         else:
-            raise ValueError(("BCIP Scalar contains data of type {}. Cannot" +\
+            raise ValueError(("MindPype Scalar contains data of type {}. Cannot" +\
                               " set data to type {}").format(self.data_type,
                                                              type(data))) 
 
@@ -238,7 +238,7 @@ class Scalar(BCIP):
 
         Return Type
         -----------
-        BCIPy Scalar object
+        MindPype Scalar object
 
         Examples
         --------
@@ -317,7 +317,7 @@ class Scalar(BCIP):
     @classmethod
     def valid_numeric_types(cls):
         """
-        Valid numeric types for a BCIP Scalar object
+        Valid numeric types for a MindPype Scalar object
         
         Return
         ------
@@ -340,7 +340,7 @@ class Scalar(BCIP):
 
         Return
         ------
-        BCIPy Scalar object
+        MindPype Scalar object
 
         Examples
         --------
@@ -376,7 +376,7 @@ class Scalar(BCIP):
 
         Return
         ------
-        BCIPy Scalar object
+        MindPype Scalar object
 
         Examples
         --------
@@ -416,7 +416,7 @@ class Scalar(BCIP):
 
         Return
         ------
-        BCIPy Scalar object
+        MindPype Scalar object
 
         Examples
         --------
@@ -453,7 +453,7 @@ class Scalar(BCIP):
 
         Return
         ------
-        BCIP Scalar object
+        MindPype Scalar object
 
         Examples
         --------
@@ -471,11 +471,11 @@ class Scalar(BCIP):
 
 
 
-class Tensor(BCIP):
+class Tensor(MPBase):
     """
 
     Tensor (or n-dimensional matrices), are defined by the tensor class. 
-    BCIP tensors can either be volatile (are updated/change each trial, generally reserved for tensors containing current trial data), virtual (empty, dimensionless tensor object). Like scalars and array, tensors can be created from data, copied from a different variable, or created virtually, so they don’t initially contain a value. 
+    MindPype tensors can either be volatile (are updated/change each trial, generally reserved for tensors containing current trial data), virtual (empty, dimensionless tensor object). Like scalars and array, tensors can be created from data, copied from a different variable, or created virtually, so they don’t initially contain a value. 
     Each of the scalars, tensors and array data containers also have an external source (_ext_src) attribute, which indicates, if necessary, the source from which the data is being pulled from. This is especially important if trial/training data is loaded into a tensor each trial from an LSL stream or MAT file.
 
     Parameters
@@ -488,9 +488,9 @@ class Tensor(BCIP):
         Data to be stored within the array
     is_virtual : bool
         If False, the Tensor is non-virtual, if True, the Tensor is virtual
-    ext_src : BCIPy input Source
+    ext_src : MindPype input Source
         Data source the tensor pulls data from (only applies to Tensors created from a handle)
-    ext_out : BCIPy output Source
+    ext_out : MindPype output Source
         Data source the tensor pushes data to (only applies to Tensors created from a handle)
     """
     
@@ -498,7 +498,7 @@ class Tensor(BCIP):
         """
         Constructor for Tensor class
         """
-        super().__init__(BcipEnums.TENSOR,sess)
+        super().__init__(MPEnums.TENSOR,sess)
         self._shape = tuple(shape)
         self._virtual = is_virtual
         self._ext_src = ext_src
@@ -670,7 +670,7 @@ class Tensor(BCIP):
         >>> t = Tensor.create_virtual((1,2,3))
         >>> t2 = Tensor.create_virtual((1,3,3))
 
-            BcipEnums.SUCCESS
+            MPEnums.SUCCESS
         """
         if dest_tensor.virtual and dest_tensor.shape != self.shape:
             dest_tensor.shape = self.shape
@@ -692,7 +692,7 @@ class Tensor(BCIP):
     
     def poll_volatile_data(self,label=None):
         """
-        Pull data from external sources or BCIPy input data sources.
+        Pull data from external sources or MindPype input data sources.
         """
         
         # check if the data is actually volatile, if not just return
@@ -706,7 +706,7 @@ class Tensor(BCIP):
         self.data = data
         
 
-        return BcipEnums.SUCCESS
+        return MPEnums.SUCCESS
     
     def push_volatile_outputs(self, label=None):
         """
@@ -806,7 +806,7 @@ class Tensor(BCIP):
         shape : shape_like
             Shape of the Tensor
         
-        ext_src : BCIPy input Source
+        ext_src : MindPype input Source
             Data source the tensor pulls data from (only applies to Tensors created from a handle)
         
         """
@@ -829,7 +829,7 @@ class Tensor(BCIP):
         shape : shape_like
             Shape of the Tensor
         
-        out : BCIPy output Source
+        out : MindPype output Source
             Data source the tensor pushes data to (only applies to Tensors created for volatile output)
         """
         # These tensors should be non-volatile but since init and trial data can be different sizes, they need to be virtual until that is addressed
@@ -853,9 +853,9 @@ class Tensor(BCIP):
         return True
  
 
-class Array(BCIP):
+class Array(MPBase):
     """
-    Array containing instances of other BCIP classes. Each array can only hold one type of BCIP class.
+    Array containing instances of other MindPype classes. Each array can only hold one type of MindPype class.
 
     Parameters
     ----------
@@ -864,7 +864,7 @@ class Array(BCIP):
     capacity : int
         Maximum number of elements to be stored within the array (for allocation purposes)
     element_template : any
-        The template BCIP element to populate the array (see examples)
+        The template MindPype element to populate the array (see examples)
 
     Attributes
     ----------
@@ -878,13 +878,13 @@ class Array(BCIP):
     ======
     Array Object
     
-    .. note:: A single array object should only contain one BCIP/data object type.
+    .. note:: A single array object should only contain one MindPype/data object type.
 
     
     """
     
     def __init__(self,sess,capacity,element_template):
-        super().__init__(BcipEnums.ARRAY,sess)
+        super().__init__(MPEnums.ARRAY,sess)
         
         self._virtual = False # no virtual arrays for now
         self._volatile = False # no volatile arrays for now...
@@ -1043,15 +1043,15 @@ class Array(BCIP):
         """
         element = self.get_element(0)
 
-        if not (element.bcip_type == BcipEnums.TENSOR or
-                (element.bcip_type == BcipEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
+        if not (element.bcip_type == MPEnums.TENSOR or
+                (element.bcip_type == MPEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
             return None
 
         # extract elements and stack into numpy array
         elements = [self.get_element(i).data for i in range(self.capacity)]
         stacked_elements = np.stack(elements)
         
-        if element._bcip_type == BcipEnums.TENSOR:
+        if element._bcip_type == MPEnums.TENSOR:
             shape = (self.capacity,) + element.shape
         else:
             shape = (self.capacity,)
@@ -1074,7 +1074,7 @@ class Array(BCIP):
         capacity : int
             Maximum number of elements to be stored within the array (for allocation purposes)
         element_template : any
-            The template BCIP element to populate the array (see examples)
+            The template MindPype element to populate the array (see examples)
 
         """
 
@@ -1087,7 +1087,7 @@ class Array(BCIP):
 
 class CircleBuffer(Array):
     """
-    A circular buffer/Array for BCIP/data objects. 
+    A circular buffer/Array for MindPype/data objects. 
 
     Parameters
     ----------
@@ -1096,7 +1096,7 @@ class CircleBuffer(Array):
     capacity : int
         Maximum number of elements to be stored within the array (for allocation purposes)
     element_template : any
-        The template BCIP element to populate the array (see Array examples)
+        The template MindPype element to populate the array (see Array examples)
 
     Examples
     --------
@@ -1107,7 +1107,7 @@ class CircleBuffer(Array):
     
     def __init__(self,sess,capacity,element_template):
         super().__init__(sess,capacity,element_template)
-        self._bcip_type = BcipEnums.CIRCLE_BUFFER # overwrite
+        self._bcip_type = MPEnums.CIRCLE_BUFFER # overwrite
         
         self._head = None
         self._tail = None
@@ -1302,7 +1302,7 @@ class CircleBuffer(Array):
         for i in range(self.capacity):
             dest_array.set_element(i,self.get_element(i))
             
-        if dest_array._bcip_type == BcipEnums.CIRCLE_BUFFER:
+        if dest_array._bcip_type == MPEnums.CIRCLE_BUFFER:
             # copy the head and tail as well
             dest_array._tail = self._tail
             dest_array._head = self._head
@@ -1311,22 +1311,6 @@ class CircleBuffer(Array):
     def flush(self):
         """
         Empty the buffer of all elements
-
-        Parameters
-        ----------
-        None
-
-        Examples
-        --------
-        >>> status = example_buffer.flush()
-        >>> print(status)
-
-            SUCCESS
-
-        Returns
-        -------
-        BCIP Status code
-
         """
         while not self.is_empty():
             self.dequeue()
@@ -1335,7 +1319,6 @@ class CircleBuffer(Array):
     def to_tensor(self):
         """
         Copy the elements of the buffer to a Tensor and return the tensor
-
         """
         if self.is_empty():
             return Tensor.create(self.session, (0,))

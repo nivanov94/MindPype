@@ -1,4 +1,4 @@
-from ..core import BCIP, BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from .kernel_utils import extract_init_inputs
@@ -37,7 +37,7 @@ class FeatureNormalizationKernel(Kernel):
         """
         Kernal normalizes features for classification
         """
-        super().__init__('FeatureNormalization',BcipEnums.INIT_FROM_DATA,graph)
+        super().__init__('FeatureNormalization',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._method = method
@@ -91,8 +91,8 @@ class FeatureNormalizationKernel(Kernel):
         outA = self.outputs[0]
 
         # first ensure the input and output are tensors
-        if (inA.bcip_type != BcipEnums.TENSOR or
-            outA.bcip_type != BcipEnums.TENSOR):
+        if (inA.mp_type != MPEnums.TENSOR or
+            outA.mp_type != MPEnums.TENSOR):
                 raise TypeError('FeatureNormalization kernel requires Tensor inputs and outputs')
         
         if self._method not in ('min-max','mean-norm','zscore-norm'):
@@ -153,8 +153,8 @@ class FeatureNormalizationKernel(Kernel):
         k = cls(graph,inA,outA,method,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

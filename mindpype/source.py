@@ -11,7 +11,7 @@ Currently supported sources:
 # capabilities
 
 
-from .core import BCIP, BcipEnums
+from .core import MPBase, MPEnums
 from .containers import CircleBuffer, Tensor
 from scipy.io import loadmat
 import numpy as np
@@ -26,9 +26,9 @@ import threading
 import time
 
 
-class BcipMatFile(BCIP):
+class BcipMatFile(MPBase):
     """
-    Utility for extracting data from a mat file for BCIP
+    Utility for extracting data from a mat file for MindPype
 
     Parameters
     ----------
@@ -42,7 +42,7 @@ class BcipMatFile(BCIP):
         """
         Create a new mat file reader interface
         """
-        super().__init__(BcipEnums.SRC, sess)
+        super().__init__(MPEnums.SRC, sess)
         p = os.path.normpath(os.path.join(os.getcwd(), path))
         f = os.path.join(p, filename)
         if not os.path.exists(p) or not os.path.exists(f) or not os.path.isfile(f):
@@ -123,9 +123,9 @@ class BcipMatFile(BCIP):
         return src
 
 
-class BcipClassSeparatedMat(BCIP):
+class BcipClassSeparatedMat(MPBase):
     """
-    Utility class for extracting class separated data from a mat file for BCIP.
+    Utility class for extracting class separated data from a mat file for MindPype.
 
     Parameters
 
@@ -188,7 +188,7 @@ class BcipClassSeparatedMat(BCIP):
         """
         Create a new mat file reader interface
         """
-        super().__init__(BcipEnums.SRC, sess)
+        super().__init__(MPEnums.SRC, sess)
 
         self.class_separated_data = None
         self.link_to_data = link_to_data
@@ -270,7 +270,7 @@ class BcipClassSeparatedMat(BCIP):
 
         except KeyError:
             print("Label does not exist")
-            return BcipEnums.EXE_FAILURE
+            return MPEnums.EXE_FAILURE
 
 
     def format_continuous_data(self):
@@ -376,9 +376,9 @@ class BcipClassSeparatedMat(BCIP):
         return src
 
 
-class BcipContinuousMat(BCIP):
+class BcipContinuousMat(MPBase):
     """
-    Utility class for extracting continuous from a mat file for BCIP.
+    Utility class for extracting continuous from a mat file for MindPype.
 
     Parameters
     ----------
@@ -435,7 +435,7 @@ class BcipContinuousMat(BCIP):
         """
         Create a new mat file reader interface
         """
-        super().__init__(BcipEnums.SRC, sess)
+        super().__init__(MPEnums.SRC, sess)
 
         self.data_filename = data_filename
         self.label_filename = label_filename
@@ -569,9 +569,9 @@ class BcipContinuousMat(BCIP):
         return src
 
 
-class BcipXDF(BCIP):
+class BcipXDF(MPBase):
     """
-    Utility class for extracting trial data from an XDF file for BCIP.
+    Utility class for extracting trial data from an XDF file for MindPype.
 
     Parameters
     ----------
@@ -663,7 +663,7 @@ class BcipXDF(BCIP):
         """
         Create a new xdf file reader interface
         """
-        super().__init__(BcipEnums.SRC, sess)
+        super().__init__(MPEnums.SRC, sess)
 
         if type(files) == str:
             files = [files]
@@ -959,8 +959,8 @@ class BcipXDF(BCIP):
 
     def load_into_tensor(self):
         """
-        Loads entirity of BCIPXDF data object into a tensor.
-        Returns 4 BCIPy Tensor objects, in the following order.
+        Loads entirity of MindPypeXDF data object into a tensor.
+        Returns 4 MindPype Tensor objects, in the following order.
 
             1. Tensor containing the EEG data
             2. Tensor containing the EEG timestamps
@@ -1169,7 +1169,7 @@ class BcipXDF(BCIP):
         return src
 
 
-class InputLSLStream(BCIP):
+class InputLSLStream(MPBase):
     """
     An object for maintaining an LSL inlet
 
@@ -1247,7 +1247,7 @@ class InputLSLStream(BCIP):
             The active parameter is used when the session is created before the LSL stream is started, or the stream is 
             not available when the session is created. In that case, the stream can be updated later by calling the update_input_stream() method.
         """
-        super().__init__(BcipEnums.SRC, sess)
+        super().__init__(MPEnums.SRC, sess)
         self.active = active
         if active:
             if not stream_info:
@@ -1655,7 +1655,7 @@ class InputLSLStream(BCIP):
         return src
 
 
-class OutputLSLStream(BCIP):
+class OutputLSLStream(MPBase):
     """
     An object for maintaining an LSL outlet
 
@@ -1684,7 +1684,7 @@ class OutputLSLStream(BCIP):
 
 
         """
-        super().__init__(BcipEnums.SRC, sess)
+        super().__init__(MPEnums.SRC, sess)
         self._sess = sess
         self._stream_info = stream_info
         # resolve the stream on the LSL network

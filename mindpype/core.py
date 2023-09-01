@@ -7,43 +7,43 @@
 
 from enum import IntEnum
 import sys
-import logging, pickle, copy
+import pickle, copy
 
-class BCIP(object):
+class MPBase(object):
     """
-    This is the base class for all objects used in the BCIP API.
+    This is the base class for all objects used in the MindPype API.
     It serves to define some attributes that will be shared across all
     other objects.
 
     Parameters
     ----------
-    bcip_type : BcipEnums
+    mp_type : MPEnums
         Indicates what type of object is being created
     session : Session
         The session where the object will exist
 
     """
-    def __init__(self,bcip_type,session):
+    def __init__(self,mp_type,session):
         """
-        Constructor for BCIP base class        
+        Constructor for MPBase base class        
         """
-        self._bcip_type = bcip_type
+        self._mp_type = mp_type
         self._id  = id(self)
         self._session = session
     
     # API getters
     @property
-    def bcip_type(self):
+    def mp_type(self):
         """
         Returns the type of object
 
         Return
         ------
-        bcip_type : BcipEnums
+        mp_type : MPEnums
             Indicates what type of object the reference object is
         """
 
-        return self._bcip_type
+        return self._mp_type
     
     @property
     def session_id(self):
@@ -72,19 +72,19 @@ class BCIP(object):
         return self._session
 
 
-class BcipEnums(IntEnum):
+class MPEnums(IntEnum):
     """
-    Defines a class of enums used by BCIP
+    Defines a class of enums used by MindPype
 
     The following enums are defined and available for use:
 
-    .. list-table:: Object Type BcipEnums - Leading '1'
+    .. list-table:: Object Type MPEnums - Leading '1'
         :widths: 50 50
         :header-rows: 1
     
         * - Enum
           - Value
-        * - BCIP
+        * - MPBase
           - 100
         * - SESSION
           - 101
@@ -111,36 +111,9 @@ class BcipEnums(IntEnum):
         * - CLASSIFIER
           - 112
         
-    .. list-table:: Status Codes - Leading '2'
+    .. list-table:: Status Codes - Leading '2' -- DEPRECIATED
         :widths: 50 50
         :header-rows: 1
-
-        * - Enum
-          - Value
-        * - SUCCESS
-          - 200
-        * - FAILURE
-          - 201
-        * - INVALID_BLOCK
-          - 202
-        * - INVALID_NODE
-          - 203
-        * - INVALID_PARAMETERS
-          - 204
-        * - EXCEED_TRIAL_LIMIT
-          - 205
-        * - NOT_SUPPORTED
-          - 206
-        * - INITIALIZATION_FAILURE
-          - 207
-        * - EXE_FAILURE_UNINITIALIZED
-          - 208
-        * - EXE_FAILURE
-          - 209
-        * - NOT_YET_IMPLEMENTED
-          - 210
-        * - INVALID_GRAPH
-          - 211
 
     .. list-table:: Parameter Directions - Leading '3'
         :widths: 50 50
@@ -187,7 +160,7 @@ class BcipEnums(IntEnum):
 
     # Object Type Enums - Have a leading '1'
 
-    BCIP          = 100
+    MPBase        = 100
     SESSION       = 101
     GRAPH         = 102
     NODE          = 103
@@ -201,20 +174,6 @@ class BcipEnums(IntEnum):
     SRC           = 111
     CLASSIFIER    = 112
     
-    # Status Codes - Leading '2' TODO DEPRECIATED
-
-    SUCCESS = 200
-    FAILURE = 201
-    INVALID_BLOCK = 202
-    INVALID_NODE  = 203
-    INVALID_PARAMETERS = 204
-    EXCEED_TRIAL_LIMIT = 205
-    NOT_SUPPORTED = 206
-    INITIALIZATION_FAILURE = 207
-    EXE_FAILURE_UNINITIALIZED = 208
-    EXE_FAILURE = 209
-    NOT_YET_IMPLEMENTED = 210
-    INVALID_GRAPH = 211
     
     # Parameter Directions - Leading '3'
 
@@ -238,9 +197,9 @@ class BcipEnums(IntEnum):
         return self.name
 
 
-class Session(BCIP):
+class Session(MPBase):
     """
-    Session objects contain all other BCIP objects instances within a data
+    Session objects contain all other MindPype objects instances within a data
     capture session.
 
     Examples
@@ -254,7 +213,7 @@ class Session(BCIP):
         """
         Constructor for Session class
         """
-        super().__init__(BcipEnums.SESSION,self)
+        super().__init__(MPEnums.SESSION,self)
         
         # define some private attributes
         # self._blocks = [] # queue of blocks to execute
@@ -277,17 +236,6 @@ class Session(BCIP):
         Ensure all graphs are valid.
         Execute this method prior data collection to mitigate potential
         crashes due to invalid processing graph construction.
-        
-        Returns
-        -------
-        BCIP Status Code : BcipEnums
-            Status of graph verification
-
-        Examples
-        --------
-        >>> status = session.verify()
-        >>> print(status)
-            SUCCESS
         """
         print("Verifying session...")
         self._verified = False
@@ -300,31 +248,8 @@ class Session(BCIP):
                 raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exc_info()[2])
             
         self._verified = True
-        #logging.info("Session verified successfully")
     
-    def initialize_graph(self, graph): #TODO remove, this is a graph method
-        """
-        Initialize a graph
-
-        Parameters
-        ----------
-        graph : Graph object
-            Graph to initialize
-
-        Returns
-        -------
-        BCIP Status Code : BcipEnums
-            Status of graph initialization
-
-        Examples
-        --------
-        >>> status = session.initialize_graph(graph)
-        >>> print(status)
-        """
-
-        return graph.initialize()
-
-    
+        
     def poll_volatile_channels(self,label=None):
         """
         Update the contents of all volatile data streams
@@ -347,8 +272,6 @@ class Session(BCIP):
             if self._datum[d].volatile:
                 self._datum[d].poll_volatile_data(label)
        
-        #logging.info("Volatile channels polled")
-        
     def push_volatile_outputs(self, label=None):
         """
         Push outputs to volatile sources
@@ -368,8 +291,6 @@ class Session(BCIP):
             if self._datum[d].volatile_out:
                 self._datum[d].push_volatile_outputs(label)
 
-        #logging.info("Volatile outputs pushed")
-    
     def execute_trial(self,label,graph):
         """
         Execute a trial
@@ -382,16 +303,6 @@ class Session(BCIP):
             Label for the current trial.
         graph : Graph
             Graph to execute for the current trial.
-
-        Returns
-        -------
-        Status Code : BcipEnums
-            Status code for the execution of the trial.
-
-        Examples
-        --------
-        >>> status = session.execute_trial(label,graph)
-        >>> print(status)
         """
         print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
@@ -399,9 +310,6 @@ class Session(BCIP):
         self.push_volatile_outputs(label)
         self._trials_elapsed += 1
         #logging.info("Trial executed successfully")
-        
-        return sts
-    
         
     def add_graph(self,graph):
         """
@@ -435,18 +343,18 @@ class Session(BCIP):
         """
         self._datum[data.session_id] = data
         
-    def add_misc_bcip_obj(self,obj):
+    def add_misc_mp_obj(self,obj):
         """
-        Add a misc BCIP object to the session
+        Add a misc MindPype object to the session
 
         Parameters
         ----------
-        any BCIPy object : BCIP
-            BCIP object to add
+        any MindPype object : MPBase
+            MindPype object to add
         
         Examples
         --------
-        >>> session.add_misc_bcip_obj(obj)
+        >>> session.add_misc_mp_obj(obj)
         """
         self._misc_objs[obj.session_id] = obj
         
@@ -474,7 +382,7 @@ class Session(BCIP):
     
     def find_obj(self,id_num):
         """
-        Search for and return a BCIP object within the session with a
+        Search for and return a MindPype object within the session with a
         specific ID number
 
         Parameters
@@ -484,8 +392,8 @@ class Session(BCIP):
 
         Returns
         -------
-        BCIP object : BCIP
-            BCIP object with the specified ID number
+        MindPype object : MPBase
+            MindPype object with the specified ID number
 
         """
         

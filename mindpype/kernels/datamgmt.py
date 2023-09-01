@@ -1,4 +1,4 @@
-from ..core import BCIP, BcipEnums
+from ..core import MPBase, MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Scalar
@@ -33,7 +33,7 @@ class ConcatenationKernel(Kernel):
         """
         Constructor for the Concatenation kernel
         """
-        super().__init__('Concatenation',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Concatenation',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
         self._axis = axis
@@ -110,7 +110,7 @@ class ConcatenationKernel(Kernel):
         d_inA, d_inB = self.inputs
         d_out = self.outputs[0]
         for param in (d_inA, d_inB, d_out):
-            if param.bcip_type != BcipEnums.TENSOR:
+            if param.mp_type != MPEnums.TENSOR:
                 raise TypeError("ConcatenationKernel requires Tensor inputs and outputs")
             
         # the dimensions along the catcat axis must be equal
@@ -182,9 +182,9 @@ class ConcatenationKernel(Kernel):
         k = cls(graph,outA,inA,inB,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(outA,BcipEnums.OUTPUT),
-                  Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT))
+        params = (Parameter(outA,MPEnums.OUTPUT),
+                  Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT))
         
     
         # add the kernel to a generic node object
@@ -198,14 +198,14 @@ class ConcatenationKernel(Kernel):
 
 class EnqueueKernel(Kernel):
     """
-    Kernel to enqueue a BCIP object into a BCIP circle buffer
+    Kernel to enqueue a MindPype object into a MindPype circle buffer
 
     Parameters
     ----------
     graph : Graph 
         Graph that the kernel should be added to
 
-    inA : BCIP 
+    inA : MPBase 
         Input data to enqueue into circle buffer
 
     queue : CircleBuffer 
@@ -217,7 +217,7 @@ class EnqueueKernel(Kernel):
         """
         Constructor for the Enqueue kernel
         """
-        super().__init__('Enqueue',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Enqueue',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA, enqueue_flag]
         self.outputs = [queue]
 
@@ -235,10 +235,10 @@ class EnqueueKernel(Kernel):
         d_in = self.inputs[0]
         d_out = self.outputs[0]
 
-        if not isinstance(d_in,BCIP):
-            raise TypeError("EnqueueKernel requires BCIP input")
+        if not isinstance(d_in,MPBase):
+            raise TypeError("EnqueueKernel requires MPBase input")
         
-        if d_out.bcip_type != BcipEnums.CIRCLE_BUFFER:
+        if d_out.mp_type != MPEnums.CIRCLE_BUFFER:
             raise TypeError("EnqueueKernel requires CircleBuffer output")
 
         # check that the buffer's capacity is at least 1
@@ -248,7 +248,7 @@ class EnqueueKernel(Kernel):
         # if gated, check that the flag is a scalar
         if self._gated:
             enqueue_flag = self.inputs[1]
-            if (enqueue_flag.bcip_type != BcipEnums.SCALAR or
+            if (enqueue_flag.mp_type != MPEnums.SCALAR or
                 enqueue_flag.data_type not in (int, bool)):
                 raise TypeError("EnqueueKernel requires enqueue flag to be a scalar boolean")
             
@@ -262,7 +262,7 @@ class EnqueueKernel(Kernel):
             cpy = inputs[0].make_copy()
             outputs[0].enqueue(cpy)
             
-        return BcipEnums.SUCCESS
+        return MPEnums.SUCCESS
     
     @classmethod
     def add_enqueue_node(cls,graph,inA,queue,enqueue_flag=None):
@@ -293,11 +293,11 @@ class EnqueueKernel(Kernel):
         k = cls(graph,inA,queue,enqueue_flag)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(queue,BcipEnums.INOUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(queue,MPEnums.INOUT))
         
         if enqueue_flag is not None:
-            params += (Parameter(enqueue_flag, BcipEnums.INPUT),)
+            params += (Parameter(enqueue_flag, MPEnums.INPUT),)
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -330,7 +330,7 @@ class ExtractKernel(Kernel):
     """
     
     def __init__(self,graph,inA,indices,outA,reduce_dims):
-        super().__init__('Extract',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Extract',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._indices = indices
@@ -362,18 +362,18 @@ class ExtractKernel(Kernel):
 
                 # TODO a lot of repeated code from execute below, determine how best to refactor
                 d_in = self.inputs[0]
-                if (init_in.bcip_type != BcipEnums.TENSOR and
-                    d_in.bcip_type == BcipEnums.TENSOR):
+                if (init_in.mp_type != MPEnums.TENSOR and
+                    d_in.mp_type == MPEnums.TENSOR):
                     init_in = init_in.to_tensor()
 
                     # insert an additional slice for the batch dimension
-                    if add_batch_dim and init_in.bcip_type == BcipEnums.TENSOR:
+                    if add_batch_dim and init_in.mp_type == MPEnums.TENSOR:
                         self._indices.insert(0, ":")
 
                 self._process_data(init_in, init_out)
 
                 # remove the additional slice for the batch dimension
-                if add_batch_dim and init_in.bcip_type == BcipEnums.TENSOR:
+                if add_batch_dim and init_in.mp_type == MPEnums.TENSOR:
                     self._indices.pop(0)
     
     def _verify(self):
@@ -386,16 +386,16 @@ class ExtractKernel(Kernel):
         # tensor
         d_in = self.inputs[0]
         d_out = self.outputs[0]
-        if (d_in.bcip_type == BcipEnums.TENSOR):
-            if (d_out.bcip_type != BcipEnums.TENSOR):
+        if (d_in.mp_type == MPEnums.TENSOR):
+            if (d_out.mp_type != MPEnums.TENSOR):
                 raise TypeError("ExtractKernel requires Tensor output if input is a Tensor")
-        elif (d_in.bcip_type != BcipEnums.ARRAY and
-              d_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
+        elif (d_in.mp_type != MPEnums.ARRAY and
+              d_in.mp_type != MPEnums.CIRCLE_BUFFER):
             raise TypeError("ExtractKernel requires Tensor or Array input")
 
         # if the input is an array, then the there should only be a single 
         # dimension to extract
-        if d_in.bcip_type != BcipEnums.TENSOR:
+        if d_in.mp_type != MPEnums.TENSOR:
             for index in self._indices:
                 if not isinstance(index, int):
                     raise TypeError("ExtractKernel requires integer extraction indicies if input is an Array")
@@ -406,10 +406,10 @@ class ExtractKernel(Kernel):
 
             # if the output is another array, validate that the types match
             in_element = d_in.get_element(0)
-            if (d_out.bcip_type == BcipEnums.ARRAY or
-                d_out.bcip_type == BcipEnums.CIRCLE_BUFFER):
+            if (d_out.mp_type == MPEnums.ARRAY or
+                d_out.mp_type == MPEnums.CIRCLE_BUFFER):
                 out_element = d_out.get_element(0)
-                if (in_element.bcip_type != out_element.bcip_type):
+                if (in_element.mp_type != out_element.mp_type):
                     raise TypeError("ExtractKernel requires Array output to have the same type as the input Array")
 
                 # also check that the output has sufficient capacity
@@ -417,8 +417,8 @@ class ExtractKernel(Kernel):
                     raise ValueError("ExtractKernel requires Array output to have sufficient capacity to store the extracted elements")
 
             # if the output is a scalar, check that the input is an array of compatible scalars
-            elif (d_out.bcip_type == BcipEnums.SCALAR):
-                if (in_element.bcip_type != BcipEnums.SCALAR or
+            elif (d_out.mp_type == MPEnums.SCALAR):
+                if (in_element.mp_type != MPEnums.SCALAR or
                     in_element.data_type != d_out.data_type):
                     raise TypeError("ExtractKernel requires Scalar output to have the same type as the input Array")
 
@@ -427,13 +427,13 @@ class ExtractKernel(Kernel):
                     raise ValueError("ExtractKernel requires only one index extracted when output is a Scalar")
 
             # if the output is a tensor, ensure its dimensions are valid
-            elif d_out.bcip_type == BcipEnums.TENSOR:
+            elif d_out.mp_type == MPEnums.TENSOR:
                 # case 1 : array of tensors
-                if in_element.bcip_type == BcipEnums.TENSOR:
+                if in_element.mp_type == MPEnums.TENSOR:
                     out_shape = (len(self._indices),) + in_element.shape
 
                 # case 2 : array of scalars
-                elif in_element.bcip_type == BcipEnums.SCALAR:
+                elif in_element.mp_type == MPEnums.SCALAR:
                     out_shape = (len(self._indices),1)
 
                 else:
@@ -447,8 +447,8 @@ class ExtractKernel(Kernel):
                 if d_out.shape != out_shape:
                     raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
        
-        elif d_in.bcip_type == BcipEnums.TENSOR:
-            if d_out.bcip_type != BcipEnums.TENSOR:
+        elif d_in.mp_type == MPEnums.TENSOR:
+            if d_out.mp_type != MPEnums.TENSOR:
                 raise TypeError("ExtractKernel requires Tensor output if input is a Tensor")
 
             # check that the number of dimensions indicated does not exceed 
@@ -487,15 +487,15 @@ class ExtractKernel(Kernel):
         inA = inputs[0]
         outA = outputs[0]
 
-        if inA.bcip_type != BcipEnums.TENSOR:
+        if inA.mp_type != MPEnums.TENSOR:
             # extract the elements and set in the output array
-            if (outA.bcip_type == BcipEnums.ARRAY or
-                outA.bcip_type == BcipEnums.CIRCLE_BUFFER):
+            if (outA.mp_type == MPEnums.ARRAY or
+                outA.mp_type == MPEnums.CIRCLE_BUFFER):
                 for dest_index, src_index in enumerate(self._indices):
                     elem = inA.get_element(src_index) # extract from input
                     outA.set_element(dest_index,elem) # set to output
 
-            elif outA.bcip_type == BcipEnums.SCALAR:
+            elif outA.mp_type == MPEnums.SCALAR:
                 outA.data = inA.get_element(self._indices[0])
 
             else:
@@ -560,8 +560,8 @@ class ExtractKernel(Kernel):
         k = cls(graph,inA,indices,outA,reduce_dims)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -594,7 +594,7 @@ class StackKernel(Kernel):
         """
         Constructor for the Stack kernel
         """
-        super().__init__('stack',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('stack',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._axis = axis
@@ -607,13 +607,13 @@ class StackKernel(Kernel):
         outA = self.outputs[0]
                 
         # inA must be an array and outA must be a tensor
-        if (not ((inA.bcip_type == BcipEnums.ARRAY or 
-                  inA.bcip_type == BcipEnums.CIRCLE_BUFFER) and 
-            outA.bcip_type == BcipEnums.TENSOR)):
+        if (not ((inA.mp_type == MPEnums.ARRAY or 
+                  inA.mp_type == MPEnums.CIRCLE_BUFFER) and 
+            outA.mp_type == MPEnums.TENSOR)):
             raise TypeError("StackKernel requires Array input and Tensor output")
         
         # if an axis was provided, it must be a scalar
-        if self._axis != None and self._axis.bcip_type != BcipEnums.SCALAR:
+        if self._axis != None and self._axis.mp_type != MPEnums.SCALAR:
             raise TypeError("StackKernel requires Scalar axis")
         
         stack_axis = self._axis.data if self._axis != None else 0
@@ -682,8 +682,8 @@ class StackKernel(Kernel):
         k = cls(graph,inA,outA,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -719,7 +719,7 @@ class TensorStackKernel(Kernel):
         """
         Constructor for the TensorStack kernel
         """
-        super().__init__('TensorStack',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('TensorStack',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
         self._axis = axis
@@ -758,7 +758,7 @@ class TensorStackKernel(Kernel):
                 
         # all params must be tensors
         for param in (inA, inB, outA):
-            if param.bcip_type != BcipEnums.TENSOR:
+            if param.mp_type != MPEnums.TENSOR:
                 raise TypeError("TensorStackKernel requires Tensor inputs and outputs")
         
         stack_axis = self._axis
@@ -821,9 +821,9 @@ class TensorStackKernel(Kernel):
         k = cls(graph,inA,inB,outA,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

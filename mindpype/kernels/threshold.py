@@ -1,7 +1,7 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar, Tensor
+from ..containers import Scalar
 
 
 class ThresholdKernel(Kernel):
@@ -26,7 +26,7 @@ class ThresholdKernel(Kernel):
     """
     
     def __init__(self,graph,inA,outA,thresh):
-        super().__init__('Threshold',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Threshold',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA, thresh]
         self.outputs = [outA]
 
@@ -54,22 +54,22 @@ class ThresholdKernel(Kernel):
         thresh = self.inputs[1]
 
         # input/output must be a tensor or scalar
-        if not ((d_in.bcip_type == BcipEnums.TENSOR and d_out.bcip_type == BcipEnums.TENSOR) or 
-                (d_in.bcip_type == BcipEnums.SCALAR and d_out.bcip_type == BcipEnums.SCALAR)):
+        if not ((d_in.mp_type == MPEnums.TENSOR and d_out.mp_type == MPEnums.TENSOR) or 
+                (d_in.mp_type == MPEnums.SCALAR and d_out.mp_type == MPEnums.SCALAR)):
             raise TypeError("Threshold Kernel: Input and output must be either both tensors or both scalars")
 
-        if d_in.bcip_type == BcipEnums.TENSOR:
+        if d_in.mp_type == MPEnums.TENSOR:
             # input tensor must contain some values
             if len(d_in.shape) == 0:
                 raise ValueError("Threshold Kernel: Input tensor must contain some values")
 
-        if thresh.bcip_type != BcipEnums.SCALAR:
+        if thresh.mp_type != MPEnums.SCALAR:
             raise TypeError("Threshold Kernel: Threshold value must be a scalar")
 
         if not thresh.data_type in Scalar.valid_numeric_types():
             raise TypeError("Threshold Kernel: Threshold value must be numeric")
 
-        if d_out.bcip_type == BcipEnums.TENSOR:
+        if d_out.mp_type == MPEnums.TENSOR:
             if d_out.virtual and len(d_out.shape) == 0:
                 d_out.shape = d_in.shape
 
@@ -121,9 +121,9 @@ class ThresholdKernel(Kernel):
         k = cls(graph,inA,outA,thresh)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT),
-                  Parameter(thresh,BcipEnums.INPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT),
+                  Parameter(thresh,MPEnums.INPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

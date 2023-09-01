@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from .kernel_utils import extract_init_inputs
@@ -46,12 +46,12 @@ class CommonSpatialPatternKernel(Kernel):
         if 'labels' in init_params:
             self.init_input_labels = init_params['labels']
 
-        if init_style == BcipEnums.INIT_FROM_DATA:
+        if init_style == MPEnums.INIT_FROM_DATA:
             # model will be trained using data in tensor object at later time
             self._initialized = False
             self._W = None
             
-        elif init_style == BcipEnums.INIT_FROM_COPY:
+        elif init_style == MPEnums.INIT_FROM_COPY:
             # model is copy of predefined MDM model object
             self._W = init_params['filters']
             self._initialized = True
@@ -63,13 +63,13 @@ class CommonSpatialPatternKernel(Kernel):
         """
         # check that the input init data is in the correct type
         init_in = init_inputs[0]
-        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
+        accepted_inputs = (MPEnums.TENSOR,MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
         
         for init_obj in (init_in,labels):
-            if init_obj.bcip_type not in accepted_inputs:
+            if init_obj.mp_type not in accepted_inputs:
                 raise TypeError('Initialization data must be a tensor, array, or circle buffer')
     
-        if self.init_style == BcipEnums.INIT_FROM_DATA:
+        if self.init_style == MPEnums.INIT_FROM_DATA:
             # extract the initialization data
             X = extract_init_inputs(init_in)
             y = extract_init_inputs(labels) 
@@ -78,7 +78,7 @@ class CommonSpatialPatternKernel(Kernel):
         # compute init output
         init_out = init_outputs[0]
         if init_out is not None:
-            if init_in.bcip_type != BcipEnums.TENSOR:
+            if init_in.mp_type != MPEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
             # adjust the shape of init output tensor
@@ -216,7 +216,7 @@ class CommonSpatialPatternKernel(Kernel):
         d_out = self.outputs[0]
 
         for param in (d_in, d_out):
-            if param.bcip_type != BcipEnums.TENSOR:
+            if param.mp_type != MPEnums.TENSOR:
                 raise TypeError('Input and output parameters must be tensors')
         
         # input tensor should be two- or three-dimensional
@@ -288,12 +288,12 @@ class CommonSpatialPatternKernel(Kernel):
         init_params = {'initialization_data' : initialization_data, 
                        'labels'              : labels}
         
-        k = cls(graph,inA,outA,BcipEnums.INIT_FROM_DATA,init_params,
+        k = cls(graph,inA,outA,MPEnums.INIT_FROM_DATA,init_params,
                 num_filts,Ncls,multi_class_mode)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -327,11 +327,11 @@ class CommonSpatialPatternKernel(Kernel):
         
         # create the kernel object
         init_params = {'filters' : filters}
-        k = cls(graph,inA,outA,BcipEnums.INIT_FROM_COPY,init_params,filters.shape[1])
+        k = cls(graph,inA,outA,MPEnums.INIT_FROM_COPY,init_params,filters.shape[1])
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

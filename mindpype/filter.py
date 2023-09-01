@@ -2,18 +2,18 @@
 """
 Created on Thu Nov 21 10:51:07 2019
 
-filter.py - Defines the filter Class for BCIP
+filter.py - Defines the filter Class for MindPype
 
 @author: ivanovn
 """
 
-from .core import BCIP, BcipEnums
+from .core import MPBase, MPEnums
 from scipy import signal
 import mne
 
-class Filter(BCIP):
+class Filter(MPBase):
     """
-    A filter that can be used by different BCIP kernels
+    A filter that can be used by different MindPype kernels
 
     Attributes
     ----------
@@ -42,7 +42,7 @@ class Filter(BCIP):
         """
         Constructor for the Filter class
         """
-        super().__init__(BcipEnums.FILTER,sess)
+        super().__init__(MPEnums.FILTER,sess)
         
         self._ftype = ftype
         self._btype = btype
@@ -61,7 +61,7 @@ class Filter(BCIP):
         str
             A string representation of the filter
         """
-        return "BCIP {} Filter with following" + \
+        return "MindPype {} Filter with following" + \
                "attributes:\nFilter Type: {}\nBand Type: {}\n" + \
                "Implementation: {}\nSampling Frequency: {}\n" + \
                "Critical Frequencies: {}".format(self.ftype,self.btype,
@@ -164,7 +164,7 @@ class Filter(BCIP):
     @classmethod
     def create_butter(cls,sess,N,Wn,btype='lowpass',implementation='ba',fs=1.0):
         """
-        Factory method to create a butterworth BCIP filter object
+        Factory method to create a butterworth MindPype filter object
 
         Butterworth digital and analog filter design.
 
@@ -217,7 +217,7 @@ class Filter(BCIP):
     def create_cheby1(cls,sess,N,rp,Wn,btype='lowpass',\
                      implementation='ba',fs=1.0):
         """
-        Factory method to create a Chebyshev Type-I BCIP filter object
+        Factory method to create a Chebyshev Type-I MindPype filter object
 
         Parameters
         ----------
@@ -240,7 +240,7 @@ class Filter(BCIP):
     
         Return
         ------
-        BCIPy Filter object : Filter
+        MindPype Filter object : Filter
             The filter object containing the filter and its parameters
 
         """
@@ -269,7 +269,7 @@ class Filter(BCIP):
     def create_cheby2(cls,sess,N,rs,Wn,btype='lowpass',\
                      implementation='ba',fs=1.0):
         """
-        Factory method to create a Chebyshev Type-II BCIPy filter object
+        Factory method to create a Chebyshev Type-II MindPype filter object
 
         Parameters
         ----------
@@ -292,7 +292,7 @@ class Filter(BCIP):
 
         Return
         ------
-        BCIPy Filter object : Filter
+        MindPype Filter object : Filter
             The filter object containing the filter and its parameters
 
         """
@@ -321,7 +321,7 @@ class Filter(BCIP):
     def create_ellip(cls,sess,N,rp,rs,Wn,btype='lowpass',\
                      implementation='ba',fs=1.0):
         """
-        Factory method to create a Elliptic BCIP filter object
+        Factory method to create a Elliptic MindPype filter object
         
         Parameters
         ----------
@@ -346,7 +346,7 @@ class Filter(BCIP):
 
         Return
         ------
-        BCIPy Filter object : Filter
+        MindPype Filter object : Filter
             The filter object containing the filter and its parameters
 
         """
@@ -378,7 +378,7 @@ class Filter(BCIP):
     def create_bessel(cls,sess,N,Wn,btype='lowpass',\
                      implementation='ba',norm='phase',fs=1.0):
         """
-        Factory method to create a Bessel BCIP filter object
+        Factory method to create a Bessel MindPype filter object
 
         Parameters
         ----------
@@ -408,7 +408,7 @@ class Filter(BCIP):
 
         Return
         ------
-        BCIPy Filter object : Filter
+        MindPype Filter object : Filter
             The filter object containing the filter and its parameters
 
 
@@ -450,7 +450,7 @@ class Filter(BCIP):
         fir_window="hamming",
         fir_design="firwin"):
         """
-        Factory method to create a FIR BCIP filter object. Creates a Scipy.signal.firwin object and stores it in the filter object.
+        Factory method to create a FIR MindPype filter object. Creates a Scipy.signal.firwin object and stores it in the filter object.
 
         .. note::
             The FIR is based on the Scipy firwin class, visit the `Scipy documentation <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.firwin.html>`_ for more information on the parameters.
@@ -458,14 +458,14 @@ class Filter(BCIP):
         Parameters
         ----------
 
-        sess : BCIPy Session object
+        sess : MindPype Session object
             The session object to which the filter will be added
 
         Other Parameters are the same as the MNE create_filter method, see the `MNE documentation <https://mne.tools/stable/generated/mne.filter.create_filter.html>`_ for more information on the parameters.
             
         Return
         ------
-        BCIPy Filter object : Filter
+        MindPype Filter object : Filter
             The filter object containing the filter and its parameters
 
         Raises

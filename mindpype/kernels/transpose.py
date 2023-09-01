@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 
@@ -25,7 +25,7 @@ class TransposeKernel(Kernel):
     """
     
     def __init__(self,graph,inputA,outputA,axes):
-        super().__init__('Transpose',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Transpose',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inputA]
         self.outputs = [outputA]
         self._axes = axes
@@ -104,8 +104,8 @@ class TransposeKernel(Kernel):
         k = cls(graph,inputA,outputA,axes)
         
         # create parameter objects for the input and output
-        params = (Parameter(inputA,BcipEnums.INPUT),
-                  Parameter(outputA,BcipEnums.OUTPUT))
+        params = (Parameter(inputA,MPEnums.INPUT),
+                  Parameter(outputA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

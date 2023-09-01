@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Scalar
@@ -37,7 +37,7 @@ class CDFKernel(Kernel):
         """
         Kernel takes tensor input of RVs
         """
-        super().__init__('CDF',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('CDF',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._dist = dist
@@ -67,8 +67,8 @@ class CDFKernel(Kernel):
         d_out = self.outputs[0]
 
         # first ensure the input and output are tensors
-        if (d_in.bcip_type != BcipEnums.TENSOR or 
-            d_out.bcip_type != BcipEnums.TENSOR):
+        if (d_in.mp_type != MPEnums.TENSOR or 
+            d_out.mp_type != MPEnums.TENSOR):
                 raise TypeError("CDF Kernel: Input and output must be tensors")
         
         input_shape = d_in.shape        
@@ -112,8 +112,8 @@ class CDFKernel(Kernel):
         k = cls(graph,inA,outA,dist,df,loc,scale)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -161,7 +161,7 @@ class CovarianceKernel(Kernel):
     """
     
     def __init__(self,graph,inputA,outputA,regularization):
-        super().__init__('Covariance',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Covariance',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inputA]
         self.outputs = [outputA]
         self._r = regularization
@@ -193,8 +193,8 @@ class CovarianceKernel(Kernel):
         d_out = self.outputs[0]
         
         # first ensure the input and output are tensors
-        if (d_in.bcip_type != BcipEnums.TENSOR or 
-            d_out.bcip_type != BcipEnums.TENSOR):
+        if (d_in.mp_type != MPEnums.TENSOR or 
+            d_out.mp_type != MPEnums.TENSOR):
             raise TypeError("Covariance Kernel: Input and output must be tensors")
         
         if self._r > 1 or self._r < 0:
@@ -290,8 +290,8 @@ class CovarianceKernel(Kernel):
         k = cls(graph,inputA,outputA,regularization)
         
         # create parameter objects for the input and output
-        params = (Parameter(inputA,BcipEnums.INPUT),
-                  Parameter(outputA,BcipEnums.OUTPUT))
+        params = (Parameter(inputA,MPEnums.INPUT),
+                  Parameter(outputA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -353,7 +353,7 @@ class MaxKernel(Descriptive, Kernel):
     """
     
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
-        super().__init__('Max',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Max',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -361,7 +361,7 @@ class MaxKernel(Descriptive, Kernel):
         self._keepdims = keepdims
 
     def _process_data(self, inputs, outputs):
-        if outputs[0].bcip_type == BcipEnums.SCALAR:
+        if outputs[0].mp_type == MPEnums.SCALAR:
             outputs[0].data = np.amax(inputs[0].data).item()
         else:
             outputs[0].data = np.amax(inputs[0].data,
@@ -396,8 +396,8 @@ class MaxKernel(Descriptive, Kernel):
         k = cls(graph,inA,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -431,7 +431,7 @@ class MinKernel(Descriptive, Kernel):
     """
     
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
-        super().__init__('Min',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Min',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._axis = axis
@@ -439,7 +439,7 @@ class MinKernel(Descriptive, Kernel):
 
 
     def _process_data(self, inputs, outputs):
-        if outputs[0].bcip_type == BcipEnums.SCALAR:
+        if outputs[0].mp_type == MPEnums.SCALAR:
             outputs[0].data = np.amin(inputs[0].data).item()
         else:
             outputs[0].data = np.amin(inputs[0].data,
@@ -476,8 +476,8 @@ class MinKernel(Descriptive, Kernel):
         k = cls(graph,inA,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -514,14 +514,14 @@ class MeanKernel(Descriptive, Kernel):
         """
         Kernal calculates arithmetic mean of values in tensor or array
         """
-        super().__init__('Mean',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Mean',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._axis = axis
         self._keepdims = keepdims
 
     def _process_data(self, inputs, outputs):
-        if outputs[0].bcip_type == BcipEnums.SCALAR:
+        if outputs[0].mp_type == MPEnums.SCALAR:
             outputs[0].data = np.mean(inputs[0].data).item()
         else:
             outputs[0].data = np.mean(inputs[0].data,
@@ -557,8 +557,8 @@ class MeanKernel(Descriptive, Kernel):
         k = cls(graph,inA,outA,axis,keepdims)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -595,7 +595,7 @@ class StdKernel(Descriptive, Kernel):
         """
         Kernal calculates arithmetic standard deviation of values in tensor
         """
-        super().__init__('Std',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Std',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._axis = axis
@@ -661,8 +661,8 @@ class StdKernel(Descriptive, Kernel):
         k = cls(graph,inA,outA,axis,ddof)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -699,7 +699,7 @@ class VarKernel(Descriptive, Kernel):
         """
         Kernal calculates arithmetic variance of values in tensor
         """
-        super().__init__('Var',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Var',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._axis = axis
@@ -764,8 +764,8 @@ class VarKernel(Descriptive, Kernel):
         k = cls(graph,inA,outA,axis,ddof,keep_dims)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -793,7 +793,7 @@ class ZScoreKernel(Kernel):
     """
     
     def __init__(self,graph,inA,outA,init_data):
-        super().__init__('Zscore',BcipEnums.INIT_FROM_DATA,graph)
+        super().__init__('Zscore',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -812,33 +812,33 @@ class ZScoreKernel(Kernel):
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
-        if (init_in.bcip_type != BcipEnums.ARRAY and
-            init_in.bcip_type != BcipEnums.TENSOR and
-            init_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
+        if (init_in.mp_type != MPEnums.ARRAY and
+            init_in.mp_type != MPEnums.TENSOR and
+            init_in.mp_type != MPEnums.CIRCLE_BUFFER):
             raise TypeError("ZScore Kernel: Initialization data must be an array or tensor")
 
-        if init_in.bcip_type == BcipEnums.TENSOR:
+        if init_in.mp_type == MPEnums.TENSOR:
             if len(init_in.squeeze().shape) != 1:
                 raise ValueError("ZScore Kernel: Initialization data must be rank 1")
         else:
             e = init_in.get_element(0)
-            if e.bcip_type == BcipEnums.TENSOR:
+            if e.mp_type == MPEnums.TENSOR:
                 if (np.squeeze(e.shape != ())):
                     raise ValueError("ZScore Kernel: Initialization data must be rank 1")
-            elif e.bcip_type == BcipEnums.SCALAR:
+            elif e.mp_type == MPEnums.SCALAR:
                 if not e.data_type in Scalar.valid_numeric_types():
                     raise ValueError("ZScore Kernel: Initialization data must be numeric")
             else:
                 raise ValueError("ZScore Kernel: Initialization data Arrays must contain tensors or scalars")
 
-        if init_in.bcip_type == BcipEnums.TENSOR:
+        if init_in.mp_type == MPEnums.TENSOR:
             d = init_in.data.squeeze()
         else:
             e = init_in.get_element(0)
             dl = []
             for i in range(init_in.capacity):
                 elem_data = init_in.get_element(i).data
-                if e.bcip_type == BcipEnums.TENSOR:
+                if e.mp_type == MPEnums.TENSOR:
                     dl.append(elem_data)
                 else:
                     # convert scalar values to numpy arrays
@@ -891,8 +891,8 @@ class ZScoreKernel(Kernel):
         k = cls(graph,inA,outA,init_data)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

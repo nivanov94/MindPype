@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
@@ -10,7 +10,7 @@ import warnings
 
 class ClassifierKernel(Kernel):
     """
-    Classify data using BCIP Classifier Object
+    Classify data using MindPype Classifier Object
 
     Parameters
     ----------
@@ -22,7 +22,7 @@ class ClassifierKernel(Kernel):
         Input trial data (n_channels, n_samples)
 
     classifier : Classifier 
-        BCIP Classifier object to be used for classification
+        MindPype Classifier object to be used for classification
 
     Prediction : Scalar 
         Classifier prediction
@@ -39,7 +39,7 @@ class ClassifierKernel(Kernel):
     """
 
     def __init__(self, graph, inA, classifier, prediction, output_probs, initialization_data = None, labels = None):
-        super().__init__('Classifier', BcipEnums.INIT_FROM_DATA, graph)
+        super().__init__('Classifier', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self._classifier = classifier
         self.outputs = [prediction, output_probs]
@@ -57,10 +57,10 @@ class ClassifierKernel(Kernel):
 
         # check that the input init data is in the correct type
         init_in = init_inputs[0]
-        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
+        accepted_inputs = (MPEnums.TENSOR,MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
         
         for init_obj in (init_in,labels):
-            if init_obj.bcip_type not in accepted_inputs:
+            if init_obj.mp_type not in accepted_inputs:
                 raise TypeError('Initialization data must be a tensor or array of tensors')
     
         # extract the initialization data from a potentially nested array of tensors 
@@ -97,23 +97,23 @@ class ClassifierKernel(Kernel):
         """similar verification process to individual classifier kernels"""
 
         # inputs must be a tensor or array of tensors
-        accepted_input_types = (BcipEnums.TENSOR, 
-                                BcipEnums.ARRAY, 
-                                BcipEnums.CIRCLE_BUFFER)
+        accepted_input_types = (MPEnums.TENSOR, 
+                                MPEnums.ARRAY, 
+                                MPEnums.CIRCLE_BUFFER)
         
         d_in = self.inputs[0]
-        if d_in.bcip_type not in accepted_input_types:
+        if d_in.mp_type not in accepted_input_types:
             raise TypeError('Input data must be a tensor or array of tensors')
 
         # if input is an array, check that its elements are tensors
-        if (d_in.bcip_type != BcipEnums.TENSOR):
+        if (d_in.mp_type != MPEnums.TENSOR):
             e = d_in.get_element(0)
-            if e.bcip_type != BcipEnums.TENSOR:
+            if e.mp_type != MPEnums.TENSOR:
                 raise TypeError('Input data must be a tensor or array of tensors')
 
         # check that the classifier is valid
-        if (self._classifier.bcip_type != BcipEnums.CLASSIFIER):
-            raise TypeError('Classifier must be a BCIP Classifier object')
+        if (self._classifier.mp_type != MPEnums.CLASSIFIER):
+            raise TypeError('Classifier must be a MindPype Classifier object')
         
         # ensure the classifier has a predict method
         if (not hasattr(self._classifier._classifier, 'predict') or 
@@ -135,7 +135,7 @@ class ClassifierKernel(Kernel):
         outA, outB = outputs
 
         # convert input to tensor if needed
-        if inA.bcip_type != BcipEnums.TENSOR:
+        if inA.mp_type != MPEnums.TENSOR:
             inA = inA.to_tensor()
 
         # extract and reshape data
@@ -148,7 +148,7 @@ class ClassifierKernel(Kernel):
             outB.data = self._classifier._classifier.predict_proba(input_data)
 
         output_data = self._classifier._classifier.predict(input_data)
-        if outA.bcip_type == BcipEnums.SCALAR:
+        if outA.mp_type == MPEnums.SCALAR:
             outA.data = int(output_data)
         else:
             outA.data = output_data
@@ -169,7 +169,7 @@ class ClassifierKernel(Kernel):
             Input trial data (n_channels, n_samples)
 
         classifier : Classifier 
-            BCIP Classifier object to be used for classification
+            MindPype Classifier object to be used for classification
 
         outA : Scalar 
             Output trial data
@@ -189,11 +189,11 @@ class ClassifierKernel(Kernel):
         #create the kernel object
         c = cls(graph, inA, classifier, outA, outB, initialization_data, labels)
 
-        params = (Parameter(inA, BcipEnums.INPUT),
-                  Parameter(outA, BcipEnums.OUTPUT))
+        params = (Parameter(inA, MPEnums.INPUT),
+                  Parameter(outA, MPEnums.OUTPUT))
         
         if outB is not None:
-            params += (Parameter(outB, BcipEnums.OUTPUT),)
+            params += (Parameter(outB, MPEnums.OUTPUT),)
 
         node = Node(graph, c, params)
 

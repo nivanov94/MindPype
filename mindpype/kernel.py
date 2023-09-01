@@ -1,25 +1,24 @@
-from .core import BCIP, BcipEnums
-from abc import ABC, abstractmethod
+from .core import MPBase, MPEnums
+from abc import ABC
 from .containers import Tensor
 import sys
 
-class Kernel(BCIP, ABC):
+class Kernel(MPBase, ABC):
     """
-    An abstract base class that defines the minimum set of kernel methods that
-    must be defined
+    An abstract base class for kernels
 
     Parameters
     ----------
     name : str
         Name of the kernel
-    init_style : BcipEnums Object
-        Kernel initialization style, according to BcipEnum class
+    init_style : MPEnums Object
+        Kernel initialization style, according to MPEnum class
 
     Attributes
     ----------
     _name : str
         Name of the kernel
-    _init_style : BcipEnums Object
+    _init_style : MPEnums Object
         Kernel initialization style, according to BcipEnum class
     """
     
@@ -28,7 +27,7 @@ class Kernel(BCIP, ABC):
         Constructor for the Kernel class
         """
         session = graph.session
-        super().__init__(BcipEnums.KERNEL,session)
+        super().__init__(MPEnums.KERNEL,session)
         self._name = name
         self._init_style = init_style
 
@@ -70,7 +69,7 @@ class Kernel(BCIP, ABC):
 
         Returns
         -------
-        _init_style : BcipEnums
+        _init_style : MPEnums
             The initialization style of the kernel
         """
 
@@ -464,7 +463,7 @@ class Kernel(BCIP, ABC):
         if src is None: # nothing to copy
             return
 
-        if src.bcip_type != BcipEnums.TENSOR:
+        if src.mp_type != MPEnums.TENSOR:
             src = src.to_tensor()
 
         if dst is None:
@@ -515,7 +514,7 @@ class Kernel(BCIP, ABC):
                     verif_params.append(param)
 
         # if the kernel requires initialization, extract phony init inputs and outputs
-        if self.init_style == BcipEnums.INIT_FROM_DATA and self._verif_inits_exist():
+        if self.init_style == MPEnums.INIT_FROM_DATA and self._verif_inits_exist():
             verif_init_inputs = []
             verif_init_outputs = []
             verif_init_io = (verif_init_inputs, verif_init_outputs)
@@ -556,7 +555,7 @@ class Kernel(BCIP, ABC):
 
         # set output shapes using phony outputs as needed
         for output, verif_output in zip(self.outputs, verif_outputs):
-            if (output.bcip_type == BcipEnums.TENSOR and 
+            if (output.mp_type == MPEnums.TENSOR and 
                 output.shape != verif_output.shape):
                 raise ValueError(f"Test execution of node {self.name} failed during verification. Output shape does not match expected value. Please check parameters.")
 

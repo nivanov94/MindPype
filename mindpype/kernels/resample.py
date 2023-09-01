@@ -1,4 +1,4 @@
-from ..core import BCIP, BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 
@@ -28,7 +28,7 @@ class ResampleKernel(Kernel):
     """
     
     def __init__(self,graph,inA,factor,outA,axis = 1):
-        super().__init__('Resample',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Resample',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._factor = factor
@@ -95,8 +95,8 @@ class ResampleKernel(Kernel):
         k = cls(graph,inA,factor,outA,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

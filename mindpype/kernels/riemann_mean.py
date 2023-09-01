@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 
@@ -30,7 +30,7 @@ class RiemannMeanKernel(Kernel):
         """
         Kernel takes 3D Tensor input and produces 2D Tensor representing mean
         """
-        super().__init__('RiemannMean',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('RiemannMean',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -77,8 +77,8 @@ class RiemannMeanKernel(Kernel):
         k = cls(graph,inA,outA,weights)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

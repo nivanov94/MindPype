@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 
@@ -25,7 +25,7 @@ class PadKernel(Kernel):
         """
         Constructor for the PadKernel class
         """
-        super().__init__('BaselineCorrection', BcipEnums.INIT_FROM_NONE, graph)
+        super().__init__('BaselineCorrection', MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
         
@@ -151,8 +151,8 @@ class PadKernel(Kernel):
                 end_values, reflect_type, **kwargs)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

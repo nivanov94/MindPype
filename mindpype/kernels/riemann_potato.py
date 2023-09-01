@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
@@ -38,7 +38,7 @@ class RiemannPotatoKernel(Kernel):
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
-        super().__init__('RiemannPotato',BcipEnums.INIT_FROM_DATA,graph)
+        super().__init__('RiemannPotato',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -68,7 +68,7 @@ class RiemannPotatoKernel(Kernel):
         # compute init output
         if init_out is not None and init_in is not None:
             # adjust the shape of init output tensor
-            if init_in.bcip_type != BcipEnums.TENSOR:
+            if init_in.mp_type != MPEnums.TENSOR:
                 init_in = init_in.to_tensor()
             if len(init_in.shape) == 3:
                 init_out.shape = (init_in.shape[0],)
@@ -86,9 +86,9 @@ class RiemannPotatoKernel(Kernel):
         fit the potato filter using the initialization data
         """
         # check that the input data is valid
-        if (init_in.bcip_type != BcipEnums.TENSOR and
-            init_in.bcip_type != BcipEnums.ARRAY  and
-            init_in.bcip_type != BcipEnums.CIRCLE_BUFFER):
+        if (init_in.mp_type != MPEnums.TENSOR and
+            init_in.mp_type != MPEnums.ARRAY  and
+            init_in.mp_type != MPEnums.CIRCLE_BUFFER):
             raise TypeError("Riemannian potato kernel: Initialization data must be a Tensor or Array")
         
         # extract the initialization data
@@ -113,12 +113,12 @@ class RiemannPotatoKernel(Kernel):
         d_out = self.outputs[0]
 
         # first ensure the input is a tensor
-        if d_in.bcip_type != BcipEnums.TENSOR:
+        if d_in.mp_type != MPEnums.TENSOR:
             raise TypeError("Riemannian potato kernel: Input data must be a Tensor")
 
         # ensure the output is a tensor or scalar
-        if (d_out.bcip_type != BcipEnums.TENSOR and
-            d_out.bcip_type != BcipEnums.SCALAR):
+        if (d_out.mp_type != MPEnums.TENSOR and
+            d_out.mp_type != MPEnums.SCALAR):
             raise TypeError("Riemannian potato kernel: Output data must be a Tensor or Scalar")
 
         # check thresh and max iterations
@@ -141,7 +141,7 @@ class RiemannPotatoKernel(Kernel):
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (d_out.bcip_type == BcipEnums.TENSOR and 
+        if (d_out.mp_type == MPEnums.TENSOR and 
             d_out.virtual and
             len(d_out.shape) == 0):
             if input_rank == 2:
@@ -150,7 +150,7 @@ class RiemannPotatoKernel(Kernel):
                 d_out.shape = (input_shape[0],)
         
         # check for dimensional alignment
-        if d_out.bcip_type == BcipEnums.SCALAR:
+        if d_out.mp_type == MPEnums.SCALAR:
             # input tensor should only be a single trial
             if len(d_in.shape) == 3:
                 # first dimension must be equal to one
@@ -213,8 +213,8 @@ class RiemannPotatoKernel(Kernel):
                 initialization_data)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA, BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA, MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

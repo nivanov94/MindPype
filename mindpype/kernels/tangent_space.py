@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
@@ -32,7 +32,7 @@ class TangentSpaceKernel(Kernel):
 
     def __init__(self, graph, inA, outA, initialization_data = None, 
                  metric = 'riemann', tsupdate = False, sample_weight = None):
-        super().__init__("TangentSpaceKernel", BcipEnums.INIT_FROM_DATA, graph)
+        super().__init__("TangentSpaceKernel", MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -50,7 +50,7 @@ class TangentSpaceKernel(Kernel):
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
-        if init_in.bcip_type != BcipEnums.TENSOR:
+        if init_in.mp_type != MPEnums.TENSOR:
             raise TypeError("Tangent Space Kernel: Initialization input must be a Tensor")
 
         # fit the tangent space
@@ -117,8 +117,8 @@ class TangentSpaceKernel(Kernel):
 
         kernel = cls(graph, inA, outA, initialization_data, metric, tsupdate, sample_weight)
         
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
 
         node = Node(graph, kernel, params)
 

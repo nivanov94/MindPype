@@ -9,11 +9,11 @@ graph.py - Defines the graph object
 import logging
 import warnings
 
-from .core import BCIP, BcipEnums
+from .core import MPBase, BcipEnums
 from .containers import Tensor
 import sys
 
-class Graph(BCIP):
+class Graph(MPBase):
     """
     This class represents the data processing flow graph, or processing pipelines. 
     Individual nodes, or processing steps, are added to the graph to create the pipeline.
@@ -300,16 +300,6 @@ class Graph(BCIP):
         default_init_labels : Tensor, default = None
             If the graph has no initialization labels, this tensor will be used to initialize the graph
 
-        Return
-        ------
-        BCIP Status Code
-
-        Examples
-        --------
-        >>> status = example_graph.initialize()
-        >>> print(status)
-
-            SUCCESS
         """
         # 1. Check whether nodes in the graph are missing initialization links
 
@@ -335,12 +325,12 @@ class Graph(BCIP):
                 
                 if root_data_node:
                     # copy the default init data to the node's init input
-                    if default_init_data.bcip_type != BcipEnums.TENSOR:
+                    if default_init_data.mp_type != BcipEnums.TENSOR:
                         default_init_data = default_init_data.to_tensor()
                     default_init_data.copy_to(n.kernel.init_inputs[init_data_input_index])
 
                     # link the default init labels to this node
-                    if default_init_labels.bcip_type != BcipEnums.TENSOR:
+                    if default_init_labels.mp_type != BcipEnums.TENSOR:
                         default_init_labels = default_init_labels.to_tensor()
                     default_init_labels.copy_to(n.kernel.init_input_labels)
 
@@ -364,16 +354,6 @@ class Graph(BCIP):
             * If the trial label is known, it can be passed when a trial is executed. This is required for class-separated input data
             * If the trial label is not known, it will be polled from the data source
 
-        Return
-        ------
-        BCIP Status Code
-
-        Examples
-        -------
-        >>> status = example_graph.execute(0, True)
-        >>> print(status)
-
-            SUCCESS
         """
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
@@ -449,7 +429,7 @@ class Graph(BCIP):
         return graph
 
 
-class Node(BCIP):
+class Node(MPBase):
     """
     Generic node object containing a kernel function
 
@@ -546,64 +526,18 @@ class Node(BCIP):
     def verify(self):
         """
         Verify the node is executable
-
-        Parameters
-        ----------
-        None
-
-        Return
-        ------
-        BCIP Status Code
-
-        Examples
-        --------
-        >>> status = example_node.verify()
-        >>> print(status)
-
-            INVALID_PARAMETERS
-
         """
         return self.kernel.verify()
     
     def initialize(self):
         """
         Initialize the kernel function for execution
-        
-        Parameters
-        ----------
-        None
-
-        Return
-        ------
-        BCIP Status Code
-
-        Examples
-        --------
-        >>> status = example_node.initialize()
-        >>> print(status)
-
-            SUCCESS
         """
         return self.kernel.initialize()
 
     def update_parameters(self, parameter, value):
         """
         Update the parameters of the node
-
-        Parameters
-        ----------
-        None
-
-        Return
-        ------
-        BCIP Status Code
-
-        Examples
-        --------
-        >>> status = example_node.update_parameters()
-        >>> print(status)
-
-            SUCCESS
         """
 
         self.kernel.update_parameters(parameter, value)
@@ -613,8 +547,8 @@ class Node(BCIP):
 
 class Edge:
     """
-    Edge class used by BCIP block to schedule graphs. Each edge object
-    represents a different BCIP data object and stores the nodes that produce
+    Edge class used by MindPype block to schedule graphs. Each edge object
+    represents a different MindPype data object and stores the nodes that produce
     and consume that data.
 
     Parameters
@@ -696,7 +630,7 @@ class Edge:
 
         Return Type
         -----------
-        BCIPy Data object
+        MindPype Data object
         """
 
         return self._data
@@ -712,7 +646,7 @@ class Edge:
 
         Return Type
         -----------
-        BCIPy Data object
+        MindPype Data object
         """
 
         return self._init_data
@@ -728,7 +662,7 @@ class Edge:
 
         Return Type
         -----------
-        BCIPy Data object
+        MindPype Data object
         """
 
         return self._init_labels
@@ -937,7 +871,7 @@ class Parameter:
 
         Return Type
         ------------
-        BCIPy Data object
+        MindPype Data object
 
         """
 

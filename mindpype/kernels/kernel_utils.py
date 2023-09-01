@@ -1,13 +1,13 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 import numpy as np
 
-def extract_nested_data(bcip_obj):
+def extract_nested_data(mp_obj):
     """
-    Recursively extract Tensor data within a BCIP array or array-of-arrays
+    Recursively extract Tensor data within a MindPype array or array-of-arrays
 
     Parameters
     ----------
-    bcip_obj : BCIP array or array-of-arrays
+    mp_obj : MindPype array or array-of-arrays
         The input to be extracted from
     
     Returns
@@ -15,27 +15,27 @@ def extract_nested_data(bcip_obj):
     X : np array
         The extracted data as a numpy array
     """
-    if (bcip_obj._bcip_type != BcipEnums.ARRAY and 
-        bcip_obj._bcip_type != BcipEnums.CIRCLE_BUFFER):
+    if (mp_obj._mp_type != MPEnums.ARRAY and 
+        mp_obj._mp_type != MPEnums.CIRCLE_BUFFER):
         return np.array(())
     
     X = np.array(())
-    if bcip_obj._bcip_type == BcipEnums.ARRAY:    
-        num_elements = bcip_obj.capacity
+    if mp_obj._mp_type == MPEnums.ARRAY:    
+        num_elements = mp_obj.capacity
     else:
-        num_elements = bcip_obj.num_elements
+        num_elements = mp_obj.num_elements
 
     
     for i in range(num_elements):
         
-        if bcip_obj._bcip_type == BcipEnums.ARRAY:
-            e = bcip_obj.get_element(i)
+        if mp_obj._mp_type == MPEnums.ARRAY:
+            e = mp_obj.get_element(i)
         else:
-            e = bcip_obj.get_queued_element(i)
+            e = mp_obj.get_queued_element(i)
             
             
-        if e._bcip_type == BcipEnums.TENSOR or e._bcip_type == BcipEnums.SCALAR:
-            if e._bcip_type == BcipEnums.SCALAR:
+        if e._mp_type == MPEnums.TENSOR or e._mp_type == MPEnums.SCALAR:
+            if e._mp_type == MPEnums.SCALAR:
                 elem_data = np.asarray((e.data,))
             else:
                 elem_data = e.data
@@ -57,7 +57,7 @@ def extract_init_inputs(init_in):
     
     Parameters
     ----------
-    init_in : BCIP Object
+    init_in : MindPype Object
         The input to be extracted from
 
     Returns
@@ -65,7 +65,7 @@ def extract_init_inputs(init_in):
     init_input_data : np array
         The initialization inputs as a numpy array
     """
-    if init_in.bcip_type == BcipEnums.TENSOR: 
+    if init_in.mp_type == MPEnums.TENSOR: 
             init_input_data = init_in.data
     else:
         try:

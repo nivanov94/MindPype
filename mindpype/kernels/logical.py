@@ -1,7 +1,7 @@
-from ..core import BCIP, BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar, Tensor
+from ..containers import Tensor
 from .kernel_utils import extract_init_inputs
 
 import numpy as np
@@ -26,7 +26,7 @@ class Unary:
 class NotKernel(Unary, Kernel):
     """
     Kernel to perform logical NOT operation elementwise on
-    one BCIPP data container (i.e. tensor or scalar)
+    one MindPype data container (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
 
@@ -43,7 +43,7 @@ class NotKernel(Unary, Kernel):
     """
     
     def __init__(self,graph,inA,outA):
-        super().__init__('NOT',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('NOT',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
  
@@ -77,8 +77,8 @@ class NotKernel(Unary, Kernel):
         k = cls(graph,inA,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -101,12 +101,12 @@ class Binary:
             # init not needed
             return
 
-        accepted_data_inputs = (BcipEnums.TENSOR, BcipEnums.ARRAY,
-                                BcipEnums.CIRCLE_BUFFER, BcipEnums.SCALAR)
+        accepted_data_inputs = (MPEnums.TENSOR, MPEnums.ARRAY,
+                                MPEnums.CIRCLE_BUFFER, MPEnums.SCALAR)
         
         # check the init inputs are in valid data objects
         for init_obj in (init_inA, init_inB):
-            if init_obj.bcip_type not in accepted_data_inputs:
+            if init_obj.mp_type not in accepted_data_inputs:
                 raise TypeError("Invalid initialization input type")
             
         # extract the data from the input
@@ -125,7 +125,7 @@ class Binary:
 class AndKernel(Binary,Kernel):
     """
     Kernel to perform logical AND operation elementwise on
-    two BCIP data containers (i.e. tensor or scalar)
+    two MindPype data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
 
@@ -145,7 +145,7 @@ class AndKernel(Binary,Kernel):
     """
     
     def __init__(self,graph,inA,inB,outA):
-        super().__init__('AND',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('AND',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
@@ -181,9 +181,9 @@ class AndKernel(Binary,Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -196,7 +196,7 @@ class AndKernel(Binary,Kernel):
 class OrKernel(Binary,Kernel):
     """
     Kernel to perform logical OR operation elementwise on
-    two BCIPP data containers (i.e. tensor or scalar)
+    two MindPype data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
 
@@ -216,7 +216,7 @@ class OrKernel(Binary,Kernel):
     """
     
     def __init__(self,graph,inA,inB,outA):
-        super().__init__('OR',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('OR',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
@@ -251,9 +251,9 @@ class OrKernel(Binary,Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -266,7 +266,7 @@ class OrKernel(Binary,Kernel):
 class XorKernel(Binary,Kernel):
     """
     Kernel to perform logical XOR operation elementwise on
-    two BCIPP data containers (i.e. tensor or scalar)
+    two MindPype data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
 
@@ -286,7 +286,7 @@ class XorKernel(Binary,Kernel):
     """
     
     def __init__(self,graph,inA,inB,outA):
-        super().__init__('XOR',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('XOR',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
@@ -321,9 +321,9 @@ class XorKernel(Binary,Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -337,7 +337,7 @@ class XorKernel(Binary,Kernel):
 class GreaterKernel(Binary,Kernel):
     """
     Kernel to perform greater than logical operation elementwise on
-    two BCIPP data containers (i.e. tensor or scalar)
+    two MindPype data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
 
@@ -357,7 +357,7 @@ class GreaterKernel(Binary,Kernel):
     """
     
     def __init__(self,graph,inA,inB,outA):
-        super().__init__('Greater',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Greater',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
@@ -395,9 +395,9 @@ class GreaterKernel(Binary,Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -410,7 +410,7 @@ class GreaterKernel(Binary,Kernel):
 class LessKernel(Binary,Kernel):
     """
     Kernel to perform less than logical operation elementwise on
-    two BCIPP data containers (i.e. tensor or scalar)
+    two MindPype data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
 
@@ -433,7 +433,7 @@ class LessKernel(Binary,Kernel):
     """
     
     def __init__(self,graph,inA,inB,outA):
-        super().__init__('Less',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Less',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
@@ -468,9 +468,9 @@ class LessKernel(Binary,Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -483,7 +483,7 @@ class LessKernel(Binary,Kernel):
 class EqualKernel(Binary,Kernel):
     """
     Kernel to perform greater than logical operation elementwise on
-    two BCIPP data containers (i.e. tensor or scalar)
+    two MindPype data containers (i.e. tensor or scalar)
     
     Numpy broadcasting rules apply.
 
@@ -501,7 +501,7 @@ class EqualKernel(Binary,Kernel):
     """
     
     def __init__(self,graph,inA,inB,outA):
-        super().__init__('Equal',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('Equal',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
@@ -522,9 +522,9 @@ class EqualKernel(Binary,Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

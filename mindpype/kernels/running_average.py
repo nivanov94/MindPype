@@ -8,7 +8,7 @@ Created on Thurs Aug 8 14:13:13 2022
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor, CircleBuffer
-from ..core import BcipEnums
+from ..core import MPEnums
 from .kernel_utils import extract_nested_data
 import numpy as np
 
@@ -36,7 +36,7 @@ class RunningAverageKernel(Kernel):
     
     """
     def __init__(self, graph, inA, outA, running_average_len, axis = 0, flush_on_init = False):
-        super().__init__('RunningAverage',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('RunningAverage',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -66,8 +66,8 @@ class RunningAverageKernel(Kernel):
 
         if init_in is not None:
             # check that the input is a tensor or array
-            accepted_inputs = (BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
-            if init_in.bcip_type not in accepted_inputs:
+            accepted_inputs = (MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
+            if init_in.mp_type not in accepted_inputs:
                 raise TypeError("Running Average Kernel: Initialization input must be a Tensor or Circle Buffer")
 
             # extract the data fron the input and place it into the buffer
@@ -129,8 +129,8 @@ class RunningAverageKernel(Kernel):
     """
         kernel = cls(graph, inA, outA, running_average_len, axis, flush_on_init)
 
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
 
         node = Node(graph, kernel, params)
 

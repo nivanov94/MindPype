@@ -1,7 +1,6 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Tensor
 
 from pyriemann.estimation import XdawnCovariances
 import numpy as np
@@ -43,7 +42,7 @@ class XDawnCovarianceKernel(Kernel):
         """
         Constructor for the XDawnCovarianceKernel class
         """
-        super().__init__("XDawnCovarianceKernel", BcipEnums.INIT_FROM_DATA, graph)
+        super().__init__("XDawnCovarianceKernel", MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -65,11 +64,11 @@ class XDawnCovarianceKernel(Kernel):
         init_out = init_outputs[0]
         
         # check if the initialization data is in a Tensor, if not convert it
-        if init_in.bcip_type != BcipEnums.TENSOR:
+        if init_in.mp_type != MPEnums.TENSOR:
             init_in = init_in.to_tensor()
  
         # check if the labels are in a tensor
-        if labels.bcip_type != BcipEnums.TENSOR:
+        if labels.mp_type != MPEnums.TENSOR:
             labels = labels.to_tensor()
 
         self._xdawn_estimator.fit(init_in.data, np.squeeze(labels.data))
@@ -97,7 +96,7 @@ class XDawnCovarianceKernel(Kernel):
 
         Returns
         -------
-        sts : BcipEnums
+        sts : MPEnums
             Status of the processing
         """
         input_data = inputs[0].data
@@ -148,9 +147,8 @@ class XDawnCovarianceKernel(Kernel):
         kernel = cls(graph, inA, outA, initialization_data, labels, num_filters,
                      applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
         
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT)
-                  )
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
 
         node = Node(graph, kernel, params)
 

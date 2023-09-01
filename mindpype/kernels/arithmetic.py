@@ -1,7 +1,7 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar, Tensor
+from ..containers import Tensor
 from .kernel_utils import extract_init_inputs
 
 import numpy as np
@@ -22,8 +22,8 @@ class Unary:
             return
 
         # check the init inputs are in valid data objects
-        accepted_inputs = (BcipEnums.TENSOR,BcipEnums.ARRAY,BcipEnums.CIRCLE_BUFFER)
-        if init_in.bcip_type not in accepted_inputs:
+        accepted_inputs = (MPEnums.TENSOR,MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
+        if init_in.mp_type not in accepted_inputs:
             raise TypeError("Invalid initialization input type")
     
         # set the output size, as needed
@@ -53,7 +53,7 @@ class AbsoluteKernel(Unary, Kernel):
         """
         Constructor for the absolute value kernel
         """
-        super().__init__("Absolute", BcipEnums.INIT_FROM_NONE, graph)
+        super().__init__("Absolute", MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -90,7 +90,7 @@ class AbsoluteKernel(Unary, Kernel):
         k = cls(graph, inA, outA)
 
         # create parameter objects for the input and output
-        params = (Parameter(inA, BcipEnums.INPUT), Parameter(outA, BcipEnums.OUTPUT))
+        params = (Parameter(inA, MPEnums.INPUT), Parameter(outA, MPEnums.OUTPUT))
 
         # add the kernel to a generic node object
         node = Node(graph, k, params)
@@ -104,7 +104,7 @@ class AbsoluteKernel(Unary, Kernel):
 class LogKernel(Unary, Kernel):
     """
     Kernel to perform element-wise natural logarithm operation on
-    one BCIP data container (i.e. tensor or scalar)
+    one MindPype data container (i.e. tensor or scalar)
 
     Numpy broadcasting rules apply.
 
@@ -120,7 +120,7 @@ class LogKernel(Unary, Kernel):
     """
 
     def __init__(self, graph, inA, outA):
-        super().__init__("Log", BcipEnums.INIT_FROM_NONE, graph)
+        super().__init__("Log", MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -162,14 +162,14 @@ class LogKernel(Unary, Kernel):
 
         Return Type
         -----------
-        BCIPy Node object
+        MindPype Node object
         """
 
         # create the kernel object
         k = cls(graph, inA, outA)
 
         # create parameter objects for the input and output
-        params = (Parameter(inA, BcipEnums.INPUT), Parameter(outA, BcipEnums.OUTPUT))
+        params = (Parameter(inA, MPEnums.INPUT), Parameter(outA, MPEnums.OUTPUT))
 
         # add the kernel to a generic node object
         node = Node(graph, k, params)
@@ -195,12 +195,12 @@ class Binary:
             # init not needed
             return
 
-        accepted_data_inputs = (BcipEnums.TENSOR, BcipEnums.ARRAY,
-                                BcipEnums.CIRCLE_BUFFER, BcipEnums.SCALAR)
+        accepted_data_inputs = (MPEnums.TENSOR, MPEnums.ARRAY,
+                                MPEnums.CIRCLE_BUFFER, MPEnums.SCALAR)
         
         # check the init inputs are in valid data objects
         for init_obj in (init_inA, init_inB):
-            if init_obj.bcip_type not in accepted_data_inputs:
+            if init_obj.mp_type not in accepted_data_inputs:
                 raise TypeError("Invalid initialization input type")
             
         # extract the data from the input
@@ -218,7 +218,7 @@ class Binary:
 
 class AdditionKernel(Binary, Kernel):
     """
-    Kernel to add two BCIPP data containers (i.e. tensor or scalar) together
+    Kernel to add two MindPype data containers (i.e. tensor or scalar) together
 
     Parameters
     ----------
@@ -234,7 +234,7 @@ class AdditionKernel(Binary, Kernel):
     """
 
     def __init__(self, graph, inA, inB, outA):
-        super().__init__("Addition", BcipEnums.INIT_FROM_NONE, graph)
+        super().__init__("Addition", MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
@@ -265,7 +265,7 @@ class AdditionKernel(Binary, Kernel):
 
         Return type
         -----------
-        BCIPy Node 
+        MindPype Node 
         """
 
         # create the kernel object
@@ -273,9 +273,9 @@ class AdditionKernel(Binary, Kernel):
 
         # create parameter objects for the input and output
         params = (
-            Parameter(inA, BcipEnums.INPUT),
-            Parameter(inB, BcipEnums.INPUT),
-            Parameter(outA, BcipEnums.OUTPUT),
+            Parameter(inA, MPEnums.INPUT),
+            Parameter(inB, MPEnums.INPUT),
+            Parameter(outA, MPEnums.OUTPUT),
         )
 
         # add the kernel to a generic node object
@@ -289,7 +289,7 @@ class AdditionKernel(Binary, Kernel):
 
 class DivisionKernel(Binary, Kernel):
     """
-    Kernel to divide two BCIP data containers (i.e. tensor or scalar)
+    Kernel to divide two MindPype data containers (i.e. tensor or scalar)
     together
 
     .. note:: This is element-wise division (ie. _inA ./ _inB)
@@ -311,7 +311,7 @@ class DivisionKernel(Binary, Kernel):
         """
         Constructor for the division kernel
         """
-        super().__init__("Division", BcipEnums.INIT_FROM_NONE, graph)
+        super().__init__("Division", MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
@@ -345,7 +345,7 @@ class DivisionKernel(Binary, Kernel):
 
         Return type
         -----------
-        BCIPy Node object
+        MindPype Node object
         """
 
         # create the kernel object
@@ -353,9 +353,9 @@ class DivisionKernel(Binary, Kernel):
 
         # create parameter objects for the input and output
         params = (
-            Parameter(inA, BcipEnums.INPUT),
-            Parameter(inB, BcipEnums.INPUT),
-            Parameter(outA, BcipEnums.OUTPUT),
+            Parameter(inA, MPEnums.INPUT),
+            Parameter(inB, MPEnums.INPUT),
+            Parameter(outA, MPEnums.OUTPUT),
         )
 
         # add the kernel to a generic node object
@@ -369,7 +369,7 @@ class DivisionKernel(Binary, Kernel):
 
 class MultiplicationKernel(Binary, Kernel):
     """
-    Kernel to multiply two BCIPP data containers (i.e. tensor or scalar)
+    Kernel to multiply two MindPype data containers (i.e. tensor or scalar)
     together
 
     .. note:: This is element-wise multiplication (ie. _inA .* _inB)
@@ -388,7 +388,7 @@ class MultiplicationKernel(Binary, Kernel):
     """
 
     def __init__(self, graph, inA, inB, outA):
-        super().__init__("Multiplication", BcipEnums.INIT_FROM_NONE, graph)
+        super().__init__("Multiplication", MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
@@ -422,7 +422,7 @@ class MultiplicationKernel(Binary, Kernel):
 
         Return type
         -----------
-        BCIPy Node object
+        MindPype Node object
         """
 
         # create the kernel object
@@ -430,9 +430,9 @@ class MultiplicationKernel(Binary, Kernel):
 
         # create parameter objects for the input and output
         params = (
-            Parameter(inA, BcipEnums.INPUT),
-            Parameter(inB, BcipEnums.INPUT),
-            Parameter(outA, BcipEnums.OUTPUT),
+            Parameter(inA, MPEnums.INPUT),
+            Parameter(inB, MPEnums.INPUT),
+            Parameter(outA, MPEnums.OUTPUT),
         )
 
         # add the kernel to a generic node object
@@ -446,7 +446,7 @@ class MultiplicationKernel(Binary, Kernel):
 
 class SubtractionKernel(Binary, Kernel):
     """
-    Kernel to calculate the difference between two BCIP data containers
+    Kernel to calculate the difference between two MindPype data containers
     (i.e. tensor or scalar)
 
     .. note:: This is element-wise subtraction (ie. _inA - _inB)
@@ -465,7 +465,7 @@ class SubtractionKernel(Binary, Kernel):
     """
 
     def __init__(self, graph, inA, inB, outA):
-        super().__init__("Subtraction", BcipEnums.INIT_FROM_NONE, graph)
+        super().__init__("Subtraction", MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
@@ -499,7 +499,7 @@ class SubtractionKernel(Binary, Kernel):
 
         Return type
         -----------
-        BCIPy Node object
+        MindPype Node object
         """
 
         # create the kernel object
@@ -507,9 +507,9 @@ class SubtractionKernel(Binary, Kernel):
 
         # create parameter objects for the input and output
         params = (
-            Parameter(inA, BcipEnums.INPUT),
-            Parameter(inB, BcipEnums.INPUT),
-            Parameter(outA, BcipEnums.OUTPUT),
+            Parameter(inA, MPEnums.INPUT),
+            Parameter(inB, MPEnums.INPUT),
+            Parameter(outA, MPEnums.OUTPUT),
         )
 
         # add the kernel to a generic node object

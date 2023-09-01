@@ -1,11 +1,9 @@
-from ..core import BCIP, BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 
 from scipy import signal
-import numpy as np
 import warnings
-from mne.filter import _overlap_add_filter
 
 class Filter:
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -41,11 +39,11 @@ class Filter:
         outA = self.outputs[0]
 
         # first ensure the input and output are tensors
-        if (inA.bcip_type != BcipEnums.TENSOR or
-            outA.bcip_type != BcipEnums.TENSOR):
+        if (inA.mp_type != MPEnums.TENSOR or
+            outA.mp_type != MPEnums.TENSOR):
             raise TypeError('Filter kernel requires Tensor inputs and outputs')
         
-        if self._filt.bcip_type != BcipEnums.FILTER:
+        if self._filt.mp_type != MPEnums.FILTER:
             raise TypeError('Filter kernel requires Filter object')
 
         # do not support filtering directly with zpk filter repesentation
@@ -90,7 +88,7 @@ class FilterKernel(Filter, Kernel):
         Input trial data
 
     filt : Filter 
-        BCIP Filter object outputted by bcipy.classes
+        MindPype Filter object outputted by bcipy.classes
 
     outputA : Tensor or Scalar 
         Output trial data
@@ -103,7 +101,7 @@ class FilterKernel(Filter, Kernel):
         """
         Constructor for the FilterKernel class
         """
-        super().__init__('Filter',BcipEnums.INIT_FROM_COPY,graph)
+        super().__init__('Filter',MPEnums.INIT_FROM_COPY,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._filt = filt
@@ -143,7 +141,7 @@ class FilterKernel(Filter, Kernel):
             Input trial data
 
         filt : Filter 
-            BCIP Filter object outputted by bcipy.classes
+            MindPype Filter object outputted by bcipy.classes
 
         outputA : Tensor or Scalar 
             Output trial data
@@ -161,8 +159,8 @@ class FilterKernel(Filter, Kernel):
         k = cls(graph,inputA,filt,outputA,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(inputA,BcipEnums.INPUT),
-                  Parameter(outputA,BcipEnums.OUTPUT))
+        params = (Parameter(inputA,MPEnums.INPUT),
+                  Parameter(outputA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
@@ -185,7 +183,7 @@ class FiltFiltKernel(Filter, Kernel):
         Input trial data
 
     filt : Filter 
-        BCIP Filter object outputted by bcipy.classes
+        MindPype Filter object outputted by bcipy.classes
 
     outputA : Tensor or Scalar 
         Output trial data
@@ -198,7 +196,7 @@ class FiltFiltKernel(Filter, Kernel):
         """
         Constructor for the FiltFiltKernel class
         """
-        super().__init__('FiltFilt',BcipEnums.INIT_FROM_COPY,graph)
+        super().__init__('FiltFilt',MPEnums.INIT_FROM_COPY,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._filt = filt
@@ -234,7 +232,7 @@ class FiltFiltKernel(Filter, Kernel):
             Input trial data
 
         filt : Filter 
-            BCIP Filter object outputted by bcipy.filters
+            MindPype Filter object outputted by bcipy.filters
 
         outputA : Tensor or Scalar 
             Output trial data
@@ -252,8 +250,8 @@ class FiltFiltKernel(Filter, Kernel):
         k = cls(graph,inputA,filt,outputA,axis)
         
         # create parameter objects for the input and output
-        params = (Parameter(inputA,BcipEnums.INPUT),
-                  Parameter(outputA,BcipEnums.OUTPUT))
+        params = (Parameter(inputA,MPEnums.INPUT),
+                  Parameter(outputA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

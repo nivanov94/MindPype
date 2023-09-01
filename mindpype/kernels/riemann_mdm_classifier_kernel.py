@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from .kernel_utils import extract_init_inputs
@@ -37,7 +37,7 @@ class RiemannMDMClassifierKernel(Kernel):
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
         """
-        super().__init__('RiemannMDM',BcipEnums.INIT_FROM_DATA,graph)
+        super().__init__('RiemannMDM',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -76,10 +76,10 @@ class RiemannMDMClassifierKernel(Kernel):
         classifier
         """
         # check that the input data is valid
-        if ((init_in.bcip_type != BcipEnums.TENSOR and
-             init_in.bcip_type != BcipEnums.ARRAY)  or
-            (labels.bcip_type != BcipEnums.TENSOR and
-             labels.bcip_type != BcipEnums. ARRAY)):
+        if ((init_in.mp_type != MPEnums.TENSOR and
+             init_in.mp_type != MPEnums.ARRAY)  or
+            (labels.mp_type != MPEnums.TENSOR and
+             labels.mp_type != MPEnums. ARRAY)):
                 raise TypeError('RiemannianMDM kernel: invalid initialization data or labels')
         
         # extract the initialiation data
@@ -106,12 +106,12 @@ class RiemannMDMClassifierKernel(Kernel):
         d_out = self.outputs[0]
 
         # first ensure the input is a tensor
-        if d_in.bcip_type != BcipEnums.TENSOR:
+        if d_in.mp_type != MPEnums.TENSOR:
             raise TypeError('RiemannianMDM kernel: input must be a tensor')
 
         # ensure the output is a tensor or scalar
-        if (d_out.bcip_type != BcipEnums.TENSOR and
-            d_out.bcip_type != BcipEnums.SCALAR):
+        if (d_out.mp_type != MPEnums.TENSOR and
+            d_out.mp_type != MPEnums.SCALAR):
             raise TypeError('RiemannianMDM kernel: output must be a tensor or scalar')
         
         input_shape = d_in.shape
@@ -123,7 +123,7 @@ class RiemannMDMClassifierKernel(Kernel):
         
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if (d_out.bcip_type == BcipEnums.TENSOR and 
+        if (d_out.mp_type == MPEnums.TENSOR and 
             d_out.virtual and
             len(d_out.shape) == 0):
             if input_rank == 2:
@@ -132,7 +132,7 @@ class RiemannMDMClassifierKernel(Kernel):
                 d_out.shape = (input_shape[0],)
         
         # check for dimensional alignment
-        if d_out.bcip_type == BcipEnums.SCALAR:
+        if d_out.mp_type == MPEnums.SCALAR:
             # input tensor should only be a single trial
             if len(d_in.shape) == 3:
                 # first dimension must be equal to one
@@ -195,8 +195,8 @@ class RiemannMDMClassifierKernel(Kernel):
         k = cls(graph,inA,outA,initialization_data,labels)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT), 
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT), 
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)

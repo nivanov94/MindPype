@@ -1,4 +1,4 @@
-from ..core import BcipEnums
+from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 from ..containers import Tensor
@@ -31,7 +31,7 @@ class RiemannDistanceKernel(Kernel):
         """
         Kernel computes pairwise distances between 2D tensors
         """
-        super().__init__('RiemannDistance',BcipEnums.INIT_FROM_NONE,graph)
+        super().__init__('RiemannDistance',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
@@ -57,7 +57,7 @@ class RiemannDistanceKernel(Kernel):
         out_sz = []
         mat_sz = None
         for param in (inA,inB):
-            if param._bcip_type == BcipEnums.TENSOR:
+            if param._mp_type == MPEnums.TENSOR:
                 # ensure it is 3D or 2D
                 param_rank = len(param.shape)
                 if param_rank != 2 and param_rank != 3:
@@ -100,8 +100,8 @@ class RiemannDistanceKernel(Kernel):
         
         # first ensure the input and output are tensors or Arrays of Tensors
         for param in (inA, inB, outA):
-            if (param.bcip_type != BcipEnums.TENSOR and
-                param.bcip_type != BcipEnums.ARRAY):
+            if (param.mp_type != MPEnums.TENSOR and
+                param.mp_type != MPEnums.ARRAY):
                 raise TypeError("RiemannianDistance kernel: All inputs and outputs must be Tensors or Arrays")
 
         out_sz = self._compute_output_shape(inA, inB)
@@ -113,19 +113,19 @@ class RiemannDistanceKernel(Kernel):
             outA.shape = out_sz
         
         
-        if (outA.bcip_type != BcipEnums.TENSOR and
+        if (outA.mp_type != MPEnums.TENSOR and
             outA.shape != out_sz):
             raise ValueError("RiemannianDistance kernel: Output shape does not match expected shape")
-        elif outA.bcip_type == BcipEnums.ARRAY:
+        elif outA.mp_type == MPEnums.ARRAY:
             if outA.capacity != num_combos:
                 raise ValueError("RiemannianDistance kernel: Output array capacity does not match expected capacity")
             
             for i in range(outA.capacity):
                 e = outA.get_element(i)
-                if ((e.bcip_type != BcipEnums.TENSOR and
-                     e.bcip_type != BcipEnums.SCALAR) or 
-                    (e.bcip_type == BcipEnums.TENSOR and np.squeeze(e.shape) != ()) or
-                    (e.bcip_type == BcipEnums.SCALAR and e.data_type != float)):
+                if ((e.mp_type != MPEnums.TENSOR and
+                     e.mp_type != MPEnums.SCALAR) or 
+                    (e.mp_type == MPEnums.TENSOR and np.squeeze(e.shape) != ()) or
+                    (e.mp_type == MPEnums.SCALAR and e.data_type != float)):
                     raise TypeError("RiemannianDistance kernel: All elements of output array must be single-valued Tensors or Scalars")
   
     def _process_data(self, inputs, outputs):
@@ -133,7 +133,7 @@ class RiemannDistanceKernel(Kernel):
         Execute the kernel and calculate the mean
         """
         def get_obj_data_at_index(obj,index,rank):
-            if obj.bcip_type == BcipEnums.TENSOR:
+            if obj.mp_type == MPEnums.TENSOR:
                 if rank == 1 and len(obj.shape) == 2:
                     return obj.data
                 else:
@@ -142,20 +142,20 @@ class RiemannDistanceKernel(Kernel):
                 return obj.get_element(index).data
             
         def set_obj_data_at_index(obj,index,data):
-            if obj.bcip_type == BcipEnums.TENSOR:
+            if obj.mp_type == MPEnums.TENSOR:
                 tensor_data = obj.data # need to extract and edit numpy array b/c tensor currently does not allow sliced modifications
                 tensor_data[index] = data
                 obj.data = tensor_data
             else:
                 e = obj.get_element(index[0]*index[1])
-                if e.bcip_type == BcipEnums.TENSOR:
+                if e.mp_type == MPEnums.TENSOR:
                     e.data = np.asarray([[data]])
                 else:
                     e.data = data
         
         out_sz = []
         for in_param in inputs:
-            if in_param.bcip_type == BcipEnums.TENSOR:
+            if in_param.mp_type == MPEnums.TENSOR:
                 if len(in_param.shape) == 3:
                     m = in_param.shape[0]
                 else:
@@ -206,9 +206,9 @@ class RiemannDistanceKernel(Kernel):
         k = cls(graph,inA,inB,outA)
         
         # create parameter objects for the input and output
-        params = (Parameter(inA,BcipEnums.INPUT),
-                  Parameter(inB,BcipEnums.INPUT),
-                  Parameter(outA,BcipEnums.OUTPUT))
+        params = (Parameter(inA,MPEnums.INPUT),
+                  Parameter(inB,MPEnums.INPUT),
+                  Parameter(outA,MPEnums.OUTPUT))
         
         # add the kernel to a generic node object
         node = Node(graph,k,params)
