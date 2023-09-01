@@ -59,6 +59,7 @@ class KernelExecutionUnitTest:
         self.__graph = bcipy.Graph.create(self.__session)
         
     def TestTensorAbsoluteKernelExecution(self):
+        np.random.seed(44)
         raw_data = np.random.randint(-10,10, size=(2,2,2))
         inTensor = bcipy.Tensor.create_from_data(self.__session, raw_data.shape, raw_data)
         outTensor = bcipy.Tensor.create(self.__session, (2,2,2))
@@ -73,7 +74,7 @@ class KernelExecutionUnitTest:
         return (raw_data, outTensor.data)
     
     def TestScalarAbsoluteKernelExecution(self):
-        raw_data = np.random.randint(-10, high=0)
+        raw_data = -10
         inScalar = bcipy.Scalar.create_from_value(self.__session, raw_data)
         outScalar = bcipy.Scalar.create(self.__session, int)
         scalar_test_node = bcipy.kernels.arithmetic.AbsoluteKernel.add_absolute_node(self.__graph,inScalar,outScalar)
@@ -86,6 +87,7 @@ class KernelExecutionUnitTest:
         return (raw_data, outScalar.data)
     
     def TestAdditionKernelExecution(self):
+        np.random.seed(7)
         raw_data = np.random.randint(-10,10, size=(2,2,2))
         inTensor = bcipy.Tensor.create_from_data(self.__session, raw_data.shape, raw_data)
         inTensor2 = bcipy.Tensor.create_from_data(self.__session, raw_data.shape, raw_data)
