@@ -38,7 +38,7 @@ class BaselineCorrectionKernel(Kernel):
                 baseline_period = np.array(baseline_period.data)            
         self._baseline_period = baseline_period
 
-    def verify(self):
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -49,47 +49,43 @@ class BaselineCorrectionKernel(Kernel):
         # input and output must be a tensor 
         if (d_in.mp_type != MPEnums.TENSOR or
             d_out.mp_type != MPEnums.TENSOR):
-            return MPEnums.INVALID_PARAMETERS
+            raise TypeError("Input and output must be a tensor")
 
         # check the baseline period is valid
         if self._baseline_period is not None:
             # if the baseline period is a 1D tensor, then the same baseline period is used for all trials (ie. self._baseline_period.shape = (2, )
             if len(self._baseline_period.shape) == 1:
                 if self._baseline_period.shape[0] != 2:
-                    return MPEnums.INVALID_PARAMETERS
+                    raise ValueError("Baseline period must include start and end points")
                 
                 # start index must be less than end index and both must be within the range of the data
                 if ((self._baseline_period[0] > self._baseline_period[1]) or 
                     (self._baseline_period[0] < 0) or 
                     (self._baseline_period[1] > d_in.shape[-1])):
-                    return MPEnums.INVALID_PARAMETERS
+                    raise ValueError("Baseline period must be within the range of the data")
 
-            if len(self._baseline_period.shape) == 2:
+            elif len(self._baseline_period.shape) == 2:
                 if self._baseline_period.shape[1] != 2 or self._baseline_period.shape[0] != d_in.shape[0]:
-                    return MPEnums.INVALID_PARAMETERS
+                    raise ValueError("Baseline period must include start and end points for each trial") 
                 
                 # each start index must be less than end index and both must be within the range of the data
                 for i in range(self._baseline_period.shape[0]):
                     if (self._baseline_period[i][0] > self._baseline_period[i][1])\
                         or (self._baseline_period[i][0] < 0)\
                         or (self._baseline_period[i][1] > d_in.shape[-1]):
-                        return MPEnums.INVALID_PARAMETERS
+                        raise ValueError("Baseline period must be within the range of the data")
                 
         
         # check the output dimensions are valid
         if d_out.virtual and len(d_out.shape) == 0:
             d_out.shape = d_in.shape
 
-        return MPEnums.SUCCESS
 
-
-    def initialize(self):
+    def _initialize(self, init_inputs, init_outputs, labels):
         """
         Initialize the kernel by processing the initialization inputs
         """
         
-        sts = MPEnums.SUCCESS
-
         init_in = self.init_inputs[0]
         init_out = self.init_outputs[0]
         
@@ -99,49 +95,33 @@ class BaselineCorrectionKernel(Kernel):
                 output_shape = list(init_in.shape)
                 init_out.shape = tuple(output_shape)
             
-            sts = self._process_data(init_in, init_out)
+            sts = self._process_data(init_inputs, init_outputs)
 
-            # pass on the labels
-            self.copy_init_labels_to_output()
-        
-        return sts
-
-    def execute(self):
-        """
-        Execute the kernel
-        """
-        d_in = self.inputs[0]
-        d_out = self.outputs[0]
-        return self._process_data(d_in, d_out)
-    
-
-    def _process_data(self, input, output):
-        """
-        Process the data
-        """
+    def _process_data(self, inputs, outputs):
+        inA = inputs[0]
+        outA = outputs[0]
 
         # if the baseline period is not specified, then return the input
         if self._baseline_period is None:
-            input.copy_to(output)
-            return MPEnums.SUCCESS
+            inA.copy_to(outA)
 
         # if the baseline period is specified, then perform baseline correction
         else:
             # if the baseline period is a 1D tensor, calculate mean of same indices across all trials
             if len(self._baseline_period.shape) == 1:
                 baseline_period = self._baseline_period
-                baseline_corrected_data = input.data - np.mean(input.data[..., int(baseline_period[0]):int(baseline_period[1])], axis = -1, keepdims = True)
+                baseline_corrected_data = inA.data - np.mean(inA.data[..., int(baseline_period[0]):int(baseline_period[1])], axis = -1, keepdims = True)
 
             else:
-                baseline_corrected_data = np.zeros(input.shape)
-                for i in range(input.shape[0]):
+                baseline_corrected_data = np.zeros(inA.shape)
+                for i in range(inA.shape[0]):
                     baseline_period = self._baseline_period[i]
-                    baseline_corrected_data[i] = input.data[i] - np.mean(input.data[i, ..., int(baseline_period[0]):int(np.ceil(baseline_period[1]))], axis = -1, keepdims = True)
+                    baseline_corrected_data[i] = inA.data[i] - np.mean(inA.data[i, ..., int(baseline_period[0]):int(np.ceil(baseline_period[1]))],
+                                                                        axis = -1, keepdims = True)
             
             # copy the baseline corrected data to the output
-            output.data = baseline_corrected_data
+            outA.data = baseline_corrected_data
 
-            return MPEnums.SUCCESS
 
     @classmethod
     def add_baseline_node(cls, graph, inputA, outputA, baseline_period):

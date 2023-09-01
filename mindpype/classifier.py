@@ -164,7 +164,7 @@ class Classifier(MPBase):
             random_state,
         )
         f = cls(sess, "svm", svm_object)
-        sess.add_misc_bcip_obj(f)
+        sess.add_misc_mp_obj(f)
         return f
 
     @classmethod
@@ -218,7 +218,7 @@ class Classifier(MPBase):
         # clf = classification.TSclassifier(clf=lda_object)
         f = cls(sess, "lda", lda_object)
 
-        sess.add_misc_bcip_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f
 
@@ -287,7 +287,7 @@ class Classifier(MPBase):
             l1_ratio=l1_ratio,
         )
         f = cls(sess, "logistic regression", log_reg_object)
-        sess.add_misc_bcip_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f
 
@@ -318,6 +318,6 @@ class Classifier(MPBase):
         >>> classifier_object = Classifier.create_custom_classifier(sess, svm_object, 'svm')
         """
         f = cls(sess, classifier_type, classifier_object)
-        sess.add_misc_bcip_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f

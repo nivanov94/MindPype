@@ -9,7 +9,7 @@ graph.py - Defines the graph object
 import logging
 import warnings
 
-from .core import MPBase, BcipEnums
+from .core import MPBase, MPEnums
 from .containers import Tensor
 import sys
 
@@ -54,7 +54,7 @@ class Graph(MPBase):
         Constructor for the Graph object
         """
 
-        super().__init__(BcipEnums.GRAPH,sess)
+        super().__init__(MPEnums.GRAPH,sess)
         
         # private attributes
         self._nodes = []
@@ -209,7 +209,7 @@ class Graph(MPBase):
         init_links_missing = False # flag to indicate if any initialization data will need to be propagated through the graph
         for n in self._nodes:
             # check for missing init data
-            if n.kernel.init_style == BcipEnums.INIT_FROM_DATA:
+            if n.kernel.init_style == MPEnums.INIT_FROM_DATA:
                 init_required = True
 
                 # check whether all init inputs have been provided by the user
@@ -247,7 +247,7 @@ class Graph(MPBase):
         if init_required and init_links_missing:
             # find all nodes that requires initialization data
             for n in self._nodes:
-                if n.kernel.init_style == BcipEnums.INIT_FROM_DATA:
+                if n.kernel.init_style == MPEnums.INIT_FROM_DATA:
                     # check if the init inputs have been provided by the user
                     for n_i, n_ii in zip(n.kernel.inputs, n.kernel.init_inputs):
                         if n_ii.virtual and n_ii.shape == ():
@@ -325,12 +325,12 @@ class Graph(MPBase):
                 
                 if root_data_node:
                     # copy the default init data to the node's init input
-                    if default_init_data.mp_type != BcipEnums.TENSOR:
+                    if default_init_data.mp_type != MPEnums.TENSOR:
                         default_init_data = default_init_data.to_tensor()
                     default_init_data.copy_to(n.kernel.init_inputs[init_data_input_index])
 
                     # link the default init labels to this node
-                    if default_init_labels.mp_type != BcipEnums.TENSOR:
+                    if default_init_labels.mp_type != MPEnums.TENSOR:
                         default_init_labels = default_init_labels.to_tensor()
                     default_init_labels.copy_to(n.kernel.init_input_labels)
 
@@ -456,7 +456,7 @@ class Node(MPBase):
     
     def __init__(self,graph,kernel,params):
         sess = graph.session
-        super().__init__(BcipEnums.NODE,sess)
+        super().__init__(MPEnums.NODE,sess)
         
         self._kernel = kernel
         self._params = params
@@ -491,7 +491,7 @@ class Node(MPBase):
         """
         inputs = []
         for p in self._params:
-            if p.direction == BcipEnums.INPUT:
+            if p.direction == MPEnums.INPUT:
                 inputs.append(p.data)
         
         return inputs
@@ -518,7 +518,7 @@ class Node(MPBase):
         """
         outputs = []
         for p in self._params:
-            if p.direction == BcipEnums.OUTPUT:
+            if p.direction == MPEnums.OUTPUT:
                 outputs.append(p.data)
         
         return outputs
@@ -833,7 +833,7 @@ class Parameter:
     ----------
     data : any
         Reference to the data object represented by the parameter object
-    direction : [BcipEnums.INPUT, BcipEnums.OUTPUT]
+    direction : [MPEnums.INPUT, MPEnums.OUTPUT]
         Enum indicating whether this is an input-type or output-type parameter
 
     """
@@ -856,7 +856,7 @@ class Parameter:
 
         Return Type
         -----------
-        BcipEnums.INPUT or BcipEnums.OUTPUT
+        MPEnums.INPUT or MPEnums.OUTPUT
         """
         return self._direction
     

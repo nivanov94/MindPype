@@ -706,9 +706,7 @@ class VarKernel(Descriptive, Kernel):
         self._ddof = ddof
         self._keepdims = keep_dims
         
-    def verify(self):
-        super()._verify()
-
+    def _verify(self):
         d_in = self.inputs[0]
 
         # verify ddof is valid

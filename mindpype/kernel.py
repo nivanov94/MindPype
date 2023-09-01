@@ -544,7 +544,8 @@ class Kernel(MPBase, ABC):
 
             # set init output shapes using phony init outputs as needed
             for init_output, verif_init_output in zip(self.init_outputs, verif_init_outputs):
-                if init_output.shape != verif_init_output.shape:
+                if (init_output is not None and
+                    init_output.shape != verif_init_output.shape):
                     raise ValueError(f"Test initialization of node {self.name} failed during verification. Please check parameters.")
 
         # attempt kernel execution
@@ -555,7 +556,8 @@ class Kernel(MPBase, ABC):
 
         # set output shapes using phony outputs as needed
         for output, verif_output in zip(self.outputs, verif_outputs):
-            if (output.mp_type == MPEnums.TENSOR and 
+            if (output is not None and
+                output.mp_type == MPEnums.TENSOR and 
                 output.shape != verif_output.shape):
                 raise ValueError(f"Test execution of node {self.name} failed during verification. Output shape does not match expected value. Please check parameters.")
 
