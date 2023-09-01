@@ -461,6 +461,9 @@ class Kernel(BCIP, ABC):
         else:
             dst = self.phony_init_output_labels
 
+        if src is None: # nothing to copy
+            return
+
         if src.bcip_type != BcipEnums.TENSOR:
             src = src.to_tensor()
 
