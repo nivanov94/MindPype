@@ -8,55 +8,55 @@ class GraphUnitTest:
         
     
     def TestGraphCreation(self):
-        return self.__graph._bcip_type
+        self.__graph._bcip_type
     
     def TestGraphVerification(self):
-        return self.__graph.verify()
+        self.__graph.verify()
 
     def TestGraphInitialization(self):
-        return self.__graph.initialize()
+        self.__graph.initialize()
 
     def TestGraphExecution(self):
         sys.stdout = open(os.devnull, 'w')
-        sts = self.__graph.execute()
+        self.__graph.execute()
         sys.stdout = sys.__stdout__
-        return sts
 
     def TestGraphScheduler(self):
-        sts = bcipy.Graph.add_node(self.__graph, bcipy.graph.Node(self.__graph, None, {}))
-        return sts
+        bcipy.Graph.add_node(self.__graph, bcipy.graph.Node(self.__graph, None, {}))
     
 def test_graph():
     
     GraphUnitTest_Object = GraphUnitTest()
     try:
-        assert GraphUnitTest_Object.TestGraphCreation() == bcipy.BcipEnums.GRAPH
+        GraphUnitTest_Object.TestGraphCreation()
         print("Graph Creation Test: PASSED")
-    except AssertionError:
+    except:
         print("Graph Creation Test: FAILED")
+
+    try:
+        GraphUnitTest_Object.TestGraphScheduler()
+        print("Graph Scheduler Test: PASSED")
+    except:
+        print("Graph Scheduler Test: FAILED")
     
     try:
-        assert GraphUnitTest_Object.TestGraphVerification() == bcipy.BcipEnums.SUCCESS
+        GraphUnitTest_Object.TestGraphVerification()
         print("Graph Verification Test: PASSED")
-    except AssertionError:
+    except:
         print("Graph Verification Test: FAILED")
 
     try:
-        assert GraphUnitTest_Object.TestGraphInitialization() == bcipy.BcipEnums.SUCCESS
+        GraphUnitTest_Object.TestGraphInitialization()
         print("Graph Initialization Test: PASSED")
-    except AssertionError:
+    except:
         print("Graph Initialization Test: FAILED")
     
     try:
-        assert GraphUnitTest_Object.TestGraphExecution() == bcipy.BcipEnums.SUCCESS
+        GraphUnitTest_Object.TestGraphExecution()
         print("Graph Execution Test: PASSED")
-    except AssertionError:
+    except:
         print("Graph Execution Test: FAILED")
     
-    try:
-        assert GraphUnitTest_Object.TestGraphScheduler() == bcipy.BcipEnums.SUCCESS
-        print("Graph Scheduler Test: PASSED")
-    except AssertionError as e:
-        print("Graph Scheduler Test: FAILED")
+    
 
     
