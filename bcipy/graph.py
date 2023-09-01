@@ -179,7 +179,27 @@ class Graph(BCIP):
                 # invalid graph, cannot be scheduled
                 raise Exception("Invalid graph, nodes cannot be scheduled, check connections between nodes.")
         
-        # TODO add phony edges here
+        # Add phony edges to the graph and it's node to use for validation
+        self._phony_edges = {}
+        for n in self._nodes:
+            n_params = n.extract_inputs() + n.extract_outputs()
+            for n_p in n_params:
+                if not n_p.virtual and n_p.session_id not in self._phony_edges:
+                    # create a phony edge for this parameter
+                    e_data = n_p.make_copy()
+                    phony_edge = Edge(e_data)
+                    real_edge = self._edges[n_p.session_id]
+                    # copy the producers and consumers from the real edge to the phony edge
+                    for p in real_edge.producers:
+                        phony_edge.add_producer(p)
+                    for c in real_edge.consumers:
+                        phony_edge.add_consumer(c)
+
+                    self._phony_edges[n_p.session_id] = phony_edge
+
+        # add the phony edges to the kernels
+        for p_e in self._phony_edges:
+            self._phony_edges[p_e].populate_phony_params(p_e)
         
         # now all the nodes are in execution order create any necessary initialization edges
         init_required = False # flag to indicate if any nodes in the graph require initialization
@@ -227,11 +247,17 @@ class Graph(BCIP):
 
 
         # finally, validate each node
+        # set phony inputs with random data for validation
+        self.set_phony_edges()
+
         for n in self._nodes:
             try:
                 n.verify()
             except Exception as e:
                 raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exc_info()[2])
+
+        # delete phony inputs and outputs
+        self.delete_phony_edges()
 
         # Done, all nodes scheduled and verified!
         self._verified = True
@@ -775,6 +801,40 @@ class Edge:
 
         # if all upstream nodes have init data, then this node has init data
         return True
+    
+    def populate_phony_params(self, session_id):
+        """
+        Populate the phony parameters for the producing and 
+        consuming nodes of this edge
+
+        Parameters
+        ----------
+        session_id : int
+            Session ID of the data object in the corresponding non-phony edge
+        """
+
+        # get the producing node
+        p = self.producers[0]
+
+        # find the index of the data from the producer node (output index)
+        for index, producer_output in enumerate(p.kernel.outputs):
+            if producer_output.session_id == session_id:
+                output_index = index
+                break
+
+        # assign the phony tensor to the producer's corresponding phony output
+        p.kernel.phony_outputs[output_index] = self.data
+
+        # get the consuming node
+        for c in self.consumers:
+            # find the index of the data from the consumer node (input index)
+            for index, consumer_input in enumerate(c.kernel.inputs):
+                if consumer_input.session_id == session_id:
+                    input_index = index
+                    break
+
+            # assign the phony tensor to the consumer's corresponding input
+            c.kernel.phony_inputs[input_index] = self.data
 
 
 class Parameter:

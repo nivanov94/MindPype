@@ -39,6 +39,14 @@ class Kernel(BCIP, ABC):
         self._init_outputs = []
         self._init_input_labels = None
         self._init_output_labels = None
+
+        # phony inputs and outputs for verification
+        self._phony_inputs = {}
+        self._phony_outputs = {}
+        self._phony_init_inputs = {}
+        self._phony_init_outputs = {}
+        self._phony_init_input_labels = None
+        self._phony_init_output_labels = None
         
     # API Getters
     @property
@@ -95,6 +103,32 @@ class Kernel(BCIP, ABC):
         return self._init_output_labels
     
     @property
+    def phony_init_input_labels(self):
+        """
+        Returns the labels for the phony initialization inputs
+
+        Returns
+        -------
+        _phony_init_input_labels : list
+            The labels for the initialization inputs
+        """
+
+        return self._phony_init_input_labels
+    
+    @property
+    def phony_init_output_labels(self):
+        """
+        Returns the labels for the phony initialization outputs
+
+        Returns
+        -------
+        _phony_init_output_labels : list
+            The labels for the initialization outputs
+        """
+
+        return self._phony_init_output_labels
+    
+    @property
     def inputs(self):
         """
         Returns the inputs of the kernel
@@ -145,6 +179,58 @@ class Kernel(BCIP, ABC):
         """
 
         return self._init_outputs
+    
+    @property
+    def phony_inputs(self):
+        """
+        Returns the phony inputs of the kernel
+
+        Returns
+        -------
+        _phony_inputs : list
+            The phony inputs of the kernel
+        """
+
+        return self._phony_inputs
+    
+    @property
+    def phony_outputs(self):
+        """
+        Returns the phony outputs of the kernel
+
+        Returns
+        -------
+        _phony_outputs : list
+            The phony outputs of the kernel
+        """
+
+        return self._phony_outputs
+    
+    @property
+    def phony_init_inputs(self):
+        """
+        Returns the phony inputs of the kernel
+
+        Returns
+        -------
+        _phony_init_inputs : list
+            The phony inputs of the kernel
+        """
+
+        return self._phony_init_inputs
+    
+    @property
+    def phony_init_outputs(self):
+        """
+        Returns the phony outputs of the kernel
+
+        Returns
+        -------
+        _phony_init_outputs : list
+            The phony outputs of the kernel
+        """
+
+        return self._phony_init_outputs
     
     @init_input_labels.setter
     def init_input_labels(self,labels):
@@ -232,27 +318,6 @@ class Kernel(BCIP, ABC):
         """
         self._init_outputs = outputs
 
-    #@abstractmethod
-    #def verify(self):
-    #    """
-    #    Generic verification abstract method to be defined by individual kernels.
-    #    """
-    #    pass
-    
-    #@abstractmethod
-    #def execute(self):
-    #    """
-    #    Generic execution abstract method to be defined by individual kernels.
-    #    """
-    #    pass
-    
-    #@abstractmethod
-    #def initialize(self):
-    #    """
-    #    Generic initialization abstract method to be defined by individual kernels.
-    #    """
-    #    pass
-
     ## INPUT and OUTPUT getter methods
     def get_input(self,index):
         """
@@ -318,18 +383,79 @@ class Kernel(BCIP, ABC):
         """
         return self._init_outputs[index]
     
-    def copy_init_labels_to_output(self):
+    def add_phony_input(self,ph_input,index):
+        """
+        Adds a phony input to the kernel
+
+        Parameters
+        ----------
+        ph_input : Object
+            The input to be added
+        index : int
+            The index at which the input is to be added
+        """
+        self._phony_inputs[index] = ph_input
+
+    def add_phony_output(self,ph_output,index):
+        """
+        Adds a phony output to the kernel
+
+        Parameters
+        ----------
+        ph_output : Object
+            The output to be added
+        index : int
+            The index at which the output is to be added
+        """
+        self._phony_outputs[index] = ph_output
+
+    def add_phony_init_input(self,ph_input,index):
+        """
+        Adds a phony initialization input to the kernel
+
+        Parameters
+        ----------
+        ph_input : Object
+            The input to be added
+        index : int
+            The index at which the input is to be added
+        """
+        self._phony_init_inputs[index] = ph_input
+
+    def add_phony_init_output(self,ph_output,index):
+        """
+        Adds a phony initialization output to the kernel
+
+        Parameters
+        ----------
+        ph_output : Object
+            The output to be added
+        index : int
+            The index at which the output is to be added
+        """
+        self._phony_init_outputs[index] = ph_output
+    
+    def copy_init_labels_to_output(self, verification=False):
         """
         Copies the input labels from initialization to the output
         """
-        labels = self.init_input_labels
-        if labels.bcip_type != BcipEnums.TENSOR:
-            labels = labels.to_tensor()
+        if not verification or self.phony_init_input_labels is None:
+            src = self.init_input_labels
+        else:
+            src = self.phony_init_input_labels
 
-        if self.init_output_labels is None:
-            self.init_output_labels = Tensor.create_virtual(self.session)
+        if not verification or self.phony_init_output_labels is None:
+            dst = self.init_output_labels
+        else:
+            dst = self.phony_init_output_labels
 
-        labels.copy_to(self.init_output_labels)
+        if src.bcip_type != BcipEnums.TENSOR:
+            src = src.to_tensor()
+
+        if dst is None:
+            dst = Tensor.create_virtual(self.session)
+
+        src.copy_to(dst)
 
 
     def verify(self):
@@ -342,62 +468,67 @@ class Kernel(BCIP, ABC):
             # execute any kernel-specific verification
             self._verify()
 
-        # generate phony inputs
-        phony_inputs = []
-        for input in self.inputs:
-            phony_input = input.make_copy()
-            phony_input.assign_random_data()
-            phony_inputs.append(phony_input)
+        # extract verification inputs and outputs
+        verif_inputs = []
+        verif_outputs = []
+        verif_io = (verif_inputs, verif_outputs)
+        io = (self.inputs, self.outputs)
+        phony_io = (self.phony_inputs, self.phony_outputs)
 
-        # generate phony outputs
-        phony_outputs = []
-        for output in self.outputs:
-            phony_output = output.make_copy()
-            phony_outputs.append(phony_output)
+        for verif_params, params, phony_params in zip(verif_io, io, phony_io):
+            for i_p, param in enumerate(params):
+                if i_p in phony_params:
+                    # use phony params if available
+                    verif_params.append(phony_params[i_p])
+                else:
+                    # otherwise use real virtual params
+                    verif_params.append(param)
 
-        # if the kernel requires initialization, generate phony init inputs
+        # if the kernel requires initialization, extract phony init inputs and outputs
         if self.init_style == BcipEnums.INIT_FROM_DATA:
-            phony_init_inputs = []
-            for init_input in self.init_inputs:
-                phony_init_input = init_input.make_copy()
-                phony_init_input.assign_random_data()
-                phony_init_inputs.append(phony_init_input)
+            verif_init_inputs = []
+            verif_init_outputs = []
+            verif_init_io = (verif_init_inputs, verif_init_outputs)
+            init_io = (self.init_inputs, self.init_outputs)
+            phony_init_io = (self.phony_init_inputs, self.phony_init_outputs)
 
-            # generate phony init outputs
-            phony_init_outputs = []
-            for init_output in self.init_outputs:
-                phony_init_output = init_output.make_copy()
-                phony_init_outputs.append(phony_init_output)
+            for verif_params, params, phony_params in zip(verif_init_io, init_io, phony_init_io):
+                for i_p, param in enumerate(params):
+                    if i_p in phony_params:
+                        # use phony params if available
+                        verif_params.append(phony_params[i_p])
+                    else:
+                        # otherwise use real virtual params
+                        verif_params.append(param)
 
-            # generate phony init labels
-            phony_init_labels = Tensor.create_virtual(self.session, shape=(phony_init_inputs[0].shape[0],))
-            phony_init_labels.assign_random_data(whole_numbers=True)
+            if self.phony_init_input_labels is not None:
+                verif_init_labels = self.phony_init_input_labels
+            else:
+                verif_init_labels = self.init_input_labels
 
             # attempt initialization
             try:
-                self._initialize(phony_init_inputs, phony_init_outputs, phony_init_labels)
+                self._initialize(verif_init_inputs, verif_init_outputs, verif_init_labels)
+                self.copy_init_labels_to_output(verification=True)
             except Exception as e:
                 raise type(e)(f"{str(e)}\nTest initialization of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
 
             # set init output shapes using phony init outputs as needed
-            for init_output, phony_init_output in zip(self.init_outputs, phony_init_outputs):
-                if (init_output.bcip_type == BcipEnums.TENSOR and 
-                    init_output.virtual and
-                    init_output.shape != phony_init_output.shape):
-                    init_output.shape = phony_init_output.shape
+            for init_output, verif_init_output in zip(self.init_outputs, verif_init_outputs):
+                if init_output.shape != verif_init_output.shape:
+                    raise ValueError(f"Test initialization of node {self.name} failed during verification. Please check parameters.")
 
         # attempt kernel execution
         try:
-            self._process_data(phony_inputs, phony_outputs)
+            self._process_data(verif_inputs, verif_outputs)
         except Exception as e:
             raise type(e)(f"{str(e)}\nTest execution of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
 
         # set output shapes using phony outputs as needed
-        for output, phony_output in zip(self.outputs, phony_outputs):
-            if (output.bcip_type == BcipEnums.TENSOR and
-                output.virtual and
-                output.shape != phony_output.shape):
-                output.shape = phony_output.shape
+        for output, verif_output in zip(self.outputs, verif_outputs):
+            if (output.bcip_type == BcipEnums.TENSOR and 
+                output.shape != verif_output.shape):
+                raise ValueError(f"Test execution of node {self.name} failed during verification. Output shape does not match expected value. Please check parameters.")
 
 
     def initialize(self):
