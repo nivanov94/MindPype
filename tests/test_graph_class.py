@@ -1,10 +1,10 @@
-import bcipy
+import mindpype as mp
 import sys, os
 class GraphUnitTest:
 
     def __init__(self):
-        self.__session = bcipy.Session.create()
-        self.__graph = bcipy.Graph.create(self.__session)
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
         
     
     def TestGraphCreation(self):
@@ -22,7 +22,7 @@ class GraphUnitTest:
         sys.stdout = sys.__stdout__
 
     def TestGraphScheduler(self):
-        bcipy.Graph.add_node(self.__graph, bcipy.graph.Node(self.__graph, None, {}))
+        mp.Graph.add_node(self.__graph, mp.graph.Node(self.__graph, None, {}))
     
 def test_graph():
     
