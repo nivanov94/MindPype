@@ -84,16 +84,6 @@ class XDawnCovarianceKernel(Kernel):
             # process the initialization data
             self._process_data(init_inputs, init_outputs)
 
-    def execute(self):
-        """
-        Execute processing of trial data
-        """
-        tmp_data = self.inputs[0].data
-        if len(self.inputs[0].shape) == 2:
-            tmp_data = tmp_data[np.newaxis, :, :] # input must be 3D
-        tmp_tensor = Tensor.create_from_data(self._session, tmp_data.shape, tmp_data)
-        return self._process_data(tmp_tensor, self.outputs[0])
-
     def _process_data(self, inputs, outputs):
         """
         Process input data according to outlined kernel function

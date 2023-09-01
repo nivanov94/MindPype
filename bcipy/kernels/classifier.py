@@ -87,7 +87,7 @@ class ClassifierKernel(Kernel):
                 self.init_outputs[0].shape = (X.shape[0],)
             
             if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
-                self.init_outputs[1].shape = (X.shape[0], self._classifier._classifier.n_classes_)
+                self.init_outputs[1].shape = (X.shape[0], self._classifier.n_classes)
 
             self._process_data([init_tensor], 
                                self.init_outputs) 
@@ -125,24 +125,6 @@ class ClassifierKernel(Kernel):
             (not hasattr(self._classifier._classifier, 'predict_proba') or
              not callable(self._classifier._classifier.predict_proba))):
             raise Exception('Classifier does not have a predict_proba method')
-
-        # verify type and shape of outputs
-        if d_in.bcip_type == BcipEnums.TENSOR:
-            input_sz = d_in.shape
-        else:
-            input_sz = (d_in.capacity,) + d_in.get_element(0).shape
-
-    def execute(self):
-        """
-        Execute single trial classification
-        """
-        # if input is not a tensor, convert
-        if self.inputs[0].bcip_type != BcipEnums.TENSOR:
-            input_tensor = self.inputs[0].to_tensor()
-        else:
-            input_tensor = self.inputs[0]
-
-        self._process_data(input_tensor, self.outputs[0], self.outputs[1])
 
 
     def _process_data(self, inputs, outputs):

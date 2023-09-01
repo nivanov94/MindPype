@@ -318,6 +318,18 @@ class Kernel(BCIP, ABC):
         """
         self._init_outputs = outputs
 
+    @phony_init_input_labels.setter
+    def phony_init_input_labels(self,labels):
+        """
+        Sets the labels for the phony initialization inputs
+
+        Parameters
+        ----------
+        labels : list
+            The list of labels to be set
+        """
+        self._phony_init_input_labels = labels
+
     ## INPUT and OUTPUT getter methods
     def get_input(self,index):
         """
@@ -485,7 +497,7 @@ class Kernel(BCIP, ABC):
                     verif_params.append(param)
 
         # if the kernel requires initialization, extract phony init inputs and outputs
-        if self.init_style == BcipEnums.INIT_FROM_DATA:
+        if self.init_style == BcipEnums.INIT_FROM_DATA and self._verif_inits_exist():
             verif_init_inputs = []
             verif_init_outputs = []
             verif_init_io = (verif_init_inputs, verif_init_outputs)
@@ -539,10 +551,22 @@ class Kernel(BCIP, ABC):
             self._initialized = False
             self._initialize(self.init_inputs, self.init_outputs, self.init_input_labels)
             self._initialized = True
-            self.copy_init_labels_to_output
+            self.copy_init_labels_to_output()
 
     def execute(self):
         """
         Execute kernel to process data
         """
         self._process_data(self.inputs, self.outputs)
+
+    def _verif_inits_exist(self):
+        """
+        Returns true if the kernel has initialization inputs for verification
+        """
+        exist = True
+        for i_i, init_input in enumerate(self.init_inputs):
+            if i_i not in self.phony_init_inputs and init_input.shape == ():
+                exist = False
+                break
+
+        return exist

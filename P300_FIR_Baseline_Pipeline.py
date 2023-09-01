@@ -96,7 +96,7 @@ def main():
     #        offline_data_src.trial_data['Markers']['time_series'][i] = json.dumps({'non-target': 0})
 
     train_virt2 = bcipy.Tensor.create_virtual(sess) # output of filter, input to resample
-    processed_xdf_tensor = bcipy.Tensor.create_virtual(sess)
+    processed_xdf_tensor = bcipy.Tensor.create(sess, (100, len(channels), resample_fs))
     
 
     # Data input tensors
@@ -104,8 +104,8 @@ def main():
                      'labels' : labels}
 
     # online graph data containers (i.e. graph edges)
-    pred_probs = bcipy.Tensor.create_virtual(sess) # output of classifier, input to label
-    pred_label = bcipy.Tensor.create_virtual(sess) 
+    pred_probs = bcipy.Tensor.create(sess,(1,2)) # output of classifier, input to label
+    pred_label = bcipy.Tensor.create(sess, (1,)) 
 
     train_virt = bcipy.Tensor.create_virtual(sess) # output of filter, input to resample
     t_virt = [bcipy.Tensor.create_virtual(sess), # output of filter, input to resample
@@ -114,7 +114,7 @@ def main():
               bcipy.Tensor.create_virtual(sess), # output of xdawn, input to tangent space
               bcipy.Tensor.create_virtual(sess)] # output of tangent space, input to classifier
     
-    extra_tensor = bcipy.Tensor.create_virtual(sess)
+    extra_tensor = bcipy.Tensor.create(sess, xdf_tensor.shape)
 
     classifier = bcipy.Classifier.create_logistic_regression(sess)
 
