@@ -66,6 +66,8 @@ class Graph(MPBase):
         self._edges = {}
 
         self._default_init_required = False
+        self._default_init_data = None
+        self._default_init_labels = None
     
     def add_node(self,node):
         """
@@ -83,6 +85,23 @@ class Graph(MPBase):
         """
         self._verified = False
         self._nodes.append(node)
+
+    def set_default_init_data(self, data, labels):
+        """
+        Add default initialization data to the graph
+
+        Parameters
+        ----------
+        data : MindPype Tensor or Array
+            Tensor or array containing the default initialization data
+
+        labels : MindPype Tensor or Array
+            Tensor or array containing the default initialization labels
+
+        """
+        self._verified = False
+        self._default_init_data = data
+        self._default_init_labels = labels
         
     def verify(self):
         """
@@ -260,7 +279,45 @@ class Graph(MPBase):
 
                             if not init_provided:
                                 self._default_init_required = True
-                                warnings.warn("Initialization data not explicitly provided, initialization data will need to be provided during graph initialization.")
+                                warnings.warn("Initialization data not explicitly provided, default graph initialization data will be used.")
+
+        # set default initialization data as required
+        if self._default_init_required:
+            if self._default_init_data is None:
+                raise Exception("No default initialization data provided, graph is not initialized correctly")
+            
+            # link the default initialization data to all nodes that ingest volatile data
+            for n in self._nodes:
+                n_inputs = n.extract_inputs()
+                root_data_node = False
+
+                # check whether this node ingests data from outside the graph
+                for index, n_i in enumerate(n_inputs):
+                    if len(self._edges[n_i.session_id].producers) == 0:
+                        root_data_node = True
+                        init_data_input_index = index
+                        break
+                
+                if root_data_node:
+                    # copy the default init data to the node's init input
+                    n.kernel.init_inputs[init_data_input_index] = self._default_init_data
+                    if self._default_init_labels is not None:
+                        n.kernel.init_input_labels = self._default_init_labels
+
+                    # add phony init for verification
+                    n_ii = n.kernel.init_inputs[init_data_input_index]
+                    e_data = n_ii.make_copy() # create a copy of the data object
+                    phony_edge = Edge(e_data) # create the edge
+                    phony_edge.add_consumer(n)
+                    self._phony_edges[n_ii.session_id] = phony_edge
+                    n.kernel.phony_init_inputs[init_data_input_index] = phony_edge.data # add to the kernel
+
+                    if n.kernel.init_input_labels is not None:
+                        # create phony input labels edge as well
+                        e_data = n.kernel.init_input_labels.make_copy()
+                        phony_edge = Edge(e_data)
+                        self._phony_labels[n.kernel.init_input_labels.session_id] = phony_edge
+                        n.kernel.phony_init_input_labels = phony_edge.data # add to the kernel
 
 
         # finally, validate each node
@@ -305,38 +362,11 @@ class Graph(MPBase):
             If the graph has no initialization labels, this tensor will be used to initialize the graph
 
         """
-        # 1. Check whether nodes in the graph are missing initialization links
+        if default_init_data is not None:
+            self.set_default_init_data(default_init_data, default_init_labels)
 
-        if self._default_init_required and default_init_data is None:
-            raise Exception("No default initialization data provided, graph is not initialized correctly")
-
-        if self._default_init_required and default_init_data is not None:
-            # ensure training labels have been provided as well
-            if default_init_labels is None:
-                raise Exception("No default initialization labels provided, graph is not initialized correctly")
-
-            # link the default initialization data to all nodes that ingest volatile data
-            for n in self._nodes:
-                n_inputs = n.extract_inputs()
-                root_data_node = False
-
-                # check whether this node ingests data from a volatile source
-                for index, n_i in enumerate(n_inputs):
-                    if len(self._edges[n_i.session_id].producers) == 0:
-                        root_data_node = True
-                        init_data_input_index = index
-                        break
-                
-                if root_data_node:
-                    # copy the default init data to the node's init input
-                    if default_init_data.mp_type != MPEnums.TENSOR:
-                        default_init_data = default_init_data.to_tensor()
-                    default_init_data.copy_to(n.kernel.init_inputs[init_data_input_index])
-
-                    # link the default init labels to this node
-                    if default_init_labels.mp_type != MPEnums.TENSOR:
-                        default_init_labels = default_init_labels.to_tensor()
-                    default_init_labels.copy_to(n.kernel.init_input_labels)
+        if not self._verified:
+            self.verify()
 
         # execute initialization for each node in the graph
         for n in self._nodes:
@@ -495,7 +525,7 @@ class Node(MPBase):
         """
         inputs = []
         for p in self._params:
-            if p.direction == MPEnums.INPUT:
+            if p.direction != MPEnums.OUTPUT:
                 inputs.append(p.data)
         
         return inputs
@@ -731,7 +761,6 @@ class Edge:
         Insert initialization data tensors into the graph that mirror the 
         connections contained within the Edge object
         """
-
         # create a virtual tensor that will contain the initialization data
         self._init_data = Tensor.create_virtual(self.data.session)
         self._init_labels = Tensor.create_virtual(self.data.session)
@@ -739,7 +768,8 @@ class Edge:
         for p in self.producers:
             # find the index of the data from the producer node (output index)
             for index, producer_output in enumerate(p.kernel.outputs):
-                if producer_output.session_id == self.data.session_id:
+                if (producer_output is not None and
+                    producer_output.session_id == self.data.session_id):
                     output_index = index
                     break
         
@@ -750,7 +780,8 @@ class Edge:
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
             for index, consumer_input in enumerate(c.kernel.inputs):
-                if consumer_input.session_id == self.data.session_id:
+                if (consumer_input is not None and
+                    consumer_input.session_id == self.data.session_id):
                     input_index = index
                     break
 
@@ -809,7 +840,8 @@ class Edge:
         for p in self.producers:
             # find the index of the data from the producer node (output index)
             for index, producer_output in enumerate(p.kernel.outputs):
-                if producer_output.session_id == session_id:
+                if (producer_output is not None and
+                    producer_output.session_id == session_id):
                     output_index = index
                     break
 
@@ -820,7 +852,8 @@ class Edge:
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
             for index, consumer_input in enumerate(c.kernel.inputs):
-                if consumer_input.session_id == session_id:
+                if (consumer_input is not None and 
+                    consumer_input.session_id == session_id):
                     input_index = index
                     break
 

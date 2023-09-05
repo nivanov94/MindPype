@@ -218,8 +218,7 @@ class EnqueueKernel(Kernel):
         Constructor for the Enqueue kernel
         """
         super().__init__('Enqueue',MPEnums.INIT_FROM_NONE,graph)
-        self.inputs = [inA, enqueue_flag]
-        self.outputs = [queue]
+        self.inputs = [inA, queue, enqueue_flag]
 
         if enqueue_flag is not None:
             self._gated = True
@@ -233,21 +232,21 @@ class EnqueueKernel(Kernel):
         
         # first ensure the inputs and outputs are the appropriate type
         d_in = self.inputs[0]
-        d_out = self.outputs[0]
+        d_io = self.inputs[1]
 
         if not isinstance(d_in,MPBase):
             raise TypeError("EnqueueKernel requires MPBase input")
         
-        if d_out.mp_type != MPEnums.CIRCLE_BUFFER:
+        if d_io.mp_type != MPEnums.CIRCLE_BUFFER:
             raise TypeError("EnqueueKernel requires CircleBuffer output")
 
         # check that the buffer's capacity is at least 1
-        if d_out.capacity <= 1:
+        if d_io.capacity <= 1:
             raise ValueError("EnqueueKernel requires CircleBuffer capacity to be at least 1")
         
         # if gated, check that the flag is a scalar
         if self._gated:
-            enqueue_flag = self.inputs[1]
+            enqueue_flag = self.inputs[2]
             if (enqueue_flag.mp_type != MPEnums.SCALAR or
                 enqueue_flag.data_type not in (int, bool)):
                 raise TypeError("EnqueueKernel requires enqueue flag to be a scalar boolean")
@@ -258,12 +257,10 @@ class EnqueueKernel(Kernel):
         Execute the kernel function using numpy function
         """
         # need to make a deep copy of the object to enqueue
-        if not self._gated or inputs[1].data:
+        if not self._gated or inputs[2].data:
             cpy = inputs[0].make_copy()
-            outputs[0].enqueue(cpy)
+            inputs[1].enqueue(cpy)
             
-        return MPEnums.SUCCESS
-    
     @classmethod
     def add_enqueue_node(cls,graph,inA,queue,enqueue_flag=None):
         """

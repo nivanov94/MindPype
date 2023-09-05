@@ -253,7 +253,7 @@ class CommonSpatialPatternKernel(Kernel):
         
     @classmethod
     def add_uninitialized_CSP_node(cls,graph,inA,outA,
-                                   initialization_data,labels,
+                                   initialization_data=None,labels=None,
                                    num_filts=2,Ncls=2,multi_class_mode='OVA'):
         """
         Factory method to create a CSP filter node and add it to a graph

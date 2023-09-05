@@ -1125,7 +1125,7 @@ class CircleBuffer(Array):
     
     def __init__(self,sess,capacity,element_template):
         super().__init__(sess,capacity,element_template)
-        self._bcip_type = MPEnums.CIRCLE_BUFFER # overwrite
+        self._mp_type = MPEnums.CIRCLE_BUFFER # overwrite
         
         self._head = None
         self._tail = None
