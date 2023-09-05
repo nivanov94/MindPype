@@ -278,7 +278,7 @@ class Scalar(MPBase):
         # for now, don't copy the type, virtual and ext_src attributes because these
         # should really be set during creation not later
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
         """
         Assign random data to the scalar. This is useful for testing and verification purposes.
         """
@@ -680,7 +680,7 @@ class Tensor(MPBase):
         # only be set during creation and modifying could cause unintended
         # consequences
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
         """
         Assign random data to the tensor. This is useful for testing and verification purposes.
         """
@@ -689,6 +689,24 @@ class Tensor(MPBase):
         else:
             num_range = vmax - vmin
             self.data = num_range * np.random.rand(*self.shape) + vmin
+
+        if covariance:
+            rank = len(self.shape)
+            if rank != 2 and rank != 3:
+                raise ValueError("Cannot assign random covariance matrix to tensor with rank other than 2 or 3")
+            
+            if self.shape[-2] != self.shape[-1]:
+                raise ValueError("Cannot assign random covariance matrix to tensor with non-square last two dimensions")
+            
+            if rank == 2:
+                self.data = np.cov(self.data)
+            else:
+                for i in range(self.shape[0]):
+                    self.data[i,:,:] = np.cov(self.data[i,:,:])
+
+            # add regularization
+            self.data += 0.001 * np.eye(self.shape[-1])
+
     
     def poll_volatile_data(self,label=None):
         """
@@ -1030,12 +1048,12 @@ class Array(MPBase):
         for i in range(self.capacity):
             dest_array.set_element(i,self.get_element(i))
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
         """
         Assign random data to the array. This is useful for testing and verification purposes.
         """
         for i in range(self.capacity):
-            self.get_element(i).assign_random_data(whole_numbers, vmin, vmax)
+            self.get_element(i).assign_random_data(whole_numbers, vmin, vmax, covariance)
             
     def to_tensor(self):
         """

@@ -46,6 +46,9 @@ class Kernel(MPBase, ABC):
         self._phony_init_outputs = {}
         self._phony_init_input_labels = None
         self._phony_init_output_labels = None
+
+        # tuple to define which inputs must be covariance matrices
+        self._covariance_inputs = None
         
     # API Getters
     @property
@@ -514,7 +517,7 @@ class Kernel(MPBase, ABC):
                     verif_params.append(param)
 
         # if the kernel requires initialization, extract phony init inputs and outputs
-        if self.init_style == MPEnums.INIT_FROM_DATA and self._verif_inits_exist():
+        if self._verif_inits_exist():
             verif_init_inputs = []
             verif_init_outputs = []
             verif_init_io = (verif_init_inputs, verif_init_outputs)
@@ -584,8 +587,43 @@ class Kernel(MPBase, ABC):
         """
         exist = True
         for i_i, init_input in enumerate(self.init_inputs):
-            if i_i not in self.phony_init_inputs and init_input.shape == ():
+            if (i_i not in self.phony_init_inputs and 
+                (init_input is None or
+                 init_input.shape == ())):
                 exist = False
                 break
 
         return exist
+
+    def is_covariance_input(self, param):
+        """
+        Returns true if the parameter is a covariance input
+        """
+        if self._covariance_inputs is None:
+            return False # kernel does not have covariance inputs
+        
+        # search for the parameter in the inputs and init_inputs
+        param_index = None
+        input_groups = (self.inputs, self.init_inputs)
+        i_ig = 0
+        while param_index is None and i_ig < len(input_groups):
+            input_group = input_groups[i_ig]
+            for i_p, candidate_param in enumerate(input_group):
+                if candidate_param.session_id == param.session_id:
+                    param_index = i_p
+                    break
+            i_ig += 1
+
+        if param_index is None:
+            # search for the parameter in the phony inputs and phony init_inputs
+            input_groups = (self.phony_inputs, self.phony_init_inputs)
+            i_ig = 0
+            while param_index is None and i_ig < len(input_groups):
+                input_group = input_groups[i_ig]
+                for i_p in input_group:
+                    if input_group[i_p].session_id == param.session_id:
+                        param_index = i_p
+                        break
+                i_ig += 1
+
+        return (param_index in self._covariance_inputs)

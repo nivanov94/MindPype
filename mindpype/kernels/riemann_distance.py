@@ -35,6 +35,8 @@ class RiemannDistanceKernel(Kernel):
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
+        self._covariance_inputs = (0,1)
+
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data

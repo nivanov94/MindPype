@@ -41,6 +41,7 @@ class TangentSpaceKernel(Kernel):
 
         self._sample_weight = sample_weight
         self._tsupdate = tsupdate
+        self._covariance_inputs = (0,)
         
         
     def _initialize(self, init_inputs, init_outputs, labels):

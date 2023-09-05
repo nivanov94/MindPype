@@ -221,6 +221,7 @@ class Graph(MPBase):
                         # add phony init for verification
                         e_data = n_ii.make_copy() # create a copy of the data object
                         phony_edge = Edge(e_data) # create the edge
+                        phony_edge.add_consumer(n)
                         self._phony_edges[n_ii.session_id] = phony_edge
                         n.kernel.phony_init_inputs[i_ii] = phony_edge.data # add to the kernel
 
@@ -283,7 +284,10 @@ class Graph(MPBase):
         Initialize phony edges with random data for validation
         """
         for e in self._phony_edges:
-            self._phony_edges[e].data.assign_random_data()
+            cov = False
+            if self._phony_edges[e].is_covariance_input():
+                cov = True
+            self._phony_edges[e].data.assign_random_data(covariance=cov)
 
         for e in self._phony_labels:
             self._phony_labels[e].data.assign_random_data(whole_numbers=True)
@@ -822,6 +826,24 @@ class Edge:
 
             # assign the phony tensor to the consumer's corresponding input
             c.kernel.phony_inputs[input_index] = self.data
+
+    def is_covariance_input(self):
+        """
+        Check whether the data object contained within the edge is a covariance
+        matrix
+
+        Return
+        ------
+        bool : True if the data object is a covariance matrix, False otherwise
+        """
+        if len(self.consumers) == 0:
+            return False
+
+        # get one of the consumers of this edge
+        consumer = self.consumers[0]
+
+        # check whether this edge is a covariance input to the consumer
+        return consumer.kernel.is_covariance_input(self.data)
 
 
 class Parameter:

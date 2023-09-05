@@ -42,6 +42,7 @@ class RiemannMDMClassifierKernel(Kernel):
         self.outputs = [outA]
 
         self._initialized = False
+        self._covariance_inputs = (0,)
 
         if initialization_data is not None:
             self.init_inputs = [initialization_data]

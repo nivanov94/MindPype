@@ -53,6 +53,8 @@ class RiemannPotatoKernel(Kernel):
         self._initialized = False
         self._potato_filter = None
 
+        self._covariance_inputs = (0,)
+
         
     
     def _initialize(self, init_inputs, init_outputs, labels):
