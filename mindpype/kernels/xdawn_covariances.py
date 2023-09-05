@@ -81,7 +81,7 @@ class XDawnCovarianceKernel(Kernel):
             if init_out.shape != (Nt,Nc,Nc):
                 init_out.shape = (Nt,Nc,Nc)
             # process the initialization data
-            self._process_data(init_inputs, init_outputs)
+            self._process_data([init_in], init_outputs)
 
     def _process_data(self, inputs, outputs):
         """

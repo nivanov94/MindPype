@@ -43,12 +43,15 @@ class RiemannMeanKernel(Kernel):
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
+        if init_in.mp_type != MPEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # update output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape[-2:] # TODO what are the expected inputs? will we ever compute more than one mean here?
 
-            self._process_data(init_inputs, init_outputs)
+            self._process_data([init_in], init_outputs)
             
 
     def _process_data(self, inputs, outputs):

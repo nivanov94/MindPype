@@ -89,13 +89,16 @@ class BaselineCorrectionKernel(Kernel):
         init_in = self.init_inputs[0]
         init_out = self.init_outputs[0]
         
+        if init_in.mp_type != MPEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # Set the initialization output shape
             if init_out.virtual:
                 output_shape = list(init_in.shape)
                 init_out.shape = tuple(output_shape)
             
-            sts = self._process_data(init_inputs, init_outputs)
+            self._process_data([init_in], init_outputs)
 
     def _process_data(self, inputs, outputs):
         inA = inputs[0]

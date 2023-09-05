@@ -59,6 +59,9 @@ class RiemannMDMClassifierKernel(Kernel):
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
+        if init_in.mp_type != MPEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
         # compute init output
         if init_out is not None:
             # adjust the shape of init output tensor
@@ -66,7 +69,7 @@ class RiemannMDMClassifierKernel(Kernel):
                 init_out.shape = (init_in.shape[0],)
 
             # compute the init output
-            self._process_data(init_inputs, init_outputs)
+            self._process_data([init_in], init_outputs)
 
 
     def _train_classifier(self, init_in, labels):

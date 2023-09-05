@@ -52,7 +52,7 @@ class TangentSpaceKernel(Kernel):
         init_out = init_outputs[0]
 
         if init_in.mp_type != MPEnums.TENSOR:
-            raise TypeError("Tangent Space Kernel: Initialization input must be a Tensor")
+            init_in = init_in.to_tensor()
 
         # fit the tangent space
         self._tangent_space = TangentSpace()
@@ -69,7 +69,7 @@ class TangentSpaceKernel(Kernel):
             if init_out.virtual:
                 init_out.shape = (Nt, Nc*(Nc+1)//2)
             
-            self._process_data(init_inputs, init_outputs)
+            self._process_data([init_in], init_outputs)
 
     def _process_data(self, inputs, outputs):
         """

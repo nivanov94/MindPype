@@ -46,13 +46,17 @@ class RiemannDistanceKernel(Kernel):
         init_inA, init_inB = init_inputs
         init_out = init_outputs[0]
 
+        for init_in in (init_inA, init_inB):
+            if init_in.mp_type != MPEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
             # update output size, as needed
             if init_out.virtual:
                 output_sz = self._compute_output_shape(init_inA, init_inB)
                 init_out.shape = output_sz
 
-            sts = self._process_data(init_inputs, init_outputs)
+            self._process_data([init_inA, init_inB], init_outputs)
 
         
     def _compute_output_shape(self, inA, inB):

@@ -48,6 +48,10 @@ class ConcatenationKernel(Kernel):
         init_inB = init_inputs[1]
         init_out = init_outputs[0]
 
+        for init_in in (init_inA, init_inB):
+            if init_in.mp_type != MPEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
             # determine if the axis needs to be adjusted for init
             # start by getting the inputs to compare the rank of the init and non-init data
@@ -251,7 +255,6 @@ class EnqueueKernel(Kernel):
                 enqueue_flag.data_type not in (int, bool)):
                 raise TypeError("EnqueueKernel requires enqueue flag to be a scalar boolean")
             
-    
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy function
@@ -339,6 +342,9 @@ class ExtractKernel(Kernel):
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
+
+        if init_in.mp_type != MPEnums.TENSOR:
+            init_in = init_in.to_tensor()
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # determine init output shape
@@ -633,6 +639,7 @@ class StackKernel(Kernel):
         # ensure the output shape equals the expected output shape
         if outA.shape != output_shape:
             raise ValueError("StackKernel output shape does not match expected output shape")
+        
 
     def _process_data(self, inputs, outputs):
         """
@@ -729,6 +736,10 @@ class TensorStackKernel(Kernel):
         init_inA, init_inB = init_inputs
         init_out = init_outputs[0]
 
+        for init_in in (init_inA, init_inB):
+            if init_in.mp_type != MPEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
             # adjust the init output shape
             if init_out.virtual:
@@ -739,7 +750,7 @@ class TensorStackKernel(Kernel):
                 # adjust axis to accomodate stack of input data
                 self._axis += 1
                 axis_adjusted = True
-            self._process_data(init_inputs, init_outputs)
+            self._process_data([init_inA, init_inB], init_outputs)
 
             if axis_adjusted:
                 self._axis -= 1 # adjust back for trial processing

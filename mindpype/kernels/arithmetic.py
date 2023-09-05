@@ -25,12 +25,15 @@ class Unary:
         accepted_inputs = (MPEnums.TENSOR,MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
         if init_in.mp_type not in accepted_inputs:
             raise TypeError("Invalid initialization input type")
-    
+
+        if init_in.mp_type != MPEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
         # set the output size, as needed
         if init_out.virtual:
             init_out.shape = init_in.shape
 
-        self._process_data(init_inputs, init_outputs)
+        self._process_data([init_in], init_outputs)
 
 
 class AbsoluteKernel(Unary, Kernel):

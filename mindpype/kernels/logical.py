@@ -15,12 +15,15 @@ class Unary:
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
+        if init_in.mp_type != MPEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # set the output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
 
-            self._process_data(init_inputs, init_outputs)
+            self._process_data([init_in], init_outputs)
 
     
 class NotKernel(Unary, Kernel):
