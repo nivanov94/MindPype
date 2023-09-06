@@ -50,10 +50,10 @@ class CDFKernel(Kernel):
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
-        if init_in.mp_type != MPEnums.TENSOR:
-            init_in = init_in.to_tensor()
-
         if init_out is not None and (init_in is not None and init_in.shape != ()):
+            if init_in.mp_type != MPEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
             # update output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
@@ -324,10 +324,10 @@ class Descriptive:
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
-        if init_in.mp_type != MPEnums.TENSOR:
-            init_in = init_in.to_tensor()
-
         if init_out is not None and (init_in is not None and init_in.shape != ()):
+            if init_in.mp_type != MPEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
             # update the output shape, as needed
             axis_adjusted = False
             if (len(self.inputs[0].shape) != len(init_in.shape) and

@@ -42,10 +42,9 @@ class PadKernel(Kernel):
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
-        if init_in.mp_type != MPEnums.TENSOR:
-            init_in = init_in.tensor()
-
         if init_out is not None and (init_in is not None and init_in.shape != ()):
+            if init_in.mp_type != MPEnums.TENSOR:
+                init_in = init_in.tensor()
 
             params_adjusted = False
 

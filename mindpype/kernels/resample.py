@@ -41,10 +41,10 @@ class ResampleKernel(Kernel):
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
-        if init_in.mp_type != MPEnums.TENSOR:
-            init_in = init_in.to_tensor()
-        
         if init_out is not None and (init_in is not None and init_in.shape != ()):
+            if init_in.mp_type != MPEnums.TENSOR:
+                init_in = init_in.to_tensor()
+
             axis_adjusted = False
             if len(init_in.shape) == len(self.inputs[0].shape)+1 and self._axis >= 0:
                 self._axis += 1

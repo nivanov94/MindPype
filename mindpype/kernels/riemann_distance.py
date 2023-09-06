@@ -47,7 +47,7 @@ class RiemannDistanceKernel(Kernel):
         init_out = init_outputs[0]
 
         for init_in in (init_inA, init_inB):
-            if init_in.mp_type != MPEnums.TENSOR:
+            if init_in is not None and init_in.mp_type != MPEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
         if init_out is not None and (init_inA is not None and init_inA.shape != ()):
