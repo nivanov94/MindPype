@@ -130,7 +130,7 @@ class FilterKernel(Filter, Kernel):
 
 
     @classmethod
-    def add_filter_node(cls,graph,inputA,filt,outputA,axis=1):
+    def add_filter_node(cls,graph,inputA,filt,outputA,axis=1,init_input=None,init_labels=None):
         """
         Factory method to create a filter kernel and add it to a graph
         as a generic node object.
@@ -170,6 +170,10 @@ class FilterKernel(Filter, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
         
         return node
 
@@ -221,7 +225,7 @@ class FiltFiltKernel(Filter, Kernel):
             raise TypeError('FiltFilt kernel: fir filter not supported')
 
     @classmethod
-    def add_filtfilt_node(cls,graph,inputA,filt,outputA,axis=1):
+    def add_filtfilt_node(cls,graph,inputA,filt,outputA,axis=1,init_input=None,init_labels=None):
         """
         Factory method to create a filtfilt kernel and add it to a graph
         as a generic node object.
@@ -261,6 +265,10 @@ class FiltFiltKernel(Filter, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
         
         return node
 

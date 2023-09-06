@@ -106,7 +106,7 @@ class CDFKernel(Kernel):
                                        scale=self._scale)
 
     @classmethod
-    def add_cdf_node(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1):
+    def add_cdf_node(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1,init_input=None,init_labels=None):
         """
         Factory method to create a CDF node
         """
@@ -123,6 +123,10 @@ class CDFKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
 
@@ -245,11 +249,11 @@ class CovarianceKernel(Kernel):
             # reshape the input data so it's rank 3
             input_data = np.reshape(input_data,(-1,) + shape[-2:])
             output_data = np.zeros((input_data.shape[0],input_data.shape[1],
-                                    input_data[1]))
+                                    input_data.shape[1]))
             
             # calculate the covariance for each 'trial'
             for i in range(output_data.shape[0]):
-                covmat = np.cov(input_data)
+                covmat = np.cov(input_data[i,:,:])
                 output_data[i,:,:] = (1/(1+self._r) * 
                                         (covmat + self._r*np.eye(covmat.shape[0])))
             
@@ -258,7 +262,7 @@ class CovarianceKernel(Kernel):
             
     
     @classmethod
-    def add_covariance_node(cls,graph,inputA,outputA,regularization=0):
+    def add_covariance_node(cls,graph,inputA,outputA,regularization=0,init_input=None,init_labels=None):
         """
         Factory method to create a covariance kernel and add it to a graph
         as a generic node object.
@@ -304,6 +308,10 @@ class CovarianceKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
 
@@ -378,7 +386,7 @@ class MaxKernel(Descriptive, Kernel):
                                       keepdims=self._keepdims)
 
     @classmethod
-    def add_max_node(cls,graph,inA,outA,axis=None,keepdims=False):
+    def add_max_node(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a maximum value kernel 
         and add it to a graph as a generic node object.
@@ -413,6 +421,10 @@ class MaxKernel(Descriptive, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
 
@@ -456,7 +468,7 @@ class MinKernel(Descriptive, Kernel):
                                       keepdims=self._keepdims)
 
     @classmethod
-    def add_min_node(cls,graph,inA,outA,axis=None,keepdims=False):
+    def add_min_node(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a minimum value kernel 
         and add it to a graph as a generic node object.
@@ -493,6 +505,10 @@ class MinKernel(Descriptive, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
 
@@ -538,7 +554,7 @@ class MeanKernel(Descriptive, Kernel):
                                       keepdims=self._keepdims)
 
     @classmethod
-    def add_mean_node(cls,graph,inA,outA,axis=None,keepdims=False):
+    def add_mean_node(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a mean calculating kernel
 
@@ -574,6 +590,10 @@ class MeanKernel(Descriptive, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
 
@@ -641,7 +661,7 @@ class StdKernel(Descriptive, Kernel):
                                 keepdims=self._keepdims)
 
     @classmethod
-    def add_std_node(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False):
+    def add_std_node(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to add a standard deviation node to a graph
 
@@ -678,6 +698,10 @@ class StdKernel(Descriptive, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
 
@@ -743,7 +767,7 @@ class VarKernel(Descriptive, Kernel):
                                  keepdims=self._keepdims)
 
     @classmethod
-    def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keep_dims=False):
+    def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keep_dims=False,init_input=None,init_labels=None):
         """
         Factory method to create a variance kernel
 
@@ -779,6 +803,10 @@ class VarKernel(Descriptive, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
 

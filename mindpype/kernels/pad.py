@@ -91,7 +91,9 @@ class PadKernel(Kernel):
         outputs[0].data = out_data
 
     @classmethod
-    def add_pad_node(cls, graph, inA, outA, pad_width = None, mode = 'constant', stat_length = None, constant_values = 0, end_values = 0, reflect_type = 'even', **kwargs):
+    def add_pad_node(cls, graph, inA, outA, pad_width = None, mode = 'constant', 
+                     stat_length = None, constant_values = 0, end_values = 0, 
+                     reflect_type = 'even', init_input=None, init_labels=None, **kwargs):
         """
         Add a pad kernel to the graph
 
@@ -162,5 +164,9 @@ class PadKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
         
         return node

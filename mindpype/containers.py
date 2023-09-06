@@ -216,15 +216,18 @@ class Scalar(MPBase):
         
             if isinstance(data, np.integer):
                 data = int(data)
-            elif isinstance(data, np.float):
-                data = float(data)
-            elif isinstance(data,np.complex):
+            elif isinstance(data, np.float_):
+                if data.is_integer() and self.data_type == int:
+                    data = int(data)
+                else:
+                    data = float(data)
+            elif isinstance(data,np.complex_):
                 data = complex(data)
         
         if type(data) == self.data_type:
             self._data = data
         else:
-            raise ValueError(("MindPype Scalar contains data of type {}. Cannot" +\
+            raise TypeError(("MindPype Scalar contains data of type {}. Cannot" +\
                               " set data to type {}").format(self.data_type,
                                                              type(data))) 
 
@@ -1061,15 +1064,15 @@ class Array(MPBase):
         """
         element = self.get_element(0)
 
-        if not (element.bcip_type == MPEnums.TENSOR or
-                (element.bcip_type == MPEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
+        if not (element.mp_type == MPEnums.TENSOR or
+                (element.mp_type == MPEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
             return None
 
         # extract elements and stack into numpy array
         elements = [self.get_element(i).data for i in range(self.capacity)]
         stacked_elements = np.stack(elements)
         
-        if element._bcip_type == MPEnums.TENSOR:
+        if element.mp_type == MPEnums.TENSOR:
             shape = (self.capacity,) + element.shape
         else:
             shape = (self.capacity,)
@@ -1320,7 +1323,7 @@ class CircleBuffer(Array):
         for i in range(self.capacity):
             dest_array.set_element(i,self.get_element(i))
             
-        if dest_array._bcip_type == MPEnums.CIRCLE_BUFFER:
+        if dest_array.mp_type == MPEnums.CIRCLE_BUFFER:
             # copy the head and tail as well
             dest_array._tail = self._tail
             dest_array._head = self._head
@@ -1351,6 +1354,14 @@ class CircleBuffer(Array):
                                         axis=0)
         
         return Tensor.create_from_data(self.session, valid_data.shape, valid_data)
+    
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
+        """
+        Assign random data to the buffer. This is useful for testing and verification purposes.
+        """
+        super().assign_random_data(whole_numbers, vmin, vmax, covariance)
+        self._head = 0
+        self._tail = self.capacity - 1
         
     @classmethod
     def create(cls,sess,capacity,element_template):

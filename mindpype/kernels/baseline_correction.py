@@ -127,7 +127,7 @@ class BaselineCorrectionKernel(Kernel):
 
 
     @classmethod
-    def add_baseline_node(cls, graph, inputA, outputA, baseline_period):
+    def add_baseline_node(cls, graph, inputA, outputA, baseline_period, init_input=None, init_labels=None):
         """
         Factory method to add a baseline correction kernel to a graph
 
@@ -160,5 +160,9 @@ class BaselineCorrectionKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node

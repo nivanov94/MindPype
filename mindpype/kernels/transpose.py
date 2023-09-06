@@ -78,7 +78,7 @@ class TransposeKernel(Kernel):
         outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 
     @classmethod
-    def add_transpose_node(cls,graph,inputA,outputA,axes=None):
+    def add_transpose_node(cls,graph,inputA,outputA,axes=None,init_input=None,init_labels=None):
         """
         Factory method to create a transpose kernel and add it to a graph
         as a generic node object.
@@ -115,5 +115,9 @@ class TransposeKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
         
         return node

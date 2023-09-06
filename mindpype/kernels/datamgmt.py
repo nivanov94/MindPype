@@ -1,7 +1,6 @@
 from ..core import MPBase, MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Scalar
 
 import numpy as np
 import warnings
@@ -157,7 +156,7 @@ class ConcatenationKernel(Kernel):
         
 
     @classmethod
-    def add_concatenation_node(cls,graph,inA,inB,outA,axis=0):
+    def add_concatenation_node(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
         """
         Factory method to create a concatenation kernel and add it to a graph
         as a generic node object.
@@ -196,6 +195,10 @@ class ConcatenationKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs,init_labels)
         
         return node
 
@@ -254,6 +257,15 @@ class EnqueueKernel(Kernel):
             if (enqueue_flag.mp_type != MPEnums.SCALAR or
                 enqueue_flag.data_type not in (int, bool)):
                 raise TypeError("EnqueueKernel requires enqueue flag to be a scalar boolean")
+            
+        # check that the datatypes match
+        if d_in.mp_type != d_io.get_element(0).mp_type:
+            raise TypeError("Enqueue kernel requires input type to match element type of circle buffer")
+        
+        # if the input is a tensor, check that the dimensions match
+        if d_in.mp_type == MPEnums.TENSOR:
+            if d_in.shape != d_io.get_element(0).shape:
+                raise ValueError("Enqueue kernel requires input tensor shape to match element shape of circle buffer")
             
     def _process_data(self, inputs, outputs):
         """
@@ -333,7 +345,7 @@ class ExtractKernel(Kernel):
         super().__init__('Extract',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
-        self._indices = indices
+        self._indices = list(indices)
         self._reduce_dims = reduce_dims
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -350,8 +362,10 @@ class ExtractKernel(Kernel):
             # determine init output shape
         
             add_batch_dim = False
-            if len(init_in.shape) == (len(self.inputs[0].shape)+1):
+            if (self.inputs[0].mp_type == MPEnums.TENSOR and
+                len(init_in.shape) == (len(self.inputs[0].shape)+1)):
                 init_output_shape = (init_in.shape[0],) + self.outputs[0].shape
+                self._indices.insert(0, ":")
                 add_batch_dim = True
             
             elif len(init_in.shape) == len(self.inputs[0].shape):
@@ -360,24 +374,14 @@ class ExtractKernel(Kernel):
             if init_out.virtual:
                 init_out.shape = init_output_shape
 
-                if init_out.shape != init_output_shape:
-                    raise ValueError("ExtractKernel initialization output shape does not match expected output shape")
+            if init_out.shape != init_output_shape:
+                raise ValueError("ExtractKernel initialization output shape does not match expected output shape")
 
-                # TODO a lot of repeated code from execute below, determine how best to refactor
-                d_in = self.inputs[0]
-                if (init_in.mp_type != MPEnums.TENSOR and
-                    d_in.mp_type == MPEnums.TENSOR):
-                    init_in = init_in.to_tensor()
+            self._process_data([init_in], init_outputs)
 
-                    # insert an additional slice for the batch dimension
-                    if add_batch_dim and init_in.mp_type == MPEnums.TENSOR:
-                        self._indices.insert(0, ":")
-
-                self._process_data(init_in, init_out)
-
-                # remove the additional slice for the batch dimension
-                if add_batch_dim and init_in.mp_type == MPEnums.TENSOR:
-                    self._indices.pop(0)
+            # remove the additional slice for the batch dimension
+            if add_batch_dim:
+                self._indices.pop(0)
     
     def _verify(self):
         """
@@ -531,7 +535,7 @@ class ExtractKernel(Kernel):
         
 
     @classmethod
-    def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False):
+    def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False,init_input=None,init_labels=None):
         """
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
@@ -572,6 +576,10 @@ class ExtractKernel(Kernel):
         # add the node to the graph
         graph.add_node(node)
         
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
+
         return node
 
 class StackKernel(Kernel):
@@ -801,7 +809,7 @@ class TensorStackKernel(Kernel):
         
     
     @classmethod
-    def add_tensor_stack_node(cls,graph,inA,inB,outA,axis=0):
+    def add_tensor_stack_node(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
         """
         Factory method to create a tensor stack kernel and add it to a graph
         as a generic node object.
@@ -838,6 +846,10 @@ class TensorStackKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs,init_labels)
         
         return node
 

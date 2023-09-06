@@ -38,7 +38,7 @@ class XDawnCovarianceKernel(Kernel):
 
 
     def __init__(self, graph, inA, outA, initialization_data=None, labels=None, num_filters=4, applyfilters=True, 
-                 classes=None, estimator='scm', xdawn_estimator='scm', baseline_cov=None):
+                 classes=None, estimator='scm', xdawn_estimator='scm', baseline_cov=None, num_classes=2):
         """
         Constructor for the XDawnCovarianceKernel class
         """
@@ -52,7 +52,8 @@ class XDawnCovarianceKernel(Kernel):
         if labels is not None:
             self.init_input_labels = labels
 
-        self._itialized = False
+        self._initialized = False
+        self._num_filters = num_filters
         self._xdawn_estimator = XdawnCovariances(num_filters, applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -71,13 +72,15 @@ class XDawnCovarianceKernel(Kernel):
         if labels.mp_type != MPEnums.TENSOR:
             labels = labels.to_tensor()
 
+        if np.unique(labels.data).shape[0] != self._num_classes:
+            raise ValueError("Number of unique labels must match number of classes")
+
         self._xdawn_estimator.fit(init_in.data, np.squeeze(labels.data))
         
         if init_in is not None and init_out is not None:
             # update the init output shape as needed
-            n_classes = np.unique(np.squeeze(labels.data)).shape[0]
             Nt = init_in.shape[0]
-            Nc = self._xdawn_estimator.nfilter*(n_classes**2)
+            Nc = self._xdawn_estimator.nfilter*(self._num_classes**2)
             if init_out.shape != (Nt,Nc,Nc):
                 init_out.shape = (Nt,Nc,Nc)
             # process the initialization data
@@ -109,7 +112,7 @@ class XDawnCovarianceKernel(Kernel):
     @classmethod
     def add_xdawn_covariance_node(cls, graph, inA, outA, initialization_data=None, labels=None,
                                   num_filters=4, applyfilters=True, classes=None, 
-                                  estimator='scm', xdawn_estimator='scm', baseline_cov=None):
+                                  estimator='scm', xdawn_estimator='scm', baseline_cov=None, num_classes=2):
         """
         Factory method to create xdawn_covariance kernel, add it to a node, and add the node to the specified graph.
 
@@ -145,7 +148,7 @@ class XDawnCovarianceKernel(Kernel):
             Node containing the kernel
         """
         kernel = cls(graph, inA, outA, initialization_data, labels, num_filters,
-                     applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
+                     applyfilters, classes, estimator, xdawn_estimator, baseline_cov, num_classes)
         
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))

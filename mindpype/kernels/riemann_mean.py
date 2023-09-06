@@ -58,7 +58,7 @@ class RiemannMeanKernel(Kernel):
         outputs[0].data = mean_riemann(inputs[0].data, sample_weight=self._w)
 
     @classmethod
-    def add_riemann_mean_node(cls,graph,inA,outA,weights=None):
+    def add_riemann_mean_node(cls,graph,inA,outA,weights=None,init_input=None,init_labels=None):
         """
         Factory method to create a Riemann mean calculating kernel
 
@@ -88,6 +88,10 @@ class RiemannMeanKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input],init_labels)
         
         return node
     

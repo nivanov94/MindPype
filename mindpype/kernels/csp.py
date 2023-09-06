@@ -38,7 +38,7 @@ class CommonSpatialPatternKernel(Kernel):
         self.num_filts = num_filts
         self._init_params = init_params
         self.multi_class_mode = multi_class_mode
-        self.num_classes = Ncls
+        self._num_classes = Ncls
 
         if 'initialization_data' in init_params:
             self.init_inputs = [init_params['initialization_data']]
@@ -115,7 +115,7 @@ class CommonSpatialPatternKernel(Kernel):
         unique_labels = np.unique(y)
         Nl = unique_labels.shape[0]
         
-        if Nl != self.num_classes:
+        if Nl != self._num_classes:
             raise ValueError('Number of unique labels in initialization data does not match number of classes')
         
         if Nl == 2:
@@ -223,22 +223,22 @@ class CommonSpatialPatternKernel(Kernel):
         if len(d_in.shape) != 2 and len(d_in.shape) != 3:
             raise ValueError('Input tensor must be two- or three-dimensional')
         
-        if self.num_classes < 2:
+        if self._num_classes < 2:
             raise ValueError('Number of classes must be greater than 1')
         
-        if (self.num_classes > 2 and 
+        if (self._num_classes > 2 and 
             self.multi_class_mode not in ('OVA', 'PW')):
             raise ValueError('Invalid multi-class mode specified')
 
         # if the output is a virtual tensor and dimensionless, 
         # add the dimensions now
-        if self.num_classes == 2:
+        if self._num_classes == 2:
             filt_multiplier = 1
         else:
             if self.multi_class_mode == 'OVA':
-                filt_multiplier = self.num_classes
+                filt_multiplier = self._num_classes
             else:
-                filt_multiplier = int(binom(self.num_classes,2))
+                filt_multiplier = int(binom(self._num_classes,2))
                 
         if len(d_in.shape) == 2:
             out_sz = (self.num_filts*filt_multiplier,d_in.shape[1])

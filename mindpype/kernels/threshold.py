@@ -94,7 +94,7 @@ class ThresholdKernel(Kernel):
         outputs[0].data = inputs[0].data > thresh.data
     
     @classmethod
-    def add_threshold_node(cls,graph,inA,outA,thresh):
+    def add_threshold_node(cls,graph,inA,outA,thresh,init_inputs=None,init_labels=None):
         """
         Factory method to create a threshold value kernel 
         and add it to a graph as a generic node object.
@@ -133,5 +133,9 @@ class ThresholdKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node

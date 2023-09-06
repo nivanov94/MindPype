@@ -38,13 +38,14 @@ class ClassifierKernel(Kernel):
         (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
     """
 
-    def __init__(self, graph, inA, classifier, prediction, output_probs, initialization_data = None, labels = None):
+    def __init__(self, graph, inA, classifier, prediction, output_probs, num_classes, initialization_data = None, labels = None):
         super().__init__('Classifier', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self._classifier = classifier
         self.outputs = [prediction, output_probs]
         
         self._initialized = False
+        self._num_classes = num_classes
 
         if initialization_data is not None:
             self.init_inputs = [initialization_data]
@@ -74,6 +75,9 @@ class ClassifierKernel(Kernel):
 
         if len(y.shape) == 2:
             y = np.squeeze(y)
+
+        if np.unique(y).shape[0] != self._num_classes:
+            raise ValueError('Number of classes in initialization data does not match num_classes parameter')
 
         # initialize the classifier
         self._classifier._classifier.fit(X, y)
@@ -155,7 +159,7 @@ class ClassifierKernel(Kernel):
         
 
     @classmethod
-    def add_classifier_node(cls, graph, inA, classifier, outA, outB = None, initialization_data = None, labels = None):
+    def add_classifier_node(cls, graph, inA, classifier, outA, outB = None, num_classes = 2, initialization_data = None, labels = None):
         """
         Factory method to create a classifier kernel and add it to a graph as a generic node object
         
@@ -187,7 +191,7 @@ class ClassifierKernel(Kernel):
         """
 
         #create the kernel object
-        c = cls(graph, inA, classifier, outA, outB, initialization_data, labels)
+        c = cls(graph, inA, classifier, outA, outB, num_classes, initialization_data, labels)
 
         params = (Parameter(inA, MPEnums.INPUT),
                   Parameter(outA, MPEnums.OUTPUT))

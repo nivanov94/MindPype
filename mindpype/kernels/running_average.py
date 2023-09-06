@@ -97,7 +97,7 @@ class RunningAverageKernel(Kernel):
 
 
     @classmethod
-    def add_running_average_node(cls, graph, inA, outA, running_average_len, axis=0, flush_on_init=False):
+    def add_running_average_node(cls, graph, inA, outA, running_average_len, axis=0, flush_on_init=False, init_input=None, init_labels=None):
         """
         Factory method to create running average node and add it to the specified graph
 
@@ -135,5 +135,9 @@ class RunningAverageKernel(Kernel):
         node = Node(graph, kernel, params)
 
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
 
         return node

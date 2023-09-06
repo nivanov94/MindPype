@@ -54,7 +54,7 @@ class NotKernel(Unary, Kernel):
         outputs[0].data = np.logical_not(inputs[0].data)
 
     @classmethod
-    def add_not_node(cls,graph,inA,outA):
+    def add_not_node(cls,graph,inA,outA,init_input=None,init_labels=None):
         """
         Factory method to create a logical NOT kernel 
         and add it to a graph as a generic node object.
@@ -88,6 +88,10 @@ class NotKernel(Unary, Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
         
         return node
 
@@ -159,7 +163,7 @@ class AndKernel(Binary,Kernel):
         outputs[0].data = np.logical_and(inputs[0].data, inputs[1].data)
 
     @classmethod
-    def add_and_node(cls,graph,inA,inB,outA):
+    def add_and_node(cls,graph,inA,inB,outA,init_inputs=None,init_labels=None):
         """
         Factory method to create a logical AND kernel 
         and add it to a graph as a generic node object.
@@ -193,6 +197,10 @@ class AndKernel(Binary,Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node
 
@@ -230,7 +238,7 @@ class OrKernel(Binary,Kernel):
         outputs[0].data = np.logical_or(inputs[0].data, inputs[1].data)
 
     @classmethod
-    def add_or_node(cls,graph,inA,inB,outA):
+    def add_or_node(cls,graph,inA,inB,outA,init_inputs=None,init_labels=None):
         """
         Factory method to create a logical OR kernel 
         and add it to a graph as a generic node object.
@@ -263,6 +271,10 @@ class OrKernel(Binary,Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node
 
@@ -300,7 +312,7 @@ class XorKernel(Binary,Kernel):
         outputs[0].data = np.logical_xor(inputs[0].data, inputs[1].data)
 
     @classmethod
-    def add_xor_node(cls,graph,inA,inB,outA):
+    def add_xor_node(cls,graph,inA,inB,outA,init_inputs=None,init_labels=None):
         """
         Factory method to create a logical XOR kernel 
         and add it to a graph as a generic node object.
@@ -333,6 +345,10 @@ class XorKernel(Binary,Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node
 
@@ -372,7 +388,7 @@ class GreaterKernel(Binary,Kernel):
         outputs[0].data = inputs[0].data > inputs[1].data
 
     @classmethod
-    def add_greater_node(cls,graph,inA,inB,outA):
+    def add_greater_node(cls,graph,inA,inB,outA,init_inputs=None,init_labels=None):
         """
         Factory method to create a greater than comparison kernel 
         and add it to a graph as a generic node object.
@@ -407,6 +423,10 @@ class GreaterKernel(Binary,Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node
 
@@ -447,7 +467,7 @@ class LessKernel(Binary,Kernel):
         outputs[0].data = inputs[0].data < inputs[1].data
 
     @classmethod
-    def add_less_node(cls,graph,inA,inB,outA):
+    def add_less_node(cls,graph,inA,inB,outA,init_inputs=None,init_labels=None):
         """
         Factory method to create a less than comparison kernel 
         and add it to a graph as a generic node object.
@@ -480,6 +500,10 @@ class LessKernel(Binary,Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node
 
@@ -515,7 +539,7 @@ class EqualKernel(Binary,Kernel):
         outputs[0].data = inputs[0].data == inputs[1].data
 
     @classmethod
-    def add_equal_node(cls,graph,inA,inB,outA):
+    def add_equal_node(cls,graph,inA,inB,outA,init_inputs=None,init_labels=None):
         """
         Factory method to create a equality comparison kernel 
         and add it to a graph as a generic node object.
@@ -534,5 +558,9 @@ class EqualKernel(Binary,Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, then add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node

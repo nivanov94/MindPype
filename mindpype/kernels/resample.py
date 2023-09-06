@@ -66,7 +66,7 @@ class ResampleKernel(Kernel):
 
     
     @classmethod
-    def add_resample_node(cls,graph,inA,factor,outA,axis=1):
+    def add_resample_node(cls,graph,inA,factor,outA,axis=1,init_input=None,init_labels=None):
         """
         Factory method to create an extract kernel 
         and add it to a graph as a generic node object.
@@ -106,5 +106,9 @@ class ResampleKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
         
         return node

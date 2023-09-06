@@ -2,6 +2,7 @@ from .core import MPBase, MPEnums
 from abc import ABC
 from .containers import Tensor
 import sys
+import numpy as np
 
 class Kernel(MPBase, ABC):
     """
@@ -30,6 +31,7 @@ class Kernel(MPBase, ABC):
         super().__init__(MPEnums.KERNEL,session)
         self._name = name
         self._init_style = init_style
+        self._num_classes = None
 
         self._inputs = []
         self._outputs = []
@@ -538,6 +540,14 @@ class Kernel(MPBase, ABC):
             else:
                 verif_init_labels = self.init_input_labels
 
+            # adjust labels if needed
+            if self._num_classes is not None:
+                if verif_init_labels.mp_type != MPEnums.TENSOR:
+                    verif_init_labels = verif_init_labels.to_tensor()
+            
+                if np.unique(verif_init_labels.data).shape[0] != self._num_classes:
+                    verif_init_labels.assign_random_data(whole_numbers=True, vmin=0, vmax=(self._num_classes-1))
+
             # attempt initialization
             try:
                 self._initialize(verif_init_inputs, verif_init_outputs, verif_init_labels)
@@ -633,3 +643,20 @@ class Kernel(MPBase, ABC):
         Default method for kernels without initialization procedures
         """
         pass
+
+    def add_initialization_data(self, init_data, init_labels=None):
+        """
+        Add initialization data to the kernel
+
+        Parameters
+        ----------
+        init_data : list or tuple of MindPype data objects
+            MindPype container containing the initialization data
+        init_labels : MindPype data object containing initialization labels, default = None
+            MindPype container containing the initialization labels
+
+        """
+        if init_labels is not None:
+            self.init_input_labels = init_labels
+
+        self.init_inputs = list(init_data)

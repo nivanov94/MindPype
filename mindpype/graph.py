@@ -199,29 +199,32 @@ class Graph(MPBase):
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled
                 raise Exception("Invalid graph, nodes cannot be scheduled, check connections between nodes.")
+            
+        # assign default initialization data to nodes that require it
+        self._assign_default_init_data()
         
-        # Add phony edges to the graph and it's node to use for validation
-        self._phony_edges = {}
-        self._phony_labels = {}
-        for n in self._nodes:
-            n_params = n.extract_inputs() + n.extract_outputs()
-            for n_p in n_params:
-                if not n_p.virtual and n_p.session_id not in self._phony_edges:
-                    # create a phony edge for this parameter
-                    e_data = n_p.make_copy()
-                    phony_edge = Edge(e_data)
-                    real_edge = self._edges[n_p.session_id]
-                    # copy the producers and consumers from the real edge to the phony edge
-                    for p in real_edge.producers:
-                        phony_edge.add_producer(p)
-                    for c in real_edge.consumers:
-                        phony_edge.add_consumer(c)
+        ## Add phony edges to the graph and it's node to use for validation
+        #self._phony_edges = {}
+        #self._phony_labels = {}
+        #for n in self._nodes:
+        #    n_params = n.extract_inputs() + n.extract_outputs()
+        #    for n_p in n_params:
+        #        if not n_p.virtual and n_p.session_id not in self._phony_edges:
+        #            # create a phony edge for this parameter
+        #            e_data = n_p.make_copy()
+        #            phony_edge = Edge(e_data)
+        #            real_edge = self._edges[n_p.session_id]
+        #            # copy the producers and consumers from the real edge to the phony edge
+        #            for p in real_edge.producers:
+        #                phony_edge.add_producer(p)
+        #            for c in real_edge.consumers:
+        #                phony_edge.add_consumer(c)
 
-                    self._phony_edges[n_p.session_id] = phony_edge
+        #            self._phony_edges[n_p.session_id] = phony_edge
 
-        # add the phony edges to the kernels
-        for p_e in self._phony_edges:
-            self._phony_edges[p_e].populate_phony_params(p_e)
+        ## add the phony edges to the kernels
+        #for p_e in self._phony_edges:
+        #    self._phony_edges[p_e].populate_phony_params(p_e)
         
         # now all the nodes are in execution order create any necessary initialization edges
         init_required = False # flag to indicate if any nodes in the graph require initialization
@@ -236,20 +239,20 @@ class Graph(MPBase):
                 for i_ii, n_ii in enumerate(n.kernel.init_inputs):
                     if n_ii is None:
                         init_provided = False
-                    else:
-                        # add phony init for verification
-                        e_data = n_ii.make_copy() # create a copy of the data object
-                        phony_edge = Edge(e_data) # create the edge
-                        phony_edge.add_consumer(n)
-                        self._phony_edges[n_ii.session_id] = phony_edge
-                        n.kernel.phony_init_inputs[i_ii] = phony_edge.data # add to the kernel
+                    #else:
+                    #    # add phony init for verification
+                    #    e_data = n_ii.make_copy() # create a copy of the data object
+                    #    phony_edge = Edge(e_data) # create the edge
+                    #    phony_edge.add_consumer(n)
+                    #    self._phony_edges[n_ii.session_id] = phony_edge
+                    #    n.kernel.phony_init_inputs[i_ii] = phony_edge.data # add to the kernel
 
-                        if n.kernel.init_input_labels is not None:
-                            # create phony input labels edge as well
-                            e_data = n.kernel.init_input_labels.make_copy()
-                            phony_edge = Edge(e_data)
-                            self._phony_labels[n.kernel.init_input_labels.session_id] = phony_edge
-                            n.kernel.phony_init_input_labels = phony_edge.data # add to the kernel
+                    #    if n.kernel.init_input_labels is not None:
+                    #        # create phony input labels edge as well
+                    #        e_data = n.kernel.init_input_labels.make_copy()
+                    #        phony_edge = Edge(e_data)
+                    #        self._phony_labels[n.kernel.init_input_labels.session_id] = phony_edge
+                    #        n.kernel.phony_init_input_labels = phony_edge.data # add to the kernel
 
                 
                 # if not provided, flag that graph will need initialization data propagated through the graph
@@ -262,62 +265,65 @@ class Graph(MPBase):
             for e in self._edges:
                 self._edges[e].insert_init_data()
 
-        # check if all init sources have been provided or if it will need to be provided later
-        self._default_init_required = False
-        if init_required and init_links_missing:
-            # find all nodes that requires initialization data
-            for n in self._nodes:
-                if n.kernel.init_style == MPEnums.INIT_FROM_DATA:
-                    # check if the init inputs have been provided by the user
-                    for n_i, n_ii in zip(n.kernel.inputs, n.kernel.init_inputs):
-                        if n_ii.virtual and n_ii.shape == ():
-                            # init data not explicitly provided
-                            # need to check if the init data is generated by
-                            # upstream nodes
-                            e = self._edges[n_i.session_id]
-                            init_provided = e.find_upstream_init_data(self._edges)
+        # insert phony edges for verification
+        self._insert_phony_edges()
 
-                            if not init_provided:
-                                self._default_init_required = True
-                                warnings.warn("Initialization data not explicitly provided, default graph initialization data will be used.")
+        ## check if all init sources have been provided or if it will need to be provided later
+        #self._default_init_required = False
+        #if init_required and init_links_missing:
+        #    # find all nodes that requires initialization data
+        #    for n in self._nodes:
+        #        if n.kernel.init_style == MPEnums.INIT_FROM_DATA:
+        #            # check if the init inputs have been provided by the user
+        #            for n_i, n_ii in zip(n.kernel.inputs, n.kernel.init_inputs):
+        #                if n_ii.virtual and n_ii.shape == ():
+        #                    # init data not explicitly provided
+        #                    # need to check if the init data is generated by
+        #                    # upstream nodes
+        #                    e = self._edges[n_i.session_id]
+        #                    init_provided = e.find_upstream_init_data(self._edges)
 
-        # set default initialization data as required
-        if self._default_init_required:
-            if self._default_init_data is None:
-                raise Exception("No default initialization data provided, graph is not initialized correctly")
-            
-            # link the default initialization data to all nodes that ingest volatile data
-            for n in self._nodes:
-                n_inputs = n.extract_inputs()
-                root_data_node = False
+        #                    if not init_provided:
+        #                        self._default_init_required = True
+        #                        warnings.warn("Initialization data not explicitly provided, default graph initialization data will be used.")
 
-                # check whether this node ingests data from outside the graph
-                for index, n_i in enumerate(n_inputs):
-                    if len(self._edges[n_i.session_id].producers) == 0:
-                        root_data_node = True
-                        init_data_input_index = index
-                        break
-                
-                if root_data_node:
-                    # copy the default init data to the node's init input
-                    n.kernel.init_inputs[init_data_input_index] = self._default_init_data
-                    if self._default_init_labels is not None:
-                        n.kernel.init_input_labels = self._default_init_labels
+        ## set default initialization data as required
+        #if self._default_init_required:
+        #    if self._default_init_data is None:
+        #        raise Exception("No default initialization data provided, graph is not initialized correctly")
+        #    
+        #    # link the default initialization data to all nodes that ingest volatile data
+        #    for n in self._nodes:
+        #        n_inputs = n.extract_inputs()
+        #        root_data_node = False
 
-                    # add phony init for verification
-                    n_ii = n.kernel.init_inputs[init_data_input_index]
-                    e_data = n_ii.make_copy() # create a copy of the data object
-                    phony_edge = Edge(e_data) # create the edge
-                    phony_edge.add_consumer(n)
-                    self._phony_edges[n_ii.session_id] = phony_edge
-                    n.kernel.phony_init_inputs[init_data_input_index] = phony_edge.data # add to the kernel
+        #        # check whether this node ingests data from outside the graph
+        #        for index, n_i in enumerate(n_inputs):
+        #            if len(self._edges[n_i.session_id].producers) == 0:
+        #                root_data_node = True
+        #                init_data_input_index = index
+        #                break
+        #        
+        #        if root_data_node:
+        #            # copy the default init data to the node's init input
+        #            n.kernel.init_inputs[init_data_input_index] = self._default_init_data
+        #            if self._default_init_labels is not None:
+        #                n.kernel.init_input_labels = self._default_init_labels
 
-                    if n.kernel.init_input_labels is not None:
-                        # create phony input labels edge as well
-                        e_data = n.kernel.init_input_labels.make_copy()
-                        phony_edge = Edge(e_data)
-                        self._phony_labels[n.kernel.init_input_labels.session_id] = phony_edge
-                        n.kernel.phony_init_input_labels = phony_edge.data # add to the kernel
+        #            # add phony init for verification
+        #            n_ii = n.kernel.init_inputs[init_data_input_index]
+        #            e_data = n_ii.make_copy() # create a copy of the data object
+        #            phony_edge = Edge(e_data) # create the edge
+        #            phony_edge.add_consumer(n)
+        #            self._phony_edges[n_ii.session_id] = phony_edge
+        #            n.kernel.phony_init_inputs[init_data_input_index] = phony_edge.data # add to the kernel
+
+        #            if n.kernel.init_input_labels is not None:
+        #                # create phony input labels edge as well
+        #                e_data = n.kernel.init_input_labels.make_copy()
+        #                phony_edge = Edge(e_data)
+        #                self._phony_labels[n.kernel.init_input_labels.session_id] = phony_edge
+        #                n.kernel.phony_init_input_labels = phony_edge.data # add to the kernel
 
 
         # finally, validate each node
@@ -336,18 +342,54 @@ class Graph(MPBase):
         # Done, all nodes scheduled and verified!
         self._verified = True
 
+    def _assign_default_init_data(self):
+        """
+        If default init data exists, add it to any root nodes
+        that do not have any init data
+        """
+        if self._default_init_data is None:
+            return
+        
+        for n in self._nodes:
+            n_inputs = n.extract_inputs()
+            root_data_node = False
+
+            # check whether this node ingests data from outside the graph
+            for index, n_i in enumerate(n_inputs):
+                if len(self._edges[n_i.session_id].producers) == 0:
+                    root_data_node = True
+                    init_data_input_index = index
+                    break
+            
+            if root_data_node:
+                # copy the default init data to the node's init input
+                n.kernel.init_inputs[init_data_input_index] = self._default_init_data
+                if self._default_init_labels is not None:
+                    n.kernel.init_input_labels = self._default_init_labels
+
+    def _insert_phony_edges(self):
+        """
+        Add phony edges to the graph to be used during verification
+        """
+        for e_id in self._edges:
+            e = self._edges[e_id]
+            
+            # check if the data is virtual
+            if not e.data.virtual:
+                # if not virtual, create a phony edge
+                e.add_phony_data()
+
+            # check if the edge has non-virtual init data
+            if e.init_data is not None and not e.init_data.virtual:
+                e.add_phony_init_data()
+
+
     def _init_phony_edges(self):
         """
         Initialize phony edges with random data for validation
         """
-        for e in self._phony_edges:
-            cov = False
-            if self._phony_edges[e].is_covariance_input():
-                cov = True
-            self._phony_edges[e].data.assign_random_data(covariance=cov)
-
-        for e in self._phony_labels:
-            self._phony_labels[e].data.assign_random_data(whole_numbers=True)
+        for eid in self._edges:
+            self._edges[eid].initialize_phony_data()
 
 
     def initialize(self, default_init_data = None, default_init_labels = None):
@@ -576,7 +618,22 @@ class Node(MPBase):
 
         self.kernel.update_parameters(parameter, value)
 
-        return self._graph.verify()
+        self._graph._verified = False
+    
+    def add_initialization_data(self, init_data, init_labels=None):
+        """
+        Add initialization data to the node
+
+        Parameters
+        ----------
+        init_data : list or tuple of MindPype data objects
+            MindPype container containing the initialization data
+        init_labels : MindPype data object containing initialization labels, default = None
+            MindPype container containing the initialization labels
+
+        """
+        self.kernel.add_initialization_data(init_data, init_labels)
+        self._graph.verified = False
 
 
 class Edge:
@@ -613,6 +670,9 @@ class Edge:
 
         self._init_data = None
         self._init_labels = None
+        self._phony_data = None
+        self._phony_init_data = None
+        self._phony_init_labels = None
         
     
     @property
@@ -766,30 +826,25 @@ class Edge:
         self._init_labels = Tensor.create_virtual(self.data.session)
 
         for p in self.producers:
-            # find the index of the data from the producer node (output index)
-            for index, producer_output in enumerate(p.kernel.outputs):
-                if (producer_output is not None and
-                    producer_output.session_id == self.data.session_id):
-                    output_index = index
-                    break
-        
+            output_index = self._find_output_index(p)
+
             # assign the tensor to the producer's corresponding init output
             p.kernel.init_outputs[output_index] = self.init_data
             p.kernel.init_output_labels = self.init_labels
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
-            for index, consumer_input in enumerate(c.kernel.inputs):
-                if (consumer_input is not None and
-                    consumer_input.session_id == self.data.session_id):
-                    input_index = index
-                    break
+            input_index = self._find_input_index(c)
 
             # check whether this input has not already been assigned init data
             if c.kernel.init_inputs[input_index] is None:
                 # If so, assign the tensor to the consumer's corresponding init input
                 c.kernel.init_inputs[input_index] = self.init_data
                 c.kernel.init_input_labels = self.init_labels
+            else:
+                # overwrite the edge's init data, we need this to create phony inputs later
+                self._init_data = c.kernel.init_inputs[input_index]
+                self._init_labels = c.kernel.init_input_labels
 
 
     def find_upstream_init_data(self, edges):
@@ -825,40 +880,97 @@ class Edge:
         # if all upstream nodes have init data, then this node has init data
         return True
     
-    def populate_phony_params(self, session_id):
+    def add_phony_data(self):
         """
-        Populate the phony parameters for the producing and 
-        consuming nodes of this edge
-
-        Parameters
-        ----------
-        session_id : int
-            Session ID of the data object in the corresponding non-phony edge
+        Add phony data to the edge and the
+        nodes it is connected to
         """
+        self._phony_data = self.data.make_copy()
 
         # get the producing node
         for p in self.producers:
             # find the index of the data from the producer node (output index)
-            for index, producer_output in enumerate(p.kernel.outputs):
-                if (producer_output is not None and
-                    producer_output.session_id == session_id):
-                    output_index = index
-                    break
+            output_index = self._find_output_index(p)
+        
+            # assign the tensor to the producer's corresponding init output
+            p.kernel.phony_outputs[output_index] = self._phony_data
 
-            # assign the phony tensor to the producer's corresponding phony output
-            p.kernel.phony_outputs[output_index] = self.data
+        for c in self.consumers:
+            # find the index of the data from the consumer node (input index)
+            input_index = self._find_input_index(c)
+
+            #  assign the tensor to the consumer's corresponding init input
+            c.kernel.phony_inputs[input_index] = self._phony_data
+
+    def add_phony_init_data(self):
+        """
+        Add phony init data to the edge and the
+        nodes connected to it
+        """
+        self._phony_init_data = self.init_data.make_copy()
+        if self.init_labels is not None:
+            self._phony_init_labels = self.init_labels.make_copy()
+
+        # get the producing node
+        for p in self.producers:
+            # find the index of the data from the producer node (output index)
+            output_index = self._find_output_index(p)
+        
+            # assign the tensor to the producer's corresponding init output
+            p.kernel.phony_init_outputs[output_index] = self._phony_init_data
+            if self._phony_init_labels is not None:
+                p.kernel.phony_init_output_labels = self._phony_init_labels
 
         # get the consuming node
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
-            for index, consumer_input in enumerate(c.kernel.inputs):
-                if (consumer_input is not None and 
-                    consumer_input.session_id == session_id):
-                    input_index = index
-                    break
+            input_index = self._find_input_index(c)
 
-            # assign the phony tensor to the consumer's corresponding input
-            c.kernel.phony_inputs[input_index] = self.data
+            # assign the tensor to the consumer's corresponding init input
+            c.kernel.phony_init_inputs[input_index] = self._phony_init_data
+            if self._phony_init_labels is not None:
+                c.kernel.phony_init_input_labels = self._phony_init_labels
+
+
+    def initialize_phony_data(self):
+        """
+        Assign random data to phony inputs
+        """
+        cov = self.is_covariance_input()
+        if self._phony_data is not None:
+            self._phony_data.assign_random_data(covariance=cov)
+
+        if self._phony_init_data is not None:
+            self._phony_init_data.assign_random_data(covariance=cov)
+
+        if self._phony_init_labels is not None:
+            self._phony_init_labels.assign_random_data(whole_numbers=True)
+    #def populate_phony_params(self, session_id):
+    #    """
+    #    Populate the phony parameters for the producing and 
+    #    consuming nodes of this edge
+
+    #    Parameters
+    #    ----------
+    #    session_id : int
+    #        Session ID of the data object in the corresponding non-phony edge
+    #    """
+
+    #    # get the producing node
+    #    for p in self.producers:
+    #        # find the index of the data from the producer node (output index)
+    #        output_index = self._find_output_index(p)
+
+    #        # assign the phony tensor to the producer's corresponding phony output
+    #        p.kernel.phony_outputs[output_index] = self.data
+
+    #    # get the consuming node
+    #    for c in self.consumers:
+    #        # find the index of the data from the consumer node (input index)
+    #        input_index = self._find_input_index(c)
+
+    #        # assign the phony tensor to the consumer's corresponding input
+    #        c.kernel.phony_inputs[input_index] = self.data
 
     def is_covariance_input(self):
         """
@@ -877,6 +989,36 @@ class Edge:
 
         # check whether this edge is a covariance input to the consumer
         return consumer.kernel.is_covariance_input(self.data)
+    
+    def _find_output_index(self, producer):
+        """
+        Find and return the numerical index of the producer's output that
+        corresponds to this edge
+        """
+        # find the index of the data from the producer node (output index)
+        for index, producer_output in enumerate(producer.kernel.outputs):
+            if (producer_output is not None and
+                producer_output.session_id == self.data.session_id):
+                output_index = index
+                break
+
+        return output_index
+    
+    def _find_input_index(self, consumer):
+        """
+        Find and return the numerical index of the consumer's input that
+        corresponds to this edge
+        """
+        # find the index of the data from the consumer node (input index)
+        for index, consumer_input in enumerate(consumer.kernel.inputs):
+            if (consumer_input is not None and 
+                consumer_input.session_id == self.data.session_id):
+                input_index = index
+                break
+
+        return input_index
+        
+
 
 
 class Parameter:

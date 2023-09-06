@@ -184,7 +184,7 @@ class RiemannDistanceKernel(Kernel):
                                       distance_riemann(x,y))
                 
     @classmethod
-    def add_riemann_distance_node(cls,graph,inA,inB,outA):
+    def add_riemann_distance_node(cls,graph,inA,inB,outA,init_inputs=None,init_labels=None):
         """
         Factory method to create a Riemann mean calculating kernel
 
@@ -221,6 +221,10 @@ class RiemannDistanceKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
         
         return node
 

@@ -32,7 +32,7 @@ class RiemannMDMClassifierKernel(Kernel):
 
     """
     
-    def __init__(self,graph,inA,outA,initialization_data,labels):
+    def __init__(self,graph,inA,outA,num_classes,initialization_data,labels):
         """
         Kernel takes Tensor input and produces scalar label representing
         the predicted class
@@ -44,6 +44,7 @@ class RiemannMDMClassifierKernel(Kernel):
         self._initialized = False
         self._covariance_inputs = (0,)
 
+        self._num_classes = num_classes
         if initialization_data is not None:
             self.init_inputs = [initialization_data]
 
@@ -162,7 +163,7 @@ class RiemannMDMClassifierKernel(Kernel):
         outputs[0].data = self._classifier.predict(input_data)
 
     @classmethod
-    def add_riemann_MDM_node(cls,graph,inA,outA,
+    def add_riemann_MDM_node(cls,graph,inA,outA,num_classes=2,
                              initialization_data=None,labels=None):
         """
         Factory method to create an untrained riemann minimum distance 
@@ -196,7 +197,7 @@ class RiemannMDMClassifierKernel(Kernel):
         """
         
         # create the kernel object            
-        k = cls(graph,inA,outA,initialization_data,labels)
+        k = cls(graph,inA,outA,num_classes,initialization_data,labels)
         
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT), 

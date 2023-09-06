@@ -118,7 +118,7 @@ class ReducedSumKernel(Kernel):
                                  keepdims=self._keep_dims)
     
     @classmethod
-    def add_reduced_sum_node(cls,graph,inA,outA,axis=None,keep_dims=False):
+    def add_reduced_sum_node(cls,graph,inA,outA,axis=None,keep_dims=False,init_input=None,init_labels=None):
         """
         Factory method to create a reduced sum kernel 
         and add it to a graph as a generic node object.
@@ -159,5 +159,9 @@ class ReducedSumKernel(Kernel):
         
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
         
         return node

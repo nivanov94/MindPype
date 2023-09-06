@@ -67,7 +67,7 @@ class AbsoluteKernel(Unary, Kernel):
         outputs[0].data = np.absolute(inputs[0].data)
 
     @classmethod
-    def add_absolute_node(cls, graph, inA, outA):
+    def add_absolute_node(cls, graph, inA, outA, init_input=None, init_labels=None):
         """
         Factory method to create an absolute value kernel
         and add it to a graph as a generic node object.
@@ -100,6 +100,10 @@ class AbsoluteKernel(Unary, Kernel):
 
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
 
         return node
 
@@ -142,7 +146,7 @@ class LogKernel(Unary, Kernel):
         outputs[0].data = np.log(inputs[0].data)
 
     @classmethod
-    def add_log_node(cls, graph, inA, outA):
+    def add_log_node(cls, graph, inA, outA, init_input=None, init_labels=None):
         """
         Factory method to create a log kernel
         and add it to a graph as a generic node object.
@@ -179,6 +183,10 @@ class LogKernel(Unary, Kernel):
 
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
 
         return node
 
@@ -245,7 +253,7 @@ class AdditionKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data + inputs[1].data
 
     @classmethod
-    def add_addition_node(cls, graph, inA, inB, outA):
+    def add_addition_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
         Factory method to create an addition kernel and add it to a graph
         as a generic node object.
@@ -287,6 +295,10 @@ class AdditionKernel(Binary, Kernel):
         # add the node to the graph
         graph.add_node(node)
 
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
+
         return node
 
 
@@ -325,7 +337,7 @@ class DivisionKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data / inputs[1].data
 
     @classmethod
-    def add_division_node(cls, graph, inA, inB, outA):
+    def add_division_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
         Factory method to create a element-wise divsion kernel and add it to a graph
         as a generic node object.
@@ -367,6 +379,10 @@ class DivisionKernel(Binary, Kernel):
         # add the node to the graph
         graph.add_node(node)
 
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
+
         return node
 
 
@@ -402,7 +418,7 @@ class MultiplicationKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data * inputs[1].data
 
     @classmethod
-    def add_multiplication_node(cls, graph, inA, inB, outA):
+    def add_multiplication_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
         Factory method to create a multiplication kernel and add it to a graph
         as a generic node object.
@@ -444,6 +460,10 @@ class MultiplicationKernel(Binary, Kernel):
         # add the node to the graph
         graph.add_node(node)
 
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
+
         return node
 
 
@@ -479,7 +499,7 @@ class SubtractionKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data - inputs[1].data
 
     @classmethod
-    def add_subtraction_node(cls, graph, inA, inB, outA):
+    def add_subtraction_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
         Factory method to create a kernel and add it to a graph
         as a generic node object.
@@ -520,5 +540,9 @@ class SubtractionKernel(Binary, Kernel):
 
         # add the node to the graph
         graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
 
         return node
