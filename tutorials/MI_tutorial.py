@@ -1,14 +1,7 @@
-import bcipy
-import pylsl
-import pyxdf
+import mindpype as mp
 import numpy as np
+import pylsl
 import argparse
-
-
-
-from scipy import signal
-
-
 
 def main():
     
@@ -16,8 +9,8 @@ def main():
                                      description='Gets data from LSL for processing and sends predicted labels to LSL')
     parser.add_argument('--tasks', nargs=3, type=str, required=False, default=['task1','task2','task3'])
     parser.add_argument('--fs', nargs=1, type=int, required=False, default=[250])
+    parser.add_argument('--lsl', nargs=1, type=bool, required=False, default=False)
     args = parser.parse_args()
-    
     
     ch_map =  {'FCz' : 0,
                'Fz'  : 1,
@@ -52,175 +45,130 @@ def main():
                'F4'  : 30,
                'F8'  : 31}
     
-    sel_chs = ('FCz',
-               'Fz',
-               #'F3',
-               #'F7',
-               'FC3',
-               #'T7',
-               'C5',
-               'C3',
-               'C1',
-               'Cz',
-               'CP3',
-               'CPz',
-               'P7',
-               'P5',
-               'P3',
-               'P1',
-               'Pz',
-               'PO3',
-               'Oz',
-               'PO4',
-               'P8',
-               'P6',
-               'P4',
-               'P2',
-               'CP4',
-               #'T8',
-               'C6',
-               'C4',
-               'C2',
-               'FC4',
-               #'F4',
-               #'F8'
+    sel_chs = ('FCz', 'Fz', 'F3', 'F7', 'FC3', 'T7', 'C5', 'C3', 'C1',
+               'Cz', 'CP3', 'CPz', 'P7', 'P5', 'P3', 'P1', 'Pz', 'PO3',
+               'Oz', 'PO4', 'P8', 'P6', 'P4', 'P2', 'CP4', 'T8', 'C6',
+               'C4', 'C2', 'FC4', 'F4', 'F8'
               )
     
     channels = [ch_map[ch] for ch in sel_chs]
 
     selected_tasks = tuple(args.tasks)
     print(selected_tasks)
-
         
     Fs = args.fs[0]
-    #print(Fs)
     
-    crop_indices = [_ for _ in range(Fs,4*Fs)]
+    crop_indices = [_ for _ in range(Fs,4*Fs)] # extract the central 3 seconds of the trial
     Nc = len(channels)
     Ns = len(crop_indices)
     
-    ## create bcipy session
-    s = bcipy.Session()
+    ## create mindpype session
+    s = mp.Session()
     
     
     ## create offline and online graphs
+    if args.lsl:
+        eeg_src = mp.source.LSLStream.create_marker_coupled_data_stream(s,
+                                    "type='EEG' and channel_count=32",
+                                    channels=channels,
+                                    marker=True,
+                                    marker_fmt='label_\d_name_*',
+                                    marker_pred="name='bci_rocket_marker'")
+        t_trial = mp.Tensor.create_from_handle(s, (Nc, Ns+2*Fs), eeg_src)
+    else:
+        t_trial = mp.Tensor.create(s, (Nc, Ns+2*Fs))
 
-    print("Creating LSL input")
-    eeg_src = bcipy.source.LSLStream(s, "type='EEG' and channel_count=32",
-                                  channels=channels,
-                                  marker=True,
-                                  marker_fmt='label_\d_name_*',
-                                  marker_pred="name='bci_rocket_marker'")
-    print("Done creating LSL input.")
-    t_trial = bcipy.Tensor.create_from_handle(s, (Nc, Ns+2*Fs), eeg_src)
-    t_file_trial = bcipy.Tensor.create(s, (Nc, Ns+2*Fs))
-
-    t_filtered = bcipy.Tensor.create_virtual(s)
-    t_cropped = bcipy.Tensor.create(s,(Nc,Ns))
-    t_csp = bcipy.Tensor.create_virtual(s)
-    t_var = bcipy.Tensor.create_virtual(s)
-    t_log = bcipy.Tensor.create_virtual(s)
-    t_cov = bcipy.Tensor.create_virtual(s)
+    t_filtered = mp.Tensor.create_virtual(s)
+    t_cropped = mp.Tensor.create(s,(Nc,Ns))
+    t_csp = mp.Tensor.create_virtual(s)
+    t_var = mp.Tensor.create_virtual(s)
+    t_log = mp.Tensor.create_virtual(s)
+    t_cov = mp.Tensor.create_virtual(s)
     
-    s_true = bcipy.Scalar.create(s,int)
-    s_pred = bcipy.Scalar.create(s,int)
-    s_artifact = bcipy.Scalar.create(s, int)
+    s_true = mp.Scalar.create(s,int)
+    s_pred = mp.Scalar.create(s,int)
+    s_artifact = mp.Scalar.create(s, int)
     
-    f_bp_filt = bcipy.Filter.create_butter(s, 4, (8,30), btype='bandpass', implementation='sos', fs=Fs)
-    c_lda = bcipy.Classifier.create_LDA(s,solver='lsqr',shrinkage='auto')
+    f_bp_filt = mp.Filter.create_butter(s, 4, (8,30), btype='bandpass', implementation='sos', fs=Fs)
+    c_lda = mp.Classifier.create_LDA(s,solver='lsqr',shrinkage='auto')
     
     # create the circle buffer to contain the data
-    template_tensor = bcipy.Tensor.create(s, (Nc, Ns))
-    template_scalar = bcipy.Scalar.create(s, int)
+    template_tensor = mp.Tensor.create(s, (Nc, Ns+2*Fs))
+    template_scalar = mp.Scalar.create(s, int)
 
     
     max_buffer_length = 60 * len(selected_tasks) # 60 from the present session
 
-    cb_prev_trials = bcipy.CircleBuffer.create(s, max_buffer_length, template_tensor)
-    cb_labels = bcipy.CircleBuffer.create(s, max_buffer_length, template_scalar)
+    cb_prev_trials = mp.CircleBuffer.create(s, max_buffer_length, template_tensor)
+    cb_labels = mp.CircleBuffer.create(s, max_buffer_length, template_scalar)
     
     # offline
-    offline_graph = bcipy.Graph.create(s)
+    offline_graph = mp.Graph.create(s)
+    mp.kernels.EnqueueKernel.add_enqueue_node(offline_graph,
+                                              t_trial,
+                                              cb_prev_trials)
     
-    bcipy.kernels.FiltFiltKernel.add_filtfilt_node(offline_graph, 
-                                                   t_trial,
-                                                   f_bp_filt,
-                                                   t_filtered,
-                                                   axis=1)
-    
-    bcipy.kernels.ExtractKernel.add_extract_node(offline_graph,
-                                                 t_filtered,
-                                                 (":",crop_indices),
-                                                 t_cropped)
-    
-    bcipy.kernels.EnqueueKernel.add_enqueue_node(offline_graph,
-                                                 t_cropped,
-                                                 cb_prev_trials)
-    
-    bcipy.kernels.EnqueueKernel.add_enqueue_node(offline_graph,
-                                                 s_true,
-                                                 cb_labels)
+    mp.kernels.EnqueueKernel.add_enqueue_node(offline_graph,
+                                              s_true,
+                                              cb_labels)
     
     # online
-    online_graph = bcipy.Graph.create(s)
-    bcipy.kernels.FiltFiltKernel.add_filtfilt_node(online_graph, 
+    online_graph = mp.Graph.create(s)
+    mp.kernels.FiltFiltKernel.add_filtfilt_node(online_graph, 
                                                    t_trial,
                                                    f_bp_filt,
                                                    t_filtered,
                                                    axis=1)
     
-    bcipy.kernels.ExtractKernel.add_extract_node(online_graph,
+    mp.kernels.ExtractKernel.add_extract_node(online_graph,
                                                  t_filtered,
                                                  (":",crop_indices),
                                                  t_cropped)
     
-    bcipy.kernels.EnqueueKernel.add_enqueue_node(online_graph,
+    mp.kernels.EnqueueKernel.add_enqueue_node(online_graph,
                                                  t_cropped,
                                                  cb_prev_trials,
                                                  s_artifact)
     
-    bcipy.kernels.EnqueueKernel.add_enqueue_node(online_graph,
+    mp.kernels.EnqueueKernel.add_enqueue_node(online_graph,
                                                  s_true,
                                                  cb_labels,
                                                  s_artifact)
     
-    bcipy.kernels.CommonSpatialPatternKernel.add_uninitialized_CSP_node(online_graph,
+    mp.kernels.CommonSpatialPatternKernel.add_uninitialized_CSP_node(online_graph,
                                                                         t_cropped,
                                                                         t_csp,
-                                                                        cb_prev_trials,
-                                                                        cb_labels,
-                                                                        4, # number of filters
-                                                                        3) # number of classes
+                                                                        num_filts=4, # number of filters
+                                                                        Ncls=3) # number of classes
     
-    bcipy.kernels.VarKernel.add_var_node(online_graph, t_csp, t_var, 1, 1)
-    bcipy.kernels.LogKernel.add_log_node(online_graph, t_var, t_log)
+    mp.kernels.VarKernel.add_var_node(online_graph, t_csp, t_var, 1, 1)
+    mp.kernels.LogKernel.add_log_node(online_graph, t_var, t_log)
     
-    bcipy.kernels.ClassifierKernel.add_classifier_node(online_graph,
+    mp.kernels.ClassifierKernel.add_classifier_node(online_graph,
                                                        t_log,
                                                        c_lda,
                                                        s_pred)
     
-    bcipy.kernels.CovarianceKernel.add_covariance_node(online_graph, t_cropped, t_cov)
-    bcipy.kernels.RiemannPotatoKernel.add_riemann_potato_node(online_graph,
-                                                              t_cov, 
-                                                              cb_prev_trials,
-                                                              s_artifact)
+    mp.kernels.CovarianceKernel.add_covariance_node(online_graph, t_cropped, t_cov)
+    mp.kernels.RiemannPotatoKernel.add_riemann_potato_node(online_graph,
+                                                            t_cov, s_artifact)
     
     
     
     graphs = [offline_graph, online_graph]
 
+    # add default initialization data to the online graph
+    online_graph.set_default_init_data(cb_prev_trials, cb_labels)
+
     # verify graphs
     for g in graphs:
-        sts = g.verify()
-        if sts != bcipy.BcipEnums.SUCCESS:
-            raise Exception(sts)
-    
+        g.verify()
 
     # create lsl inlet and outlet to communicate with BCI rocket
-    lsl_marker_inlet = pylsl.StreamInlet(pylsl.resolve_byprop('type', 'Markers')[0]) # todo verify there will only be one marker stream
-    outlet_info = pylsl.StreamInfo('Marker-PredictedLabel', 'Markers', channel_format='string')
-    lsl_marker_outlet = pylsl.StreamOutlet(outlet_info)
+    if args.lsl:
+        lsl_marker_inlet = pylsl.StreamInlet(pylsl.resolve_byprop('type', 'Markers')[0]) # todo verify there will only be one marker stream
+        outlet_info = pylsl.StreamInfo('Marker-PredictedLabel', 'Markers', channel_format='string')
+        lsl_marker_outlet = pylsl.StreamOutlet(outlet_info)
     
     for i_b in range(4): # four blocks total
         print(f"Block: {i_b+1}")    
@@ -228,37 +176,39 @@ def main():
             active_graph = offline_graph
         else:
             active_graph = online_graph
+
+        if not args.lsl:
+            # generate random labels sequence
+            block_labels = np.concatenate((np.zeros((15,)), np.ones((15,)), 2*np.ones((15,))))
+            block_labels = np.shuffle(block_labels)
             
         # initialize the active graph
-        sts = active_graph.initialize()
-        if sts != bcipy.BcipEnums.SUCCESS:
-            raise Exception(sts)
+        active_graph.initialize(default_init_data=cb_prev_trials, default_init_data2=cb_labels)
             
         for i_t in range(45): # 45 trials per block
             print(f"\ttrial: {i_t+1}")
             
-            
-            # wait for lsl marker
-            true_label = -1
-            print("Waiting for marker...")
-            while true_label == -1:
-                inlet_marker, _ = lsl_marker_inlet.pull_sample(timeout=0.1)
-                
-                if inlet_marker != None and inlet_marker[0].find("cue_") != -1 and inlet_marker[0] != 'cue_rest':
-                    start_index = inlet_marker[0].find("label_") + len("label_")
-                    end_index = inlet_marker[0].find("_name")
-                    label_str = inlet_marker[0][start_index:end_index]
-                    true_label = int(label_str)
+            if args.lsl:
+                # wait for lsl marker
+                true_label = -1
+                print("Waiting for marker...")
+                while true_label == -1:
+                    inlet_marker, _ = lsl_marker_inlet.pull_sample(timeout=0.1)
+
+                    if inlet_marker != None and inlet_marker[0].find("cue_") != -1 and inlet_marker[0] != 'cue_rest':
+                        start_index = inlet_marker[0].find("label_") + len("label_")
+                        end_index = inlet_marker[0].find("_name")
+                        label_str = inlet_marker[0][start_index:end_index]
+                        true_label = int(label_str)
+            else:
+                true_label = block_labels[i_t]
             
     
             # set the true label scalar
             s_true.data = true_label
         
             # process trial
-            sts = active_graph.execute(label=true_label)
-            if sts != bcipy.BcipEnums.SUCCESS:
-                raise Exception(sts)
-           
+            active_graph.execute(label=true_label)
                 
             # create the outlet marker
             if i_b > 1:
@@ -270,7 +220,9 @@ def main():
         
                 
                 # push predicated label to marker outlet
-                lsl_marker_outlet.push_sample([outlet_marker])
+                print(outlet_marker)
+                if args.lsl:
+                    lsl_marker_outlet.push_sample([outlet_marker])
 
 
     input("Session complete. Please Enter to terminate program...")

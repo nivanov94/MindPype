@@ -627,3 +627,9 @@ class Kernel(MPBase, ABC):
                 i_ig += 1
 
         return (param_index in self._covariance_inputs)
+    
+    def _initialize(self, init_inputs, init_outputs, labels):
+        """
+        Default method for kernels without initialization procedures
+        """
+        pass
