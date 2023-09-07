@@ -20,7 +20,7 @@ def XDF_test(file, tasks, channels, start, samples):
     t_in_cont = mp.Tensor.create_from_handle(session, (len(channels), samples), xdf_object_continuous)
 
     # Create an input tensor for the second input to the addition kernel
-    t_in_2 = mp.Tensor.create_from_data(session, shape=t_in.shape, data=np.ones(t_in.shape))
+    t_in_2 = mp.Tensor.create_from_data(session, data=np.ones(t_in.shape))
 
     # Create the output tensors for the epoched and continuous data
     t_out = mp.Tensor.create(session, shape=t_in.shape)

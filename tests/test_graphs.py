@@ -15,7 +15,7 @@ class GraphTests():
         t_in = mp.Tensor.create_from_handle(session, (len(channels), samples), xdf_object)
         t_in_cont = mp.Tensor.create_from_handle(session, (len(channels), samples), xdf_object_cont)
         
-        t_in_2 = mp.Tensor.create_from_data(session, shape=t_in.shape, data=np.zeros(t_in.shape))
+        t_in_2 = mp.Tensor.create_from_data(session, data=np.zeros(t_in.shape))
 
         t_out = mp.Tensor.create(session, shape=t_in.shape)
         t_out_cont = mp.Tensor.create(session, shape=t_in.shape)

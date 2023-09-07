@@ -36,10 +36,10 @@ def main():
     online_data = data_dict['test'].get_data()
     offline_labels = data_dict['train_targets']
     online_labels = data_dict['test_targets']
-    online_tensor = mp.Tensor.create_from_data(sess, online_data.shape, online_data)
-    offline_tensor = mp.Tensor.create_from_data(sess, offline_data.shape, offline_data)
-    online_labels = mp.Tensor.create_from_data(sess, online_labels.shape, online_labels)
-    offline_labels = mp.Tensor.create_from_data(sess, offline_labels.shape, offline_labels)
+    online_tensor = mp.Tensor.create_from_data(sess, online_data)
+    offline_tensor = mp.Tensor.create_from_data(sess, offline_data)
+    online_labels = mp.Tensor.create_from_data(sess, online_labels)
+    offline_labels = mp.Tensor.create_from_data(sess, offline_labels)
     
 
     # online graph data containers (i.e. graph edges)

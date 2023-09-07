@@ -25,11 +25,11 @@ def main():
         training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
         
     labels = np.asarray([0]*60 + [1]*60 + [2]*60)
-    X = mp.Tensor.create_from_data(s,training_data.shape,training_data)
-    y = mp.Tensor.create_from_data(s,labels.shape,labels)
+    X = mp.Tensor.create_from_data(s,training_data)
+    y = mp.Tensor.create_from_data(s,labels)
 
     input_data = np.random.randn(12,500)
-    t_in = mp.Tensor.create_from_data(s,(12,500),input_data)
+    t_in = mp.Tensor.create_from_data(s,input_data)
     s_out = mp.Scalar.create_from_value(s,-1)
     t_virt = [mp.Tensor.create_virtual(s), 
               mp.Tensor.create_virtual(s)]

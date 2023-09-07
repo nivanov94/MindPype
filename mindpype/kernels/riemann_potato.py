@@ -79,7 +79,7 @@ class RiemannPotatoKernel(Kernel):
             if init_in.shape[-2] != init_in.shape[-1]:
                 init_trial_data = init_in.data
                 init_covs = covariances(init_trial_data)
-                init_in = Tensor.create_from_data(self.session, init_covs.shape, init_covs)
+                init_in = Tensor.create_from_data(self.session, init_covs)
  
             self._process_data([init_in], init_outputs)
 

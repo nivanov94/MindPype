@@ -776,7 +776,7 @@ class Tensor(MPBase):
         return t
     
     @classmethod
-    def create_from_data(cls,sess,shape,data):
+    def create_from_data(cls,sess,data):
         """
         Factory method to create a Tensor from data
 
@@ -786,9 +786,6 @@ class Tensor(MPBase):
         sess : Session object
             Session where Tensor will exist
         
-        shape : shape_like
-            Shape of the Tensor
-        
         data : ndarray
             Data to be stored within the array
             
@@ -797,12 +794,7 @@ class Tensor(MPBase):
         if type(data) is list:
             data = np.asarray(data)
         
-        # make sure data is valid
-        if not cls.validate_data(shape,data):
-            # data invalid!
-            raise RuntimeError("Data or shape passed to tensor constructor is not valid. Ensure data is a numpy ndarray and shape is a tuple of ints, and matches the data shape")
-            return 
-        t = cls(sess,shape,data,False,None)
+        t = cls(sess,data.shape,data,False,None)
         
         # add the tensor to the session
         sess.add_data(t)
@@ -1067,13 +1059,8 @@ class Array(MPBase):
         elements = [self.get_element(i).data for i in range(self.capacity)]
         stacked_elements = np.stack(elements)
         
-        if element.mp_type == MPEnums.TENSOR:
-            shape = (self.capacity,) + element.shape
-        else:
-            shape = (self.capacity,)
-
         # create tensor
-        return Tensor.create_from_data(self._session,shape,stacked_elements)
+        return Tensor.create_from_data(self.session,stacked_elements)
 
     
     # API constructor
@@ -1348,7 +1335,7 @@ class CircleBuffer(Array):
             valid_data = np.concatenate((t.data[self._head:], t.data[:self._tail+1]),
                                         axis=0)
         
-        return Tensor.create_from_data(self.session, valid_data.shape, valid_data)
+        return Tensor.create_from_data(self.session, valid_data)
     
     def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
         """

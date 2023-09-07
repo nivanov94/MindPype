@@ -124,8 +124,8 @@ class Binary:
         # determine output dimensions and adjust init_out shape
         phony_out = np.logical_and(X[0],X[1])
         init_out.shape = phony_out.shape
-        tmp_inA = Tensor.create_from_data(self.session, X[0].shape, X[0])
-        tmp_inB = Tensor.create_from_data(self.session, X[1].shape, X[1])
+        tmp_inA = Tensor.create_from_data(self.session, X[0])
+        tmp_inB = Tensor.create_from_data(self.session, X[1])
         self._process_data([tmp_inA, tmp_inB], init_outputs)
 
 

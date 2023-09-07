@@ -75,12 +75,11 @@ def main(file):
     offline_data_src = mp.source.BcipXDF.create_class_separated(sess, file, ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs)) 
 
     xdf_tensor = mp.containers.Tensor.create_from_data(sess, 
-                                                       offline_data_src.trial_data['Data']['time_series']['flash'].shape,
                                                        offline_data_src.trial_data['Data']['time_series']['flash'])
     
     init_d = pickle.load(open(r'/path/to/init_data', 'rb'))[0]
 
-    xdf_tensor = mp.containers.Tensor.create_from_data(sess, init_d.shape, init_d)
+    xdf_tensor = mp.containers.Tensor.create_from_data(sess, init_d)
 
     # Create input tensors
     online_input_data = mp.Tensor.create_from_handle(sess, (len(channels), Fs), LSL_data_src)

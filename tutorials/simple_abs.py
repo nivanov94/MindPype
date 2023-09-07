@@ -5,8 +5,8 @@ s = mp.Session.create()
 g = mp.Graph.create(s)
 
 data_in = np.asarray([[1,2,3],[-1,-2,-3]])
-t_in1 = mp.Tensor.create_from_data(s, (2,3), data_in)
-t_in2 = mp.Tensor.create_from_data(s, (2,3), np.abs(data_in))
+t_in1 = mp.Tensor.create_from_data(s, data_in)
+t_in2 = mp.Tensor.create_from_data(s, np.abs(data_in))
 t_out = mp.Tensor.create(s, (2,3))
 
 t_virt = mp.Tensor.create_virtual(s)

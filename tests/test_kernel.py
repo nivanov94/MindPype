@@ -58,7 +58,7 @@ class KernelExecutionUnitTest:
     def TestTensorAbsoluteKernelExecution(self):
         np.random.seed(44)
         raw_data = np.random.randint(-10,10, size=(2,2,2))
-        inTensor = mp.Tensor.create_from_data(self.__session, raw_data.shape, raw_data)
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         outTensor = mp.Tensor.create(self.__session, (2,2,2))
         tensor_test_node = mp.kernels.arithmetic.AbsoluteKernel.add_absolute_node(self.__graph,inTensor,outTensor)
         
@@ -86,8 +86,8 @@ class KernelExecutionUnitTest:
     def TestAdditionKernelExecution(self):
         np.random.seed(7)
         raw_data = np.random.randint(-10,10, size=(2,2,2))
-        inTensor = mp.Tensor.create_from_data(self.__session, raw_data.shape, raw_data)
-        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data.shape, raw_data)
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
         outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         tensor_node = mp.kernels.arithmetic.AdditionKernel.add_addition_node(self.__graph, inTensor, inTensor2, outTensor)
         sys.stdout = open(os.devnull, 'w')

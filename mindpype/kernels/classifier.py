@@ -84,7 +84,7 @@ class ClassifierKernel(Kernel):
 
         # set the initialization output        
         if init_outputs[0] is not None or init_outputs[1] is not None:
-            init_tensor = Tensor.create_from_data(self.session, X.shape, X)
+            init_tensor = Tensor.create_from_data(self.session, X)
 
             # adjust output shapes if necessary
             if self.init_outputs[0] is not None and self.init_outputs[0].virtual:

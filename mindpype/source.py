@@ -924,25 +924,21 @@ class BcipXDF(MPBase):
         if self.trial_data and self.mode in ("continuous", "epoched"):
             ret = Tensor.create_from_data(
                 self.session,
-                self.trial_data["Data"]["time_series"].shape,
                 self.trial_data["Data"]["time_series"],
             )
 
             ret_timestamps = Tensor.create_from_data(
                 self.session,
-                self.trial_data["Data"]["time_stamps"].shape,
                 self.trial_data["Data"]["time_stamps"],
             )
 
             ret_labels = Tensor.create_from_data(
                 self.session,
-                self.trial_data["Markers"]["time_series"].shape,
                 self.trial_data["Markers"]["time_series"],
             )
 
             ret_labels_timestamps = Tensor.create_from_data(
                 self.session,
-                self.trial_data["Markers"]["time_stamps"].shape,
                 self.trial_data["Markers"]["time_stamps"],
             )
 
