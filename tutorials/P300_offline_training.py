@@ -10,7 +10,7 @@ import numpy as np
 import json, pickle
 from copy import deepcopy
 
-def preprocess_labels(offline_data_src, labels):
+def preprocess_labels(sess,offline_data_src, labels):
     ls = offline_data_src.trial_data['Markers']['time_series']
     target_pos = None
     task_series_list = []
@@ -88,7 +88,7 @@ def main(file):
     labels = mp.CircleBuffer.create(sess, len(offline_data_src.trial_data['Markers']['time_series']), mp.Scalar.create(sess, int))
 
 
-    preprocess_labels(offline_data_src, labels)
+    preprocess_labels(sess, offline_data_src, labels)
 
     # online graph data containers (i.e. graph edges)
     pred_probs = mp.Tensor.create_virtual(sess, shape=(1,2)) # output of classifier
