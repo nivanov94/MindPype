@@ -128,37 +128,37 @@ class KernelExecutionUnitTest:
 def runCreationTests():
     KernelUnitTest_Object = KernelCreationUnitTest()
 
-    assert KernelUnitTest_Object.TestAbsoluteKernelCreation() == mp.BcipEnums.NODE
+    assert KernelUnitTest_Object.TestAbsoluteKernelCreation() == mp.MPEnums.NODE
     #print("Absolute Kernel Creation Test: PASSED")
     #except AssertionError:
     #    print("Absolute Kernel Creation Test: FAILED")
 
     try:
-        assert KernelUnitTest_Object.TestAdditionKernelCreation() == mp.BcipEnums.NODE
+        assert KernelUnitTest_Object.TestAdditionKernelCreation() == mp.MPEnums.NODE
         print("Addition Kernel Creation Test: PASSED")
     except AssertionError:
         print("Addition Kernel Creation Test: FAILED")
 
     try:
-        assert KernelUnitTest_Object.TestSubtractionKernelCreation() == mp.BcipEnums.NODE
+        assert KernelUnitTest_Object.TestSubtractionKernelCreation() == mp.MPEnums.NODE
         print("Subtraction Kernel Creation Test: PASSED")
     except AssertionError:
         print("Subtraction Kernel Creation Test: FAILED")
 
     try:
-        assert KernelUnitTest_Object.TestMultiplicationKernelCreation() == mp.BcipEnums.NODE
+        assert KernelUnitTest_Object.TestMultiplicationKernelCreation() == mp.MPEnums.NODE
         print("Multiplication Kernel Creation Test: PASSED")
     except AssertionError:
         print("Multiplication Kernel Creation Test: FAILED")
 
     try:
-        assert KernelUnitTest_Object.TestDivisionKernelCreation() == mp.BcipEnums.NODE
+        assert KernelUnitTest_Object.TestDivisionKernelCreation() == mp.MPEnums.NODE
         print("Division Kernel Creation Test: PASSED")
     except AssertionError:
         print("Division Kernel Creation Test: FAILED")
 
     try:
-        assert KernelUnitTest_Object.TestLogKernelCreation() == mp.BcipEnums.NODE
+        assert KernelUnitTest_Object.TestLogKernelCreation() == mp.MPEnums.NODE
         print("Log Kernel Creation Test: PASSED")
     except AssertionError:
         print("Log Kernel Creation Test: FAILED")
@@ -198,27 +198,27 @@ def runExecutionTests():
 
 def test_create():
     KernelUnitTest_Object = KernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestAbsoluteKernelCreation() == mp.BcipEnums.NODE
+    assert KernelUnitTest_Object.TestAbsoluteKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
 
     KernelUnitTest_Object = KernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestAdditionKernelCreation() == mp.BcipEnums.NODE
+    assert KernelUnitTest_Object.TestAdditionKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
 
     KernelUnitTest_Object = KernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestSubtractionKernelCreation() == mp.BcipEnums.NODE
+    assert KernelUnitTest_Object.TestSubtractionKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
 
     KernelUnitTest_Object = KernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestMultiplicationKernelCreation() == mp.BcipEnums.NODE
+    assert KernelUnitTest_Object.TestMultiplicationKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
 
     KernelUnitTest_Object = KernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestDivisionKernelCreation() == mp.BcipEnums.NODE
+    assert KernelUnitTest_Object.TestDivisionKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
 
     KernelUnitTest_Object = KernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestLogKernelCreation() == mp.BcipEnums.NODE
+    assert KernelUnitTest_Object.TestLogKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
 
 def test_execute():

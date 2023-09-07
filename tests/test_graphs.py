@@ -54,5 +54,5 @@ def test_XDF():
                            -.2, 
                            500)
     
-    assert trial_data == mp.BcipEnums.SUCCESS"""
+    assert trial_data == mp.MPEnums.SUCCESS"""
     assert True
