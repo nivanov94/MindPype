@@ -50,6 +50,6 @@ def XDF_test(file, tasks, channels, start, samples):
 def main():    
     channels = [i for i in range(3,10)]
     tasks = ('flash', 'target')
-    trial_data = XDF_test(['S:/mindset_0518_prism/Summer Students/2023 - Shreya Jain/Data/Jason Data/sub-P001_ses-S001_task-vP300+2x2_run-008.xdf'], tasks, channels, -.2, 500)
+    trial_data = XDF_test(['/path/to/mindset/data'], tasks, channels, -.2, 500)
 
 main()
