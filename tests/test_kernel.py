@@ -12,41 +12,41 @@ class KernelCreationUnitTest:
         inTensor = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.AbsoluteKernel.add_absolute_node(self.__graph,inTensor,outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestAdditionKernelCreation(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         inTensor2 = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.AdditionKernel.add_addition_node(self.__graph,inTensor, inTensor2, outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestSubtractionKernelCreation(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         inTensor2 = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.SubtractionKernel.add_subtraction_node(self.__graph,inTensor, inTensor2, outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestMultiplicationKernelCreation(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         inTensor2 = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.MultiplicationKernel.add_multiplication_node(self.__graph,inTensor,inTensor2,outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestDivisionKernelCreation(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         inTensor2 = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.DivisionKernel.add_division_node(self.__graph,inTensor,inTensor2,outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestLogKernelCreation(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.LogKernel.add_log_node(self.__graph,inTensor,outTensor)
-        return node._bcip_type
+        return node.mp_type
     
 
 class KernelExecutionUnitTest:
@@ -102,27 +102,27 @@ class KernelExecutionUnitTest:
         inTensor2 = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.SubtractionKernel.add_subtraction_node(self.__graph,inTensor, inTensor2, outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestMultiplicationKernelExecution(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         inTensor2 = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.MultiplicationKernel.add_multiplication_node(self.__graph,inTensor,inTensor2,outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestDivisionKernelExecution(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         inTensor2 = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.DivisionKernel.add_division_node(self.__graph,inTensor,inTensor2,outTensor)
-        return node._bcip_type
+        return node.mp_type
     
     def TestLogKernelExecution(self):
         inTensor = mp.Tensor.create(self.__session, (1,1))
         outTensor = mp.Tensor.create(self.__session, (1,1))
         node = mp.kernels.arithmetic.LogKernel.add_log_node(self.__graph,inTensor,outTensor)
-        return node._bcip_type
+        return node.mp_type
     
 """
 def runCreationTests():
