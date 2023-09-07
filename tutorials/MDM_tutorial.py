@@ -7,14 +7,14 @@ Created on Fri Nov 22 16:12:30 2019
 
 # Create a simple graph for testing
 
-from bcipy import bcipy
+import mindpype as mp
 import numpy as np
 
 
 def main():
     # create a session
-    s = bcipy.Session.create()
-    trial_graph = bcipy.Graph.create(s)
+    s = mp.Session.create()
+    trial_graph = mp.Graph.create(s)
     # add a block and some tensors
 
     # initialize the classifier
@@ -25,45 +25,35 @@ def main():
         training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
         
     labels = np.asarray([0]*60 + [1]*60 + [2]*60)
-    X = bcipy.Tensor.create_from_data(s,training_data.shape,training_data)
-    y = bcipy.Tensor.create_from_data(s,labels.shape,labels)
+    X = mp.Tensor.create_from_data(s,training_data.shape,training_data)
+    y = mp.Tensor.create_from_data(s,labels.shape,labels)
 
-    input_data = np.random.randn(500,12)
-    t_in = bcipy.Tensor.create_from_data(s,(500,12),input_data)
-    s_out = bcipy.Scalar.create_from_value(s,-1)
-    t_virt = [bcipy.Tensor.create_virtual(s), \
-              bcipy.Tensor.create_virtual(s)]
+    input_data = np.random.randn(12,500)
+    t_in = mp.Tensor.create_from_data(s,(12,500),input_data)
+    s_out = mp.Scalar.create_from_value(s,-1)
+    t_virt = [mp.Tensor.create_virtual(s), 
+              mp.Tensor.create_virtual(s)]
     
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
     fs = 250
-    f = bcipy.Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
+    f = mp.Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    bcipy.kernels.CovarianceKernel.add_covariance_node(trial_graph,t_virt[0],t_virt[1])
-    bcipy.kernels.FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
-    bcipy.kernels.RiemannMDMClassifierKernel.add_untrained_riemann_MDM_node(trial_graph,
-                                                              t_virt[1],
-                                                              s_out,X,y)
+    mp.kernels.CovarianceKernel.add_covariance_node(trial_graph,t_virt[0],t_virt[1])
+    mp.kernels.FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
+    mp.kernels.RiemannMDMClassifierKernel.add_riemann_MDM_node(trial_graph,
+                                                               t_virt[1],
+                                                               s_out,3,X,y)
 
     # verify the session (i.e. schedule the nodes)
-    sts = trial_graph.verify()
+    trial_graph.verify()
+    # intialize the graph (i.e. train the classifier)
+    trial_graph.initialize()
 
-    if sts != bcipy.BcipEnums.SUCCESS:
-        print(sts)
-        print("Test Failed D=")
-        return sts
-    
-
-    sts = trial_graph.initialize()
-    if sts != bcipy.BcipEnums.SUCCESS:
-        print(sts)
-        print("Test Failed D=")
-        return sts
-    
     # RUN!
-    sts = trial_graph.execute(0)
+    trial_graph.execute(0)
     
     print(s_out.data)
     

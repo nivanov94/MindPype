@@ -1,54 +1,54 @@
-import bcipy
+import mindpype as mp
 import numpy as np
 
 class GraphTests():
 
     def XDF(self, file, tasks, channels, start, samples):
-        session = bcipy.Session.create()
+        session = mp.Session.create()
 
-        graph = bcipy.Graph.create(session)
-        graph_cont = bcipy.Graph.create(session)
+        graph = mp.Graph.create(session)
+        graph_cont = mp.Graph.create(session)
 
-        xdf_object = bcipy.source.BcipXDF.create_epoched(session, file, tasks, channels, start, samples)
-        xdf_object_cont = bcipy.source.BcipXDF.create_continuous(session, file, tasks, channels, start, samples)
+        xdf_object = mp.source.BcipXDF.create_epoched(session, file, tasks, channels, start, samples)
+        xdf_object_cont = mp.source.BcipXDF.create_continuous(session, file, tasks, channels, start, samples)
         
-        t_in = bcipy.Tensor.create_from_handle(session, (len(channels), samples), xdf_object)
-        t_in_cont = bcipy.Tensor.create_from_handle(session, (len(channels), samples), xdf_object_cont)
+        t_in = mp.Tensor.create_from_handle(session, (len(channels), samples), xdf_object)
+        t_in_cont = mp.Tensor.create_from_handle(session, (len(channels), samples), xdf_object_cont)
         
-        t_in_2 = bcipy.Tensor.create_from_data(session, shape=t_in.shape, data=np.zeros(t_in.shape))
+        t_in_2 = mp.Tensor.create_from_data(session, shape=t_in.shape, data=np.zeros(t_in.shape))
 
-        t_out = bcipy.Tensor.create(session, shape=t_in.shape)
-        t_out_cont = bcipy.Tensor.create(session, shape=t_in.shape)
+        t_out = mp.Tensor.create(session, shape=t_in.shape)
+        t_out_cont = mp.Tensor.create(session, shape=t_in.shape)
         
-        Add = bcipy.kernels.AdditionKernel.add_addition_node(graph, t_in, t_in_2, t_out)
-        Add_cont = bcipy.kernels.AdditionKernel.add_addition_node(graph_cont, t_in_cont, t_in_2, t_out_cont)
+        Add = mp.kernels.AdditionKernel.add_addition_node(graph, t_in, t_in_2, t_out)
+        Add_cont = mp.kernels.AdditionKernel.add_addition_node(graph_cont, t_in_cont, t_in_2, t_out_cont)
 
         sts1 = graph.verify() and graph_cont.verify()
         
-        if sts1 != bcipy.BcipEnums.SUCCESS:
+        if sts1 != mp.BcipEnums.SUCCESS:
             print(sts1)
             print("Test Failed D=")
             return sts1
 
         sts2 = graph.initialize() and graph_cont.initialize()
 
-        if sts2 != bcipy.BcipEnums.SUCCESS:
+        if sts2 != mp.BcipEnums.SUCCESS:
             print(sts2)
             print("Test Failed D=")
             return sts2
         
         i = 0
 
-        sts = bcipy.BcipEnums.SUCCESS
-        sts_cont = bcipy.BcipEnums.SUCCESS
-        while i < 10 and sts == bcipy.BcipEnums.SUCCESS and sts_cont == bcipy.BcipEnums.SUCCESS:
+        sts = mp.BcipEnums.SUCCESS
+        sts_cont = mp.BcipEnums.SUCCESS
+        while i < 10 and sts == mp.BcipEnums.SUCCESS and sts_cont == mp.BcipEnums.SUCCESS:
             sts = graph.execute('flash')
             sts_cont = graph_cont.execute('flash')
             print(t_out.data[23,50], t_out_cont.data[23,50])   
             i+=1 
 
-        if sts == bcipy.BcipEnums.SUCCESS and sts_cont == bcipy.BcipEnums.SUCCESS:
-            return bcipy.BcipEnums.SUCCESS
+        if sts == mp.BcipEnums.SUCCESS and sts_cont == mp.BcipEnums.SUCCESS:
+            return mp.BcipEnums.SUCCESS
 
 
 def test_XDF(): 
@@ -71,5 +71,5 @@ def test_XDF():
                            -.2, 
                            500)
     
-    assert trial_data == bcipy.BcipEnums.SUCCESS"""
+    assert trial_data == mp.BcipEnums.SUCCESS"""
     assert True
