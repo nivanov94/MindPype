@@ -588,7 +588,7 @@ class BcipXDF(MPBase):
         For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
 
     channels : list or tuple of int
-        Values corresponding to the EEG channels used during the session
+        Values corresponding to the stream channels used during the session
 
     relative_start : float, default = 0
         Value corresponding to the start of the trial relative to the marker onset.
@@ -622,7 +622,7 @@ class BcipXDF(MPBase):
         .. code-block:: python
         
             self.trial_data = {
-                "EEG": 
+                "Data": 
                     {"time_series": 
                         {task_name1: np.array([Nt x Nc x Ns]), 
                          task_name2: np.array([Nt x Nc x Ns]),}, 
@@ -636,7 +636,7 @@ class BcipXDF(MPBase):
         .. code-block:: python
 
             self.trial_data = {
-                "EEG": 
+                "Data": 
                     {"time_series": np.array([Nc x Ns]), 
                      "time_stamps": np.array([Ns])},
                 "Markers": 
@@ -648,7 +648,7 @@ class BcipXDF(MPBase):
         .. code-block:: python
             
             self.trial_data = {
-                "EEG":
+                "Data":
                     {"time_series": np.array([Nt x Nc x Ns]),
                      "time_stamps": np.array([Ns])},
                 "Markers":
@@ -657,9 +657,7 @@ class BcipXDF(MPBase):
             }
     """
 
-    def __init__(
-        self, sess, files, tasks, channels, relative_start=0, Ns=1, mode="epoched"
-    ):
+    def __init__(self, sess, files, tasks, channels, relative_start=0, Ns=1, stype='EEG', mode="epoched"):
         """
         Create a new xdf file reader interface
         """
@@ -675,6 +673,7 @@ class BcipXDF(MPBase):
         self.channels = channels
         self.label_counter = None
         self.mode = mode
+        self.stype = stype
 
         trial_data = {task: [] for task in tasks}
 
@@ -690,13 +689,10 @@ class BcipXDF(MPBase):
                         stream["info"]["type"][0] == "Markers"): 
                         marker_stream = stream
 
-                    elif stream["info"]["type"][0] == "EEG":
-                        eeg_stream = stream
+                    elif stream["info"]["type"][0] == self.stype:
+                        data_stream = stream
 
-                sample_indices = np.zeros(
-                    eeg_stream["time_stamps"].shape
-                )  # used to extract EEG samples, pre-allocated here
-
+                sample_indices = np.zeros(data_stream["time_stamps"].shape)  # used to extract data samples, pre-allocated here
                 
                 total_tasks = 0
 
@@ -712,11 +708,11 @@ class BcipXDF(MPBase):
                             total_tasks += 1
 
                             # compute the correct start and end indices for the current trial
-                            eeg_window_start = marker_time + relative_start
+                            data_window_start = marker_time + relative_start
 
-                            sample_indices = np.array(eeg_stream["time_stamps"] >= eeg_window_start)
+                            sample_indices = np.array(data_stream["time_stamps"] >= data_window_start)
 
-                            sample_data = eeg_stream["time_series"][sample_indices, :][:, channels].T  # Nc X len(eeg_stream)
+                            sample_data = data_stream["time_series"][sample_indices, :][:, channels].T  # Nc X len(data_stream)
                             trial_data[curr_task].append(sample_data[:,:int(Ns)])  # Nc x Ns
 
                 if combined_marker_streams["time_series"] is None:
@@ -742,7 +738,7 @@ class BcipXDF(MPBase):
                 trial_data[task] = np.stack(trial_data[task], axis=0)  # Nt x Nc x Ns
 
             self.trial_data = {
-                "EEG": {"time_series": trial_data, "time_stamps": eeg_stream},
+                "Data": {"time_series": trial_data, "time_stamps": data_stream},
                 "Markers": combined_marker_streams,
             }
             self.label_counter = {task: 0 for task in tasks}
@@ -752,7 +748,7 @@ class BcipXDF(MPBase):
         elif mode == "continuous":
             # Counter to track how many trials have been extracted previously
             self.cont_trial_num = 0
-            eeg_stream = None
+            data_stream = None
             marker_stream = None
 
             first_marker = []
@@ -778,23 +774,23 @@ class BcipXDF(MPBase):
                         stream["info"]["type"][0] == "Markers"):  
                         marker_stream = stream
 
-                    # If the EEG stream already exists, concatenate the new data to the existing data
-                    elif stream["info"]["type"][0] == "EEG":
-                        eeg_stream = stream
+                    # If the data stream already exists, concatenate the new data to the existing data
+                    elif stream["info"]["type"][0] == self.stype:
+                        data_stream = stream
 
-            # Extract the data from the eeg stream
-            eeg_stream["time_series"] = eeg_stream["time_series"][:, channels].T
+            # Extract the data from the data stream
+            data_stream["time_series"] = data_stream["time_series"][:, channels].T
 
 
-            self.trial_data = {"EEG": eeg_stream, "Markers": marker_stream}
+            self.trial_data = {"Data": data_stream, "Markers": marker_stream}
             self.label_counter = {task: 0 for task in tasks}
 
         # Epoched mode will epoch the data sequentially, and will poll the data for the next Ns samples of the next trial
         elif mode == "epoched":
             self.epoched_counter = 0
-            eeg_stream_data = None
-            eeg_stream_stamps = None
-            eeg_stream = None
+            data_stream_data = None
+            data_stream_stamps = None
+            data_stream = None
             marker_stream = None
             Ns = int(Ns)
             epoch_num = 0
@@ -808,12 +804,12 @@ class BcipXDF(MPBase):
                         or stream["info"]["type"][0] == "Markers"):  
                         marker_stream = stream
 
-                    elif stream["info"]["type"][0] == "EEG":
-                        eeg_stream = stream
+                    elif stream["info"]["type"][0] == self.stype:
+                        data_stream = stream
 
             total_markers = len(marker_stream["time_stamps"])
-            eeg_stream_data = np.zeros((total_markers, len(channels), Ns))
-            eeg_stream_stamps = np.zeros((total_markers, Ns))
+            data_stream_data = np.zeros((total_markers, len(channels), Ns))
+            data_stream_stamps = np.zeros((total_markers, Ns))
 
             # Actual epoching operation
             incomplete_epochs = 0
@@ -821,24 +817,24 @@ class BcipXDF(MPBase):
                 # Find the marker value where the current epoch starts
                 marker_time = marker_stream["time_stamps"][epoch_num]
                 # Correct the starting time of the epoch based on the relative start time
-                eeg_window_start = marker_time + relative_start
+                data_window_start = marker_time + relative_start
 
                 # Find the index of the first sample after the marker
-                first_sample_index = np.where(eeg_stream["time_stamps"] >= eeg_window_start)[0][0]
+                first_sample_index = np.where(data_stream["time_stamps"] >= data_window_start)[0][0]
                 # Find the index of the last sample in the window
                 final_sample_index = first_sample_index + Ns
-                if final_sample_index <= eeg_stream["time_series"].shape[0]:
-                    # Extract the data from the eeg stream
-                    eeg_stream_data[epoch_num, :, :] = eeg_stream["time_series"][first_sample_index:final_sample_index,:][:, channels].T
-                    eeg_stream_stamps[epoch_num, :] = eeg_stream["time_stamps"][first_sample_index:final_sample_index]
+                if final_sample_index <= data_stream["time_series"].shape[0]:
+                    # Extract the data from the data stream
+                    data_stream_data[epoch_num, :, :] = data_stream["time_series"][first_sample_index:final_sample_index,:][:, channels].T
+                    data_stream_stamps[epoch_num, :] = data_stream["time_stamps"][first_sample_index:final_sample_index]
                 else:
                     # insufficient data for full epoch
                     incomplete_epochs += 1
 
             self.trial_data = {
-                "EEG": {
-                    "time_stamps": eeg_stream_stamps[:total_markers - incomplete_epochs],
-                    "time_series": eeg_stream_data[:total_markers - incomplete_epochs],
+                "Data": {
+                    "time_stamps": data_stream_stamps[:total_markers - incomplete_epochs],
+                    "time_series": data_stream_data[:total_markers - incomplete_epochs],
                 },
                 "Markers": marker_stream,
             }
@@ -876,7 +872,7 @@ class BcipXDF(MPBase):
 
         elif self.mode == "epoched":
             # Extract sample data from epoched trial data and increment the label counter
-            sample_data = self.trial_data["EEG"]["time_series"][self.epoched_counter, :, :]
+            sample_data = self.trial_data["Data"]["time_series"][self.epoched_counter, :, :]
             self.epoched_counter += 1
 
             return sample_data
@@ -884,13 +880,13 @@ class BcipXDF(MPBase):
         elif self.mode == "continuous":
 
             # Extract the nth marker timestamp, corresponding to the nth trial in the XDF file
-            eeg_window_start = (
+            data_window_start = (
                 self.trial_data["Markers"]["time_stamps"][self.cont_trial_num] + self.relative_start
             )
 
             # Construct the boolean array for samples that fall after the marker timestamp
-            sample_indices = self.trial_data["EEG"]["time_stamps"] >= eeg_window_start
-            sample_data = self.trial_data["EEG"]["time_series"][:, sample_indices]
+            sample_indices = self.trial_data["Data"]["time_stamps"] >= data_window_start
+            sample_data = self.trial_data["Data"]["time_series"][:, sample_indices]
 
             sample_data = sample_data[:, :Ns]  # Nc x Ns
             self.cont_trial_num += 1
@@ -902,8 +898,8 @@ class BcipXDF(MPBase):
         Loads entirity of MindPypeXDF data object into a tensor.
         Returns 4 MindPype Tensor objects, in the following order.
 
-            1. Tensor containing the EEG data
-            2. Tensor containing the EEG timestamps
+            1. Tensor containing the Stream data
+            2. Tensor containing the Stream timestamps
             3. Tensor containing the Marker data
             4. Tensor containing the Marker timestamps
 
@@ -914,10 +910,10 @@ class BcipXDF(MPBase):
         Returns
         -------
         ret : Tensor
-            Tensor containing the EEG data
+            Tensor containing the stream data
         
         ret_timestamps : Tensor
-            Tensor containing the EEG timestamps
+            Tensor containing the stream timestamps
 
         ret_labels : Tensor
             Tensor containing the Marker data
@@ -928,14 +924,14 @@ class BcipXDF(MPBase):
         if self.trial_data and self.mode in ("continuous", "epoched"):
             ret = Tensor.create_from_data(
                 self.session,
-                self.trial_data["EEG"]["time_series"].shape,
-                self.trial_data["EEG"]["time_series"],
+                self.trial_data["Data"]["time_series"].shape,
+                self.trial_data["Data"]["time_series"],
             )
 
             ret_timestamps = Tensor.create_from_data(
                 self.session,
-                self.trial_data["EEG"]["time_stamps"].shape,
-                self.trial_data["EEG"]["time_stamps"],
+                self.trial_data["Data"]["time_stamps"].shape,
+                self.trial_data["Data"]["time_stamps"],
             )
 
             ret_labels = Tensor.create_from_data(
@@ -980,7 +976,7 @@ class BcipXDF(MPBase):
             For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
 
         channels : list or tuple of int
-            Values corresponding to the EEG channels used during the session
+            Values corresponding to the data stream channels used during the session
 
         relative_start : float, default = 0
             Value corresponding to the start of the trial relative to the marker onset.
@@ -1017,7 +1013,7 @@ class BcipXDF(MPBase):
             For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
 
         channels : list or tuple of int
-            Values corresponding to the EEG channels used during the session
+            Values corresponding to the data stream channels used during the session
 
         relative_start : float, default = 0
             Value corresponding to the start of the trial relative to the marker onset.
@@ -1055,7 +1051,7 @@ class BcipXDF(MPBase):
             For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
 
         channels : list or tuple of int
-            Values corresponding to the EEG channels used during the session
+            Values corresponding to the data stream channels used during the session
 
         relative_start : float, default = 0
             Value corresponding to the start of the trial relative to the marker onset.
@@ -1091,7 +1087,7 @@ class BcipXDF(MPBase):
             For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
 
         channels : list or tuple of int
-            Values corresponding to the EEG channels used during the session
+            Values corresponding to the data stream channels used during the session
 
         relative_start : float, default = 0
             Value corresponding to the start of the trial relative to the marker onset.
@@ -1116,7 +1112,7 @@ class InputLSLStream(MPBase):
     Attributes
     ----------
     data_buffer : dict
-        {'EEG': np.array, 'time_stamps': np.array}
+        {'Data': np.array, 'time_stamps': np.array}
         A dictionary containing the data and time stamps from past samples (used when trials have overlapping data)
 
     data_inlet : pylsl.StreamInlet
@@ -1201,7 +1197,7 @@ class InputLSLStream(MPBase):
                 return
 
             # TODO - Warn about more than one available stream
-            self.data_buffer = {"EEG": None, "time_stamps": None}
+            self.data_buffer = {"Data": None, "time_stamps": None}
             self.data_inlet = pylsl.StreamInlet(
                 available_streams[0],
                 processing_flags=pylsl.proc_clocksync | pylsl.proc_dejitter,
@@ -1291,27 +1287,27 @@ class InputLSLStream(MPBase):
         samples_polled = 0
 
         # First, pull the data required data from the buffer
-        if self.data_buffer["EEG"] is not None:
+        if self.data_buffer["Data"] is not None:
 
             # Create a boolean array to index the data buffer for the required data
-            eeg_index_bool = self.data_buffer["time_stamps"] >= t_begin
+            data_index_bool = self.data_buffer["time_stamps"] >= t_begin
 
             # Find the number of samples in the buffer that are valid
-            samples_polled = np.sum(eeg_index_bool)
+            samples_polled = np.sum(data_index_bool)
 
             # If the number of samples in the buffer is greater than the number of samples required, extract the required data
             if samples_polled >= Ns:
-                trial_data[:, :Ns] = self.data_buffer["EEG"][:, eeg_index_bool][:, :Ns]
-                trial_timestamps[:Ns] = self.data_buffer["time_stamps"][eeg_index_bool][:Ns]
+                trial_data[:, :Ns] = self.data_buffer["Data"][:, data_index_bool][:, :Ns]
+                trial_timestamps[:Ns] = self.data_buffer["time_stamps"][data_index_bool][:Ns]
 
                 # Update the buffer to contain the current trial and remaining data
-                self.data_buffer["EEG"] = self.data_buffer["EEG"][:, eeg_index_bool]
-                self.data_buffer["time_stamps"] = self.data_buffer["time_stamps"][eeg_index_bool]
+                self.data_buffer["Data"] = self.data_buffer["Data"][:, data_index_bool]
+                self.data_buffer["time_stamps"] = self.data_buffer["time_stamps"][data_index_bool]
                 
             # If the number of valid samples in the buffer is less than the number of samples required, extract all the data in the buffer
             else:
-                trial_data[:, :samples_polled] = self.data_buffer["EEG"][:, eeg_index_bool]
-                trial_timestamps[:samples_polled] = self.data_buffer["time_stamps"][eeg_index_bool]
+                trial_data[:, :samples_polled] = self.data_buffer["Data"][:, data_index_bool]
+                trial_timestamps[:samples_polled] = self.data_buffer["time_stamps"][data_index_bool]
                 
         # If the buffer does not contain enough data, pull data from the inlet
         while samples_polled < Ns:
@@ -1353,7 +1349,7 @@ class InputLSLStream(MPBase):
                         ]
 
                         if dest_end_index == Ns:
-                            self.data_buffer["EEG"] = np.concatenate(
+                            self.data_buffer["Data"] = np.concatenate(
                                 (trial_data, data[:, src_end_index:]), axis=1
                             )
                             self.data_buffer["time_stamps"] = np.concatenate(
@@ -1465,7 +1461,7 @@ class InputLSLStream(MPBase):
             return
 
         # TODO - Warn about more than one available stream
-        self.data_buffer = {"EEG": None, "time_stamps": None}
+        self.data_buffer = {"Data": None, "time_stamps": None}
 
 
         self.data_inlet = pylsl.StreamInlet(
