@@ -204,7 +204,7 @@ class Session(MPBase):
 
     Examples
     --------
-    >>> from bcipy.classes import session as S
+    >>> from mindpype.classes import session as S
     >>> S.session.create()
 
     """
@@ -229,7 +229,7 @@ class Session(MPBase):
         self.graphs = []
 
         # Configure logging for the session
-        #logging.basicConfig(filename='../bcipy/logs/log.log', filemode='a', format='%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s ', level=logging.INFO, encoding='utf-8')
+        #logging.basicConfig(filename='../mindpype/logs/log.log', filemode='a', format='%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s ', level=logging.INFO, encoding='utf-8')
         #logging.info("Session created")
 
     def verify(self):

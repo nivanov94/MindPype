@@ -8,7 +8,7 @@ class GraphUnitTest:
         
     
     def TestGraphCreation(self):
-        self.__graph._bcip_type
+        self.__graph.mp_type
     
     def TestGraphVerification(self):
         self.__graph.verify()

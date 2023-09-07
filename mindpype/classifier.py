@@ -41,7 +41,7 @@ class Classifier(MPBase):
 
     .. code:: python
         
-        from bcipy import Classifier
+        from mindpype import Classifier
         
         # Create a MindPype Classifier object using the factory method
         classifier_object = Classifier.create_LDA(sess, solver='svd', shrinkage=None, priors=None,
@@ -131,7 +131,7 @@ class Classifier(MPBase):
     
         Examples
         --------
-        >>> from bcipy import Classifier
+        >>> from mindpype import Classifier
         >>> classifier_object = Classifier.create_SVM(sess)
 
         Return
@@ -197,7 +197,7 @@ class Classifier(MPBase):
 
         Examples
         --------
-        >>> from bcipy import Classifier
+        >>> from mindpype import Classifier
         >>> classifier_object = Classifier.create_LDA(sess)
 
         """
@@ -259,7 +259,7 @@ class Classifier(MPBase):
 
         Examples
         --------
-        >>> from bcipy import Classifier
+        >>> from mindpype import Classifier
         >>> classifier_object = Classifier.create_logistic_regression(sess)
 
         """
@@ -307,7 +307,7 @@ class Classifier(MPBase):
 
         Examples
         --------
-        >>> from bcipy import Classifier
+        >>> from mindpype import Classifier
         >>> from sklearn.svm import SVC
         >>> svm_object = SVC()
         >>> classifier_object = Classifier.create_custom_classifier(sess, svm_object, 'svm')

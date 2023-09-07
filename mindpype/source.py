@@ -26,7 +26,7 @@ import threading
 import time
 
 
-class BcipMatFile(MPBase):
+class MPMatFile(MPBase):
     """
     Utility for extracting data from a mat file for MindPype
 
@@ -123,7 +123,7 @@ class BcipMatFile(MPBase):
         return src
 
 
-class BcipClassSeparatedMat(MPBase):
+class MPClassSeparatedMat(MPBase):
     """
     Utility class for extracting class separated data from a mat file for MindPype.
 
@@ -132,7 +132,7 @@ class BcipClassSeparatedMat(MPBase):
     ----------
 
     sess : Session Object
-        Session where the BcipClassSeparated data source will exist.
+        Session where the MPClassSeparated data source will exist.
 
     num_classes : int
         Number of classes within the MAT data
@@ -315,7 +315,7 @@ class BcipClassSeparatedMat(MPBase):
         ----------
 
         sess : Session Object
-            Session where the BcipClassSeparated data source will exist.
+            Session where the MPClassSeparated data source will exist.
 
         num_classes : int
             Number of classes within the MAT data
@@ -376,7 +376,7 @@ class BcipClassSeparatedMat(MPBase):
         return src
 
 
-class BcipContinuousMat(MPBase):
+class MPContinuousMat(MPBase):
     """
     Utility class for extracting continuous from a mat file for MindPype.
 
@@ -384,7 +384,7 @@ class BcipContinuousMat(MPBase):
     ----------
 
     sess : Session Object
-        Session where the BcipClassSeparated data source will exist.
+        Session where the MPClassSeparated data source will exist.
 
     event_duration : int
         Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
@@ -520,7 +520,7 @@ class BcipContinuousMat(MPBase):
         Parameters
         ---------
         sess : Session Object
-            Session where the BcipClassSeparated data source will exist.
+            Session where the MPClassSeparated data source will exist.
 
         event_duration : int
             Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
@@ -569,7 +569,7 @@ class BcipContinuousMat(MPBase):
         return src
 
 
-class BcipXDF(MPBase):
+class MPXDF(MPBase):
     """
     Utility class for extracting trial data from an XDF file for MindPype.
 
@@ -577,7 +577,7 @@ class BcipXDF(MPBase):
     ----------
 
     sess : Session Object
-        Session where the BcipXDF data source will exist.
+        Session where the MPXDF data source will exist.
 
     files : list of str
         XDF file(s) where data should be extracted from.
@@ -602,11 +602,11 @@ class BcipXDF(MPBase):
         epoched by class, or to leave the data in a continuous format
 
     .. warning::
-       The task list used in the BcipXDF object MUST REFLECT the task list used in the XDF file.
+       The task list used in the MPXDF object MUST REFLECT the task list used in the XDF file.
        Differences will cause the program to fail.
 
     .. note::
-        There are 3 types of modes for the BcipXDF object: 'continuous', 'class-separated' and 'epoched'.
+        There are 3 types of modes for the MPXDF object: 'continuous', 'class-separated' and 'epoched'.
         Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples
         each time the poll_data method is called. Class-separated mode will epoch the data by class, and will poll the
         data for the next Ns samples of the specified class each time the poll_data method is called. Epoched mode will
@@ -962,7 +962,7 @@ class BcipXDF(MPBase):
         Parameters
         ---------
         sess : Session Object
-            Session where the BcipXDF data source will exist.
+            Session where the MPXDF data source will exist.
 
         files : list of str
             XDF file(s) where data should be extracted from.
@@ -999,7 +999,7 @@ class BcipXDF(MPBase):
         Parameters
         ---------
         sess : Session Object
-            Session where the BcipXDF data source will exist.
+            Session where the MPXDF data source will exist.
 
         files : list of str
             XDF file(s) where data should be extracted from.
@@ -1037,7 +1037,7 @@ class BcipXDF(MPBase):
         Parameters
         ---------
         sess : Session Object
-            Session where the BcipXDF data source will exist.
+            Session where the MPXDF data source will exist.
 
         files : list of str
             XDF file(s) where data should be extracted from.
@@ -1073,7 +1073,7 @@ class BcipXDF(MPBase):
         Parameters
         ---------
         sess : Session Object
-            Session where the BcipXDF data source will exist.
+            Session where the MPXDF data source will exist.
 
         files : list of str
             XDF file(s) where data should be extracted from.
@@ -1684,7 +1684,7 @@ class OutputLSLStream(MPBase):
     @classmethod
     def create_outlet_from_streaminfo(cls, sess, stream_info, filesave=None):
         """
-        Factory method to create a OutletLSLStream bcipy object from a pylsl.StreamInfo object.
+        Factory method to create a OutletLSLStream mindpype object from a pylsl.StreamInfo object.
 
         Parameters
         -----------
@@ -1715,7 +1715,7 @@ class OutputLSLStream(MPBase):
         filesave=None,
     ):
         """
-        Factory Method to create an OutletLSLStream bcipy object from scratch.
+        Factory Method to create an OutletLSLStream mindpype object from scratch.
 
         Parameters
         ----------

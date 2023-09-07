@@ -90,7 +90,7 @@ class FilterKernel(Filter, Kernel):
         Input trial data
 
     filt : Filter 
-        MindPype Filter object outputted by bcipy.classes
+        MindPype Filter object outputted by mindpype.classes
 
     outputA : Tensor or Scalar 
         Output trial data
@@ -143,7 +143,7 @@ class FilterKernel(Filter, Kernel):
             Input trial data
 
         filt : Filter 
-            MindPype Filter object outputted by bcipy.classes
+            MindPype Filter object outputted by mindpype.classes
 
         outputA : Tensor or Scalar 
             Output trial data
@@ -189,7 +189,7 @@ class FiltFiltKernel(Filter, Kernel):
         Input trial data
 
     filt : Filter 
-        MindPype Filter object outputted by bcipy.classes
+        MindPype Filter object outputted by mindpype.classes
 
     outputA : Tensor or Scalar 
         Output trial data
@@ -238,7 +238,7 @@ class FiltFiltKernel(Filter, Kernel):
             Input trial data
 
         filt : Filter 
-            MindPype Filter object outputted by bcipy.filters
+            MindPype Filter object outputted by mindpype.filters
 
         outputA : Tensor or Scalar 
             Output trial data

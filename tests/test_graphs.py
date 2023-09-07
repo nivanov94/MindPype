@@ -20,35 +20,18 @@ class GraphTests():
         t_out = mp.Tensor.create(session, shape=t_in.shape)
         t_out_cont = mp.Tensor.create(session, shape=t_in.shape)
         
-        Add = mp.kernels.AdditionKernel.add_addition_node(graph, t_in, t_in_2, t_out)
-        Add_cont = mp.kernels.AdditionKernel.add_addition_node(graph_cont, t_in_cont, t_in_2, t_out_cont)
+        mp.kernels.AdditionKernel.add_addition_node(graph, t_in, t_in_2, t_out)
+        mp.kernels.AdditionKernel.add_addition_node(graph_cont, t_in_cont, t_in_2, t_out_cont)
 
-        sts1 = graph.verify() and graph_cont.verify()
+        graph.verify()
+        graph_cont.verify()
         
-        if sts1 != mp.BcipEnums.SUCCESS:
-            print(sts1)
-            print("Test Failed D=")
-            return sts1
-
-        sts2 = graph.initialize() and graph_cont.initialize()
-
-        if sts2 != mp.BcipEnums.SUCCESS:
-            print(sts2)
-            print("Test Failed D=")
-            return sts2
+        graph.initialize() 
+        graph_cont.initialize()
         
-        i = 0
-
-        sts = mp.BcipEnums.SUCCESS
-        sts_cont = mp.BcipEnums.SUCCESS
-        while i < 10 and sts == mp.BcipEnums.SUCCESS and sts_cont == mp.BcipEnums.SUCCESS:
-            sts = graph.execute('flash')
-            sts_cont = graph_cont.execute('flash')
-            print(t_out.data[23,50], t_out_cont.data[23,50])   
-            i+=1 
-
-        if sts == mp.BcipEnums.SUCCESS and sts_cont == mp.BcipEnums.SUCCESS:
-            return mp.BcipEnums.SUCCESS
+        for i in range(10):
+            graph.execute('flash')
+            graph_cont.execute('flash')
 
 
 def test_XDF(): 
