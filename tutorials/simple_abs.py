@@ -1,28 +1,18 @@
-from bcipy import bcipy
 import numpy as np
+import mindpype as mp
 
-s = bcipy.Session.create()
-g = bcipy.Graph.create(s)
+s = mp.Session.create()
+g = mp.Graph.create(s)
 
 data_in = np.asarray([[1,2,3],[-1,-2,-3]])
-t_in1 = bcipy.Tensor.create_from_data(s, (2,3), data_in)
-t_in2 = bcipy.Tensor.create_from_data(s, (2,3), np.abs(data_in))
-t_out = bcipy.Tensor.create(s, (2,3))
+t_in1 = mp.Tensor.create_from_data(s, (2,3), data_in)
+t_in2 = mp.Tensor.create_from_data(s, (2,3), np.abs(data_in))
+t_out = mp.Tensor.create(s, (2,3))
 
-t_virt = bcipy.Tensor.create_virtual(s)
+t_virt = mp.Tensor.create_virtual(s)
 
-bcipy.kernels.EqualKernel.add_equal_node(g, t_in2, t_virt, t_out)
-bcipy.kernels.AbsoluteKernel.add_absolute_node(g, t_in1, t_virt)
+mp.kernels.EqualKernel.add_equal_node(g, t_in2, t_virt, t_out)
+mp.kernels.AbsoluteKernel.add_absolute_node(g, t_in1, t_virt)
 
-sts = g.verify()
-
-if sts != bcipy.core.BcipEnums.SUCCESS:
-    print('failed D=')
-
-sts = g.execute()
-
-if sts != bcipy.core.BcipEnums.SUCCESS:
-    print('failed D=')
-else:
-    print(t_out.data)
-    print('passed =D')
+g.execute()
+print(t_out.data)

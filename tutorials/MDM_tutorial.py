@@ -45,7 +45,7 @@ def main():
     mp.kernels.FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
     mp.kernels.RiemannMDMClassifierKernel.add_riemann_MDM_node(trial_graph,
                                                                t_virt[1],
-                                                               s_out,X,y)
+                                                               s_out,3,X,y)
 
     # verify the session (i.e. schedule the nodes)
     trial_graph.verify()

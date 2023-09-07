@@ -686,8 +686,10 @@ class BcipXDF(MPBase):
                 data, header = pyxdf.load_xdf(filename)
 
                 for stream in data:
-                    if (stream["info"]["type"][0] == "Marker" or
-                        stream["info"]["type"][0] == "Markers"): 
+                    if (
+                        stream["info"]["type"][0] == "Marker"
+                        or stream["info"]["type"][0] == "Markers"
+                    ): 
                         marker_stream = stream
 
                     elif stream["info"]["type"][0] == "EEG":
@@ -713,15 +715,22 @@ class BcipXDF(MPBase):
 
                             # compute the correct start and end indices for the current trial
                             eeg_window_start = marker_time + relative_start
+                            # eeg_window_end = marker_time + 0.8 +(5/Fs) # Added temporal buffer to limit indexing errors
 
-                            sample_indices = np.array(eeg_stream["time_stamps"] >= eeg_window_start)
+                            sample_indices = np.array(
+                                eeg_stream["time_stamps"] >= eeg_window_start
+                            )
 
                             sample_data = eeg_stream["time_series"][sample_indices, :][:, channels].T  # Nc X len(eeg_stream)
                             trial_data[curr_task].append(sample_data[:,:int(Ns)])  # Nc x Ns
 
                 if combined_marker_streams["time_series"] is None:
-                    combined_marker_streams["time_series"] = marker_stream["time_series"]
-                    combined_marker_streams["time_stamps"] = marker_stream["time_stamps"]
+                    combined_marker_streams["time_series"] = marker_stream[
+                        "time_series"
+                    ]
+                    combined_marker_streams["time_stamps"] = marker_stream[
+                        "time_stamps"
+                    ]
                 else:
                     combined_marker_streams["time_series"] = np.concatenate(
                         (
@@ -750,6 +759,7 @@ class BcipXDF(MPBase):
 
         # Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples
         elif mode == "continuous":
+            
             # Counter to track how many trials have been extracted previously
             self.cont_trial_num = 0
             eeg_stream = None
@@ -762,8 +772,10 @@ class BcipXDF(MPBase):
                 
                 # First order the files by the first marker value
                 for stream in data:
-                    if (stream["info"]["type"][0] == "Marker" or
-                        stream["info"]["type"][0] == "Markers"):  
+                    if (
+                        stream["info"]["type"][0] == "Marker"
+                        or stream["info"]["type"][0] == "Markers"
+                    ):  
                         first_marker.append(stream["time_series"][0][0])
                     
             # Sort the files by the first marker value
@@ -774,13 +786,36 @@ class BcipXDF(MPBase):
                 
                 # Iterate through all streams in every file, add current file's data to the previously loaded data
                 for stream in data:
-                    if (stream["info"]["type"][0] == "Marker" or 
-                        stream["info"]["type"][0] == "Markers"):  
-                        marker_stream = stream
+                    if (
+                        stream["info"]["type"][0] == "Marker"
+                        or stream["info"]["type"][0] == "Markers"
+                    ):  
+                        # If the marker stream already exists, concatenate the new data to the existing data
+                        if marker_stream:
+                            marker_stream["time_series"] = np.concatenate(
+                                (marker_stream["time_series"], stream["time_series"]),
+                                axis=0,
+                            )
+                            marker_stream["time_stamps"] = np.concatenate(
+                                (marker_stream["time_stamps"], stream["time_stamps"]),
+                                axis=0,
+                            )
+                        else:
+                            marker_stream = stream
 
                     # If the EEG stream already exists, concatenate the new data to the existing data
                     elif stream["info"]["type"][0] == "EEG":
-                        eeg_stream = stream
+                        if eeg_stream:
+                            eeg_stream["time_series"] = np.concatenate(
+                                (eeg_stream["time_series"], stream["time_series"]),
+                                axis=0,
+                            )
+                            eeg_stream["time_stamps"] = np.concatenate(
+                                (eeg_stream["time_stamps"], stream["time_stamps"]),
+                                axis=0,
+                            )
+                        else:
+                            eeg_stream = stream
 
             # Extract the data from the eeg stream
             eeg_stream["time_series"] = eeg_stream["time_series"][:, channels].T
@@ -804,41 +839,64 @@ class BcipXDF(MPBase):
                 data, header = pyxdf.load_xdf(filename)
                 # Iterate through all streams in every file, add current file's data to the previously loaded data
                 for stream in data:
-                    if (stream["info"]["type"][0] == "Marker"
-                        or stream["info"]["type"][0] == "Markers"):  
-                        marker_stream = stream
+                    if (
+                        stream["info"]["type"][0] == "Marker"
+                        or stream["info"]["type"][0] == "Markers"
+                    ):  
+                        if marker_stream:
+                            marker_stream["time_series"] = np.concatenate(
+                                (marker_stream["time_series"], stream["time_series"]),
+                                axis=0,
+                            )
+                            marker_stream["time_stamps"] = np.concatenate(
+                                (marker_stream["time_stamps"], stream["time_stamps"]),
+                                axis=0,
+                            )
+                        else:
+                            marker_stream = stream
 
                     elif stream["info"]["type"][0] == "EEG":
-                        eeg_stream = stream
+                        if eeg_stream:
+                            eeg_stream["time_series"] = np.concatenate(
+                                (eeg_stream["time_series"], stream["time_series"]),
+                                axis=0,
+                            )
+                            eeg_stream["time_stamps"] = np.concatenate(
+                                (eeg_stream["time_stamps"], stream["time_stamps"]),
+                                axis=0,
+                            )
+                        else:
+                            eeg_stream = stream
 
-            total_markers = len(marker_stream["time_stamps"])
-            eeg_stream_data = np.zeros((total_markers, len(channels), Ns))
-            eeg_stream_stamps = np.zeros((total_markers, Ns))
+            eeg_stream_data = np.zeros(
+                (len(marker_stream["time_stamps"]), Ns, len(channels))
+            )
+            eeg_stream_stamps = np.zeros((len(marker_stream["time_stamps"]), Ns))
 
             # Actual epoching operation
-            incomplete_epochs = 0
-            for epoch_num in range(total_markers):
+            for epoch_num in range(len(marker_stream["time_stamps"])):
                 # Find the marker value where the current epoch starts
                 marker_time = marker_stream["time_stamps"][epoch_num]
                 # Correct the starting time of the epoch based on the relative start time
                 eeg_window_start = marker_time + relative_start
 
                 # Find the index of the first sample after the marker
-                first_sample_index = np.where(eeg_stream["time_stamps"] >= eeg_window_start)[0][0]
+                first_sample_index = np.where(
+                    eeg_stream["time_stamps"] >= eeg_window_start)[0][0]
                 # Find the index of the last sample in the window
                 final_sample_index = first_sample_index + Ns
-                if final_sample_index <= eeg_stream["time_series"].shape[0]:
-                    # Extract the data from the eeg stream
-                    eeg_stream_data[epoch_num, :, :] = eeg_stream["time_series"][first_sample_index:final_sample_index,:][:, channels].T
-                    eeg_stream_stamps[epoch_num, :] = eeg_stream["time_stamps"][first_sample_index:final_sample_index]
-                else:
-                    # insufficient data for full epoch
-                    incomplete_epochs += 1
+                # Extract the data from the eeg stream
+                eeg_stream_data[epoch_num, :, :] = eeg_stream["time_series"][
+                    first_sample_index:final_sample_index, :
+                ][:, channels]
+                eeg_stream_stamps[epoch_num, :] = eeg_stream["time_stamps"][
+                    first_sample_index:final_sample_index
+                ]
 
             self.trial_data = {
                 "EEG": {
-                    "time_stamps": eeg_stream_stamps[:total_markers - incomplete_epochs],
-                    "time_series": eeg_stream_data[:total_markers - incomplete_epochs],
+                    "time_stamps": eeg_stream_stamps,
+                    "time_series": eeg_stream_data,
                 },
                 "Markers": marker_stream,
             }
@@ -876,7 +934,9 @@ class BcipXDF(MPBase):
 
         elif self.mode == "epoched":
             # Extract sample data from epoched trial data and increment the label counter
-            sample_data = self.trial_data["EEG"]["time_series"][self.epoched_counter, :, :]
+            sample_data = self.trial_data["EEG"]["time_series"][
+                self.epoched_counter, :, :
+            ]
             self.epoched_counter += 1
 
             return sample_data

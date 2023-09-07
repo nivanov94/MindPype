@@ -672,6 +672,8 @@ class Tensor(MPBase):
         --------
         >>> t = Tensor.create_virtual((1,2,3))
         >>> t2 = Tensor.create_virtual((1,3,3))
+
+            MPEnums.SUCCESS
         """
         if dest_tensor.virtual and dest_tensor.shape != self.shape:
             dest_tensor.shape = self.shape
@@ -724,6 +726,9 @@ class Tensor(MPBase):
             data = np.squeeze(data, axis=0)
         self.data = data
         
+
+        return MPEnums.SUCCESS
+    
     def push_volatile_outputs(self, label=None):
         """
         Push data to external sources.

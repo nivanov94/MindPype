@@ -85,7 +85,6 @@ class Graph(MPBase):
         
         """
         self._verified = False
-        self._initialized = False
         self._nodes.append(node)
 
     def set_default_init_data(self, data, labels):
@@ -102,7 +101,6 @@ class Graph(MPBase):
 
         """
         self._verified = False
-        self._initialized = False
         self._default_init_data = data
         self._default_init_labels = labels
         
