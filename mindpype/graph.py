@@ -807,8 +807,6 @@ class Edge:
         
             # assign the tensor to the producer's corresponding init output
             p.kernel.phony_init_outputs[output_index] = self._phony_init_data
-            if self._phony_init_labels is not None:
-                p.kernel.phony_init_output_labels = self._phony_init_labels
 
         # get the consuming node
         for c in self.consumers:
