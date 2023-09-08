@@ -4,6 +4,7 @@ from .containers import Tensor
 import sys
 import numpy as np
 
+
 class Kernel(MPBase, ABC):
     """
     An abstract base class for kernels
@@ -277,7 +278,8 @@ class Kernel(MPBase, ABC):
             if len(self._init_inputs) == 0:
                 self._init_inputs = [None] * len(self._inputs)
             else:
-                self._init_inputs.extend([None] * (len(self._inputs) - len(self._init_inputs)))
+                self._init_inputs.extend(
+                    [None] * (len(self._inputs) - len(self._init_inputs)))
 
     @outputs.setter
     def outputs(self, outputs):
@@ -296,7 +298,8 @@ class Kernel(MPBase, ABC):
             if len(self._init_outputs) == 0:
                 self._init_outputs = [None] * len(self._outputs)
             else:
-                self._init_outputs.extend([None] * (len(self._outputs) - len(self._init_outputs)))
+                self._init_outputs.extend(
+                    [None] * (len(self._outputs) - len(self._init_outputs)))
 
     @init_inputs.setter
     def init_inputs(self, inputs):
@@ -334,7 +337,7 @@ class Kernel(MPBase, ABC):
         """
         self._phony_init_input_labels = labels
 
-    ## INPUT and OUTPUT getter methods
+    # INPUT and OUTPUT getter methods
     def get_input(self, index):
         """
         Returns the input at the specified index
@@ -465,7 +468,7 @@ class Kernel(MPBase, ABC):
         else:
             dst = self.phony_init_output_labels
 
-        if src is None: # nothing to copy
+        if src is None:  # nothing to copy
             return
 
         if src.mp_type != MPEnums.TENSOR:
@@ -475,7 +478,6 @@ class Kernel(MPBase, ABC):
             dst = Tensor.create_virtual(self.session)
 
         src.copy_to(dst)
-
 
     def update_parameters(self, parameter, value):
         """
@@ -490,7 +492,9 @@ class Kernel(MPBase, ABC):
             setattr(self, str(parameter), value)
 
         except AttributeError:
-            raise AttributeError("Kernel {} does not have parameter {}".format(self.name, parameter))
+            raise AttributeError(("Kernel {} does not " +
+                                  "have parameter {}").format(self.name,
+                                                              parameter))
 
     def verify(self):
         """
@@ -509,7 +513,7 @@ class Kernel(MPBase, ABC):
         io = (self.inputs, self.outputs)
         phony_io = (self.phony_inputs, self.phony_outputs)
 
-        for verif_params, params, phony_params in zip(verif_io, io, phony_io):
+        for params, verif_params, phony_params in zip(io, verif_io, phony_io):
             for i_p, param in enumerate(params):
                 if i_p in phony_params:
                     # use phony params if available
@@ -518,7 +522,8 @@ class Kernel(MPBase, ABC):
                     # otherwise use real virtual params
                     verif_params.append(param)
 
-        # if the kernel requires initialization, extract phony init inputs and outputs
+        # if the kernel requires initialization, extract phony init
+        # inputs and outputs
         if self._verif_inits_exist():
             verif_init_inputs = []
             verif_init_outputs = []
@@ -526,7 +531,9 @@ class Kernel(MPBase, ABC):
             init_io = (self.init_inputs, self.init_outputs)
             phony_init_io = (self.phony_init_inputs, self.phony_init_outputs)
 
-            for verif_params, params, phony_params in zip(verif_init_io, init_io, phony_init_io):
+            for params, verif_params, phony_params in zip(init_io,
+                                                          verif_init_io,
+                                                          phony_init_io):
                 for i_p, param in enumerate(params):
                     if i_p in phony_params:
                         # use phony params if available
@@ -546,34 +553,49 @@ class Kernel(MPBase, ABC):
                     verif_init_labels = verif_init_labels.to_tensor()
 
                 if np.unique(verif_init_labels.data).shape[0] != self._num_classes:
-                    verif_init_labels.assign_random_data(whole_numbers=True, vmin=0, vmax=(self._num_classes-1))
+                    verif_init_labels.assign_random_data(whole_numbers=True,
+                                                         vmin=0,
+                                                         vmax=(self._num_classes-1))
 
             # attempt initialization
             try:
-                self._initialize(verif_init_inputs, verif_init_outputs, verif_init_labels)
+                self._initialize(verif_init_inputs,
+                                 verif_init_outputs,
+                                 verif_init_labels)
                 self.copy_init_labels_to_output(verification=True)
             except Exception as e:
-                raise type(e)(f"{str(e)}\nTest initialization of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
+                raise type(e)((f"{str(e)}\nTest initialization of " +
+                               f"node {self.name} failed " +
+                               "during verification. Please check" +
+                               "parameters.")).with_traceback(
+                                                    sys.exc_info()[2])
 
             # set init output shapes using phony init outputs as needed
-            for init_output, verif_init_output in zip(self.init_outputs, verif_init_outputs):
+            for init_output, verif_init_output in zip(self.init_outputs,
+                                                      verif_init_outputs):
                 if (init_output is not None and
-                    init_output.shape != verif_init_output.shape):
-                    raise ValueError(f"Test initialization of node {self.name} failed during verification. Please check parameters.")
+                        init_output.shape != verif_init_output.shape):
+                    raise ValueError("Test initialization of node " +
+                                     f"{self.name} failed during " +
+                                     "verification. Please check parameters.")
 
         # attempt kernel execution
         try:
             self._process_data(verif_inputs, verif_outputs)
         except Exception as e:
-            raise type(e)(f"{str(e)}\nTest execution of node {self.name} failed during verification. Please check parameters.").with_traceback(sys.exc_info()[2])
+            raise type(e)((f"{str(e)}\nTest execution of node {self.name} " +
+                           "failed during verification. Please check " +
+                           "parameters.")).with_traceback(sys.exc_info()[2])
 
         # set output shapes using phony outputs as needed
         for output, verif_output in zip(self.outputs, verif_outputs):
             if (output is not None and
-                output.mp_type == MPEnums.TENSOR and
-                output.shape != verif_output.shape):
-                raise ValueError(f"Test execution of node {self.name} failed during verification. Output shape does not match expected value. Please check parameters.")
-
+                    output.mp_type == MPEnums.TENSOR and
+                    output.shape != verif_output.shape):
+                raise ValueError(f"Test execution of node {self.name} " +
+                                 "failed during verification. Output " +
+                                 "shape does not match expected value." +
+                                 "Please check parameters.")
 
     def initialize(self):
         """
@@ -581,7 +603,9 @@ class Kernel(MPBase, ABC):
         """
         if hasattr(self, '_initialize'):
             self._initialized = False
-            self._initialize(self.init_inputs, self.init_outputs, self.init_input_labels)
+            self._initialize(self.init_inputs,
+                             self.init_outputs,
+                             self.init_input_labels)
             self._initialized = True
             self.copy_init_labels_to_output()
 
@@ -610,7 +634,7 @@ class Kernel(MPBase, ABC):
         Returns true if the parameter is a covariance input
         """
         if self._covariance_inputs is None:
-            return False # kernel does not have covariance inputs
+            return False  # kernel does not have covariance inputs
 
         # search for the parameter in the inputs and init_inputs
         param_index = None
@@ -625,7 +649,8 @@ class Kernel(MPBase, ABC):
             i_ig += 1
 
         if param_index is None:
-            # search for the parameter in the phony inputs and phony init_inputs
+            # search for the parameter in the phony inputs and
+            # phony init_inputs
             input_groups = (self.phony_inputs, self.phony_init_inputs)
             i_ig = 0
             while param_index is None and i_ig < len(input_groups):
@@ -652,7 +677,8 @@ class Kernel(MPBase, ABC):
         ----------
         init_data : list or tuple of MindPype data objects
             MindPype container containing the initialization data
-        init_labels : MindPype data object containing initialization labels, default = None
+        init_labels : MindPype data object containing initialization
+        labels, default = None
             MindPype container containing the initialization labels
 
         """

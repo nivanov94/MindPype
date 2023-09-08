@@ -7,7 +7,9 @@
 
 from enum import IntEnum
 import sys
-import pickle, copy
+import pickle
+import copy
+
 
 class MPBase(object):
     """
@@ -28,7 +30,7 @@ class MPBase(object):
         Constructor for MPBase base class
         """
         self._mp_type = mp_type
-        self._id  = id(self)
+        self._id = id(self)
         self._session = session
 
     # API getters
@@ -144,7 +146,6 @@ class MPEnums(IntEnum):
     """
 
     # Object Type Enums - Have a leading '1'
-
     MPBase        = 100
     SESSION       = 101
     GRAPH         = 102
@@ -159,15 +160,12 @@ class MPEnums(IntEnum):
     SRC           = 111
     CLASSIFIER    = 112
 
-
     # Parameter Directions - Leading '3'
-
     INPUT  = 300
     OUTPUT = 301
     INOUT  = 302
 
     # Kernel Initialization types - leading '4'
-
     INIT_FROM_NONE = 400
     INIT_FROM_DATA = 401
     INIT_FROM_COPY = 402
@@ -205,8 +203,8 @@ class Session(MPBase):
         self.graphs = {}
 
         # Configure logging for the session
-        #logging.basicConfig(filename='../mindpype/logs/log.log', filemode='a', format='%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s ', level=logging.INFO, encoding='utf-8')
-        #logging.info("Session created")
+        # logging.basicConfig(filename='../mindpype/logs/log.log', filemode='a', format='%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s ', level=logging.INFO, encoding='utf-8')
+        # logging.info("Session created")
 
     def verify(self):
         """
@@ -222,7 +220,9 @@ class Session(MPBase):
             try:
                 self.graphs[g_id].verify()
             except Exception as e:
-                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exc_info()[2])
+                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed " +
+                              "verification. Please check graph " +
+                              "definition").with_traceback(sys.exc_info()[2])
 
         self._verified = True
         self.free_temp_data()
@@ -233,11 +233,14 @@ class Session(MPBase):
         """
         print("Initializing graphs...")
         for i_g, g_id in enumerate(self.graphs):
-            print("\tInitializing graph {} of {}".format(i_g+1, len(self.graphs)))
+            print("\tInitializing graph {} of {}".format(i_g+1,
+                                                         len(self.graphs)))
             try:
                 self.graphs[g_id].initialize()
             except Exception as e:
-                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed initialization. Please check graph definition").with_traceback(sys.exc_info()[2])
+                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed " +
+                              "initialization. Please check graph " +
+                              "definition").with_traceback(sys.exc_info()[2])
 
         self._initialized = True
         self.free_temp_data()
@@ -257,8 +260,8 @@ class Session(MPBase):
         >>> session.poll_volatile_channels()
 
 .. warning::
-    For Developers: may need to add an input parameter with some timing information
-    to indicate how each data object should be synced
+    For Developers: may need to add an input parameter with some timing
+    information to indicate how each data object should be synced
         """
         for d in self._datum:
             if self._datum[d].volatile:
@@ -300,7 +303,7 @@ class Session(MPBase):
         self.poll_volatile_channels(label)
         graph.execute(label)
         self.push_volatile_outputs(label)
-        #logging.info("Trial executed successfully")
+        # logging.info("Trial executed successfully")
 
     def add_graph(self, graph):
         """
@@ -317,7 +320,7 @@ class Session(MPBase):
         """
         self._verified = False
         self.graphs[graph.session_id] = graph
-        #logging.info("Graph added to session")
+        # logging.info("Graph added to session")
 
     def add_data(self, data):
         """
@@ -407,7 +410,6 @@ class Session(MPBase):
         # not found, return None type
         return None
 
-
     def save_session(self: object, file: str, additional_params=None) -> None:
         """
         Save the session object and all of its contents to a file
@@ -417,7 +419,8 @@ class Session(MPBase):
         file : str
             File path to save the session to
         additional_params : dict, optional
-            Additional parameters to save with the session. The default is None.
+            Additional parameters to save with the session. The default
+            is None.
         Returns
         -------
         Pickle object : Pickle

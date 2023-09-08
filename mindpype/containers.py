@@ -1,5 +1,6 @@
 """
-Defines data container classes for MindPype. These classes are used to represent data in the MindPype framework.
+Defines data container classes for MindPype.
+These classes are used to represent data in the MindPype framework.
 
 @author: Nicolas Ivanov, Aaron Lio
 """
@@ -7,10 +8,11 @@ Defines data container classes for MindPype. These classes are used to represent
 from .core import MPBase, MPEnums
 import numpy as np
 
-class Scalar(MPBase):
 
+class Scalar(MPBase):
     """
-    MPBase Data type defining scalar-type data. The valid data types are int, float, complex, str, and bool.
+    MPBase Data type defining scalar-type data. The valid data types
+    are int, float, complex, str, and bool.
 
     Parameters
     ----------
@@ -23,8 +25,9 @@ class Scalar(MPBase):
     is_virtual : bool
         If true, the Scalar object is virtual, non-virtual otherwise
     ext_src : LSL data source input object, MAT data source, or None
-        External data source represented by the scalar; this data will be polled/updated when trials are executed.
-        If the data does not represent an external data source, set ext_src to None
+        External data source represented by the scalar; this data will
+        be polled/updated when trials are executed. If the data does
+        not represent an external data source, set ext_src to None
 
     Attributes
     ----------
@@ -35,10 +38,12 @@ class Scalar(MPBase):
     is_virtual : bool
         If true, the Scalar object is virtual, non-virtual otherwise
     _ext_src : LSL data source input object, MAT data source, or None
-        External data source represented by the scalar; this data will be polled/updated when trials are executed.
-        If the data does not represent an external data source, set ext_src to None
+        External data source represented by the scalar; this data will
+        be polled/updated when trials are executed. If the data does
+        not represent an external data source, set ext_src to None
     _volatile : bool
-        True if source is volatile (needs to be updated/polled between trials), false otherwise
+        True if source is volatile (needs to be updated/polled between
+        trials), false otherwise
 
     Examples
     --------
@@ -48,7 +53,8 @@ class Scalar(MPBase):
 
     _valid_types = [int, float, complex, str, bool]
 
-    def __init__(self, sess, value_type, val, is_virtual, ext_src, ext_out=None):
+    def __init__(self, sess, value_type, val,
+                 is_virtual, ext_src, ext_out=None):
         """
         Constructor for Scalar object
         """
@@ -57,7 +63,7 @@ class Scalar(MPBase):
 
         self._ext_src = ext_src
 
-        if val == None:
+        if val is None:
             if value_type == int:
                 val = 0
             elif value_type == float:
@@ -92,7 +98,8 @@ class Scalar(MPBase):
         Return
         ------
         bool
-            True if source is volatile (needs to be updated/polled between trials), false otherwise
+            True if source is volatile (needs to be updated/polled between
+            trials), false otherwise
         """
         return self._volatile
 
@@ -104,7 +111,8 @@ class Scalar(MPBase):
         Return
         ------
         bool
-            True if output is volatile (needs to be updated/pushed between trials), false otherwise
+            True if output is volatile (needs to be updated/pushed between
+            trials), false otherwise
         """
         return self._volatile_out
 
@@ -158,8 +166,9 @@ class Scalar(MPBase):
 
         Return
         ------
-        External data source represented by the scalar; this data will be polled/updated when trials are executed.
-            If the data does not represent an external data source, ext_src is None
+        External data source represented by the scalar; this data will be
+        polled/updated when trials are executed. If the data does not
+        represent an external data source, ext_src is None
 
         Return Type
         -----------
@@ -176,12 +185,14 @@ class Scalar(MPBase):
 
         Return
         ------
-        External data output represented by the scalar; this data will be pushed when trials are executed.
-            If the data does not represent an external data source, ext_out is None
+        External data output represented by the scalar; this data will
+        be pushed when trials are executed. If the data does not represent
+        an external data source, ext_out is None
 
         Return Type
         -----------
-        LSL data source output object, XDF data source, MAT data source, or None
+        LSL data source output object, XDF data source, MAT data source,
+        or None
 
         """
         return self._ext_out
@@ -223,12 +234,13 @@ class Scalar(MPBase):
             elif isinstance(data, np.complex_):
                 data = complex(data)
 
-        if type(data) == self.data_type:
+        if type(data) is self.data_type:
             self._data = data
         else:
-            raise TypeError(("MindPype Scalar contains data of type {}. Cannot" +
-                             " set data to type {}").format(self.data_type,
-                                                            type(data)))
+            raise TypeError(("MindPype Scalar contains data of type {}." +
+                             " Cannot set data to type {}").format(
+                                                                self.data_type,
+                                                                type(data)))
 
     def make_copy(self):
         """
@@ -269,7 +281,8 @@ class Scalar(MPBase):
         Parameters
         ----------
         dest_scalar : Scalar Object
-            Scalar object which will represent the copy of the referenced Scalar's elements
+            Scalar object which will represent the copy of the referenced
+            Scalar's elements
 
         Examples
         --------
@@ -277,12 +290,14 @@ class Scalar(MPBase):
         """
         dest_scalar.data = self.data
 
-        # for now, don't copy the type, virtual and ext_src attributes because these
-        # should really be set during creation not later
+        # for now, don't copy the type, virtual and ext_src attributes because
+        # these should really be set during creation not later
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
+                           covariance=False):
         """
-        Assign random data to the scalar. This is useful for testing and verification purposes.
+        Assign random data to the scalar. This is useful for testing and
+        verification purposes.
         """
         if self.data_type == int or whole_numbers:
             self.data = np.random.randint(vmin, vmax+1)
@@ -296,7 +311,6 @@ class Scalar(MPBase):
         elif self.data_type == bool:
             self.data = np.random.choice([True, False])
 
-
     def poll_volatile_data(self, label=None):
         """
         Polling/Updating volatile data within the scalar object
@@ -305,9 +319,9 @@ class Scalar(MPBase):
         ----------
         Label : int, default = None
             Class label corresponding to class data to poll.
-            This is required for epoched data but should be set to None for LSL data
+            This is required for epoched data but should be set to None for
+            LSL data
         """
-
         # check if the data is actually volatile
         if self.volatile:
             self.data = self.ext_src.poll_data(label)
@@ -332,13 +346,14 @@ class Scalar(MPBase):
     @classmethod
     def create(cls, sess, data_type):
         """
-        Initialize a non-virtual, non-volatile Scalar object with an empty data field and add it to the session
+        Initialize a non-virtual, non-volatile Scalar object with an empty
+        data field and add it to the session
 
         Parameters
         ----------
         sess : Session Object
             Session where the Scalar object will exist
-        data_type : Python built-in data type (int, float, complex, str, or bool)
+        data_type : int, float, complex, str, or bool
             Data type of data represented by Scalar object
 
         Return
@@ -352,8 +367,8 @@ class Scalar(MPBase):
 
         """
         if isinstance(data_type, str):
-            dtypes = {'int':int, 'float':float, 'complex':complex,
-                      'str':str, 'bool':bool}
+            dtypes = {'int': int, 'float': float, 'complex': complex,
+                      'str': str, 'bool': bool}
             if data_type in dtypes:
                 data_type = dtypes[data_type]
 
@@ -368,13 +383,14 @@ class Scalar(MPBase):
     def create_virtual(cls, sess, data_type):
 
         """
-        Initialize a virtual, non-volatile Scalar object with an empty data field and add it to the session
+        Initialize a virtual, non-volatile Scalar object with an empty data
+        field and add it to the session
 
         Parameters
         ----------
         sess : Session Object
             Session where the Scalar object will exist
-        data_type : Python built-in data type (int, float, complex, str, or bool)
+        data_type : int, float, complex, str, or bool
             Data type of data represented by Scalar object
 
         Return
@@ -388,8 +404,8 @@ class Scalar(MPBase):
         """
 
         if isinstance(data_type, str):
-            dtypes = {'int':int, 'float':float, 'complex':complex,
-                      'str':str, 'bool':bool}
+            dtypes = {'int': int, 'float': float, 'complex': complex,
+                      'str': str, 'bool': bool}
             if data_type in dtypes:
                 data_type = dtypes[data_type]
 
@@ -408,7 +424,8 @@ class Scalar(MPBase):
     def create_from_value(cls, sess, value):
 
         """
-        Initialize a non-virtual, non-volatile Scalar object with specified data and add it to the session
+        Initialize a non-virtual, non-volatile Scalar object with specified
+        data and add it to the session
 
         Parameters
         ----------
@@ -443,16 +460,18 @@ class Scalar(MPBase):
     def create_from_handle(cls, sess, data_type, src):
 
         """
-        Initialize a non-virtual, volatile Scalar object with an empty data field and add it to the session
+        Initialize a non-virtual, volatile Scalar object with an empty data
+        field and add it to the session
 
         Parameters
         ----------
         sess : Session Object
             Session where the Scalar object will exist
-        data_type : Python built-in data type (int, float, complex, str, or bool)
+        data_type : int, float, complex, str, or bool
             Data type of data represented by Scalar object
         src : Data Source object
-            Data source object (LSL, continuousMat, or epochedMat) from which to poll data
+            Data source object (LSL, continuousMat, or epochedMat) from
+            which to poll data
 
         Return
         ------
@@ -472,14 +491,19 @@ class Scalar(MPBase):
         return s
 
 
-
-
 class Tensor(MPBase):
     """
-
     Tensor (or n-dimensional matrices), are defined by the tensor class.
-    MindPype tensors can either be volatile (are updated/change each trial, generally reserved for tensors containing current trial data), virtual (empty, dimensionless tensor object). Like scalars and array, tensors can be created from data, copied from a different variable, or created virtually, so they don’t initially contain a value.
-    Each of the scalars, tensors and array data containers also have an external source (_ext_src) attribute, which indicates, if necessary, the source from which the data is being pulled from. This is especially important if trial/training data is loaded into a tensor each trial from an LSL stream or MAT file.
+    MindPype tensors can either be volatile (are updated/change each trial,
+    generally reserved for tensors containing current trial data), virtual
+    (empty, dimensionless tensor object). Like scalars and array, tensors can
+    be created from data, copied from a different variable, or created
+    virtually, so they don’t initially contain a value.
+    Each of the scalars, tensors and array data containers also have an
+    external source (_ext_src) attribute, which indicates, if necessary,
+    the source from which the data is being pulled from. This is
+    especially important if trial/training data is loaded into a tensor
+    each trial from an LSL stream or MAT file.
 
     Parameters
     ----------
@@ -492,12 +516,14 @@ class Tensor(MPBase):
     is_virtual : bool
         If False, the Tensor is non-virtual, if True, the Tensor is virtual
     ext_src : MindPype input Source
-        Data source the tensor pulls data from (only applies to Tensors created from a handle)
+        Data source the tensor pulls data from (only applies to Tensors
+        created from a handle)
     ext_out : MindPype output Source
-        Data source the tensor pushes data to (only applies to Tensors created from a handle)
+        Data source the tensor pushes data to (only applies to Tensors created
+        from a handle)
     """
 
-    def __init__(self, sess, shape, data, is_virtual, ext_src, ext_out = None):
+    def __init__(self, sess, shape, data, is_virtual, ext_src, ext_out=None):
         """
         Constructor for Tensor class
         """
@@ -562,12 +588,14 @@ class Tensor(MPBase):
     def ext_out(self):
         return self._ext_out
 
-    #API setters
+    # API setters
     @data.setter
     def data(self, data):
         """
-        Set data of a Tensor. If the current shape of the Tensor is different from the shape of the data being inputted, you must first change
-        the shape of the Tensor before adding the data, or an error will be thrown
+        Set data of a Tensor. If the current shape of the Tensor
+        is different from the shape of the data being inputted,
+        you must first change the shape of the Tensor before adding
+        the data, or an error will be thrown
 
         Parameters
         ----------
@@ -577,7 +605,8 @@ class Tensor(MPBase):
         Raises
         ------
         ValueError
-            If the shape of the Tensor is different from the shape of the data being inputted
+            If the shape of the Tensor is different from the shape of the data
+            being inputted
 
         Examples
         --------
@@ -587,7 +616,7 @@ class Tensor(MPBase):
 
         # special case where every dimension is a singleton
         if (np.prod(np.asarray(data.shape)) == 1 and
-            np.prod(np.asarray(self.shape)) == 1):
+                np.prod(np.asarray(self.shape)) == 1):
             while len(self.shape) > len(data.shape):
                 data = np.expand_dims(data, axis=0)
 
@@ -605,7 +634,9 @@ class Tensor(MPBase):
     @shape.setter
     def shape(self, shape):
         """
-        Method to set the shape of a Tensor. Only applies to non-virtual tensors and sets all values in the modified tensor to 0.
+        Method to set the shape of a Tensor. Only applies to
+        non-virtual tensors and sets all values in the
+        modified tensor to 0.
 
         Parameters
         ----------
@@ -617,7 +648,8 @@ class Tensor(MPBase):
         ValueError
             If the Tensor is non-virtual, the shape cannot be changed
 
-        .. note:: This method is only applicable to virtual Tensors, and will throw an error if called on a non-virtual Tensor.
+        .. note:: This method is only applicable to virtual Tensors, and will
+                  throw an error if called on a non-virtual Tensor.
 
         Examples
         --------
@@ -646,7 +678,7 @@ class Tensor(MPBase):
         >>> t = Tensor.create_virtual((1, 2, 3))
         >>> t2 = t.make_copy()
         """
-        #TODO determine what to do when copying virtual
+        # TODO determine what to do when copying virtual
         cpy = Tensor(self.session,
                      self.shape,
                      self.data,
@@ -666,12 +698,8 @@ class Tensor(MPBase):
         Parameters
         ----------
         dest_tensor : Tensor object
-            Tensor object where the attributes with the referenced Tensor will copied to
-
-        Examples # TODO REDO
-        --------
-        >>> t = Tensor.create_virtual((1, 2, 3))
-        >>> t2 = Tensor.create_virtual((1, 3, 3))
+            Tensor object where the attributes with the referenced Tensor will
+            be copied to
         """
         if dest_tensor.virtual and dest_tensor.shape != self.shape:
             dest_tensor.shape = self.shape
@@ -681,9 +709,11 @@ class Tensor(MPBase):
         # only be set during creation and modifying could cause unintended
         # consequences
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
+                           covariance=False):
         """
-        Assign random data to the tensor. This is useful for testing and verification purposes.
+        Assign random data to the tensor. This is useful for testing and
+        verification purposes.
         """
         if whole_numbers:
             self.data = np.random.randint(vmin, vmax+1, size=self.shape)
@@ -694,10 +724,12 @@ class Tensor(MPBase):
         if covariance:
             rank = len(self.shape)
             if rank != 2 and rank != 3:
-                raise ValueError("Cannot assign random covariance matrix to tensor with rank other than 2 or 3")
+                raise ValueError("Cannot assign random covariance matrix to " +
+                                 "tensor with rank other than 2 or 3")
 
             if self.shape[-2] != self.shape[-1]:
-                raise ValueError("Cannot assign random covariance matrix to tensor with non-square last two dimensions")
+                raise ValueError("Cannot assign random covariance matrix to " +
+                                 "tensor with non-square last two dimensions")
 
             if rank == 2:
                 self.data = np.cov(self.data)
@@ -707,7 +739,6 @@ class Tensor(MPBase):
 
             # add regularization
             self.data += 0.001 * np.eye(self.shape[-1])
-
 
     def poll_volatile_data(self, label=None):
         """
@@ -737,7 +768,8 @@ class Tensor(MPBase):
     @classmethod
     def create(cls, sess, shape):
         """
-        Factory Method to create a generic, non-virtual, Tensor object. The shape must be known to create this object
+        Factory Method to create a generic, non-virtual, Tensor object. The
+        shape must be known to create this object
 
         Parameters
         ----------
@@ -815,7 +847,8 @@ class Tensor(MPBase):
             Shape of the Tensor
 
         ext_src : MindPype input Source
-            Data source the tensor pulls data from (only applies to Tensors created from a handle)
+            Data source the tensor pulls data from (only applies to Tensors
+            created from a handle)
 
         """
         t = cls(sess, shape, None, False, src)
@@ -838,9 +871,12 @@ class Tensor(MPBase):
             Shape of the Tensor
 
         out : MindPype output Source
-            Data source the tensor pushes data to (only applies to Tensors created for volatile output)
+            Data source the tensor pushes data to (only applies to Tensors
+            created for volatile output)
         """
-        # These tensors should be non-volatile but since init and trial data can be different sizes, they need to be virtual until that is addressed
+        # These tensors should be non-volatile but since init and trial data
+        # can be different sizes, they need to be virtual until that is
+        # addressed
 
         t = cls(sess, shape, None, True, None, out)
         sess.add_data(t)
@@ -850,7 +886,8 @@ class Tensor(MPBase):
     @staticmethod
     def validate_data(shape, data):
         """
-        Method that returns True if  the data within the tensor is the right shape and is a numpy ndarray. False otherwise.
+        Method that returns True if  the data within the tensor is the right
+        shape and is a numpy ndarray. False otherwise.
         """
         if data is None:
             return False
@@ -863,14 +900,16 @@ class Tensor(MPBase):
 
 class Array(MPBase):
     """
-    Array containing instances of other MindPype classes. Each array can only hold one type of MindPype class.
+    Array containing instances of other MindPype classes. Each array can only
+    hold one type of MindPype class.
 
     Parameters
     ----------
     sess : Session object
         Session where the Array object will exist
     capacity : int
-        Maximum number of elements to be stored within the array (for allocation purposes)
+        Maximum number of elements to be stored within the array (for
+        allocation purposes)
     element_template : any
         The template MindPype element to populate the array (see examples)
 
@@ -879,14 +918,16 @@ class Array(MPBase):
 
     Examples
     --------
-    >>> #Creating An Array
-    >>> example = Array.create(example_session, example_capacity, Tensor.create(example_session, input_data.shape))
+    >>> # Creating An Array of tensors
+    >>> template = Tensor.create(example_session, input_data.shape)
+    >>> example = Array.create(example_session, example_capacity, template)
 
     Return
     ======
     Array Object
 
-    .. note:: A single array object should only contain one MindPype/data object type.
+    .. note:: A single array object should only contain one MindPype/data
+              object type.
 
 
     """
@@ -894,9 +935,9 @@ class Array(MPBase):
     def __init__(self, sess, capacity, element_template):
         super().__init__(MPEnums.ARRAY, sess)
 
-        self._virtual = False # no virtual arrays for now
-        self._volatile = False # no volatile arrays for now...
-        self._volatile_out = False # no volatile arrays for now...
+        self._virtual = False  # no virtual arrays for now
+        self._volatile = False  # no volatile arrays for now...
+        self._volatile_out = False  # no volatile arrays for now...
 
         self._capacity = capacity
 
@@ -904,7 +945,6 @@ class Array(MPBase):
 
         for i in range(capacity):
             self._elements[i] = element_template.make_copy()
-
 
     # Returns an element at a particular index
     def get_element(self, index):
@@ -914,7 +954,8 @@ class Array(MPBase):
         Parameters
         ----------
         index : int
-            Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
+            Index is the position within the array with the element will be
+            returned. Index should be 0 <= Index < Capacity
 
         Return
         ------
@@ -940,7 +981,8 @@ class Array(MPBase):
         Parameters
         ----------
         index : int
-            Index in the array where the element will changed. 0 <= Index < capacity
+            Index in the array where the element will
+            change. 0 <= Index < capacity
 
         element : any
             specified value which will be set at index index
@@ -958,7 +1000,7 @@ class Array(MPBase):
         """
 
         if index >= self.capacity or index < 0:
-            raise ValueError("Index out of bounds") # TODO worth checking?
+            raise ValueError("Index out of bounds")
 
         element.copy_to(self._elements[index])
 
@@ -990,7 +1032,6 @@ class Array(MPBase):
         if self.virtual:
             self._capacity = capacity
             self._elements = [None] * capacity
-
 
     def make_copy(self):
         """
@@ -1027,7 +1068,8 @@ class Array(MPBase):
         Parameters
         ----------
         dest_array : Array object
-            Array object where the attributes with the referenced array will copied to
+            Array object where the attributes with the referenced array
+            will be copied to
 
         Examples
         --------
@@ -1038,12 +1080,15 @@ class Array(MPBase):
         for i in range(self.capacity):
             dest_array.set_element(i, self.get_element(i))
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
+                           covariance=False):
         """
-        Assign random data to the array. This is useful for testing and verification purposes.
+        Assign random data to the array. This is useful for testing and
+        verification purposes.
         """
         for i in range(self.capacity):
-            self.get_element(i).assign_random_data(whole_numbers, vmin, vmax, covariance)
+            self.get_element(i).assign_random_data(whole_numbers, vmin, vmax,
+                                                   covariance)
 
     def to_tensor(self):
         """
@@ -1052,7 +1097,8 @@ class Array(MPBase):
         element = self.get_element(0)
 
         if not (element.mp_type == MPEnums.TENSOR or
-                (element.mp_type == MPEnums.SCALAR and element.data_type in Scalar.valid_numeric_types())):
+                (element.mp_type == MPEnums.SCALAR and
+                 element.data_type in Scalar.valid_numeric_types())):
             return None
 
         # extract elements and stack into numpy array
@@ -1061,7 +1107,6 @@ class Array(MPBase):
 
         # create tensor
         return Tensor.create_from_data(self.session, stacked_elements)
-
 
     # API constructor
     @classmethod
@@ -1075,7 +1120,8 @@ class Array(MPBase):
         sess : Session object
             Session where the Array object will exist
         capacity : int
-            Maximum number of elements to be stored within the array (for allocation purposes)
+            Maximum number of elements to be stored within the array
+            (for allocation purposes)
         element_template : any
             The template MindPype element to populate the array (see examples)
 
@@ -1097,20 +1143,17 @@ class CircleBuffer(Array):
     sess : Session object
         Session where the Array object will exist
     capacity : int
-        Maximum number of elements to be stored within the array (for allocation purposes)
+        Maximum number of elements to be stored within the array
+        (for allocation purposes)
     element_template : any
-        The template MindPype element to populate the array (see Array examples)
-
-    Examples
-    --------
-    Creating a Circle Buffer
-        example_buffer = CircleBuffer.create(example_session, 5, Tensor.create(example_session, example_input_shape))
+        The template MindPype element to populate the array
+        (see Array examples)
 
     """
 
     def __init__(self, sess, capacity, element_template):
         super().__init__(sess, capacity, element_template)
-        self._mp_type = MPEnums.CIRCLE_BUFFER # overwrite
+        self._mp_type = MPEnums.CIRCLE_BUFFER  # overwrite
 
         self._head = None
         self._tail = None
@@ -1156,7 +1199,7 @@ class CircleBuffer(Array):
             True
         """
 
-        if self._head == None and self._tail == None:
+        if self._head is None and self._tail is None:
             return True
         else:
             return False
@@ -1185,7 +1228,6 @@ class CircleBuffer(Array):
         else:
             return False
 
-
     def get_queued_element(self, index):
         """
         Returns the element at a specific index within an Circle Buffer object.
@@ -1193,7 +1235,8 @@ class CircleBuffer(Array):
         Parameters
         ----------
         index : int
-            Index is the position within the array with the element will be returned. Index should be 0 <= Index < Capacity
+            Index is the position within the array with the element will be
+            returned. Index should be 0 <= Index < Capacity
 
         Return
         ------
@@ -1310,14 +1353,12 @@ class CircleBuffer(Array):
             dest_array._tail = self._tail
             dest_array._head = self._head
 
-
     def flush(self):
         """
         Empty the buffer of all elements
         """
         while not self.is_empty():
             self.dequeue()
-
 
     def to_tensor(self):
         """
@@ -1328,18 +1369,22 @@ class CircleBuffer(Array):
 
         t = super().to_tensor()
 
-        # remove data from tensor that is outside the range of the cb's head and tail
+        # remove data from tensor that is outside the
+        # range of the cb's head and tail
         if self._head < self._tail:
             valid_data = t.data[self._head:self._tail+1]
         else:
-            valid_data = np.concatenate((t.data[self._head:], t.data[:self._tail+1]),
+            valid_data = np.concatenate((t.data[self._head:],
+                                         t.data[:self._tail+1]),
                                         axis=0)
 
         return Tensor.create_from_data(self.session, valid_data)
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1, covariance=False):
+    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
+                           covariance=False):
         """
-        Assign random data to the buffer. This is useful for testing and verification purposes.
+        Assign random data to the buffer. This is useful for testing
+        and verification purposes.
         """
         super().assign_random_data(whole_numbers, vmin, vmax, covariance)
         self._head = 0

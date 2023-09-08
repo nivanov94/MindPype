@@ -1,9 +1,11 @@
 """
 
-Use this class to create a classifier object that can be used by the MindPype Classifier kernel.
+Use this class to create a classifier object that can be used by the
+MindPype Classifier kernel.
 
 .. note::
-   MindPype Classifier objects must be created in order to be used by the MindPype Classifier kernel.
+   MindPype Classifier objects must be created in order to be used by
+   the MindPype Classifier kernel.
 
 """
 
@@ -27,14 +29,17 @@ class Classifier(MPBase):
     ctype : str
        The name of the classifier to be created
     classifier : Classifier
-       The classifier object to be used within the node (should be the return from a MindPype kernel)
+       The classifier object to be used within the node (should be the return
+       from a MindPype kernel)
 
     Attributes
     ----------
     _ctype : str
-       One of ['lda', 'svm', 'logistic regression', 'custom'], corresponding to the type of classifier
+       One of ['lda', 'svm', 'logistic regression', 'custom'], corresponding
+       to the type of classifier
     _classifier : Classifier
-       The Classifier object (ie. Scipy classifier object) that will dictate this node's function
+       The Classifier object (ie. Scipy classifier object) that will dictate
+       this node's function
 
     Examples
     --------
@@ -44,13 +49,17 @@ class Classifier(MPBase):
         from mindpype import Classifier
 
         # Create a MindPype Classifier object using the factory method
-        classifier_object = Classifier.create_LDA(sess, solver='svd', shrinkage=None, priors=None,
-        n_components=None, store_covariance=False, tol=0.0001)
+        classifier_object = Classifier.create_LDA(sess, solver='svd',
+                                                  shrinkage=None, priors=None,
+                                                  n_components=None,
+                                                  store_covariance=False,
+                                                  tol=0.0001)
 
     Return
     ------
     MindPype Classifier object : Classifier
-        The MindPype Classifier object that can be used by the MindPype Classifier kernel
+        The MindPype Classifier object that can be used by the MindPype
+        Classifier kernel
 
 
 
@@ -111,23 +120,14 @@ class Classifier(MPBase):
         """
         Factory Method to create an SVM MindPype Classifier object.
 
-        .. note::
-           C-Support Vector Classification. The implementation is based on libsvm.
-           The fit time scales at least quadratically with the number of samples
-           and may be impractical beyond tens of thousands of samples.
-           The multiclass support is handled according to a one-vs-one scheme.
-
 
         .. note::
-            All unlisted parameters are the same as the sklearn SVC object.
-            Check out the `sklearn documentation <https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html>`_
-            for more information.
+            This is simply a wrapper for the sklearn SVC object.
 
         Parameters
         ----------
         sess : session object
             Session where the SVM MindPype Classifier object will exist
-
 
         Examples
         --------
@@ -138,7 +138,6 @@ class Classifier(MPBase):
         ------
         MindPype Classifier Object : Classifier
             MindPype Classifier Object containing the SVM classifier
-
         """
 
         svm_object = SVC(
@@ -178,28 +177,22 @@ class Classifier(MPBase):
         Factory method to create an LDA MindPype Classifier object.
 
         .. note::
-           All unlisted parameters are the same as the LDA Scikit-Learn object
-           `linked here <https://scikit-learn.org/stable/modules/generated/sklearn.discriminant_analysis.LinearDiscriminantAnalysis.html>`_
-           for more information.
+            This is simply a wrapper for the sklearn LDA object.
 
         Parameters
         ----------
-
         sess : Session
             Session where the SVM MindPype Classifier object will exist
-
 
         Return
         ------
         MindPype Classifier : Classifier
             MindPype Classifier Object containing the LDA classifier
 
-
         Examples
         --------
         >>> from mindpype import Classifier
         >>> classifier_object = Classifier.create_LDA(sess)
-
         """
         lda_object = LinearDiscriminantAnalysis(
             solver,
@@ -239,28 +232,25 @@ class Classifier(MPBase):
     ):
         """
         .. note::
-           The unlisted parameters accepted by this function are specified in the documentation
-           for the
-           `SKLearn Logistic Regression classifier <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>`_
-
+              This is simply a wrapper for the sklearn Logistic Regression
+              object.
 
         Parameters
         ----------
         sess : session object
-            Session where the Logistic Regression MindPype Classifier object will exist
-
-
+            Session where the Logistic Regression MindPype Classifier object
+            will exist
 
         Return
         ------
         MindPype Classifier Object : Classifier
-            MindPype Classifier Object containing the Logistic Regression classifier
+            MindPype Classifier Object containing the Logistic Regression
+            classifier
 
         Examples
         --------
         >>> from mindpype import Classifier
         >>> classifier_object = Classifier.create_logistic_regression(sess)
-
         """
 
         log_reg_object = LogisticRegression(
@@ -286,7 +276,8 @@ class Classifier(MPBase):
         return f
 
     @classmethod
-    def create_custom_classifier(cls, sess, classifier_object, classifier_type):
+    def create_custom_classifier(cls, sess, classifier_object,
+                                 classifier_type):
         """
         Factory method to create a generic MindPype Classifier object.
 
@@ -302,14 +293,17 @@ class Classifier(MPBase):
         Return
         ------
         Classifier Object : Classifier
-            MindPype Classifier object that contains the classifier object and type.
+            MindPype Classifier object that contains the classifier object
+            and type.
 
         Examples
         --------
         >>> from mindpype import Classifier
         >>> from sklearn.svm import SVC
         >>> svm_object = SVC()
-        >>> classifier_object = Classifier.create_custom_classifier(sess, svm_object, 'svm')
+        >>> classifier_object = Classifier.create_custom_classifier(sess,
+                                                                    svm_object,
+                                                                    'svm')
         """
         f = cls(sess, classifier_type, classifier_object)
         sess.add_misc_mp_obj(f)

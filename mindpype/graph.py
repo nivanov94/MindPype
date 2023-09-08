@@ -6,17 +6,19 @@ graph.py - Defines the graph object
 @author: ivanovn
 """
 
-import logging
-import warnings
+# import logging
+# import warnings
 
 from .core import MPBase, MPEnums
 from .containers import Tensor
 import sys
 
+
 class Graph(MPBase):
     """
-    This class represents the data processing flow graph, or processing pipelines.
-    Individual nodes, or processing steps, are added to the graph to create the pipeline.
+    This class represents the data processing flow graph, or
+    processing pipelines. Individual nodes, or processing steps,
+    are added to the graph to create the pipeline.
 
     Parameters
     ----------
@@ -38,10 +40,12 @@ class Graph(MPBase):
         Session where the Graph object exists
 
     _volatile_sources : List of Sources
-        Data sources within this array will be polled/executed when the graph is executed.
+        Data sources within this array will be polled/executed when
+        the graph is executed.
 
     _volatile_outputs : List of data Outputs
-        Data outputs within this array will push to external sources when the graph is executed.
+        Data outputs within this array will push to external sources when
+        the graph is executed.
 
     Examples
     --------
@@ -120,7 +124,8 @@ class Graph(MPBase):
         # assign default initialization data to nodes that require it
         self._assign_default_init_data()
 
-        # now all the nodes are in execution order create any necessary initialization edges
+        # now all the nodes are in execution order create any
+        # necessary initialization edges
         self._insert_init_edges()
 
         # insert phony edges for verification
@@ -139,7 +144,7 @@ class Graph(MPBase):
         self._verified = True
 
         # cleanup any data used within verification that are no longer needed
-        self._edges = {} # clear edges for garbage collection
+        self._edges = {}  # clear edges for garbage collection
         self.session.free_unreferenced_data()
 
     def _schedule_nodes(self):
@@ -147,7 +152,7 @@ class Graph(MPBase):
         Place the nodes of the graph in execution order
         """
         # first we'll create a set of edges representing data within the graph
-        self._edges = {} # keys: session_id of data obj, vals: edge object
+        self._edges = {}  # keys: session_id of data obj, vals: edge object
         for n in self._nodes:
             # get a list of all the input objects to the node
             n_inputs = n.extract_inputs()
@@ -155,7 +160,7 @@ class Graph(MPBase):
 
             # add these inputs/outputs to edge objects
             for n_i in n_inputs:
-                if not n_i.session_id in self._edges:
+                if n_i.session_id not in self._edges:
                     # no edge created for this input yet, so create a new one
                     self._edges[n_i.session_id] = Edge(n_i)
                     if n_i.volatile:
@@ -164,7 +169,7 @@ class Graph(MPBase):
                 self._edges[n_i.session_id].add_consumer(n)
 
             for n_o in n_outputs:
-                if not n_o.session_id in self._edges:
+                if n_o.session_id not in self._edges:
                     # no edge created for this output yet, so create a new one
                     self._edges[n_o.session_id] = Edge(n_o)
 
@@ -178,11 +183,13 @@ class Graph(MPBase):
                     if len(self._edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
-                        raise Exception("Invalid graph, multiple nodes write to single data object")
+                        raise Exception("Invalid graph, multiple " +
+                                        "nodes write to single data object")
                     else:
                         # add the producer to the edge
                         self._edges[n_o.session_id].add_producer(n)
-                        if n_o.volatile_out and n_o not in self._volatile_outputs:
+                        if (n_o.volatile_out and
+                                n_o not in self._volatile_outputs):
                             self._volatile_outputs.append(n_o)
 
         # now determine which edges are ready to be consumed
@@ -227,17 +234,17 @@ class Graph(MPBase):
 
                     scheduled_nodes = scheduled_nodes + 1
 
-
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled
-                raise Exception("Invalid graph, nodes cannot be scheduled, check connections between nodes.")
+                raise Exception("Invalid graph, nodes cannot be scheduled, " +
+                                "check connections between nodes.")
 
     def _insert_init_edges(self):
         """
         Insert initialization edges into the graph
         """
-        init_required = False # flag to indicate if any nodes in the graph require initialization
-        init_links_missing = False # flag to indicate if any initialization data will need to be propagated through the graph
+        init_required = False  # flag if any nodes in the graph require init
+        init_links_missing = False  # flag if any init data will need to propagate through graph
         for n in self._nodes:
             # check for missing init data
             if n.kernel.init_style == MPEnums.INIT_FROM_DATA:
@@ -249,16 +256,17 @@ class Graph(MPBase):
                     if n_ii is None:
                         init_provided = False
 
-                # if not provided, flag that graph will need initialization data propagated through the graph
+                # if not provided, flag that graph will need initialization
+                # data propagated through the graph
                 if not init_provided:
                     init_links_missing = True
 
         # fill in all init data links
         if init_required and init_links_missing:
-            # use the existing Edge objects to create init connections mirroring the processing graph
+            # use the existing Edge objects to create init connections
+            # mirroring the processing graph
             for e in self._edges:
                 self._edges[e].insert_init_data()
-
 
     def _validate_nodes(self):
         """
@@ -268,8 +276,9 @@ class Graph(MPBase):
             try:
                 n.verify()
             except Exception as e:
-                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed verification").with_traceback(sys.exc_info()[2])
-
+                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
+                               "failed verification")).with_traceback(
+                                                            sys.exc_info()[2])
 
     def _assign_default_init_data(self):
         """
@@ -287,12 +296,12 @@ class Graph(MPBase):
             for index, n_i in enumerate(n_inputs):
                 if len(self._edges[n_i.session_id].producers) == 0:
                     root_data_node = True
-                    init_data_input_index = index
+                    init_data_index = index
                     break
 
             if root_data_node:
                 # copy the default init data to the node's init input
-                n.kernel.init_inputs[init_data_input_index] = self._default_init_data
+                n.kernel.init_inputs[init_data_index] = self._default_init_data
                 if self._default_init_labels is not None:
                     n.kernel.init_input_labels = self._default_init_labels
 
@@ -312,7 +321,6 @@ class Graph(MPBase):
             if e.init_data is not None and not e.init_data.virtual:
                 e.add_phony_init_data()
 
-
     def _init_phony_edges(self):
         """
         Initialize phony edges with random data for validation
@@ -328,16 +336,18 @@ class Graph(MPBase):
         for eid in self._edges:
             self._edges[eid].delete_phony_data()
 
-    def initialize(self, default_init_data = None, default_init_labels = None):
+    def initialize(self, default_init_data=None, default_init_labels=None):
         """
         Initialize each node within the graph for trial execution
 
         Parameters
         ----------
         default_init_dataA : Tensor, default = None
-            If the graph has no initialization data, this tensor will be used to initialize the graph
+            If the graph has no initialization data, this
+            tensor will be used to initialize the graph
         default_init_labels : Tensor, default = None
-            If the graph has no initialization labels, this tensor will be used to initialize the graph
+            If the graph has no initialization labels,
+            this tensor will be used to initialize the graph
 
         """
         if default_init_data is not None:
@@ -351,23 +361,26 @@ class Graph(MPBase):
             try:
                 n.initialize()
             except Exception as e:
-                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed initialization").with_traceback(sys.exc_info()[2])
+                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
+                               "failed initialization")).with_traceback(
+                                                            sys.exc_info()[2])
 
         self._initialized = True
         self.session.free_unreferenced_data()
 
-
-    def execute(self, label = None):
+    def execute(self, label=None):
         """
-        Execute the graph by iterating over all the nodes within the graph and executing each one
+        Execute the graph by iterating over all the nodes within the graph
+        and executing each one
 
         Parameters
-
         ----------
 
         Label : int, default = None
-            * If the trial label is known, it can be passed when a trial is executed. This is required for class-separated input data
-            * If the trial label is not known, it will be polled from the data source
+            * If the trial label is known, it can be passed when a trial is
+            executed. This is required for class-separated input data
+            * If the trial label is not known, it will be
+            polled from the data source
 
         """
         # first ensure the graph has been verified,
@@ -390,19 +403,22 @@ class Graph(MPBase):
             try:
                 n.kernel.execute()
             except Exception as e:
-                raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed execution").with_traceback(sys.exc_info()[2])
+                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
+                               "failed execution")).with_traceback(
+                                                        sys.exc_info()[2])
 
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
-    def poll_volatile_sources(self, label = None):
+    def poll_volatile_sources(self, label=None):
         """
         Poll data (update input data) from volatile sources within the graph.
 
         Parameters
         ----------
         label : int, default = None
-            If the class label of the current trial is known, it can be passed to poll epoched data.
+            If the class label of the current trial is known, it can be
+            passed to poll epoched data.
 
         Return
         ------
@@ -422,7 +438,8 @@ class Graph(MPBase):
         Parameters
         ----------
         label : int, default = None
-            If the class label of the current trial is known, it can be passed to poll epoched data.
+            If the class label of the current trial is known, it can be passed
+            to poll epoched data.
 
         Return
         ------
@@ -434,7 +451,6 @@ class Graph(MPBase):
         """
         for datum in self._volatile_outputs:
             datum.push_volatile_outputs(label=label)
-
 
     @classmethod
     def create(cls, sess):
@@ -570,7 +586,8 @@ class Node(MPBase):
         ----------
         init_data : list or tuple of MindPype data objects
             MindPype container containing the initialization data
-        init_labels : MindPype data object containing initialization labels, default = None
+        init_labels : MindPype data object containing initialization
+        labels, default = None
             MindPype container containing the initialization labels
 
         """
@@ -581,8 +598,8 @@ class Node(MPBase):
 class Edge:
     """
     Edge class used by MindPype block to schedule graphs. Each edge object
-    represents a different MindPype data object and stores the nodes that produce
-    and consume that data.
+    represents a different MindPype data object and stores the nodes that
+    produce and consume that data.
 
     Parameters
     ----------
@@ -615,7 +632,6 @@ class Edge:
         self._phony_data = None
         self._phony_init_data = None
         self._phony_init_labels = None
-
 
     @property
     def producers(self):
@@ -757,7 +773,6 @@ class Edge:
         """
         self._data = data
 
-
     def insert_init_data(self):
         """
         Insert initialization data tensors into the graph that mirror the
@@ -780,14 +795,15 @@ class Edge:
 
             # check whether this input has not already been assigned init data
             if c.kernel.init_inputs[input_index] is None:
-                # If so, assign the tensor to the consumer's corresponding init input
+                # If so, assign the tensor to the consumer's corresponding
+                # init input
                 c.kernel.init_inputs[input_index] = self.init_data
                 c.kernel.init_input_labels = self.init_labels
             else:
-                # overwrite the edge's init data, we need this to create phony inputs later
+                # overwrite the edge's init data, we need this to create
+                # phony inputs later
                 self._init_data = c.kernel.init_inputs[input_index]
                 self._init_labels = c.kernel.init_input_labels
-
 
     def add_phony_data(self):
         """
@@ -837,7 +853,6 @@ class Edge:
             c.kernel.phony_init_inputs[input_index] = self._phony_init_data
             if self._phony_init_labels is not None:
                 c.kernel.phony_init_input_labels = self._phony_init_labels
-
 
     def initialize_phony_data(self):
         """
@@ -910,7 +925,7 @@ class Edge:
         # find the index of the data from the producer node (output index)
         for index, producer_output in enumerate(producer.kernel.outputs):
             if (producer_output is not None and
-                producer_output.session_id == self.data.session_id):
+                    producer_output.session_id == self.data.session_id):
                 output_index = index
                 break
 
@@ -924,13 +939,11 @@ class Edge:
         # find the index of the data from the consumer node (input index)
         for index, consumer_input in enumerate(consumer.kernel.inputs):
             if (consumer_input is not None and
-                consumer_input.session_id == self.data.session_id):
+                    consumer_input.session_id == self.data.session_id):
                 input_index = index
                 break
 
         return input_index
-
-
 
 
 class Parameter:
@@ -951,8 +964,11 @@ class Parameter:
         """
         Constructor for Parameter object
         """
-        self._data = data # reference of the data object represented by parameter
-        self._direction = direction # enum indicating whether this is an input or output
+        # reference of the data object represented by parameter
+        self._data = data
+
+        # enum indicating whether this is an input or output
+        self._direction = direction
 
     @property
     def direction(self):
@@ -985,4 +1001,3 @@ class Parameter:
         """
 
         return self._data
-

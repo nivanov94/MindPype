@@ -5,6 +5,7 @@ from ..graph import Node, Parameter
 from pyriemann.tangentspace import TangentSpace
 import numpy as np
 
+
 class TangentSpaceKernel(Kernel):
     """
     Kernel to estimate Tangent Space. Applies Pyriemann.tangentspace method
@@ -28,9 +29,8 @@ class TangentSpaceKernel(Kernel):
 
     """
 
-
-    def __init__(self, graph, inA, outA, initialization_data = None, regularization = 0,
-                 metric = 'riemann', tsupdate = False, sample_weight = None):
+    def __init__(self, graph, inA, outA, initialization_data, regularization,
+                 metric, tsupdate, sample_weight):
         super().__init__("TangentSpaceKernel", MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -42,11 +42,11 @@ class TangentSpaceKernel(Kernel):
         self._sample_weight = sample_weight
         self._tsupdate = tsupdate
         self._covariance_inputs = (0,)
-        
-        
+
     def _initialize(self, init_inputs, init_outputs, labels):
         """
-        Initialize internal state of the kernel and update initialization data if downstream nodes are missing data
+        Initialize internal state of the kernel and update initialization
+        data if downstream nodes are missing data
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
@@ -56,18 +56,22 @@ class TangentSpaceKernel(Kernel):
 
         # fit the tangent space
         self._tangent_space = TangentSpace()
+
         # add regularization
-        init_data = (1-self._r)*init_in.data + self._r*np.eye(init_in.data.shape[1])
-        self._tangent_space = self._tangent_space.fit(init_data, 
-                                                      sample_weight=self._sample_weight)
-        
+        init_data = ((1-self._r)*init_in.data +
+                     self._r*np.eye(init_in.data.shape[1]))
+
+        self._tangent_space = self._tangent_space.fit(
+                                            init_data,
+                                            sample_weight=self._sample_weight)
+
         # compute init output
         if init_in is not None and init_out is not None:
             # set output shape
             Nt, Nc, _ = init_in.shape
             if init_out.virtual:
                 init_out.shape = (Nt, Nc*(Nc+1)//2)
-            
+
             self._process_data([init_in], init_outputs)
 
     def _process_data(self, inputs, outputs):
@@ -77,30 +81,34 @@ class TangentSpaceKernel(Kernel):
         inA = inputs[0]
 
         if len(inA.shape) == 2:
-            local_input_data = np.expand_dims(inA.data,0)
+            local_input_data = np.expand_dims(inA.data, 0)
         else:
             local_input_data = inA.data
-            
+
         # add regularization
-        local_input_data = (1-self._r)*local_input_data + self._r*np.eye(local_input_data.shape[1])
+        local_input_data = ((1-self._r)*local_input_data +
+                            self._r*np.eye(local_input_data.shape[1]))
         outputs[0].data = self._tangent_space.transform(local_input_data)
 
-
     @classmethod
-    def add_tangent_space_node(cls, graph, inA, outA, initialization_data = None, regularization = 0, metric = 'riemann', tsupdate = False, sample_weight = None):
+    def add_tangent_space_node(cls, graph, inA, outA, initialization_data=None,
+                               regularization=0, metric='riemann',
+                               tsupdate=False, sample_weight=None):
         """
-        Factory method to create a tangent_space_kernel, add it to a node, and add the node to a specified graph
+        Factory method to create a tangent_space_kernel, add it to a node,
+        and add the node to a specified graph
 
         Parameters
         ----------
         graph : Graph
             Graph object that this node belongs to
-        inA : Tensor 
+        inA : Tensor
             Input data
-        outA : Tensor 
+        outA : Tensor
             Output data
         initialization_data : Tensor, Array of Tensors
-            Data to initialize the estimator with (n_trials, n_channels, n_samples)
+            Data to initialize the estimator with
+            (n_trials, n_channels, n_samples)
         regularization : float, default = 0
             regularization term applied to input data
         metric : str, default = 'riemann'
@@ -114,10 +122,11 @@ class TangentSpaceKernel(Kernel):
             Node object that was added to the graph
         """
 
-        kernel = cls(graph, inA, outA, initialization_data, regularization, metric, tsupdate, sample_weight)
-        
-        params = (Parameter(inA,MPEnums.INPUT),
-                  Parameter(outA,MPEnums.OUTPUT))
+        kernel = cls(graph, inA, outA, initialization_data, regularization,
+                     metric, tsupdate, sample_weight)
+
+        params = (Parameter(inA, MPEnums.INPUT),
+                  Parameter(outA, MPEnums.OUTPUT))
 
         node = Node(graph, kernel, params)
 

@@ -12,7 +12,7 @@ Currently supported sources:
 
 
 from .core import MPBase, MPEnums
-from .containers import CircleBuffer, Tensor
+from .containers import Tensor
 from scipy.io import loadmat
 import numpy as np
 import pylsl
