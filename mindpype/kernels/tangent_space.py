@@ -57,7 +57,7 @@ class TangentSpaceKernel(Kernel):
         # fit the tangent space
         self._tangent_space = TangentSpace()
         # add regularization
-        init_data = (1-self._r)*init_data + self._r*np.eye(init_data.shape[1])
+        init_data = (1-self._r)*init_in.data + self._r*np.eye(init_in.data.shape[1])
         self._tangent_space = self._tangent_space.fit(init_data, 
                                                       sample_weight=self._sample_weight)
         
