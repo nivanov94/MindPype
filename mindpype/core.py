@@ -459,6 +459,18 @@ class Session(MPBase):
         sfile.close()
 
         return output
+    
+    def free_stray_data(self):
+        """
+        Free all data objects that are no longer in use
+        """
+        keys_to_remove = []
+        for d in self._datum:
+            if sys.getrefcount(self._datum[d]) == 2:
+                keys_to_remove.append(d)
+
+        for d in keys_to_remove:
+            self._datum.pop(d)
         
     @classmethod
     def create(cls):

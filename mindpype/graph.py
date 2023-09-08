@@ -133,10 +133,14 @@ class Graph(MPBase):
         self._validate_nodes()
 
         # delete phony inputs and outputs
-        #self._delete_phony_edges() TODO
+        self._delete_phony_edges()
 
         # Done, all nodes scheduled and verified!
         self._verified = True
+
+        # cleanup any data used within verification that are no longer needed
+        self._edges = {} # clear edges for garbage collection
+        self.session.free_stray_data()
 
     def _schedule_nodes(self):
         """
@@ -316,6 +320,13 @@ class Graph(MPBase):
         for eid in self._edges:
             self._edges[eid].initialize_phony_data()
 
+    def _delete_phony_edges(self):
+        """
+        Remove references to any phony edges so the
+        data will be freed during garbage collection
+        """
+        for eid in self._edges:
+            self._edges[eid].delete_phony_data()
 
     def initialize(self, default_init_data = None, default_init_labels = None):
         """
@@ -343,6 +354,7 @@ class Graph(MPBase):
                 raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed initialization").with_traceback(sys.exc_info()[2])
             
         self._initialized = True
+        self.session.free_stray_data()
 
  
     def execute(self, label = None):
@@ -841,6 +853,36 @@ class Edge:
         if self._phony_init_labels is not None:
             self._phony_init_labels.assign_random_data(whole_numbers=True)
 
+    def delete_phony_data(self):
+        """
+        Remove references to phony data so it can be freed
+        during garbage collection
+        """
+        self._phony_data = None
+        self._phony_init_data = None
+        self._phony_init_labels = None
+
+        # remove the references within the nodes
+        for p in self.producers:
+            # find the index of the data from the producer node (output index)
+            output_index = self._find_output_index(p)
+        
+            # assign the tensor to the producer's corresponding init output
+            if output_index in p.kernel.phony_outputs:
+                p.kernel.phony_outputs[output_index] = None
+
+        for c in self.consumers:
+            # find the index of the data from the consumer node (input index)
+            input_index = self._find_input_index(c)
+
+            # assign the tensor to the consumer's corresponding init input
+            if input_index in c.kernel.phony_inputs:
+                c.kernel.phony_inputs[input_index] = None
+
+            if input_index in c.kernel.phony_init_inputs:
+                c.kernel.phony_init_inputs[input_index] = None
+
+            c.kernel.phony_init_input_labels = None
 
     def is_covariance_input(self):
         """
