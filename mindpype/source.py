@@ -610,7 +610,7 @@ class MPXDF(MPBase):
         Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples
         each time the poll_data method is called. Class-separated mode will epoch the data by class, and will poll the
         data for the next Ns samples of the specified class each time the poll_data method is called. Epoched mode will
-        epoch the data sequentially, and will poll the data for the next Ns samples of the next trial 
+        epoch the data sequentially, and will poll the data for the next Ns samples of the next trial
         (Ns < length of the epoch) each time the poll_data method is called.
 
         For P300/MI paradigms, where there are specified task names (i.e. 'target' and 'non-target'/'flash', etc.),
@@ -620,33 +620,33 @@ class MPXDF(MPBase):
         Class-separated mode will store the data in a dictionary with the following format:
 
         .. code-block:: python
-        
+
             self.trial_data = {
-                "Data": 
-                    {"time_series": 
-                        {task_name1: np.array([Nt x Nc x Ns]), 
-                         task_name2: np.array([Nt x Nc x Ns]),}, 
+                "Data":
+                    {"time_series":
+                        {task_name1: np.array([Nt x Nc x Ns]),
+                         task_name2: np.array([Nt x Nc x Ns]),},
                      "time_stamps": np.array([Ns])}},
-                "Markers": {"time_series": np.array([Ns]), 
+                "Markers": {"time_series": np.array([Ns]),
                             "time_stamps": np.array([Ns])},
             }
-        
+
         Continuous mode will store the data in a dictionary with the following format:
 
         .. code-block:: python
 
             self.trial_data = {
-                "Data": 
-                    {"time_series": np.array([Nc x Ns]), 
+                "Data":
+                    {"time_series": np.array([Nc x Ns]),
                      "time_stamps": np.array([Ns])},
-                "Markers": 
-                    {"time_series": np.array([Ns]), 
+                "Markers":
+                    {"time_series": np.array([Ns]),
                      "time_stamps": np.array([Ns])},
-        
+
         Epoched mode will store the data in a dictionary with the following format:
 
         .. code-block:: python
-            
+
             self.trial_data = {
                 "Data":
                     {"time_series": np.array([Nt x Nc x Ns]),
@@ -677,7 +677,7 @@ class MPXDF(MPBase):
 
         trial_data = {task: [] for task in tasks}
 
-        # Class separated mode will epoch the data by class, and will poll the data for the 
+        # Class separated mode will epoch the data by class, and will poll the data for the
         # next Ns samples of the specified class each time the poll_data method is called.
         if mode == "class-separated":
             combined_marker_streams = {"time_series": None, "time_stamps": None}
@@ -686,14 +686,14 @@ class MPXDF(MPBase):
 
                 for stream in data:
                     if (stream["info"]["type"][0] == "Marker" or
-                        stream["info"]["type"][0] == "Markers"): 
+                        stream["info"]["type"][0] == "Markers"):
                         marker_stream = stream
 
                     elif stream["info"]["type"][0] == self.stype:
                         data_stream = stream
 
                 sample_indices = np.zeros(data_stream["time_stamps"].shape)  # used to extract data samples, pre-allocated here
-                
+
                 total_tasks = 0
 
                 for i_m, markers in enumerate(marker_stream["time_series"]):
@@ -755,23 +755,23 @@ class MPXDF(MPBase):
 
             for filename in files:
                 data, header = pyxdf.load_xdf(filename)
-                
+
                 # First order the files by the first marker value
                 for stream in data:
                     if (stream["info"]["type"][0] == "Marker" or
-                        stream["info"]["type"][0] == "Markers"):  
+                        stream["info"]["type"][0] == "Markers"):
                         first_marker.append(stream["time_series"][0][0])
-                    
+
             # Sort the files by the first marker value
             files = [x for _, x in sorted(zip(first_marker, files))]
-                
+
             for filename in files:
                 data, header = pyxdf.load_xdf(filename)
-                
+
                 # Iterate through all streams in every file, add current file's data to the previously loaded data
                 for stream in data:
-                    if (stream["info"]["type"][0] == "Marker" or 
-                        stream["info"]["type"][0] == "Markers"):  
+                    if (stream["info"]["type"][0] == "Marker" or
+                        stream["info"]["type"][0] == "Markers"):
                         marker_stream = stream
 
                     # If the data stream already exists, concatenate the new data to the existing data
@@ -801,7 +801,7 @@ class MPXDF(MPBase):
                 # Iterate through all streams in every file, add current file's data to the previously loaded data
                 for stream in data:
                     if (stream["info"]["type"][0] == "Marker"
-                        or stream["info"]["type"][0] == "Markers"):  
+                        or stream["info"]["type"][0] == "Markers"):
                         marker_stream = stream
 
                     elif stream["info"]["type"][0] == self.stype:
@@ -846,13 +846,13 @@ class MPXDF(MPBase):
 
         Parameters
         ----------
-        
+
         Ns : int, default = 1
             Number of samples to be extracted per trial. For continuous data, determines the size of
-            the extracted sample. This value is disregarded for epoched and class-separated data. 
+            the extracted sample. This value is disregarded for epoched and class-separated data.
 
             This parameter is used and required for continuous data only.
-        
+
         label : string
             Marker to be used for polling. Number of trials previously extracted is recorded internally.
             This marker must be present in the XDF file and must be present in the list of tasks used in
@@ -890,7 +890,7 @@ class MPXDF(MPBase):
 
             sample_data = sample_data[:, :Ns]  # Nc x Ns
             self.cont_trial_num += 1
-            
+
             return sample_data
 
     def load_into_tensor(self):
@@ -911,7 +911,7 @@ class MPXDF(MPBase):
         -------
         ret : Tensor
             Tensor containing the stream data
-        
+
         ret_timestamps : Tensor
             Tensor containing the stream timestamps
 
@@ -950,7 +950,7 @@ class MPXDF(MPBase):
                 stacklevel=5,
             )
             ret, ret_timestamps, ret_labels, ret_labels_timestamps = None, None, None, None
-        
+
         return ret, ret_timestamps, ret_labels, ret_labels_timestamps
 
     @classmethod
@@ -989,7 +989,7 @@ class MPXDF(MPBase):
 
         return src
 
-    
+
     @classmethod
     def create_class_separated(
         cls, sess, files, tasks, channels, relative_start=0, Ns=1):
@@ -1030,7 +1030,7 @@ class MPXDF(MPBase):
 
     @classmethod
     def create_epoched(cls, sess, files, tasks, channels, relative_start=0, Ns=1):
-        
+
         """
         Factory Method for creating epoched XDF File input source.
 
@@ -1140,43 +1140,43 @@ class InputLSLStream(MPBase):
     ):
         """
         Create a new LSL inlet stream object
-        
+
         Parameters
         ----------
-        
+
         sess : session object
             Session object where the data source will exist
-        
+
         pred : str
-            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name, 'BioSemi') and
             count(description/desc/channels/channel)=32"
-        
+
         channels : tuple of ints
             Index value of channels to poll from the stream, if None all channels will be polled
-        
+
         relative_start : float, default = 0
             Duration of tiem before marker from which samples should be extracted during polling.
 
         marker : bool
             true if there is an associated marker to indicate relative time where data should begin to be polled
-        
+
         marker_fmt : Regex or list
             Regular expression template of the marker to be matched, if none all markers will be matched. Alternatively, a list of markers can be provided.
-        
+
         marker_pred : str
             The predicate string for the marker stream
-        
+
         stream_info : pylsl.StreamInfo
             The stream info object for the stream can be passed instead of the predicate to avoid the need to resolve the stream
-        
+
         marker_stream_info : pylsl.StreamInfo
             The stream info object for the marker stream can be passed instead of the predicate to avoid the need to resolve the stream
-        
+
         active : bool
             True if the stream should be opened immediately, false if the stream should be opened later
 
         .. note::
-            The active parameter is used when the session is created before the LSL stream is started, or the stream is 
+            The active parameter is used when the session is created before the LSL stream is started, or the stream is
             not available when the session is created. In that case, the stream can be updated later by calling the update_input_stream() method.
         """
         super().__init__(MPEnums.SRC, sess)
@@ -1235,10 +1235,6 @@ class InputLSLStream(MPBase):
                 self.peek_marker_inlet.open_stream()
 
                 if marker_fmt:
-                    #    if isinstance(marker_fmt,list):
-                    #        marker_fmt = '$|^'.join(marker_fmt)
-                    #       marker_fmt = '^' + marker_fmt + '$'
-
                     self.marker_pattern = re.compile(marker_fmt)
 
     def poll_data(self, Ns, label=None):
@@ -1299,12 +1295,12 @@ class InputLSLStream(MPBase):
                 # Update the buffer to contain the current trial and remaining data
                 self.data_buffer["Data"] = self.data_buffer["Data"][:, data_index_bool]
                 self.data_buffer["time_stamps"] = self.data_buffer["time_stamps"][data_index_bool]
-                
+
             # If the number of valid samples in the buffer is less than the number of samples required, extract all the data in the buffer
             else:
                 trial_data[:, :samples_polled] = self.data_buffer["Data"][:, data_index_bool]
                 trial_timestamps[:samples_polled] = self.data_buffer["time_stamps"][data_index_bool]
-                
+
         # If the buffer does not contain enough data, pull data from the inlet
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk(timeout=0.0)
@@ -1356,7 +1352,7 @@ class InputLSLStream(MPBase):
 
         self.first_data_timestamp = trial_timestamps[0]
         self._already_peeked = False
-        
+
         return trial_data
 
     def peek_marker(self):
@@ -1369,7 +1365,7 @@ class InputLSLStream(MPBase):
             The marker string
 
         """
-        
+
         if not self.active:
             raise RuntimeError("InputLSLStream.peek_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
@@ -1425,7 +1421,7 @@ class InputLSLStream(MPBase):
         Parameters
         ----------
         pred : str
-            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name, 'BioSemi') and
             count(description/desc/channels/channel)=32"
         channels : tuple of ints
             Index value of channels to poll from the stream, if None all channels will be polled
@@ -1466,7 +1462,7 @@ class InputLSLStream(MPBase):
             recover=False,
         )  # for now, just take the first available stream that matches the property
         self.data_inlet.open_stream()
-        
+
         self.marker_inlet = None
         self.marker_pattern = None
         self.relative_start = relative_start
@@ -1499,10 +1495,6 @@ class InputLSLStream(MPBase):
             self.peek_marker_inlet.open_stream()
 
             if marker_fmt:
-                #    if isinstance(marker_fmt,list):
-                #        marker_fmt = '$|^'.join(marker_fmt)
-                #       marker_fmt = '^' + marker_fmt + '$'
-
                 self.marker_pattern = re.compile(marker_fmt)
 
         self.active = True
@@ -1530,7 +1522,7 @@ class InputLSLStream(MPBase):
         sess : session object
             Session object where the data source will exist
         pred : str
-            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name, 'BioSemi') and
             count(description/desc/channels/channel)=32"
         channels : tuple or list of ints
             Index value of channels to poll from the stream, if None all channels will be polled
@@ -1574,7 +1566,7 @@ class InputLSLStream(MPBase):
         sess : session object
             Session object where the data source will exist
         pred : str
-            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name,'BioSemi') and
+            The predicate string, e.g. "name='BioSemi'" or "type='EEG' and starts-with(name, 'BioSemi') and
             count(description/desc/channels/channel)=32"
         channels : tuple or list of ints
             Index value of channels to poll from the stream, if None all channels will be polled
@@ -1661,7 +1653,7 @@ class OutputLSLStream(MPBase):
         else:
             warnings.warn("No file save specified. Data will not be saved to disk.")
             return
-        
+
     def push_data(self, data, label=None):
         """
         Push data to the outlet stream.
@@ -1677,7 +1669,7 @@ class OutputLSLStream(MPBase):
         except (ValueError, TypeError) as ve:
             try:
                 self.lsl_marker_outlet.push_sample(data[0], pylsl.local_clock())
-            
+
             except Exception as e:
                 raise type(e)(f"{str(e)}\nPush data - Irreparable Error in LSL Output. No data pushed to output stream").with_traceback(sys.exc_info()[2])
 

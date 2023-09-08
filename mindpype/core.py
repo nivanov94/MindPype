@@ -1,4 +1,4 @@
-""" 
+"""
 .. sectionauthor:: Aaron Lio <aaron.lio@mail.utoronto.ca>
 
 .. codeauthor:: Nicolas Ivanov <nicolas.ivanov@mail.utoronto.ca>
@@ -23,14 +23,14 @@ class MPBase(object):
         The session where the object will exist
 
     """
-    def __init__(self,mp_type,session):
+    def __init__(self, mp_type, session):
         """
-        Constructor for MPBase base class        
+        Constructor for MPBase base class
         """
         self._mp_type = mp_type
         self._id  = id(self)
         self._session = session
-    
+
     # API getters
     @property
     def mp_type(self):
@@ -44,7 +44,7 @@ class MPBase(object):
         """
 
         return self._mp_type
-    
+
     @property
     def session_id(self):
         """
@@ -56,7 +56,7 @@ class MPBase(object):
             ID of the session where the object exists
         """
         return self._id
-    
+
     @property
     def session(self):
         """
@@ -66,7 +66,7 @@ class MPBase(object):
         -------
         Current Session : Session
             Session where the object exists
-        
+
         """
 
         return self._session
@@ -81,7 +81,7 @@ class MPEnums(IntEnum):
     .. list-table:: Object Type MPEnums - Leading '1'
         :widths: 50 50
         :header-rows: 1
-    
+
         * - Enum
           - Value
         * - MPBase
@@ -110,7 +110,7 @@ class MPEnums(IntEnum):
           - 111
         * - CLASSIFIER
           - 112
-        
+
     .. list-table:: Status Codes - Leading '2' -- DEPRECIATED
         :widths: 50 50
         :header-rows: 1
@@ -158,20 +158,20 @@ class MPEnums(IntEnum):
     FILTER        = 110
     SRC           = 111
     CLASSIFIER    = 112
-    
-    
+
+
     # Parameter Directions - Leading '3'
 
     INPUT  = 300
     OUTPUT = 301
     INOUT  = 302
-    
+
     # Kernel Initialization types - leading '4'
 
     INIT_FROM_NONE = 400
     INIT_FROM_DATA = 401
     INIT_FROM_COPY = 402
-    
+
     def __str__(self):
         return self.name
 
@@ -187,13 +187,13 @@ class Session(MPBase):
     >>> S.session.create()
 
     """
-    
+
     def __init__(self):
         """
         Constructor for Session class
         """
-        super().__init__(MPEnums.SESSION,self)
-        
+        super().__init__(MPEnums.SESSION, self)
+
         # define some private attributes
         # self._blocks = [] # queue of blocks to execute
         self._datum = {}
@@ -218,12 +218,12 @@ class Session(MPBase):
         self._verified = False
 
         for i_g, g_id in enumerate(self.graphs):
-            print("\tVerifying graph {} of {}".format(i_g+1,len(self.graphs)))
+            print("\tVerifying graph {} of {}".format(i_g+1, len(self.graphs)))
             try:
                 self.graphs[g_id].verify()
             except Exception as e:
                 raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exc_info()[2])
-            
+
         self._verified = True
         self.free_temp_data()
 
@@ -233,19 +233,19 @@ class Session(MPBase):
         """
         print("Initializing graphs...")
         for i_g, g_id in enumerate(self.graphs):
-            print("\tInitializing graph {} of {}".format(i_g+1,len(self.graphs)))
+            print("\tInitializing graph {} of {}".format(i_g+1, len(self.graphs)))
             try:
                 self.graphs[g_id].initialize()
             except Exception as e:
                 raise type(e)(f"{str(e)}\n\tGraph {i_g} failed initialization. Please check graph definition").with_traceback(sys.exc_info()[2])
-            
+
         self._initialized = True
         self.free_temp_data()
-        
-    def poll_volatile_channels(self,label=None):
+
+    def poll_volatile_channels(self, label=None):
         """
         Update the contents of all volatile data streams
-    
+
 
         Parameters
         ----------
@@ -263,7 +263,7 @@ class Session(MPBase):
         for d in self._datum:
             if self._datum[d].volatile:
                 self._datum[d].poll_volatile_data(label)
-       
+
     def push_volatile_outputs(self, label=None):
         """
         Push outputs to volatile sources
@@ -277,13 +277,13 @@ class Session(MPBase):
         --------
         >>> session.push_volatile_outputs()
 
-        """ 
+        """
 
         for d in self._datum:
             if self._datum[d].volatile_out:
                 self._datum[d].push_volatile_outputs(label)
 
-    def execute_trial(self,label,graph):
+    def execute_trial(self, label, graph):
         """
         Execute a trial
         First updates all volatile input channels
@@ -301,8 +301,8 @@ class Session(MPBase):
         graph.execute(label)
         self.push_volatile_outputs(label)
         #logging.info("Trial executed successfully")
-        
-    def add_graph(self,graph):
+
+    def add_graph(self, graph):
         """
         Add a graph to the session
 
@@ -318,8 +318,8 @@ class Session(MPBase):
         self._verified = False
         self.graphs[graph.session_id] = graph
         #logging.info("Graph added to session")
-    
-    def add_data(self,data):
+
+    def add_data(self, data):
         """
         Add a data object to the session
 
@@ -333,8 +333,8 @@ class Session(MPBase):
         >>> session.add_data(data)
         """
         self._datum[data.session_id] = data
-        
-    def add_misc_mp_obj(self,obj):
+
+    def add_misc_mp_obj(self, obj):
         """
         Add a misc MindPype object to the session
 
@@ -342,14 +342,14 @@ class Session(MPBase):
         ----------
         any MindPype object : MPBase
             MindPype object to add
-        
+
         Examples
         --------
         >>> session.add_misc_mp_obj(obj)
         """
         self._misc_objs[obj.session_id] = obj
-        
-    def add_ext_src(self,src):
+
+    def add_ext_src(self, src):
         """
         Add an external source to the session
 
@@ -359,8 +359,8 @@ class Session(MPBase):
             External source to add
         """
         self._ext_srcs[src.session_id] = src
-        
-    def add_ext_out(self,src):
+
+    def add_ext_out(self, src):
         """
         Add an external outlet to the session
 
@@ -370,8 +370,8 @@ class Session(MPBase):
             External outlet to add
         """
         self._ext_out[src.session_id] = src
-    
-    def find_obj(self,id_num):
+
+    def find_obj(self, id_num):
         """
         Search for and return a MindPype object within the session with a
         specific ID number
@@ -387,26 +387,26 @@ class Session(MPBase):
             MindPype object with the specified ID number
 
         """
-        
+
         # check if the ID is the session itself
         if id_num == self.session_id:
             return self
-        
+
         # check if its a data obj
         if id_num in self._datum:
             return self._datum[id_num]
-        
+
         # check if its a misc obj
         if id_num in self._misc_objs:
             return self._misc_objs[id_num]
-        
+
         # check if its a external source
         if id_num in self._ext_srcs:
             return self._ext_srcs[id_num]
-        
+
         # not found, return None type
         return None
-    
+
 
     def save_session(self: object, file: str, additional_params=None) -> None:
         """
@@ -426,7 +426,7 @@ class Session(MPBase):
         """
         new_object = copy.deepcopy(self)
         output = additional_params if additional_params else {}
-        
+
         output['pipeline'] = new_object
 
         sfile = open(file, 'wb')
@@ -434,7 +434,7 @@ class Session(MPBase):
         sfile.close()
 
         return output
-    
+
     def free_unreferenced_data(self):
         """
         Free all data objects that are no longer in use
@@ -446,7 +446,7 @@ class Session(MPBase):
 
         for d in keys_to_remove:
             self._datum.pop(d)
-        
+
     @classmethod
     def create(cls):
         """

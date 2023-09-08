@@ -5,4 +5,3 @@ from . import source
 from .filter import Filter
 from .classifier import Classifier
 from . import kernels
-

@@ -22,13 +22,13 @@ class Kernel(MPBase, ABC):
     _init_style : MPEnums Object
         Kernel initialization style, according to BcipEnum class
     """
-    
-    def __init__(self,name,init_style,graph):
+
+    def __init__(self, name, init_style, graph):
         """
         Constructor for the Kernel class
         """
         session = graph.session
-        super().__init__(MPEnums.KERNEL,session)
+        super().__init__(MPEnums.KERNEL, session)
         self._name = name
         self._init_style = init_style
         self._num_classes = None
@@ -51,7 +51,7 @@ class Kernel(MPBase, ABC):
 
         # tuple to define which inputs must be covariance matrices
         self._covariance_inputs = None
-        
+
     # API Getters
     @property
     def name(self):
@@ -66,7 +66,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._name
-    
+
     @property
     def init_style(self):
         """
@@ -79,7 +79,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._init_style
-    
+
     @property
     def init_input_labels(self):
         """
@@ -92,7 +92,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._init_input_labels
-    
+
     @property
     def init_output_labels(self):
         """
@@ -105,7 +105,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._init_output_labels
-    
+
     @property
     def phony_init_input_labels(self):
         """
@@ -118,7 +118,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._phony_init_input_labels
-    
+
     @property
     def phony_init_output_labels(self):
         """
@@ -131,7 +131,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._phony_init_output_labels
-    
+
     @property
     def inputs(self):
         """
@@ -144,7 +144,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._inputs
-    
+
     @property
     def outputs(self):
         """
@@ -157,7 +157,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._outputs
-    
+
     @property
     def init_inputs(self):
         """
@@ -170,7 +170,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._init_inputs
-    
+
     @property
     def init_outputs(self):
         """
@@ -183,7 +183,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._init_outputs
-    
+
     @property
     def phony_inputs(self):
         """
@@ -196,7 +196,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._phony_inputs
-    
+
     @property
     def phony_outputs(self):
         """
@@ -209,7 +209,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._phony_outputs
-    
+
     @property
     def phony_init_inputs(self):
         """
@@ -222,7 +222,7 @@ class Kernel(MPBase, ABC):
         """
 
         return self._phony_init_inputs
-    
+
     @property
     def phony_init_outputs(self):
         """
@@ -235,9 +235,9 @@ class Kernel(MPBase, ABC):
         """
 
         return self._phony_init_outputs
-    
+
     @init_input_labels.setter
-    def init_input_labels(self,labels):
+    def init_input_labels(self, labels):
         """
         Sets the labels for the initialization inputs
 
@@ -249,7 +249,7 @@ class Kernel(MPBase, ABC):
         self._init_input_labels = labels
 
     @init_output_labels.setter
-    def init_output_labels(self,labels):
+    def init_output_labels(self, labels):
         """
         Sets the labels for the initialization outputs
 
@@ -261,7 +261,7 @@ class Kernel(MPBase, ABC):
         self._init_output_labels = labels
 
     @inputs.setter
-    def inputs(self,inputs):
+    def inputs(self, inputs):
         """
         Sets the inputs of the kernel
 
@@ -278,9 +278,9 @@ class Kernel(MPBase, ABC):
                 self._init_inputs = [None] * len(self._inputs)
             else:
                 self._init_inputs.extend([None] * (len(self._inputs) - len(self._init_inputs)))
-    
+
     @outputs.setter
-    def outputs(self,outputs):
+    def outputs(self, outputs):
         """
         Sets the outputs of the kernel
 
@@ -299,7 +299,7 @@ class Kernel(MPBase, ABC):
                 self._init_outputs.extend([None] * (len(self._outputs) - len(self._init_outputs)))
 
     @init_inputs.setter
-    def init_inputs(self,inputs):
+    def init_inputs(self, inputs):
         """
         Sets the initialization inputs of the kernel
 
@@ -311,7 +311,7 @@ class Kernel(MPBase, ABC):
         self._init_inputs = inputs
 
     @init_outputs.setter
-    def init_outputs(self,outputs):
+    def init_outputs(self, outputs):
         """
         Sets the initialization outputs of the kernel
 
@@ -323,7 +323,7 @@ class Kernel(MPBase, ABC):
         self._init_outputs = outputs
 
     @phony_init_input_labels.setter
-    def phony_init_input_labels(self,labels):
+    def phony_init_input_labels(self, labels):
         """
         Sets the labels for the phony initialization inputs
 
@@ -335,7 +335,7 @@ class Kernel(MPBase, ABC):
         self._phony_init_input_labels = labels
 
     ## INPUT and OUTPUT getter methods
-    def get_input(self,index):
+    def get_input(self, index):
         """
         Returns the input at the specified index
 
@@ -350,8 +350,8 @@ class Kernel(MPBase, ABC):
             The input at the specified index
         """
         return self._inputs[index]
-   
-    def get_output(self,index):
+
+    def get_output(self, index):
         """
         Returns the output at the specified index
 
@@ -367,7 +367,7 @@ class Kernel(MPBase, ABC):
         """
         return self._outputs[index]
 
-    def get_init_input(self,index):
+    def get_init_input(self, index):
         """
         Returns the input at the specified index
 
@@ -383,7 +383,7 @@ class Kernel(MPBase, ABC):
         """
         return self._init_inputs[index]
 
-    def get_init_output(self,index):
+    def get_init_output(self, index):
         """
         Returns the output at the specified index
 
@@ -398,8 +398,8 @@ class Kernel(MPBase, ABC):
             The output at the specified index
         """
         return self._init_outputs[index]
-    
-    def add_phony_input(self,ph_input,index):
+
+    def add_phony_input(self, ph_input, index):
         """
         Adds a phony input to the kernel
 
@@ -412,7 +412,7 @@ class Kernel(MPBase, ABC):
         """
         self._phony_inputs[index] = ph_input
 
-    def add_phony_output(self,ph_output,index):
+    def add_phony_output(self, ph_output, index):
         """
         Adds a phony output to the kernel
 
@@ -425,7 +425,7 @@ class Kernel(MPBase, ABC):
         """
         self._phony_outputs[index] = ph_output
 
-    def add_phony_init_input(self,ph_input,index):
+    def add_phony_init_input(self, ph_input, index):
         """
         Adds a phony initialization input to the kernel
 
@@ -438,7 +438,7 @@ class Kernel(MPBase, ABC):
         """
         self._phony_init_inputs[index] = ph_input
 
-    def add_phony_init_output(self,ph_output,index):
+    def add_phony_init_output(self, ph_output, index):
         """
         Adds a phony initialization output to the kernel
 
@@ -450,7 +450,7 @@ class Kernel(MPBase, ABC):
             The index at which the output is to be added
         """
         self._phony_init_outputs[index] = ph_output
-    
+
     def copy_init_labels_to_output(self, verification=False):
         """
         Copies the input labels from initialization to the output
@@ -498,7 +498,7 @@ class Kernel(MPBase, ABC):
         Generates phony inputs and attemps to execute the kernel.
         """
 
-        if hasattr(self,'_verify'):
+        if hasattr(self, '_verify'):
             # execute any kernel-specific verification
             self._verify()
 
@@ -544,7 +544,7 @@ class Kernel(MPBase, ABC):
             if self._num_classes is not None:
                 if verif_init_labels.mp_type != MPEnums.TENSOR:
                     verif_init_labels = verif_init_labels.to_tensor()
-            
+
                 if np.unique(verif_init_labels.data).shape[0] != self._num_classes:
                     verif_init_labels.assign_random_data(whole_numbers=True, vmin=0, vmax=(self._num_classes-1))
 
@@ -570,7 +570,7 @@ class Kernel(MPBase, ABC):
         # set output shapes using phony outputs as needed
         for output, verif_output in zip(self.outputs, verif_outputs):
             if (output is not None and
-                output.mp_type == MPEnums.TENSOR and 
+                output.mp_type == MPEnums.TENSOR and
                 output.shape != verif_output.shape):
                 raise ValueError(f"Test execution of node {self.name} failed during verification. Output shape does not match expected value. Please check parameters.")
 
@@ -579,7 +579,7 @@ class Kernel(MPBase, ABC):
         """
         Initialize kernel
         """
-        if hasattr(self,'_initialize'):
+        if hasattr(self, '_initialize'):
             self._initialized = False
             self._initialize(self.init_inputs, self.init_outputs, self.init_input_labels)
             self._initialized = True
@@ -597,7 +597,7 @@ class Kernel(MPBase, ABC):
         """
         exist = True
         for i_i, init_input in enumerate(self.init_inputs):
-            if (i_i not in self.phony_init_inputs and 
+            if (i_i not in self.phony_init_inputs and
                 (init_input is None or
                  init_input.shape == ())):
                 exist = False
@@ -611,7 +611,7 @@ class Kernel(MPBase, ABC):
         """
         if self._covariance_inputs is None:
             return False # kernel does not have covariance inputs
-        
+
         # search for the parameter in the inputs and init_inputs
         param_index = None
         input_groups = (self.inputs, self.init_inputs)
@@ -637,7 +637,7 @@ class Kernel(MPBase, ABC):
                 i_ig += 1
 
         return (param_index in self._covariance_inputs)
-    
+
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Default method for kernels without initialization procedures

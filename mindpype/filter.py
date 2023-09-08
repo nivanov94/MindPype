@@ -31,27 +31,27 @@ class Filter(MPBase):
         The filter coefficients. The coefficients depend on the filter type and implementation. See scipy.signal documentation for more details.
 
     """
-    
-    # these are the possible internal methods for storing the filter 
+
+    # these are the possible internal methods for storing the filter
     # parameters which determine how it will be executed
     implementations = ['ba', 'zpk', 'sos', 'fir']
-    btypes = ['lowpass','highpass','bandpass','bandstop']
-    ftypes = ['butter','cheby1','cheby2','ellip','bessel', 'fir']
-    
-    def __init__(self,sess,ftype,btype,implementation,crit_frqs,fs,coeffs):
+    btypes = ['lowpass', 'highpass', 'bandpass', 'bandstop']
+    ftypes = ['butter', 'cheby1', 'cheby2', 'ellip', 'bessel', 'fir']
+
+    def __init__(self, sess, ftype, btype, implementation, crit_frqs, fs, coeffs):
         """
         Constructor for the Filter class
         """
-        super().__init__(MPEnums.FILTER,sess)
-        
+        super().__init__(MPEnums.FILTER, sess)
+
         self._ftype = ftype
         self._btype = btype
         self._implementation = implementation
         self._fs = fs
         self._crit_frqs = crit_frqs
-        
+
         self._coeffs = coeffs
-        
+
     def __str__(self):
         """
         Returns a string representation of the filter
@@ -61,13 +61,13 @@ class Filter(MPBase):
         str
             A string representation of the filter
         """
-        return "MindPype {} Filter with following" + \
-               "attributes:\nFilter Type: {}\nBand Type: {}\n" + \
-               "Implementation: {}\nSampling Frequency: {}\n" + \
-               "Critical Frequencies: {}".format(self.ftype,self.btype,
+        return ("MindPype {} Filter with following" +
+                "attributes:\nFilter Type: {}\nBand Type: {}\n" +
+                "Implementation: {}\nSampling Frequency: {}\n" +
+                "Critical Frequencies: {}".format(self.ftype, self.btype,
                                                  self.implementation,
-                                                 self.fs, self.crit_frqs)
-        
+                                                 self.fs, self.crit_frqs))
+
     # API Getters
     @property
     def ftype(self):
@@ -83,12 +83,12 @@ class Filter(MPBase):
         str
         """
         return self._ftype
-    
+
     @property
     def btype(self):
         """
         Getter method for the band type used by the filter
-        
+
         Return
         ------
         The band type, one of 'lowpass', 'highpass', 'bandpass', 'bandstop'
@@ -99,7 +99,7 @@ class Filter(MPBase):
         """
 
         return self._btype
-    
+
     @property
     def implementation(self):
         """
@@ -115,7 +115,7 @@ class Filter(MPBase):
 
         """
         return self._implementation
-    
+
     @property
     def fs(self):
         """
@@ -130,7 +130,7 @@ class Filter(MPBase):
         float
         """
         return self._fs
-    
+
     @property
     def crit_frqs(self):
         """
@@ -145,7 +145,7 @@ class Filter(MPBase):
         array_like of floats
         """
         return self._crit_frqs
-        
+
     @property
     def coeffs(self):
         """
@@ -153,16 +153,16 @@ class Filter(MPBase):
 
         Returns
         -------
-        The filter coefficients 
+        The filter coefficients
 
         Return Type
         -----------
         array_like of floats
         """
         return self._coeffs
-    
+
     @classmethod
-    def create_butter(cls,sess,N,Wn,btype='lowpass',implementation='ba',fs=1.0):
+    def create_butter(cls, sess, N, Wn, btype='lowpass', implementation='ba', fs=1.0):
         """
         Factory method to create a butterworth MindPype filter object
 
@@ -194,28 +194,28 @@ class Filter(MPBase):
         """
         coeffs= {}
         if implementation == 'ba':
-            b, a = signal.butter(N,Wn,btype=btype,output=implementation,fs=fs)
+            b, a = signal.butter(N, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
-            z,p,k = signal.butter(N,Wn,btype=btype,output=implementation,fs=fs)
+            z, p, k = signal.butter(N, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['z'] = z
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.butter(N,Wn,btype=btype,output=implementation,fs=fs)
+            sos = signal.butter(N, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['sos'] = sos
-        
-        f = cls(sess,'butter',btype,implementation,Wn,fs,coeffs)
-        
+
+        f = cls(sess, 'butter', btype, implementation, Wn, fs, coeffs)
+
         # add the filter to the session
         sess.add_misc_mp_obj(f)
-        
+
         return f
-    
+
     @classmethod
-    def create_cheby1(cls,sess,N,rp,Wn,btype='lowpass',\
-                     implementation='ba',fs=1.0):
+    def create_cheby1(cls, sess, N, rp, Wn, btype='lowpass',
+                     implementation='ba', fs=1.0):
         """
         Factory method to create a Chebyshev Type-I MindPype filter object
 
@@ -237,7 +237,7 @@ class Filter(MPBase):
             Type of output: numerator/denominator ('ba'), pole-zero ('zpk'), or second-order sections ('sos'). Default is 'ba' for backwards compatibility, but 'sos' should be used for general-purpose filtering.
         fs : float, default: 1.0
             The sampling frequency of the digital system.
-    
+
         Return
         ------
         MindPype Filter object : Filter
@@ -246,28 +246,28 @@ class Filter(MPBase):
         """
         coeffs= {}
         if implementation == 'ba':
-            b, a = signal.cheby1(N,rp,Wn,btype=btype,output=implementation,fs=fs)
+            b, a = signal.cheby1(N, rp, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
-            z,p,k = signal.cheby1(N,rp,Wn,btype=btype,output=implementation,fs=fs)
+            z, p, k = signal.cheby1(N, rp, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['z'] = z
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.cheby1(N,rp,Wn,btype=btype,output=implementation,fs=fs)
+            sos = signal.cheby1(N, rp, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['sos'] = sos
-        
-        f = cls(sess,'cheby1',btype,implementation,Wn,fs,coeffs)
-        
+
+        f = cls(sess, 'cheby1', btype, implementation, Wn, fs, coeffs)
+
         # add the filter to the session
         sess.add_misc_mp_obj(f)
-        
+
         return f
-    
+
     @classmethod
-    def create_cheby2(cls,sess,N,rs,Wn,btype='lowpass',\
-                     implementation='ba',fs=1.0):
+    def create_cheby2(cls, sess, N, rs, Wn, btype='lowpass',
+                     implementation='ba', fs=1.0):
         """
         Factory method to create a Chebyshev Type-II MindPype filter object
 
@@ -298,31 +298,31 @@ class Filter(MPBase):
         """
         coeffs= {}
         if implementation == 'ba':
-            b, a = signal.cheby2(N,rs,Wn,btype=btype,output=implementation,fs=fs)
+            b, a = signal.cheby2(N, rs, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
-            z,p,k = signal.cheby2(N,rs,Wn,btype=btype,output=implementation,fs=fs)
+            z, p, k = signal.cheby2(N, rs, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['z'] = z
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.cheby2(N,rs,Wn,btype=btype,output=implementation,fs=fs)
+            sos = signal.cheby2(N, rs, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['sos'] = sos
-        
-        f = cls(sess,'cheby2',btype,implementation,Wn,fs,coeffs)
-        
+
+        f = cls(sess, 'cheby2', btype, implementation, Wn, fs, coeffs)
+
         # add the filter to the session
         sess.add_misc_mp_obj(f)
-        
+
         return f
-        
+
     @classmethod
-    def create_ellip(cls,sess,N,rp,rs,Wn,btype='lowpass',\
-                     implementation='ba',fs=1.0):
+    def create_ellip(cls, sess, N, rp, rs, Wn, btype='lowpass',
+                     implementation='ba', fs=1.0):
         """
         Factory method to create a Elliptic MindPype filter object
-        
+
         Parameters
         ----------
         N : int
@@ -352,31 +352,31 @@ class Filter(MPBase):
         """
         coeffs= {}
         if implementation == 'ba':
-            b, a = signal.ellip(N,rp,rs,Wn,\
-                                btype=btype,output=implementation,fs=fs)
+            b, a = signal.ellip(N, rp, rs, Wn,
+                                btype=btype, output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
-            z,p,k = signal.ellip(N,rp,rs,Wn,\
-                                 btype=btype,output=implementation,fs=fs)
+            z, p, k = signal.ellip(N, rp, rs, Wn,
+                                 btype=btype, output=implementation, fs=fs)
             coeffs['z'] = z
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.ellip(N,rp,rs,Wn,\
-                               btype=btype,output=implementation,fs=fs)
+            sos = signal.ellip(N, rp, rs, Wn,
+                               btype=btype, output=implementation, fs=fs)
             coeffs['sos'] = sos
-        
-        f = cls(sess,'ellip',btype,implementation,Wn,fs,coeffs)
-        
+
+        f = cls(sess, 'ellip', btype, implementation, Wn, fs, coeffs)
+
         # add the filter to the session
         sess.add_misc_mp_obj(f)
-        
+
         return f
-    
+
     @classmethod
-    def create_bessel(cls,sess,N,Wn,btype='lowpass',\
-                     implementation='ba',norm='phase',fs=1.0):
+    def create_bessel(cls, sess, N, Wn, btype='lowpass',
+                     implementation='ba', norm='phase', fs=1.0):
         """
         Factory method to create a Bessel MindPype filter object
 
@@ -400,7 +400,7 @@ class Filter(MPBase):
                     The magnitude response asymptotes are the same as a Butterworth filter of the same order with a cutoff of Wn.
                     This is the default, and matches MATLAB's implementation.
                 delay
-                    The filter is normalized such that the group delay in the passband is 1/Wn (e.g., seconds). This is the "natural" type obtained by solving Bessel polynomials.   
+                    The filter is normalized such that the group delay in the passband is 1/Wn (e.g., seconds). This is the "natural" type obtained by solving Bessel polynomials.
                 mag
                     The filter is normalized such that the gain magnitude is -3 dB at angular frequency Wn.
         fs : float, optional
@@ -415,32 +415,32 @@ class Filter(MPBase):
         """
         coeffs= {}
         if implementation == 'ba':
-            b, a = signal.bessel(N,Wn,btype=btype,output=implementation,fs=fs)
+            b, a = signal.bessel(N, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
-            z,p,k = signal.bessel(N,Wn,btype=btype,output=implementation,fs=fs)
+            z, p, k = signal.bessel(N, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['z'] = z
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.bessel(N,Wn,btype=btype,output=implementation,fs=fs)
+            sos = signal.bessel(N, Wn, btype=btype, output=implementation, fs=fs)
             coeffs['sos'] = sos
-        
-        f = cls(sess,'bessel',btype,implementation,Wn,fs,coeffs)
-        
+
+        f = cls(sess, 'bessel', btype, implementation, Wn, fs, coeffs)
+
         # add the filter to the session
         sess.add_misc_mp_obj(f)
-        
+
         return f
-    
+
     @classmethod
     def create_fir(
-        cls, 
+        cls,
         sess,
-        fs, 
-        low_freq=None, 
-        high_freq=None,  
+        fs,
+        low_freq=None,
+        high_freq=None,
         filter_length="auto",
         l_trans_bandwidth="auto",
         h_trans_bandwidth="auto",
@@ -462,7 +462,7 @@ class Filter(MPBase):
             The session object to which the filter will be added
 
         Other Parameters are the same as the MNE create_filter method, see the `MNE documentation <https://mne.tools/stable/generated/mne.filter.create_filter.html>`_ for more information on the parameters.
-            
+
         Return
         ------
         MindPype Filter object : Filter
@@ -475,8 +475,7 @@ class Filter(MPBase):
         """
 
         coeffs = {}
-        
-        #coeffs['fir_params'] = [fs,low_freq,high_freq,filter_length,l_trans_bandwidth,h_trans_bandwidth,method,iir_params,phase,fir_window,fir_design]
+
         coeffs['fir'] = mne.filter.create_filter(None, fs, low_freq, high_freq, filter_length, l_trans_bandwidth, h_trans_bandwidth, method, None, phase, fir_window, fir_design)
         coeffs['phase'] = phase
         if low_freq is None and high_freq is not None:
@@ -488,7 +487,7 @@ class Filter(MPBase):
         elif (low_freq is not None and high_freq is not None) and (low_freq > high_freq):
             btype = 'bandstop'
 
-        f = cls(sess,'fir',btype,'fir',crit_frqs = [low_freq, high_freq], fs=fs, coeffs=coeffs)
+        f = cls(sess, 'fir', btype, 'fir', crit_frqs = [low_freq, high_freq], fs=fs, coeffs=coeffs)
 
         # add the filter to the session
         sess.add_misc_mp_obj(f)
