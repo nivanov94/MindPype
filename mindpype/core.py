@@ -201,9 +201,8 @@ class Session(MPBase):
         self._ext_srcs = {}
         self._verified = False
         self._initialized = False
-        self._trials_elapsed = 0
         self._ext_out = {}
-        self.graphs = []
+        self.graphs = {}
 
         # Configure logging for the session
         #logging.basicConfig(filename='../mindpype/logs/log.log', filemode='a', format='%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s ', level=logging.INFO, encoding='utf-8')
@@ -218,10 +217,10 @@ class Session(MPBase):
         print("Verifying session...")
         self._verified = False
 
-        for i_g, graph in enumerate(self.graphs):
+        for i_g, g_id in enumerate(self.graphs):
             print("\tVerifying graph {} of {}".format(i_g+1,len(self.graphs)))
             try:
-                graph.verify()
+                self.graphs[g_id].verify()
             except Exception as e:
                 raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exc_info()[2])
             
@@ -233,16 +232,15 @@ class Session(MPBase):
         Initialize all graphs in the session
         """
         print("Initializing graphs...")
-        for i_g, graph in enumerate(self.graphs):
+        for i_g, g_id in enumerate(self.graphs):
             print("\tInitializing graph {} of {}".format(i_g+1,len(self.graphs)))
             try:
-                graph.initialize()
+                self.graphs[g_id].initialize()
             except Exception as e:
                 raise type(e)(f"{str(e)}\n\tGraph {i_g} failed initialization. Please check graph definition").with_traceback(sys.exc_info()[2])
             
         self._initialized = True
-            
-    
+        self.free_temp_data()
         
     def poll_volatile_channels(self,label=None):
         """
@@ -300,9 +298,8 @@ class Session(MPBase):
         """
         print("Executing trial with label: {}".format(label))
         self.poll_volatile_channels(label)
-        sts = graph.execute(label)
+        graph.execute(label)
         self.push_volatile_outputs(label)
-        self._trials_elapsed += 1
         #logging.info("Trial executed successfully")
         
     def add_graph(self,graph):
