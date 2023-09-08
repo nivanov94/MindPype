@@ -141,22 +141,7 @@ class MPEnums(IntEnum):
         * - INIT_FROM_COPY
           - 402
 
-    .. list-table:: Block graph identifiers - leading '5'
-        :widths: 50 50
-        :header-rows: 1
-
-        * - Enum
-          - Value
-        * - ON_BEGIN
-          - 500
-        * - ON_CLOSE
-          - 501
-        * - ON_TRIAL
-          - 502
-
     """
-
-
 
     # Object Type Enums - Have a leading '1'
 
@@ -186,12 +171,6 @@ class MPEnums(IntEnum):
     INIT_FROM_NONE = 400
     INIT_FROM_DATA = 401
     INIT_FROM_COPY = 402
-    
-    # Block graph identifiers - leading '5'
-
-    ON_BEGIN = 500 # graph executes when block begins
-    ON_CLOSE = 501 # graph executes when block ends
-    ON_TRIAL = 502 # graph executes when a new trial is recorded
     
     def __str__(self):
         return self.name
@@ -224,8 +203,6 @@ class Session(MPBase):
         self._initialized = False
         self._trials_elapsed = 0
         self._ext_out = {}
-        
-        
         self.graphs = []
 
         # Configure logging for the session
@@ -249,6 +226,7 @@ class Session(MPBase):
                 raise type(e)(f"{str(e)}\n\tGraph {i_g} failed verification. Please check graph definition").with_traceback(sys.exc_info()[2])
             
         self._verified = True
+        self.free_temp_data()
 
     def initialize(self):
         """
@@ -460,7 +438,7 @@ class Session(MPBase):
 
         return output
     
-    def free_stray_data(self):
+    def free_unreferenced_data(self):
         """
         Free all data objects that are no longer in use
         """

@@ -140,7 +140,7 @@ class Graph(MPBase):
 
         # cleanup any data used within verification that are no longer needed
         self._edges = {} # clear edges for garbage collection
-        self.session.free_stray_data()
+        self.session.free_unreferenced_data()
 
     def _schedule_nodes(self):
         """
@@ -354,7 +354,7 @@ class Graph(MPBase):
                 raise type(e)(f"{str(e)} - Node: {n.kernel.name} failed initialization").with_traceback(sys.exc_info()[2])
             
         self._initialized = True
-        self.session.free_stray_data()
+        self.session.free_unreferenced_data()
 
  
     def execute(self, label = None):
