@@ -316,7 +316,7 @@ class Session(MPBase):
         >>> session.add_graph(graph)
         """
         self._verified = False
-        self.graphs.append(graph)
+        self.graphs[graph.session_id] = graph
         #logging.info("Graph added to session")
     
     def add_data(self,data):
