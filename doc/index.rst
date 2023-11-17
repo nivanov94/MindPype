@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-*********************************
-Welcome to bcipy's documentation!
-*********************************
+************************************
+Welcome to MindPype's documentation!
+************************************
 
 .. toctree::
    :maxdepth: 4
@@ -15,8 +15,8 @@ Welcome to bcipy's documentation!
    before
    BasicSetup
    AdvancedSetup
-   bcipy
-   bcipy.kernels
+   mindpype
+   mindpype.kernels
 
 
 Indices and tables

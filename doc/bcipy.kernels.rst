@@ -4,7 +4,7 @@ List of available kernels
 Arithmetic Operations
 -------------------------------
 
-.. automodule:: bcipy.kernels.arithmetic
+.. automodule:: mindpype.kernels.arithmetic
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ Arithmetic Operations
 Classifier
 -------------------------------
 
-.. automodule:: bcipy.kernels.classifier
+.. automodule:: mindpype.kernels.classifier
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ Classifier
 Common Spatial Pattern (CSP)
 ----------------------------
 
-.. automodule:: bcipy.kernels.csp
+.. automodule:: mindpype.kernels.csp
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,7 +28,7 @@ Common Spatial Pattern (CSP)
 Data Management/Manipulation
 -----------------------------
 
-.. automodule:: bcipy.kernels.datamgmt
+.. automodule:: mindpype.kernels.datamgmt
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,7 +36,7 @@ Data Management/Manipulation
 Feature Normalization
 ---------------------
 
-.. automodule:: bcipy.kernels.feature_normalization
+.. automodule:: mindpype.kernels.feature_normalization
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,7 +44,7 @@ Feature Normalization
 Filters
 --------
 
-.. automodule:: bcipy.kernels.filters
+.. automodule:: mindpype.kernels.filters
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,7 +52,7 @@ Filters
 Kernel Utilities
 -----------------
 
-.. automodule:: bcipy.kernels.kernel_utils
+.. automodule:: mindpype.kernels.kernel_utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,7 +60,7 @@ Kernel Utilities
 Logical Operations
 -------------------
 
-.. automodule:: bcipy.kernels.logical
+.. automodule:: mindpype.kernels.logical
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,7 +68,7 @@ Logical Operations
 Reduced Sum
 ------------
 
-.. automodule:: bcipy.kernels.reduced_sum
+.. automodule:: mindpype.kernels.reduced_sum
    :members:
    :undoc-members:
    :show-inheritance:
@@ -76,7 +76,7 @@ Reduced Sum
 Resampling
 -----------
 
-.. automodule:: bcipy.kernels.resample
+.. automodule:: mindpype.kernels.resample
    :members:
    :undoc-members:
    :show-inheritance:
@@ -85,7 +85,7 @@ Resampling
 Riemann Distance
 -----------------
 
-.. automodule:: bcipy.kernels.riemann_distance
+.. automodule:: mindpype.kernels.riemann_distance
    :members:
    :undoc-members:
    :show-inheritance:
@@ -93,7 +93,7 @@ Riemann Distance
 Riemann MDM Classifier
 -----------------------
 
-.. automodule:: bcipy.kernels.riemann_mdm_classifier_kernel
+.. automodule:: mindpype.kernels.riemann_mdm_classifier_kernel
    :members:
    :undoc-members:
    :show-inheritance:
@@ -101,15 +101,15 @@ Riemann MDM Classifier
 Riemann Mean
 -------------
 
-.. automodule:: bcipy.kernels.riemann_mean
+.. automodule:: mindpype.kernels.riemann_mean
    :members:
    :undoc-members:
    :show-inheritance:
 
-Riemann Potato 
+Riemann Potato
 ---------------
 
-.. automodule:: bcipy.kernels.riemann_potato
+.. automodule:: mindpype.kernels.riemann_potato
    :members:
    :undoc-members:
    :show-inheritance:
@@ -117,7 +117,7 @@ Riemann Potato
 Running Average
 ----------------
 
-.. automodule:: bcipy.kernels.running_average
+.. automodule:: mindpype.kernels.running_average
    :members:
    :undoc-members:
    :show-inheritance:
@@ -125,7 +125,7 @@ Running Average
 Statistical Operations
 -----------------------
 
-.. automodule:: bcipy.kernels.statistics
+.. automodule:: mindpype.kernels.statistics
    :members:
    :undoc-members:
    :show-inheritance:
@@ -134,7 +134,7 @@ Statistical Operations
 Tangent Space
 --------------
 
-.. automodule:: bcipy.kernels.tangent_space
+.. automodule:: mindpype.kernels.tangent_space
    :members:
    :undoc-members:
    :show-inheritance:
@@ -143,7 +143,7 @@ Tangent Space
 Thresholding
 -------------
 
-.. automodule:: bcipy.kernels.threshold
+.. automodule:: mindpype.kernels.threshold
    :members:
    :undoc-members:
    :show-inheritance:
@@ -151,7 +151,7 @@ Thresholding
 Transpose
 ---------
 
-.. automodule:: bcipy.kernels.transpose
+.. automodule:: mindpype.kernels.transpose
    :members:
    :undoc-members:
    :show-inheritance:
@@ -160,7 +160,7 @@ Transpose
 XDawn Covariances
 -----------------
 
-.. automodule:: bcipy.kernels.xdawn_covariances
+.. automodule:: mindpype.kernels.xdawn_covariances
    :members:
    :undoc-members:
    :show-inheritance:

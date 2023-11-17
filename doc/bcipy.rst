@@ -1,18 +1,18 @@
-BCIPy Package Contents
-======================
+MindPype Package Contents
+=========================
 
-.. note:: 
-   It is highly recommended that, for any BCIPy objects created, you use the
+.. note::
+   It is highly recommended that, for any MindPype objects created, you use the
    provided factory methods. This will ensure that the objects are created
    correctly and that the correct parameters are passed. For example, to create
-   a new absolute kernel, use the 
-   :func:`bcipy.kernels.AbsoluteKernel.create_absolute_kernel()` method instead
-   of :class:`bcipy.kernels.AbsoluteKernel` constructor.
+   a new absolute kernel, use the
+   :func:`mindpype.kernels.AbsoluteKernel.create_absolute_kernel()` method instead
+   of :class:`mindpype.kernels.AbsoluteKernel` constructor.
 
 Core Components
 -----------------
 
-.. automodule:: bcipy.core
+.. automodule:: mindpype.core
    :members:
    :no-undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ Core Components
 Data Containers
 -----------------------
 
-.. automodule:: bcipy.containers
+.. automodule:: mindpype.containers
    :members:
    :undoc-members:
    :show-inheritance:
@@ -28,7 +28,7 @@ Data Containers
 Graphs - The Processing Pipelines
 ---------------------------------
 
-.. automodule:: bcipy.graph
+.. automodule:: mindpype.graph
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,7 +36,7 @@ Graphs - The Processing Pipelines
 External Data Sources
 ---------------------
 
-.. automodule:: bcipy.source
+.. automodule:: mindpype.source
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,24 +44,24 @@ External Data Sources
 Kernel Base Class
 -----------------
 
-.. automodule:: bcipy.kernel
+.. automodule:: mindpype.kernel
    :members:
    :undoc-members:
    :show-inheritance:
 
 
-BCIPy Classifier Objects
-------------------------
+MindPype Classifier Objects
+---------------------------
 
-.. automodule:: bcipy.classifier
+.. automodule:: mindpype.classifier
    :members:
    :undoc-members:
    :show-inheritance:
 
-BCIPy Filter Objects
---------------------
+MindPype Filter Objects
+-----------------------
 
-.. automodule:: bcipy.filter
+.. automodule:: mindpype.filter
    :members:
    :undoc-members:
    :show-inheritance:
