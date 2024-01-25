@@ -32,6 +32,7 @@ Graphs - The Processing Pipelines
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: Edge
 
 External Data Sources
 ---------------------
