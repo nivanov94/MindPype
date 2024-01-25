@@ -8,6 +8,7 @@ Arithmetic Operations
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: Unary, Binary
 
 Classifier
 -------------------------------
