@@ -1,13 +1,15 @@
-from .arithmetic import (AbsoluteKernel, LogKernel, AdditionKernel, 
+from .arithmetic import (AbsoluteKernel, LogKernel, AdditionKernel,
                          DivisionKernel, MultiplicationKernel, SubtractionKernel)
-from .logical import (NotKernel, AndKernel, OrKernel, XorKernel, 
+from .logical import (NotKernel, AndKernel, OrKernel, XorKernel,
                       EqualKernel, LessKernel, GreaterKernel)
 from .statistics import (CDFKernel, CovarianceKernel, MaxKernel, MinKernel,
-                         MeanKernel, StdKernel, VarKernel, ZScoreKernel)
+                         MeanKernel, StdKernel, VarKernel, ZScoreKernel,
+                         KurtosisKernel, SkewnessKernel)
 from .filters import (FilterKernel, FiltFiltKernel)
 
-from .datamgmt import (StackKernel, TensorStackKernel, 
-                       ExtractKernel, EnqueueKernel, ConcatenationKernel)
+from .datamgmt import (StackKernel, TensorStackKernel,
+                       ExtractKernel, EnqueueKernel, ConcatenationKernel,
+                       ReshapeKernel)
 
 from .classifier import ClassifierKernel
 from .csp import CommonSpatialPatternKernel
@@ -26,3 +28,6 @@ from .running_average import RunningAverageKernel
 from .pad import PadKernel
 from .baseline_correction import BaselineCorrectionKernel
 from .kernel_utils import extract_nested_data, extract_init_inputs
+from .epoch import EpochKernel
+from .feature_selection import FeatureSelectionKernel
+from .polynomial_fit import PolynomialFitKernel

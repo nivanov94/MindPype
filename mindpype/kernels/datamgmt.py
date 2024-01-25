@@ -11,23 +11,23 @@ class ConcatenationKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
 
-    inA : Tensor 
+    inA : Tensor
         First input trial data
-    
-    inB : Tensor 
+
+    inB : Tensor
         Second input trial data
-    
-    outA : Tensor 
+
+    outA : Tensor
         Output trial data
-    
+
     axis : int or tuple of ints, default = 0
-        The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
+        The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0.
         See numpy.concatenate for more information
     """
-    
+
     def __init__(self,graph,outA,inA,inB,axis=0):
         """
         Constructor for the Concatenation kernel
@@ -80,7 +80,7 @@ class ConcatenationKernel(Kernel):
         sz_A = inA.shape
         sz_B = inB.shape
         concat_axis = self._axis
-        
+
         if len(sz_A) == len(sz_B):
             noncat_sz_A = [d for i,d in enumerate(sz_A) if i!=concat_axis]
             noncat_sz_B = [d for i,d in enumerate(sz_B) if i!=concat_axis]
@@ -108,28 +108,28 @@ class ConcatenationKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized
         """
-        
+
         # inA, inB, and outA must be a tensor
         d_inA, d_inB = self.inputs
         d_out = self.outputs[0]
         for param in (d_inA, d_inB, d_out):
             if param.mp_type != MPEnums.TENSOR:
                 raise TypeError("ConcatenationKernel requires Tensor inputs and outputs")
-            
+
         # the dimensions along the catcat axis must be equal
         output_sz, noncat_sz_A, noncat_sz_B = self._resolve_dims(d_inA,d_inB)
         if len(output_sz) == 0:
             raise TypeError("ConcatenationKernel could not resolve output dimensions")
-        
+
         # check if the remaining dimensions are the same
-        if ((len(noncat_sz_A) != len(noncat_sz_B)) or 
-             len(noncat_sz_A) != sum([1 for i,j in 
+        if ((len(noncat_sz_A) != len(noncat_sz_B)) or
+             len(noncat_sz_A) != sum([1 for i,j in
                                      zip(noncat_sz_A,noncat_sz_B) if i==j])):
             raise ValueError("ConcatenationKernel requires non-concatenation dimensions to be equal")
-        
+
         if d_out.virtual and len(d_out.shape) == 0:
             d_out.shape = output_sz
-        
+
         # ensure the output shape equals the expected output shape
         if d_out.shape != output_sz:
             raise ValueError("ConcatenationKernel output shape does not match expected output shape")
@@ -143,17 +143,17 @@ class ConcatenationKernel(Kernel):
         inB_data = inputs[1].data
 
         concat_axis = self._axis if self._axis != None else 0
-        
+
         if len(inA_data.shape) == len(inB_data.shape)+1:
             # add a leading dimension for input B
             inB_data = np.expand_dims(inB_data,axis=0)
         elif len(inB_data.shape) == len(inA_data.shape)+1:
             inA_data = np.expand_dims(inA_data,axis=0)
-        
+
         outputs[0].data = np.concatenate((inA_data,
                                           inB_data),
                                          axis=concat_axis)
-        
+
 
     @classmethod
     def add_concatenation_node(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
@@ -163,16 +163,16 @@ class ConcatenationKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
-        inA : Tensor 
+        inA : Tensor
             First input trial data
-        inB : Tensor 
+        inB : Tensor
             Second input trial data
-        outA : Tensor 
+        outA : Tensor
             Output trial data
         axis : int or tuple of ints, default = 0
-            The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0. 
+            The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0.
             See numpy.concatenate for more information
 
         Returns
@@ -180,26 +180,26 @@ class ConcatenationKernel(Kernel):
         node : Node
             The node object that was added to the graph containing the concatenation kernel
         """
-        
+
         # create the kernel object
         k = cls(graph,outA,inA,inB,axis)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(outA,MPEnums.OUTPUT),
                   Parameter(inA,MPEnums.INPUT),
                   Parameter(inB,MPEnums.INPUT))
-        
-    
+
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
 
         # if initialization data is provided, add it to the node
         if init_inputs is not None:
             node.add_initialization_data(init_inputs,init_labels)
-        
+
         return node
 
 
@@ -209,17 +209,17 @@ class EnqueueKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
 
-    inA : MPBase 
+    inA : MPBase
         Input data to enqueue into circle buffer
 
-    queue : CircleBuffer 
+    queue : CircleBuffer
         Circle buffer to have data enqueud to
 
     """
-    
+
     def __init__(self,graph,inA,queue,enqueue_flag):
         """
         Constructor for the Enqueue kernel
@@ -236,37 +236,37 @@ class EnqueueKernel(Kernel):
         """
         Verify the inputs and outputs are appropriately sized
         """
-        
+
         # first ensure the inputs and outputs are the appropriate type
         d_in = self.inputs[0]
         d_io = self.inputs[1]
 
         if not isinstance(d_in,MPBase):
             raise TypeError("EnqueueKernel requires MPBase input")
-        
+
         if d_io.mp_type != MPEnums.CIRCLE_BUFFER:
             raise TypeError("EnqueueKernel requires CircleBuffer output")
 
         # check that the buffer's capacity is at least 1
         if d_io.capacity <= 1:
             raise ValueError("EnqueueKernel requires CircleBuffer capacity to be at least 1")
-        
+
         # if gated, check that the flag is a scalar
         if self._gated:
             enqueue_flag = self.inputs[2]
             if (enqueue_flag.mp_type != MPEnums.SCALAR or
                 enqueue_flag.data_type not in (int, bool)):
                 raise TypeError("EnqueueKernel requires enqueue flag to be a scalar boolean")
-            
+
         # check that the datatypes match
         if d_in.mp_type != d_io.get_element(0).mp_type:
             raise TypeError("Enqueue kernel requires input type to match element type of circle buffer")
-        
+
         # if the input is a tensor, check that the dimensions match
         if d_in.mp_type == MPEnums.TENSOR:
             if d_in.shape != d_io.get_element(0).shape:
                 raise ValueError("Enqueue kernel requires input tensor shape to match element shape of circle buffer")
-            
+
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy function
@@ -275,7 +275,7 @@ class EnqueueKernel(Kernel):
         if not self._gated or inputs[2].data:
             cpy = inputs[0].make_copy()
             inputs[1].enqueue(cpy)
-            
+
     @classmethod
     def add_enqueue_node(cls,graph,inA,queue,enqueue_flag=None):
         """
@@ -283,15 +283,15 @@ class EnqueueKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
 
-        inA : Tensor or Scalar or Array or CircleBuffer 
+        inA : Tensor or Scalar or Array or CircleBuffer
             Input data to enqueue into circle buffer
 
-        queue : CircleBuffer 
+        queue : CircleBuffer
             Circle buffer to have data enqueud to
-            
+
         enqueue_flag : bool
             (optional) Scalar boolean used to determine if the inputis to be added to the queue
 
@@ -300,23 +300,23 @@ class EnqueueKernel(Kernel):
         node : Node
             The node object that was added to the graph containing the enqueue kernel
         """
-        
+
         # create the kernel object
         k = cls(graph,inA,queue,enqueue_flag)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(queue,MPEnums.INOUT))
-        
+
         if enqueue_flag is not None:
             params += (Parameter(enqueue_flag, MPEnums.INPUT),)
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
-        
+
         return node
 
 class ExtractKernel(Kernel):
@@ -325,22 +325,22 @@ class ExtractKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
-    
-    inA : Tensor or Array 
+
+    inA : Tensor or Array
         Input trial data
-    
+
     Indicies : list slices, list of ints
         Indicies within inA from which to extract data
-    
-    outA : Tensor 
+
+    outA : Tensor
         Extracted trial data
-    
+
     reduce_dims : bool, default = False
         Remove singleton dimensions if true, don't squeeze otherwise
     """
-    
+
     def __init__(self,graph,inA,indices,outA,reduce_dims):
         super().__init__('Extract',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
@@ -360,14 +360,14 @@ class ExtractKernel(Kernel):
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # determine init output shape
-        
+
             add_batch_dim = False
             if (self.inputs[0].mp_type == MPEnums.TENSOR and
                 len(init_in.shape) == (len(self.inputs[0].shape)+1)):
                 init_output_shape = (init_in.shape[0],) + self.outputs[0].shape
                 self._indices.insert(0, ":")
                 add_batch_dim = True
-            
+
             elif len(init_in.shape) == len(self.inputs[0].shape):
                 init_output_shape =  (init_in.shape[0],) + self.outputs[0].shape[1:]
 
@@ -382,12 +382,12 @@ class ExtractKernel(Kernel):
             # remove the additional slice for the batch dimension
             if add_batch_dim:
                 self._indices.pop(0)
-    
+
     def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
-        
+
         # input must be a tensor or array
         # additionally, if the input is a tensor, the output should also be a
         # tensor
@@ -400,13 +400,13 @@ class ExtractKernel(Kernel):
               d_in.mp_type != MPEnums.CIRCLE_BUFFER):
             raise TypeError("ExtractKernel requires Tensor or Array input")
 
-        # if the input is an array, then the there should only be a single 
+        # if the input is an array, then the there should only be a single
         # dimension to extract
         if d_in.mp_type != MPEnums.TENSOR:
             for index in self._indices:
                 if not isinstance(index, int):
                     raise TypeError("ExtractKernel requires integer extraction indicies if input is an Array")
-            
+
                 # check that the index to extract do not exceed the capacity
                 if index >= self._in.capacity or index < -self._in.capacity:
                     raise ValueError("ExtractKernel requires extraction indicies to be within the capacity of the input Array")
@@ -453,17 +453,17 @@ class ExtractKernel(Kernel):
                 # check that the shape is valid
                 if d_out.shape != out_shape:
                     raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
-       
+
         elif d_in.mp_type == MPEnums.TENSOR:
             if d_out.mp_type != MPEnums.TENSOR:
                 raise TypeError("ExtractKernel requires Tensor output if input is a Tensor")
 
-            # check that the number of dimensions indicated does not exceed 
+            # check that the number of dimensions indicated does not exceed
             # the tensor's rank
             if len(self._indices) != len(d_in.shape):
                 warnings.warn("Number of dimensions to extract exceeds the tensor's rank")
                 raise ValueError("ExtractKernel requires number of dimensions to extract to be less than or equal to the tensor's rank")
-            
+
             output_sz = []
             for axis in range(len(self._indices)):
                 if self._indices[axis] != ":":
@@ -474,21 +474,21 @@ class ExtractKernel(Kernel):
                         # check that the index is valid for the given axis
                         if index < -d_in.shape[axis] or index >= d_in.shape[axis]:
                             raise ValueError("ExtractKernel extraction index in dimension {} exceeds the input Tensor's shape".format(axis))
-                    
+
                     if not self._reduce_dims or len(self._indices[axis]) > 1:
                         output_sz.append(len(axis_indices))
                 else:
                     output_sz.append(d_in.shape[axis])
-            
+
             # check that the output tensor's dimensions are valid
             output_sz = tuple(output_sz)
-            
+
             if d_out.virtual and len(d_out.shape) == 0:
                 d_out.shape = output_sz
-            
+
             if d_out.shape != output_sz:
                 raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
-        
+
 
     def _process_data(self, inputs, outputs):
         inA = inputs[0]
@@ -513,7 +513,7 @@ class ExtractKernel(Kernel):
                     out_array[dest_index] = elem_data
                 outA.data = out_array
         else:
-            # tensor input 
+            # tensor input
             ix_grid = []
             for axis in range(len(self._indices)):
                 axis_indices = self._indices[axis]
@@ -527,31 +527,31 @@ class ExtractKernel(Kernel):
 
             npixgrid = np.ix_(*ix_grid)
             extr_data = inA.data[npixgrid]
-            
+
             if self._reduce_dims:
                 extr_data = np.squeeze(extr_data)
-                
+
             outA.data = extr_data
-        
+
 
     @classmethod
     def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False,init_input=None,init_labels=None):
         """
-        Factory method to create an extract kernel 
+        Factory method to create an extract kernel
         and add it to a graph as a generic node object.
 
         Parameters
         ----------
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
 
-        inA : Tensor or Array 
+        inA : Tensor or Array
             Input trial data
 
         Indicies : list slices, list of ints
             Indicies within inA from which to extract data
 
-        outA : Tensor, Scalar, or Array 
+        outA : Tensor, Scalar, or Array
             Extracted trial data
 
         reduce_dims : bool, default = False
@@ -562,20 +562,20 @@ class ExtractKernel(Kernel):
         node : Node
             The node object that was added to the graph containing the extract kernel
         """
-        
+
         # create the kernel object
         k = cls(graph,inA,indices,outA,reduce_dims)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
-        
+
         # if initialization data is provided, add it to the node
         if init_input is not None:
             node.add_initialization_data([init_input],init_labels)
@@ -590,17 +590,17 @@ class StackKernel(Kernel):
     ----------
     graph : Graph
         The graph where the RunningAverageKernel object should be added
-    
-    inA : Array 
+
+    inA : Array
         Container where specified data will be added to
-    
+
     outA : Tensor
         Tensor of stacked tensors
-    
+
     axis : int or None, default = None
         The axis in the result array along which the input arrays are stacked.
     """
-    
+
     def __init__(self,graph,inA,outA,axis=None):
         """
         Constructor for the Stack kernel
@@ -616,38 +616,38 @@ class StackKernel(Kernel):
         """
         inA = self.inputs[0]
         outA = self.outputs[0]
-                
+
         # inA must be an array and outA must be a tensor
-        if (not ((inA.mp_type == MPEnums.ARRAY or 
-                  inA.mp_type == MPEnums.CIRCLE_BUFFER) and 
+        if (not ((inA.mp_type == MPEnums.ARRAY or
+                  inA.mp_type == MPEnums.CIRCLE_BUFFER) and
             outA.mp_type == MPEnums.TENSOR)):
             raise TypeError("StackKernel requires Array input and Tensor output")
-        
+
         # if an axis was provided, it must be a scalar
         if self._axis != None and self._axis.mp_type != MPEnums.SCALAR:
             raise TypeError("StackKernel requires Scalar axis")
-        
+
         stack_axis = self._axis.data if self._axis != None else 0
-        
+
         # ensure that all the tensors in inA are the same size
         tensor_shapes = [inA.get_element(i).shape for i in range(inA.capacity)]
-        
+
         if len(set(tensor_shapes)) != 1:
             # tensors in array are different sizes OR array is empty
             raise ValueError("StackKernel requires all tensors in input array to be the same size")
-        
+
         # determine the output dimensions
-        output_shape = (tensor_shapes[0][:stack_axis] + (inA.capacity,) 
+        output_shape = (tensor_shapes[0][:stack_axis] + (inA.capacity,)
                          + tensor_shapes[0][stack_axis:])
-        
+
         # check the output dimensions are valid
         if outA.virtual and len(outA.shape) == 0:
             outA.shape = output_shape
-        
+
         # ensure the output shape equals the expected output shape
         if outA.shape != output_shape:
             raise ValueError("StackKernel output shape does not match expected output shape")
-        
+
 
     def _process_data(self, inputs, outputs):
         """
@@ -658,12 +658,12 @@ class StackKernel(Kernel):
         outA = outputs[0]
 
         stack_axis = self._axis.data if self._axis != None else 0
-        
+
         input_tensors = [inA.get_element(i) for i in range(inA.capacity)]
-        
+
         input_data = [t.data for t in input_tensors]
         outA.data = np.stack(input_data,axis=stack_axis)
-        
+
     @classmethod
     def add_stack_node(cls,graph,inA,outA,axis=None):
         """
@@ -689,20 +689,20 @@ class StackKernel(Kernel):
         node : Node
             The node object that was added to the graph containing the stack kernel
         """
-        
+
         # create the kernel object
         k = cls(graph,inA,outA,axis)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
-        
+
         return node
 
 class TensorStackKernel(Kernel):
@@ -711,22 +711,22 @@ class TensorStackKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
-    
-    inA : Tensor 
+
+    inA : Tensor
         First input trial data
-    
+
     inB : Tensor
         Second input trial data
-    
-    outA : Tensor 
+
+    outA : Tensor
         Output trial data
-    
+
     axis : int, default=None
         Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
     """
-    
+
     def __init__(self,graph,inA,inB,outA,axis=None):
         """
         Constructor for the TensorStack kernel
@@ -738,7 +738,7 @@ class TensorStackKernel(Kernel):
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
-        This kernel has no internal state that must be initialized. 
+        This kernel has no internal state that must be initialized.
         """
 
         init_inA, init_inB = init_inputs
@@ -763,7 +763,7 @@ class TensorStackKernel(Kernel):
             if axis_adjusted:
                 self._axis -= 1 # adjust back for trial processing
 
-        
+
     def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
@@ -771,30 +771,30 @@ class TensorStackKernel(Kernel):
 
         inA, inB = self.inputs
         outA = self.outputs[0]
-                
+
         # all params must be tensors
         for param in (inA, inB, outA):
             if param.mp_type != MPEnums.TENSOR:
                 raise TypeError("TensorStackKernel requires Tensor inputs and outputs")
-        
+
         stack_axis = self._axis
         if stack_axis >= len(inA.shape) and stack_axis < -len(inA.shape):
             raise ValueError("TensorStackKernel requires stack axis to be within the rank of the input tensors")
-        
+
         # ensure that all the tensors in inA are the same size
         tensor_shapes = [inA.shape, inB.shape]
-        
+
         if len(set(tensor_shapes)) != 1:
             # tensors in array are different sizes OR array is empty
-            raise ValueError("TensorStackKernel requires all tensors in input array to be the same size")   
-        
+            raise ValueError("TensorStackKernel requires all tensors in input array to be the same size")
+
         # determine the output dimensions
         output_shape = inA.shape[:stack_axis] + (2,) + inA.shape[stack_axis:]
-        
+
         # check the output dimensions are valid
         if outA.virtual and len(outA.shape) == 0:
             outA.shape = output_shape
-        
+
         # ensure the output shape equals the expected output shape
         if outA.shape != output_shape:
             raise ValueError("TensorStackKernel output shape does not match expected output shape")
@@ -806,8 +806,8 @@ class TensorStackKernel(Kernel):
         """
         input_tensors = [inputs[i].data for i in range(len(inputs))]
         outputs[0].data = np.stack(input_tensors,axis=self._axis)
-        
-    
+
+
     @classmethod
     def add_tensor_stack_node(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
         """
@@ -816,41 +816,169 @@ class TensorStackKernel(Kernel):
 
         Parameters
         ----------
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
-        inA : Tensor or Scalar 
+        inA : Tensor or Scalar
             First input trial data
-        inB : Tensor or Scalar 
+        inB : Tensor or Scalar
             Second input trial data
-        outA : Tensor or Scalar 
+        outA : Tensor or Scalar
             Output trial data
         axis : int, default=None
             Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
-        
+
         Returns
         -------
         node : Node
             The node object that was added to the graph containing the tensor stack kernel
         """
-        
+
         # create the kernel object
         k = cls(graph,inA,inB,outA,axis)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(inB,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
 
         # if initialization data is provided, add it to the node
         if init_inputs is not None:
             node.add_initialization_data(init_inputs,init_labels)
-        
+
         return node
 
+class ReshapeKernel(Kernel):
+    """
+    Kernel to reshape a tensor
 
+    Parameters
+    ----------
+    graph : Graph
+        Graph that the kernel should be added to
+
+    inA : Tensor
+        Input tensor
+
+    outA : Tensor
+        Output tensor
+
+    shape : tuple of ints
+        Shape of the output tensor
+    """
+
+    def __init__(self, graph, inA, outA, shape):
+        """
+        Constructor for the Reshape kernel
+        """
+        super().__init__('Reshape',MPEnums.INIT_FROM_NONE, graph)
+        self.inputs = [inA]
+        self.outputs = [outA]
+        self._shape = shape
+
+    def _initialize(self, init_inputs, init_outputs, labels):
+        """
+        This kernel has no internal state that must be initialized
+        """
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
+
+        if init_in.mp_type != MPEnums.TENSOR:
+            init_in = init_in.to_tensor()
+
+        if init_out is not None and (init_in is not None and init_in.shape != ()):
+            # adjust the init output shape
+            if init_out.virtual:
+                if len(init_in.shape) == len(self.inputs[0].shape)+1:
+                    init_out.shape = (init_in.shape[0],) + self.outputs[0].shape
+                else:
+                    init_out.shape = self.outputs[0].shape
+
+            self._process_data([init_in], init_outputs)
+
+    def _verify(self):
+        """
+        Verify the inputs and outputs are appropriately typed
+        """
+
+        inA = self.inputs[0]
+        outA = self.outputs[0]
+
+        # inA must be a tensor and outA must be a tensor
+        if (inA.mp_type != MPEnums.TENSOR or
+            outA.mp_type != MPEnums.TENSOR):
+            raise TypeError("ReshapeKernel requires Tensor input and Tensor output")
+
+        # determine and set the output shape
+        try:
+            test_in = np.zeros(inA.shape)
+            test_out = test_in.reshape(self._shape)
+        except:
+            raise ValueError("ReshapeKernel requires output shape to be compatible with input shape")
+
+        if outA.virtual and len(outA.shape) == 0:
+            outA.shape = test_out.shape
+
+        if outA.shape != test_out.shape:
+            raise ValueError("ReshapeKernel output shape does not match expected output shape")
+
+    def _process_data(self, inputs, outputs):
+        """
+        Execute the kernel function using numpy functions
+        """
+        inA = inputs[0]
+        outA = outputs[0]
+
+        outA.data = inA.data.reshape(outA.shape)
+
+    @classmethod
+    def add_reshape_node(cls, graph, inA, outA, shape,
+                         init_inputs=None, init_labels=None):
+        """
+        Factory method to create a reshape kernel and add it to a graph
+        as a generic node object.
+
+        Parameters
+        ----------
+        graph : Graph
+            Graph that the kernel should be added to
+        inA : Tensor
+            Input tensor
+        outA : Tensor
+            Output tensor
+        shape : tuple of ints
+            Shape of the output tensor
+        init_inputs: Tensor
+            (optional) Initialization data for the graph
+        init_labels: Tensor
+            (optional) Initialization labels for the graph
+
+        Returns
+        -------
+        node : Node
+            The node object that was added to the graph containing the reshape kernel
+        """
+
+        # create the kernel object
+        k = cls(graph, inA, outA, shape)
+
+        # create parameter objects for the input and output
+        params = (Parameter(inA, MPEnums.INPUT),
+                  Parameter(outA, MPEnums.OUTPUT))
+
+        # add the kernel to a generic node object
+        node = Node(graph, k, params)
+
+        # add the node to the graph
+        graph.add_node(node)
+
+        # if initialization data is provided, add it to the node
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
+
+        return node
