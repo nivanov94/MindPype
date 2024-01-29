@@ -35,11 +35,11 @@ class EpochKernel(Kernel):
         super().__init__('Epoch', MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
-        self._epoch_length = epoch_length
+        self._epoch_length = int(epoch_length)
         if epoch_stride is None:
-            self._epoch_stride = epoch_length
+            self._epoch_stride = self._epoch_length
         else:
-            self._epoch_stride = epoch_stride
+            self._epoch_stride = int(epoch_stride)
         self._axis = axis
 
     def _compute_output_shape(self, input_shape):
@@ -47,8 +47,9 @@ class EpochKernel(Kernel):
         Computes the shape of the output tensor based on the input shape
         """
         output_shape = list(input_shape)
+        output_shape[self._axis] = self._epoch_length
         output_shape.insert(self._axis,
-                            (input_shape[self._axis] - self._epoch_length) // self._epoch_overlap + 1)
+                            int(input_shape[self._axis] - self._epoch_length) // self._epoch_stride + 1)
         return tuple(output_shape)
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -67,14 +68,14 @@ class EpochKernel(Kernel):
             if init_in is not None and init_in.mp_type != MPEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
-            # update output size, as needed
-            if init_out.virtual:
-                init_out.shape = self._compute_output_shape(init_in.shape)
-
             axis_adjusted = False
             if len(init_in.shape) == len(self.inputs[0].shape)+1 and self._axis >= 0:
                 self._axis += 1
                 axis_adjusted = True
+            
+            # update output size, as needed
+            if init_out.virtual:
+                init_out.shape = self._compute_output_shape(init_in.shape)
 
             self._process_data([init_in], init_outputs)
 
@@ -125,7 +126,7 @@ class EpochKernel(Kernel):
         # epoch the data
         src_slc = [slice(None)] * len(inA.shape)
         dst_slc = [slice(None)] * len(outA.shape)
-        Nepochs = (inA.shape[self._axis] - self._epoch_length) // self._epoch_stride + 1
+        Nepochs = int(inA.shape[self._axis] - self._epoch_length) // self._epoch_stride + 1
         for i_e in range(Nepochs):
             src_slc[self._axis] = slice(i_e*self._epoch_stride,
                                     i_e*self._epoch_stride + self._epoch_length)

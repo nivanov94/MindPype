@@ -70,7 +70,7 @@ class ConcatenationKernel(Kernel):
                 init_out.shape = output_sz
 
             # process the init data
-            self._process_data(init_inA, init_inB, init_out)
+            self._process_data([init_inA, init_inB], init_out)
 
             # adjust the axis back if it was adjusted
             if axis_adjusted:

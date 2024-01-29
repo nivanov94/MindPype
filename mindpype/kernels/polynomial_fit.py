@@ -39,6 +39,7 @@ class PolynomialFitKernel(Kernel):
         self.outputs = [outA]
         self._Fs = Fs
         self._order = order
+        self._axis = -1 # for now, only support fitting along the last axis
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
@@ -58,7 +59,7 @@ class PolynomialFitKernel(Kernel):
 
             # update output size, as needed
             if init_out.virtual:
-                output_sz = self._compute_output_shape(init_in)
+                output_sz = init_in.shape[:-1] + (self._order,)
                 init_out.shape = output_sz
 
             self._process_data([init_in], init_outputs)
@@ -83,7 +84,7 @@ class PolynomialFitKernel(Kernel):
         if self._Fs <= 0:
             raise ValueError("Sampling frequency must be greater than 0")
 
-        out_shape = inA.shape[:-1] + (self._order+1,)
+        out_shape = inA.shape[:-1] + (self._order,)
         if outA.virtual and len(outA.shape) == 0:
             outA.shape = out_shape
 
@@ -110,11 +111,11 @@ class PolynomialFitKernel(Kernel):
             y = y.reshape(-1, y.shape[-1])
 
         # fit polynomials for each time series
-        coefs = np.zeros((y.shape[0], self._order+1))
+        coefs = np.zeros((y.shape[0], self._order))
         for i_t, ts in enumerate(y):
             model = make_pipeline(PolynomialFeatures(self._order), Ridge())
             model.fit(x[:, np.newaxis], ts[:, np.newaxis])
-            coefs[i_t,:] = model.steps[1][1].coef_.squeeze()
+            coefs[i_t,:] = model.steps[1][1].coef_.squeeze()[1:]
 
         # reshape the coefs to match the output shape
         outA.data = np.reshape(coefs, outA.shape)

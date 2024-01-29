@@ -33,7 +33,7 @@ class FeatureNormalizationKernel(Kernel):
         Axis along which to apply the filter
     """
     
-    def __init__(self,graph,inA,outA, initialization_data, labels ,method,axis=1):
+    def __init__(self,graph,inA,outA,method,axis=1,initialization_data=None,labels=None):
         """
         Kernal normalizes features for classification
         """

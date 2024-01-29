@@ -725,7 +725,7 @@ class VarKernel(Descriptive, Kernel):
         If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
     """
 
-    def __init__(self,graph,inA,outA,axis,ddof,keep_dims):
+    def __init__(self,graph,inA,outA,axis,ddof,keepdims):
         """
         Kernal calculates arithmetic variance of values in tensor
         """
@@ -734,7 +734,7 @@ class VarKernel(Descriptive, Kernel):
         self.outputs = [outA]
         self._axis = axis
         self._ddof = ddof
-        self._keepdims = keep_dims
+        self._keepdims = keepdims
 
     def _verify(self):
         d_in = self.inputs[0]
@@ -764,7 +764,7 @@ class VarKernel(Descriptive, Kernel):
                                  keepdims=self._keepdims)
 
     @classmethod
-    def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keep_dims=False,init_input=None,init_labels=None):
+    def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a variance kernel
 
@@ -789,7 +789,7 @@ class VarKernel(Descriptive, Kernel):
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,axis,ddof,keep_dims)
+        k = cls(graph,inA,outA,axis,ddof,keepdims)
 
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
