@@ -501,7 +501,7 @@ class Kernel(MPBase, ABC):
         Basic verification method that can be applied to all kernels.
         Generates phony inputs and attemps to execute the kernel.
         """
-
+        print(f"Verifying kernel {self.name}...")
         if hasattr(self, '_verify'):
             # execute any kernel-specific verification
             self._verify()

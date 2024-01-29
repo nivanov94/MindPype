@@ -119,6 +119,7 @@ class Graph(MPBase):
             return
 
         # begin by scheduling the nodes in execution order
+        print("Scheduling nodes...")
         self._schedule_nodes()
 
         # assign default initialization data to nodes that require it
@@ -126,15 +127,19 @@ class Graph(MPBase):
 
         # now all the nodes are in execution order create any
         # necessary initialization edges
+        print("Inserting init edges...")
         self._insert_init_edges()
 
         # insert phony edges for verification
+        print("Inserting phony edges...")
         self._insert_phony_edges()
 
         # set phony inputs with random data for validation
+        print("Initializing phony edges...")
         self._init_phony_edges()
 
         # finally, validate each node
+        print("Validating nodes...")
         self._validate_nodes()
 
         # delete phony inputs and outputs

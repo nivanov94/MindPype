@@ -971,7 +971,7 @@ class SkewnessKernel(Descriptive, Kernel):
         """
         Kernal calculates the skewness of values in tensor or array
         """
-        super().__init__('Kurtosis',MPEnums.INIT_FROM_NONE,graph)
+        super().__init__('Skewness',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
         self._axis = axis

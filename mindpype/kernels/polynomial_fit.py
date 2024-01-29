@@ -3,7 +3,7 @@ from ..kernel import Kernel
 from ..graph import Node, Parameter
 
 import numpy as np
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
 
@@ -113,9 +113,9 @@ class PolynomialFitKernel(Kernel):
         # fit polynomials for each time series
         coefs = np.zeros((y.shape[0], self._order))
         for i_t, ts in enumerate(y):
-            model = make_pipeline(PolynomialFeatures(self._order), Ridge())
+            model = LinearRegression() #make_pipeline(PolynomialFeatures(self._order), LinearRegression())
             model.fit(x[:, np.newaxis], ts[:, np.newaxis])
-            coefs[i_t,:] = model.steps[1][1].coef_.squeeze()[1:]
+            coefs[i_t,:] = model.coef_.squeeze() #model.steps[1][1].coef_.squeeze()[1:]
 
         # reshape the coefs to match the output shape
         outA.data = np.reshape(coefs, outA.shape)

@@ -4,17 +4,18 @@ from glob import glob
 from pyxdf import load_xdf
 from sklearn.model_selection import train_test_split
 
+print("starting script")
 MODE = 'OFFLINE' # 'ONLINE' or 'OFFLINE'
 
 def load_training_data():
     """
     Load training data
     """
-    
+
     trial_len = 15 # trial length in seconds
 
     # load the data from the XDF files
-    directory = r'P:\\general_prism\Side Projects\NIRS BCI\Data\Dec4\sub-P001\sourcedata\*.xdf'
+    directory = r'C:\Users\ivanovn\Documents\fnirs_side_proj\Data\Dec4\sub-P002\sourcedata\*.xdf'
     streams = []
     for file in glob(directory):
         found_streams, _ = load_xdf(file)
@@ -141,28 +142,28 @@ def create_graph(session, training_data, training_labels):
     mp.kernels.MeanKernel.add_mean_node(graph,
                                         v_tensors[1],
                                         v_tensors[2],
-                                        axis=1,
+                                        axis=2,
                                         keepdims=True)
     mp.kernels.VarKernel.add_var_node(graph,
                                       v_tensors[1],
                                       v_tensors[3],
-                                      axis=1,
+                                      axis=2,
                                       keepdims=True)
     mp.kernels.KurtosisKernel.add_kurtosis_node(graph,
                                                 v_tensors[1],
                                                 v_tensors[4],
-                                                axis=1,
+                                                axis=2,
                                                 keepdims=True)
     mp.kernels.SkewnessKernel.add_skewness_node(graph,
                                                 v_tensors[1],
                                                 v_tensors[5],
-                                                axis=1,
+                                                axis=2,
                                                 keepdims=True)
-    mp.kernels.PolynomialFitKernel.add_polynomial_fit_node(graph,
-                                                           v_tensors[1],
-                                                           v_tensors[6],
-                                                           Fs=Fs,
-                                                           order=1)
+    #mp.kernels.PolynomialFitKernel.add_polynomial_fit_node(graph,
+    #                                                       v_tensors[1],
+    #                                                       v_tensors[6],
+    #                                                       Fs=Fs,
+    #                                                       order=1)
 
     # concatenation the features
     mp.kernels.ConcatenationKernel.add_concatenation_node(graph,
@@ -180,22 +181,23 @@ def create_graph(session, training_data, training_labels):
                                                       v_tensors[5],
                                                       v_tensors[9],
                                                       axis=2)
-    mp.kernels.ConcatenationKernel.add_concatenation_node(graph,
-                                                      v_tensors[9],
-                                                      v_tensors[6],
-                                                      v_tensors[10],
-                                                      axis=2)
+    #mp.kernels.ConcatenationKernel.add_concatenation_node(graph,
+    #                                                  v_tensors[9],
+    #                                                  v_tensors[6],
+    #                                                  v_tensors[10],
+    #                                                  axis=2)
 
     # flatten the feature vector
     mp.kernels.ReshapeKernel.add_reshape_node(graph,
-                                              v_tensors[10],
+                                              v_tensors[9],
                                               v_tensors[11],
-                                              (1,-1))
+                                              (-1,))
 
     # normalize the features
     mp.kernels.FeatureNormalizationKernel.add_feature_normalization_node(graph,
                                                                          v_tensors[11],
-                                                                         v_tensors[12])
+                                                                         v_tensors[12],
+                                                                         axis=0)
 
     # select features
     mp.kernels.FeatureSelectionKernel.add_feature_selection_node(graph,
@@ -221,16 +223,19 @@ def main():
         training_data, testing_data, training_labels, testing_labels = train_test_split(training_data,
                                                                                         training_labels,
                                                                                         test_size=0.5,
-                                                                                        stratify=training_labels)
-
+                                                                                        stratify=training_labels,
+                                                                                        random_state=42)
+    print("data loaded")
     # create a session
     session = mp.Session()
 
     # create a graph
     graph, data_in, clsf_pred = create_graph(session, training_data, training_labels)
+    print("graph created")
 
     # verify the graph
     graph.verify()
+    print("graph verified")
 
     # initialize the graph
     graph.initialize()
