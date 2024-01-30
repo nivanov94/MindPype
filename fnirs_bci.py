@@ -15,7 +15,7 @@ def load_training_data():
     trial_len = 15 # trial length in seconds
 
     # load the data from the XDF files
-    directory = r'C:\Users\ivanovn\Documents\fnirs_side_proj\Data\Dec4\sub-P002\sourcedata\*.xdf'
+    directory = r'P:\general_prism\Side Projects\NIRS BCI\Data\Dec4\sub-P001\sourcedata\*.xdf'
     streams = []
     for file in glob(directory):
         found_streams, _ = load_xdf(file)
@@ -159,11 +159,10 @@ def create_graph(session, training_data, training_labels):
                                                 v_tensors[5],
                                                 axis=2,
                                                 keepdims=True)
-    #mp.kernels.PolynomialFitKernel.add_polynomial_fit_node(graph,
-    #                                                       v_tensors[1],
-    #                                                       v_tensors[6],
-    #                                                       Fs=Fs,
-    #                                                       order=1)
+    mp.kernels.SlopeKernel.add_slope_node(graph,
+                                          v_tensors[1],
+                                          v_tensors[6],
+                                          Fs=Fs)
 
     # concatenation the features
     mp.kernels.ConcatenationKernel.add_concatenation_node(graph,
@@ -181,15 +180,15 @@ def create_graph(session, training_data, training_labels):
                                                       v_tensors[5],
                                                       v_tensors[9],
                                                       axis=2)
-    #mp.kernels.ConcatenationKernel.add_concatenation_node(graph,
-    #                                                  v_tensors[9],
-    #                                                  v_tensors[6],
-    #                                                  v_tensors[10],
-    #                                                  axis=2)
+    mp.kernels.ConcatenationKernel.add_concatenation_node(graph,
+                                                      v_tensors[9],
+                                                      v_tensors[6],
+                                                      v_tensors[10],
+                                                      axis=2)
 
     # flatten the feature vector
     mp.kernels.ReshapeKernel.add_reshape_node(graph,
-                                              v_tensors[9],
+                                              v_tensors[10],
                                               v_tensors[11],
                                               (-1,))
 
@@ -222,9 +221,9 @@ def main():
         # split data into training and testing sets
         training_data, testing_data, training_labels, testing_labels = train_test_split(training_data,
                                                                                         training_labels,
-                                                                                        test_size=0.5,
+                                                                                        test_size=0.25,
                                                                                         stratify=training_labels,
-                                                                                        random_state=42)
+                                                                                        random_state=48)
     print("data loaded")
     # create a session
     session = mp.Session()
@@ -244,8 +243,9 @@ def main():
         predicitons = np.zeros_like(testing_labels)
         for i_t, trial in enumerate(testing_data):
             data_in.data = trial
-            graph.execute()
+            graph.execute(label=testing_labels[i_t])
             predicitons[i_t] = clsf_pred.data[0]
+            print(f"Prediction: {predicitons[i_t]}, Actual: {testing_labels[i_t]}")
         print(f"Accuracy: {np.sum(predicitons==testing_labels)/len(testing_labels)}")
 
 if __name__ == "__main__":

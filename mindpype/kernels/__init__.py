@@ -30,4 +30,4 @@ from .baseline_correction import BaselineCorrectionKernel
 from .kernel_utils import extract_nested_data, extract_init_inputs
 from .epoch import EpochKernel
 from .feature_selection import FeatureSelectionKernel
-from .polynomial_fit import PolynomialFitKernel
+from .slope import SlopeKernel
