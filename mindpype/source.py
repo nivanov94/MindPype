@@ -1,15 +1,10 @@
 """
 Currently supported sources:
     - Lab Streaming Layer
-    - mat files
     - xdf files
 
 
 """
-
-# TODO: Enhance file based classes to enable bulk read (i.e. multiple trial)
-# capabilities
-
 
 from .core import MPBase, MPEnums
 from .containers import Tensor
@@ -24,549 +19,6 @@ import warnings
 import liesl
 import threading
 import time
-
-
-class MPMatFile(MPBase):
-    """
-    Utility for extracting data from a mat file for MindPype
-
-    Parameters
-    ----------
-
-    Examples
-    --------
-
-    """
-
-    def __init__(self, sess, filename, path, label_varname_map, dims=None):
-        """
-        Create a new mat file reader interface
-        """
-        super().__init__(MPEnums.SRC, sess)
-        p = os.path.normpath(os.path.join(os.getcwd(), path))
-        f = os.path.join(p, filename)
-        if not os.path.exists(p) or not os.path.exists(f) or not os.path.isfile(f):
-            # TODO log error
-            print("File {} not found in dir {}".format(filename, path))
-            return
-
-        self.filepath = f
-        self.dims = dims
-        self._file_data = None
-
-        # check if the variable names exist in the file
-        self._file_data = loadmat(self.filepath)
-        for varname in label_varname_map.values():
-            if not varname in self._file_data:
-                # TODO log error
-                return
-
-            if not dims == None:
-                # check that the data has the correct number of dimensions
-                data_dims = self._file_data[varname].shape
-                for i in range(len(dims)):
-                    min_channel = min(dims[i])
-                    max_channel = max(dims[i])
-
-                    # ignore the first data dimension b/c its the trial number
-                    if (
-                        min_channel < 0
-                        or min_channel >= data_dims[i + 1]
-                        or max_channel < 0
-                        or max_channel >= data_dims[i + 1]
-                    ):
-                        # TODO log error
-                        return
-
-        self.label_varname_map = {}
-        # copy the dictionary - converting any string keys into ints
-        # a bit hacky, but makes it easier to create MAT file objs with the JSON parser
-        for key in label_varname_map:
-            if isinstance(key, str):
-                self.label_varname_map[int(key)] = label_varname_map[key]
-            else:
-                self.label_varname_map[key] = label_varname_map[key]
-
-        self.label_counters = {}
-
-        for label in self.label_varname_map:
-            self.label_counters[label] = 0
-
-    def poll_data(self, Ns, label):
-        """
-        Poll the data for the next trial of the input label
-        """
-
-        class_data = self._file_data[self.label_varname_map[label]]
-        if self.dims == None:
-            # get all the dimensions
-            trial_data = class_data[label, self.label_counters[label], :, :]
-        else:
-            indices = np.ix_((self.label_counters[label],), self.dims[0], self.dims[1])
-
-            trial_data = class_data[indices]
-
-        # increment the label counter for this class
-        self.label_counters[label] += 1
-
-        return trial_data
-
-    @classmethod
-    def create(cls, sess, filename, path, label_varname_map, dims):
-        """
-        Factory method for API
-        """
-        src = cls(sess, filename, path, label_varname_map, dims)
-
-        sess.add_ext_src(src)
-
-        return src
-
-
-class MPClassSeparatedMat(MPBase):
-    """
-    Utility class for extracting class separated data from a mat file for MindPype.
-
-    Parameters
-
-    ----------
-
-    sess : Session Object
-        Session where the MPClassSeparated data source will exist.
-
-    num_classes : int
-        Number of classes within the MAT data
-
-    event_duration : int
-        Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
-
-    start_index : int
-        Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.
-
-    end_index : int
-        Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored
-
-    relative_start : int
-        Shift the beginning of each trial start by relative_start samples/
-
-    mat_data_var_name : str
-        Name of the mat data array within the .mat file.
-
-    mat_labels_var_name : str
-        Name of the labels array within the .mat file.
-
-    link_to_data : str
-        * Relative path of the mat data to be stored within the created object
-
-    link_to_labels : str
-        * Relative path of the labels data to be stored within the created object.
-
-    Examples
-    --------
-    * Add traceback example with keyerror when mat_data_var_name is incorrect
-
-    Notes
-    -----
-    * The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
-    * The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial and the second column is the class label of each trial
-        * The class label of each trial should be numeric.
-    """
-
-    def __init__(
-        self,
-        sess,
-        num_classes,
-        event_duration,
-        start_index,
-        end_index,
-        relative_start,
-        mat_data_var_name,
-        mat_labels_var_name,
-        link_to_data,
-        link_to_labels=None,
-    ):
-        """
-        Create a new mat file reader interface
-        """
-        super().__init__(MPEnums.SRC, sess)
-
-        self.class_separated_data = None
-        self.link_to_data = link_to_data
-        self.link_to_labels = link_to_labels
-        self.num_classes = num_classes
-        self.event_duration = event_duration
-        self.mat_data_var_name = mat_data_var_name
-        self.mat_labels_var_name = mat_labels_var_name
-        self.relative_start = relative_start
-
-        if link_to_labels != None:
-            raw_data = loadmat(link_to_data, mat_dtype=True, struct_as_record=True)
-            raw_data = raw_data[mat_data_var_name]
-            try:
-                raw_data = raw_data[:, start_index:end_index]
-            except:
-                print("Start and/or End index incorrect.")
-
-            labels = loadmat(link_to_labels, mat_dtype=True, struct_as_record=True)
-            labels = labels[mat_labels_var_name]
-        if link_to_labels == None:
-            raw_data = loadmat(link_to_data, mat_dtype=True, struct_as_record=True)
-            labels = np.array(raw_data[mat_labels_var_name])
-            raw_data = raw_data[mat_data_var_name]
-            try:
-                raw_data = raw_data[:, start_index:end_index]
-            except:
-                print("Start and/or End index incorrect.")
-
-        self.label_counters = {}
-
-        for i in range(self.num_classes):
-            self.label_counters[i] = 0
-
-        i = 0
-        first_row = 0
-        last_row = np.size(labels, 0)
-        while i < np.size(labels, 0):
-            if labels[i][1] <= start_index:
-                first_row = i
-                i += 1
-            elif labels[i][1] >= end_index:
-                last_row = i
-                i += 1
-            else:
-                i += 1
-
-        labels = labels[first_row:last_row, :]
-
-        labels_dict = {}
-
-        for label in labels[:, 0]:
-            labels_dict[int(label)] = []
-
-            if len(labels_dict.keys()) == num_classes:
-                break
-
-        for label, index in labels:
-            labels_dict[int(label)] = np.append(labels_dict[int(label)], index)
-
-        self.labels_dict = labels_dict
-        self.raw_data = raw_data
-        self.labels = labels
-
-    def poll_data(self, Ns, label):
-        label = int(label)
-        try:
-            trial_indices = self.labels_dict[label]
-            trial_data = self.raw_data[
-                :,
-                int(
-                    trial_indices[self.label_counters[label]] + self.relative_start
-                ) : int(
-                    trial_indices[self.label_counters[label]] + self.event_duration
-                ),
-            ]
-            self.label_counters[label] += 1
-            return trial_data
-
-        except KeyError:
-            print("Label does not exist")
-            return MPEnums.EXE_FAILURE
-
-
-    def format_continuous_data(self):
-        raw_data = loadmat(self.link_to_data, mat_dtype=True, struct_as_record=True)
-        raw_data = np.transpose(raw_data[self.mat_data_var_name])
-
-        labels = loadmat(self.link_to_labels, mat_dtype=True, struct_as_record=True)
-        labels = np.array(labels[self.mat_labels_var_name])
-
-        data = {}
-        for i in range(1, self.num_classes + 1):
-            data[i] = np.array([[0] * np.size(raw_data, 0)]).T
-
-        for row in range(np.size(labels, 0)):
-            data_to_add = [
-                values[int(labels[row][1]) : int(labels[row][1] + self.event_duration)]
-                for values in raw_data
-            ]
-            np.concatenate((data[int(labels[row][0])], data_to_add), 1)
-
-        self.class_separated_data = data
-        return [data, labels]
-
-    @classmethod
-    def create_class_separated(
-        cls,
-        sess,
-        num_classes,
-        event_duration,
-        start_index,
-        end_index,
-        relative_start,
-        mat_data_var_name,
-        mat_labels_var_name,
-        link_to_data,
-        link_to_labels,
-    ):
-        """
-        Factory Method for creating class separated MAT File input source.
-
-        Parameters
-        ----------
-
-        sess : Session Object
-            Session where the MPClassSeparated data source will exist.
-
-        num_classes : int
-            Number of classes within the MAT data
-
-        event_duration : int
-            Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
-
-        start_index : int
-            Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.
-
-        end_index : int
-            Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored
-
-        relative_start : int
-            Shift the beginning of each trial start by relative_start samples/
-
-        mat_data_var_name : str
-            Name of the mat data array within the .mat file.
-
-        mat_labels_var_name : str
-            Name of the labels array within the .mat file.
-
-
-        link_to_data : str
-            Relative path of the mat data to be stored within the created object.
-
-
-        link_to_labels : str
-            Relative path of the labels data to be stored within the created object.
-
-        Examples
-        --------
-        * Add traceback example with keyerror when mat_data_var_name is incorrect
-
-        Notes
-        -----
-        * The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
-        * The MAT labels array should be in the shape of Number of trials x 2, where the first column is the start index of each trial and the second column is the class label of each trial
-            * The class label of each trial should be numeric.
-
-
-        """
-        src = cls(
-            sess,
-            num_classes,
-            event_duration,
-            start_index,
-            end_index,
-            relative_start,
-            mat_data_var_name,
-            mat_labels_var_name,
-            link_to_data,
-            link_to_labels,
-        )
-
-        sess.add_ext_src(src)
-
-        return src
-
-
-class MPContinuousMat(MPBase):
-    """
-    Utility class for extracting continuous from a mat file for MindPype.
-
-    Parameters
-    ----------
-
-    sess : Session Object
-        Session where the MPClassSeparated data source will exist.
-
-    event_duration : int
-        Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
-
-    start_index : int
-        Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.
-
-    end_index : int
-        Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored
-
-    relative_start : int
-        Shift the beginning of each trial start by relative_start samples/
-
-    mat_data_var_name : str
-        Name of the mat data array within the .mat file.
-
-    mat_labels_var_name : str
-        Name of the labels array within the .mat file.
-
-    data_filename : str
-        Relative path of the mat data to be stored within the created object
-
-    label_filename : str
-        Relative path of the labels data to be stored within the created object.
-
-    Examples
-    --------
-    --> Add traceback example with keyerror when mat_data_var_name is incorrect
-
-    Notes
-    -----
-    --> The imported MAT data to be stored within the object should be in the shape of Number of channels x Number of samples
-    """
-
-    def __init__(
-        self,
-        sess,
-        event_duration,
-        start_index,
-        end_index,
-        relative_start,
-        channels,
-        mat_data_var_name,
-        mat_labels_var_name,
-        data_filename,
-        label_filename=None,
-    ):
-        """
-        Create a new mat file reader interface
-        """
-        super().__init__(MPEnums.SRC, sess)
-
-        self.data_filename = data_filename
-        self.label_filename = label_filename
-        self.event_duration = int(event_duration)
-        self.mat_data_var_name = mat_data_var_name
-        self.mat_labels_var_name = mat_labels_var_name
-        self.relative_start = int(relative_start)
-
-        self.data = loadmat(data_filename, mat_dtype=True, struct_as_record=True)[
-            mat_data_var_name
-        ]
-
-        if channels == None:
-            self.channels = tuple([_ for _ in range(self.data.shape[0])])
-        else:
-            self.channels = channels
-
-        self.data = self.data[self.channels, :]
-        Nc, Ns = self.data.shape
-
-        if end_index < 0:
-            end_index = Ns + end_index + 1
-
-        # extract the segment defined by the start and end indices
-        try:
-            self.data = self.data[:, start_index:end_index]
-        except:
-            print("Start and/or End index invalid.")
-            # TODO error log, should probably raise an error here too
-            return
-
-        if label_filename != None:
-            # labels should be 2D array, first column contain the label, second column contain the timestamp of the label
-            self.labels = loadmat(
-                label_filename, mat_dtype=True, struct_as_record=True
-            )[mat_labels_var_name]
-        else:
-            # labels assumed to be in the same file as data
-            self.labels = loadmat(data_filename, mat_dtype=True, struct_as_record=True)[
-                mat_labels_var_name
-            ]
-
-        # remove labels that are not within the start and end indices
-        self.labels = self.labels.astype(int)
-        self.labels = self.labels[self.labels[:, 1] < end_index, :]
-        self.labels = self.labels[self.labels[:, 1] >= start_index, :]
-
-        self._trial_counter = 0
-
-    def poll_data(self, Ns, label=None):
-        try:
-            start = self.labels[self._trial_counter, 1] + self.relative_start
-            end = start + self.event_duration
-            trial_data = self.data[:, start:end]
-            self._trial_counter += 1
-            return trial_data
-
-        except IndexError as e:
-            raise type(e)(f"{str(e)}\nPoll data error, trial {self._trial_counter} does not exist in the data.".with_traceback(sys.exc_info()[2]))
-
-    def get_next_label(self):
-        return self.labels[self._trial_counter, 0]
-
-    @classmethod
-    def create_continuous(
-        cls,
-        sess,
-        data_filename,
-        event_duration=None,
-        start_index=0,
-        end_index=-1,
-        relative_start=0,
-        channels=None,
-        mat_data_var_name=None,
-        mat_labels_var_name=None,
-        label_filename=None,
-    ):
-        """
-
-        Factory Method for creating continuous MAT File input source.
-
-        Parameters
-        ---------
-        sess : Session Object
-            Session where the MPClassSeparated data source will exist.
-
-        event_duration : int
-            Number of samples during each trial. Should be equal to the number of samples divided by the number of trials, assuming no breaks between trials
-
-        relative_start : int
-            Shift the beginning of each trial start by relative_start samples/
-
-        start_index : int
-            Sample number at which the trial data to be used, begins. Data before the start_index sample within the MAT source will be ignored.
-
-        end_index : int
-            Sample number when the trial to be used, ends. Data after the end_index sample within the MAT source will be ignored
-
-        channels : tuple of ints
-            Channel indices to sample
-
-        mat_data_var_name : str
-            Name of the mat data array within the .mat file.
-
-        mat_labels_var_name : str
-            Name of the labels array within the .mat file.
-
-        data_filename : str
-            Relative path of the mat data to be stored within the created object
-
-        label_filename : str
-            Relative path of the labels data to be stored within the created object.
-
-        """
-
-        src = cls(
-            sess,
-            event_duration,
-            start_index,
-            end_index,
-            relative_start,
-            channels,
-            mat_data_var_name,
-            mat_labels_var_name,
-            data_filename,
-            label_filename,
-        )
-
-        sess.add_ext_src(src)
-
-        return src
 
 
 class MPXDF(MPBase):
@@ -795,6 +247,9 @@ class MPXDF(MPBase):
             Ns = int(Ns)
             epoch_num = 0
 
+            self.trial_data = {"Data" : {"time_stamps": None, "time_series": None},
+                               "Markers" : {"time_stamps" : None, "time_series": None}}
+
             for filename in files:
                 # Load the data from the current xdf file
                 data, header = pyxdf.load_xdf(filename)
@@ -807,37 +262,66 @@ class MPXDF(MPBase):
                     elif stream["info"]["type"][0] == self.stype:
                         data_stream = stream
 
-            total_markers = len(marker_stream["time_stamps"])
-            data_stream_data = np.zeros((total_markers, len(channels), Ns))
-            data_stream_stamps = np.zeros((total_markers, Ns))
+                total_markers = len(marker_stream["time_stamps"])
+                data_stream_data = np.zeros((total_markers, len(channels), Ns))
+                data_stream_stamps = np.zeros((total_markers, Ns))
+                valid_markers_tseries = [_ for _ in range(total_markers)]
+                valid_markers_tstamps = np.zeros((total_markers,))
 
-            # Actual epoching operation
-            incomplete_epochs = 0
-            for epoch_num in range(total_markers):
-                # Find the marker value where the current epoch starts
-                marker_time = marker_stream["time_stamps"][epoch_num]
-                # Correct the starting time of the epoch based on the relative start time
-                data_window_start = marker_time + relative_start
+                # Actual epoching operation
+                valid_epoch_num = 0
+                for epoch_num in range(total_markers):
+                    marker = marker_stream["time_series"][epoch_num]
+                    print(marker)
+                    if marker[0] not in self.tasks:
+                        continue
 
-                # Find the index of the first sample after the marker
-                first_sample_index = np.where(data_stream["time_stamps"] >= data_window_start)[0][0]
-                # Find the index of the last sample in the window
-                final_sample_index = first_sample_index + Ns
-                if final_sample_index <= data_stream["time_series"].shape[0]:
-                    # Extract the data from the data stream
-                    data_stream_data[epoch_num, :, :] = data_stream["time_series"][first_sample_index:final_sample_index,:][:, channels].T
-                    data_stream_stamps[epoch_num, :] = data_stream["time_stamps"][first_sample_index:final_sample_index]
+                    # Find the marker value where the current epoch starts
+                    marker_time = marker_stream["time_stamps"][epoch_num]
+                    # Correct the starting time of the epoch based on the relative start time
+                    data_window_start = marker_time + relative_start
+
+                    # Find the index of the first sample after the marker
+                    first_sample_index = np.where(data_stream["time_stamps"] >= data_window_start)[0][0]
+                    # Find the index of the last sample in the window
+                    final_sample_index = first_sample_index + Ns
+                    if final_sample_index <= data_stream["time_series"].shape[0]:
+                        # Extract the data from the data stream
+                        data_stream_data[valid_epoch_num, :, :] = data_stream["time_series"][first_sample_index:final_sample_index,:][:, channels].T
+                        data_stream_stamps[valid_epoch_num, :] = data_stream["time_stamps"][first_sample_index:final_sample_index]
+                        valid_markers_tseries[valid_epoch_num] = marker_stream["time_series"][epoch_num]
+                        valid_markers_tstamps[valid_epoch_num] = marker_stream["time_stamps"][epoch_num]
+                        valid_epoch_num += 1
+
+                print(f"total markers : {total_markers}, valid_epochs: {valid_epoch_num}")
+
+                if self.trial_data["Data"]["time_series"] is None:
+                    self.trial_data = {
+                        "Data": {
+                            "time_stamps" : data_stream_stamps[:valid_epoch_num],
+                            "time_series" : data_stream_data[:valid_epoch_num],
+                        },
+                        "Markers": {
+                            "time_stamps" : valid_markers_tstamps[:valid_epoch_num],
+                            "time_series" : valid_markers_tseries[:valid_epoch_num]
+                        }
+                    }
                 else:
-                    # insufficient data for full epoch
-                    incomplete_epochs += 1
+                    self.trial_data["Data"]["time_stamps"] = np.concatenate((self.trial_data["Data"]["time_stamps"],
+                                                                             data_stream_stamps[:valid_epoch_num]),
+                                                                            axis=0)
+                    self.trial_data["Data"]["time_series"] = np.concatenate((self.trial_data["Data"]["time_series"],
+                                                                             data_stream_data[:valid_epoch_num]),
+                                                                            axis=0)
+                    self.trial_data["Markers"]["time_stamps"] = np.concatenate((self.trial_data["Markers"]["time_stamps"],
+                                                                             valid_markers_tstamps[:valid_epoch_num]),
+                                                                            axis=0)
+                    self.trial_data["Markers"]["time_series"] = np.concatenate((self.trial_data["Markers"]["time_series"],
+                                                                             valid_markers_tseries[:valid_epoch_num]),
+                                                                            axis=0)
 
-            self.trial_data = {
-                "Data": {
-                    "time_stamps": data_stream_stamps[:total_markers - incomplete_epochs],
-                    "time_series": data_stream_data[:total_markers - incomplete_epochs],
-                },
-                "Markers": marker_stream,
-            }
+
+
 
     def poll_data(self, Ns=1, label=None):
 
@@ -992,7 +476,7 @@ class MPXDF(MPBase):
 
     @classmethod
     def create_class_separated(
-        cls, sess, files, tasks, channels, relative_start=0, Ns=1):
+        cls, sess, files, tasks, channels, relative_start=0, stype='EEG', Ns=1):
         """
         Factory Method for creating class-separated XDF File input source.
 
@@ -1014,6 +498,9 @@ class MPXDF(MPBase):
         relative_start : float, default = 0
             Value corresponding to the start of the trial relative to the marker onset.
 
+        stype : str, default = EEG
+            String indicating the data type
+
         Ns : int, default = 1
             Number of samples to be extracted per trial. For class-separated data, this value determines the
             size of each epoch, whereas this value is used in polling for continuous data.
@@ -1021,7 +508,7 @@ class MPXDF(MPBase):
         """
 
         src = cls(
-            sess, files, tasks, channels, relative_start, Ns, mode="class-separated"
+            sess, files, tasks, channels, relative_start, Ns, stype=stype, mode="class-separated"
         )
 
         sess.add_ext_src(src)
@@ -1029,7 +516,7 @@ class MPXDF(MPBase):
         return src
 
     @classmethod
-    def create_epoched(cls, sess, files, tasks, channels, relative_start=0, Ns=1):
+    def create_epoched(cls, sess, files, tasks, channels, relative_start=0, Ns=1, stype='EEG'):
 
         """
         Factory Method for creating epoched XDF File input source.
@@ -1052,12 +539,15 @@ class MPXDF(MPBase):
         relative_start : float, default = 0
             Value corresponding to the start of the trial relative to the marker onset.
 
+        stype : str, default = EEG
+            String indicating the data type
+
         Ns : int, default = 1
             Number of samples to be extracted per trial. For class-separated data, this value determines the
             size of each epoch, whereas this value is used in polling for continuous data.
 
         """
-        src = cls(sess, files, tasks, channels, relative_start, Ns, mode="epoched")
+        src = cls(sess, files, tasks, channels, relative_start, Ns, stype=stype, mode="epoched")
 
         sess.add_ext_src(src)
 
@@ -1125,18 +615,21 @@ class InputLSLStream(MPBase):
 
     """
 
+    MAX_NULL_READS = 100
+
     def __init__(
         self,
         sess,
         pred=None,
         channels=None,
         relative_start=0,
-        marker=True,
+        marker_coupled=True,
         marker_fmt=None,
         marker_pred=None,
         stream_info=None,
         marker_stream_info=None,
         active=True,
+        interval=None
     ):
         """
         Create a new LSL inlet stream object
@@ -1157,7 +650,7 @@ class InputLSLStream(MPBase):
         relative_start : float, default = 0
             Duration of tiem before marker from which samples should be extracted during polling.
 
-        marker : bool
+        marker_coupled : bool
             true if there is an associated marker to indicate relative time where data should begin to be polled
 
         marker_fmt : Regex or list
@@ -1175,67 +668,30 @@ class InputLSLStream(MPBase):
         active : bool
             True if the stream should be opened immediately, false if the stream should be opened later
 
+        interval : float
+            The minimum interval between polling the stream for new data. Only used for marker uncoupled streams.
+            If None, then the stream will be polled as fast as possible.
+
         .. note::
             The active parameter is used when the session is created before the LSL stream is started, or the stream is
             not available when the session is created. In that case, the stream can be updated later by calling the update_input_stream() method.
         """
         super().__init__(MPEnums.SRC, sess)
-        self.active = active
+        self._active = active
+        self._marker_coupled = marker_coupled
+
+        self._marker_inlet = None
+        self._marker_pattern = None
+        self._relative_start = relative_start
+        self._already_peeked = False
+        self._peeked_marker = None
+        self._marker_buffer = {"time_series": None, "time_stamps": None} # only keeps most recent value, can expand in future if needed
+        self._time_correction = None
+        self._interval = interval
+        self._channels = channels
+
         if active:
-            if not stream_info:
-                # resolve the stream on the LSL network
-                available_streams = pylsl.resolve_bypred(pred)
-            else:
-                available_streams = [stream_info]
-
-            if len(available_streams) == 0:
-                # TODO log error
-                return
-
-            # TODO - Warn about more than one available stream
-            self.data_buffer = {"Data": None, "time_stamps": None}
-            self.data_inlet = pylsl.StreamInlet(
-                available_streams[0],
-                processing_flags=pylsl.proc_clocksync | pylsl.proc_dejitter,
-                recover=False,
-            )  # for now, just take the first available stream that matches the property
-            self.data_inlet.open_stream()
-
-            self.marker_inlet = None
-            self.marker_pattern = None
-            self.relative_start = relative_start
-            self._already_peeked = False
-            self._peeked_marker = None
-            self._used_markers = []
-            self.marker_timestamps = []
-            self.first_data_timestamp = None
-            self.time_correction = None
-
-            # TODO - check if the stream has enough input channels to match the
-            # channels parameter
-            if channels:
-                self.channels = channels
-            else:
-                self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
-
-            if marker:
-                if not marker_stream_info:
-                    # resolve the stream on the LSL network
-                    marker_streams = pylsl.resolve_bypred(marker_pred)
-                else:
-                    marker_streams = [marker_stream_info]
-
-                self.marker_inlet = pylsl.StreamInlet(
-                    marker_streams[0]
-                )  # for now, just take the first available marker stream
-                self.peek_marker_inlet = pylsl.StreamInlet(marker_streams[0])
-
-                # open the inlet
-                self.marker_inlet.open_stream()
-                self.peek_marker_inlet.open_stream()
-
-                if marker_fmt:
-                    self.marker_pattern = re.compile(marker_fmt)
+            self.update_input_stream(pred, channels, marker_coupled, marker_fmt, marker_pred, stream_info, marker_stream_info)
 
     def poll_data(self, Ns, label=None):
         """
@@ -1252,26 +708,44 @@ class InputLSLStream(MPBase):
         if not self.active:
             raise RuntimeWarning("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
-        if self.marker_inlet != None:
+        if self._marker_inlet is not None:
             # start by getting the timestamp for this trial's marker
             t_begin = None
-            while t_begin == None:
-                marker, t = self.marker_inlet.pull_sample()
+            null_reads = 0
+            while t_begin is None:
+                marker, t = self._marker_inlet.pull_sample(timeout=0.0)
 
-                if marker != None:
+                if marker is not None:
+                    null_reads = 0  # reset the null reads counter
                     marker = marker[0]  # extract the string portion of the marker
 
-                    if (self.marker_pattern == None) or self.marker_pattern.match(
-                        marker
-                    ):
+                    if (self.marker_pattern == None) or self._marker_pattern.match(marker):
                         t_begin = t
-                        self.marker_timestamps.append(t_begin)
-                        self._used_markers.append(marker)
+                        self._marker_buffer["time_stamps"] = t_begin
+                        self._marker_buffer["time_series"] = marker
+                else:
+                    null_reads += 1
+                    if null_reads > self.MAX_NULL_READS:
+                        raise RuntimeError(
+                            f"The marker stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
+                        )
+                    time.sleep(0.1)
 
         else:
-            t_begin = 0  # i.e. all data is valid
+            # marker-uncoupled stream, determine the start time based on the interval attribute
+            if self._data_buffer["Data"] is not None:
+                if self._interval is not None:
+                    t_begin = self._data_buffer["time_stamps"][0] + self._interval # shift forward by interval
+                elif self._data_buffer["time_stamps"].shape[0] > 1:
+                    t_begin = self._data_buffer["time_stamps"][1] # shift forward by 1 sample
+                else:
+                    # rare situation where the buffer only contains one sample
+                    # and the interval is None. Shift forward by a very small amount.
+                    t_begin = self._data_buffer["time_stamps"][0] + 10**(-6) # shift forward by 1 microsecond
+            else:
+                t_begin = 0  # i.e. all data is valid
 
-        t_begin += self.relative_start
+        t_begin += self._relative_start
 
         # pull the data in chunks until we get the total number of samples
         trial_data = np.zeros((len(self.channels), Ns))  # allocate the array
@@ -1279,79 +753,102 @@ class InputLSLStream(MPBase):
         samples_polled = 0
 
         # First, pull the data required data from the buffer
-        if self.data_buffer["Data"] is not None:
+        if self._data_buffer["time_series"] is not None:
 
             # Create a boolean array to index the data buffer for the required data
-            data_index_bool = self.data_buffer["time_stamps"] >= t_begin
+            valid_indices = self._data_buffer["time_stamps"] >= t_begin
 
             # Find the number of samples in the buffer that are valid
-            samples_polled = np.sum(data_index_bool)
+            samples_polled = np.sum(valid_indices)
+
+            # discard old data
+            self._data_buffer["time_series"] = self._data_buffer["time_series"][:, valid_indices]
+            self._data_buffer["time_stamps"] = self._data_buffer["time_stamps"][valid_indices]
 
             # If the number of samples in the buffer is greater than the number of samples required, extract the required data
             if samples_polled >= Ns:
-                trial_data[:, :Ns] = self.data_buffer["Data"][:, data_index_bool][:, :Ns]
-                trial_timestamps[:Ns] = self.data_buffer["time_stamps"][data_index_bool][:Ns]
+                # Buffer contains a backlog of data, warn that execution may be too slow for target polling rate
+                warnings.warn("Buffer contains a backlog of data. Execution may be too slow for target polling rate.", RuntimeWarning, stacklevel=2)
 
-                # Update the buffer to contain the current trial and remaining data
-                self.data_buffer["Data"] = self.data_buffer["Data"][:, data_index_bool]
-                self.data_buffer["time_stamps"] = self.data_buffer["time_stamps"][data_index_bool]
+                if self._marker_coupled:
+                    # if this is a marker-coupled stream, use the oldest valid data in the buffer
+                    # to ensure that the data is aligned with the marker
+                    trial_data = self._data_buffer["time_series"][:, :Ns]
+                    trial_timestamps = self.data_buffer["time_stamps"][:Ns]
+                else:
+                    # if this is a marker-uncoupled stream, use the newest valid data in the buffer
+                    # to ensure that the data is as recent as possible
+                    trial_data = self._data_buffer["time_series"][:, -Ns:]
+                    trial_timestamps = self.data_buffer["time_stamps"][-Ns:]
 
             # If the number of valid samples in the buffer is less than the number of samples required, extract all the data in the buffer
             else:
-                trial_data[:, :samples_polled] = self.data_buffer["Data"][:, data_index_bool]
-                trial_timestamps[:samples_polled] = self.data_buffer["time_stamps"][data_index_bool]
+                trial_data[:, :samples_polled] = self.data_buffer["time_series"]
+                trial_timestamps[:samples_polled] = self.data_buffer["time_stamps"]
 
         # If the buffer does not contain enough data, pull data from the inlet
+        null_reads = 0
         while samples_polled < Ns:
             data, timestamps = self.data_inlet.pull_chunk(timeout=0.0)
             timestamps = np.asarray(timestamps)
 
             if len(timestamps) > 0:
-                self.time_correction = self.data_inlet.time_correction()
-                timestamps += self.time_correction
+                null_reads = 0  # reset the null reads counter
 
+                # apply time correction to timestamps
+                self._time_correction = self.data_inlet.time_correction()
+                timestamps += self._time_correction
+
+                # check if the data is within the target time window
                 if np.any(timestamps >= t_begin):
                     # convert data to numpy arrays
-                    data = np.asarray(data).T
-                    timestamps_index_bool = timestamps >= t_begin
+                    data = np.asarray(data).T # now in Nchannel x Nsamples format
+                    valid_timestamps = timestamps >= t_begin
 
-                    try:
-                        data = data[self.channels, :][:, timestamps_index_bool]
-                    except IndexError as e:
-                        print("The number of channels in the stream does not match the number of channels specified in the channels parameter. Please check the channels parameter and try again.")
+                    # discard extra channels and old data
+                    data = data[np.ix_(self.channels, valid_timestamps)]
+                    timestamps = timestamps[valid_timestamps]
 
-                    timestamps = timestamps[timestamps_index_bool]
+                    # append the latest chunk to the trial_data array
+                    # start by indentifying the start and end indices
+                    # of the source and destination arrays
+                    chunk_sz = data.shape[1]
+                    if samples_polled + chunk_sz > Ns:
+                        # more data in the chunk than required
+                        dst_end_ix = Ns
+                        src_end_ix = Ns - samples_polled
+                    else:
+                        # less data in the chunk than required
+                        dst_end_ix = samples_polled + chunk_sz
+                        src_end_ix = chunk_sz
 
-                    if len(data.shape) > 1:
-                        chunk_sz = data.shape[1]
-                        # append the latest chunk to the trial_data array
-                        if samples_polled + chunk_sz > Ns:
-                            dest_end_index = Ns
-                            src_end_index = Ns - samples_polled
+                    trial_data[:, samples_polled:dst_end_ix] = data[:, :src_end_ix]
+                    trial_timestamps[samples_polled:dst_end_ix] = timestamps[:src_end_ix]
 
-                        else:
-                            dest_end_index = samples_polled + chunk_sz
-                            src_end_index = chunk_sz
+                    if dst_end_ix == Ns:
+                        # we have polled enough data, update the buffer
+                        # with the latest data plus any extra data
+                        # that we did not use in this trial
+                        self.data_buffer["Data"] = np.concatenate(
+                            (trial_data, data[:, src_end_ix:]), axis=1
+                        )
+                        self.data_buffer["time_stamps"] = np.concatenate(
+                            (trial_timestamps, timestamps[src_end_ix:])
+                        )
 
-                        trial_data[:, samples_polled:dest_end_index] = data[
-                            :, :src_end_index
-                        ]
-                        trial_timestamps[samples_polled:dest_end_index] = timestamps[
-                            :src_end_index
-                        ]
+                    samples_polled += chunk_sz
+        else:
+            null_reads += 1
+            if null_reads > self.MAX_NULL_READS:
+                raise RuntimeError(
+                    f"The stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
+                )
+            time.sleep(0.1)
+            
 
-                        if dest_end_index == Ns:
-                            self.data_buffer["Data"] = np.concatenate(
-                                (trial_data, data[:, src_end_index:]), axis=1
-                            )
-                            self.data_buffer["time_stamps"] = np.concatenate(
-                                (trial_timestamps, timestamps[src_end_index:])
-                            )
-
-                        samples_polled += chunk_sz
-
-        self.first_data_timestamp = trial_timestamps[0]
-        self._already_peeked = False
+        if self._marker_coupled:
+            # reset the maker peeked flag since we have polled new data
+            self._already_peeked = False
 
         return trial_data
 
@@ -1366,25 +863,27 @@ class InputLSLStream(MPBase):
 
         """
 
-        if not self.active:
+        if not self._active:
             raise RuntimeError("InputLSLStream.peek_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
         if self._already_peeked:
             return self._peeked_marker
 
-        else:
-            marker, t = self.peek_marker_inlet.pull_sample()
-            while self.marker_pattern != None and not self.marker_pattern.match(
-                marker[0]
-            ):
-                marker, t = self.peek_marker_inlet.pull_sample()
+        marker, t = self.peek_marker_inlet.pull_sample()
+        read_attemps = 0
+        while (self.marker_pattern is not None and
+               not self.marker_pattern.match(marker[0])):
+            marker, t = self.peek_marker_inlet.pull_sample(timeout=0.0)
 
-            if marker != None:
-                self._peeked_marker = marker[0]
-                self._already_peeked = True
-                return marker[0]
+            read_attemps += 1
+            if read_attemps > self.MAX_NULL_READS:
+                raise RuntimeError(
+                    f"The marker stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
+                )
 
-        return None
+        self._peeked_marker = marker[0]
+        self._already_peeked = True
+        return marker[0]
 
     def last_marker(self):
         """
@@ -1399,17 +898,13 @@ class InputLSLStream(MPBase):
         if not self.active:
             raise RuntimeError("InputLSLStream.last_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
-        if len(self._used_markers) > 0:
-            return self._used_markers[-1]
-        else:
-            return None
+        return self._marker_buffer["time_series"]
 
     def update_input_streams(
         self,
         pred=None,
         channels=None,
-        relative_start=0,
-        marker=True,
+        marker_coupled=True,
         marker_fmt=None,
         marker_pred=None,
         stream_info=None,
@@ -1425,9 +920,7 @@ class InputLSLStream(MPBase):
             count(description/desc/channels/channel)=32"
         channels : tuple of ints
             Index value of channels to poll from the stream, if None all channels will be polled
-        relative_start : float, default = 0
-            Duration of tiem before marker from which samples should be extracted during polling.
-        marker : bool
+        marker_coupled : bool
             true if there is an associated marker to indicate relative time where data should begin to be polled
         marker_fmt : Regex or list
             Regular expression template of the marker to be matched, if none all markers will be matched. Alternatively, a list of markers can be provided.
@@ -1449,53 +942,50 @@ class InputLSLStream(MPBase):
             available_streams = [stream_info]
 
         if len(available_streams) == 0:
-            # TODO log error
-            return
+            raise RuntimeError("No streams found matching the predicate")
+        else:
+            warnings.warn("More than one stream found matching the predicate. Using the first stream found.", 
+                          RuntimeWarning, stacklevel=2)
 
-        # TODO - Warn about more than one available stream
-        self.data_buffer = {"Data": None, "time_stamps": None}
-
-
-        self.data_inlet = pylsl.StreamInlet(
+        self._data_buffer = {"time_series": None, "time_stamps": None}
+        self._data_inlet = pylsl.StreamInlet(
             available_streams[0],
             processing_flags=pylsl.proc_clocksync | pylsl.proc_dejitter,
             recover=False,
-        )  # for now, just take the first available stream that matches the property
-        self.data_inlet.open_stream()
+        )
+        self._data_inlet.open_stream()
 
-        self.marker_inlet = None
-        self.marker_pattern = None
-        self.relative_start = relative_start
-        self._already_peeked = False
-        self._peeked_marker = None
-
-        self.marker_timestamps = []
-
-        # TODO - check if the stream has enough input channels to match the
-        # channels parameter
         if channels:
-            self.channels = channels
+            if max(channels) >= self._data_inlet.channel_count or min(channels) < 0:
+                raise ValueError(
+                    "The number of channels in the stream does not match the channel indices specified in the channels parameter. Please check the channels parameter and try again."
+                )
+            self._channels = channels
         else:
-            self.channels = tuple([_ for _ in range(self.data_inlet.channel_count)])
+            self._channels = tuple([_ for _ in range(self._data_inlet.channel_count)])
 
-        if marker:
+        if marker_coupled:
             if not marker_stream_info:
                 # resolve the stream on the LSL network
                 marker_streams = pylsl.resolve_bypred(marker_pred)
             else:
                 marker_streams = [marker_stream_info]
 
-            self.marker_inlet = pylsl.StreamInlet(
-                marker_streams[0]
-            )  # for now, just take the first available marker stream
-            self.peek_marker_inlet = pylsl.StreamInlet(marker_streams[0])
+            if len(marker_streams) == 0:
+                raise RuntimeError("No marker streams found matching the predicate")
+            else:
+                warnings.warn("More than one marker stream found matching the predicate. Using the first stream found.", 
+                              RuntimeWarning, stacklevel=2)
+                
+            self._marker_inlet = pylsl.StreamInlet(marker_streams[0])
+            self._peek_marker_inlet = pylsl.StreamInlet(marker_streams[0])
 
             # open the inlet
-            self.marker_inlet.open_stream()
-            self.peek_marker_inlet.open_stream()
+            self._marker_inlet.open_stream()
+            self._peek_marker_inlet.open_stream()
 
             if marker_fmt:
-                self.marker_pattern = re.compile(marker_fmt)
+                self._marker_pattern = re.compile(marker_fmt)
 
         self.active = True
 
@@ -1553,9 +1043,12 @@ class InputLSLStream(MPBase):
         return src
 
     @classmethod
-    def create_marker_uncoupled_data_stream(
-        cls, sess, pred, channels=None, relative_start=0, marker_fmt="T{},L{},LN{}"
-    ):
+    def create_marker_uncoupled_data_stream(cls, sess, 
+                                            pred=None,
+                                            channels=None,
+                                            relative_start=0,
+                                            active=True,
+                                            interval=None):
         """
         Create a LSLStream data object that maintains only a data stream with
         no associated marker stream
@@ -1570,10 +1063,12 @@ class InputLSLStream(MPBase):
             count(description/desc/channels/channel)=32"
         channels : tuple or list of ints
             Index value of channels to poll from the stream, if None all channels will be polled
-        marker_fmt : str
-            Regular expression template of the marker to be matched, if none all markers will be matched
+        active : bool
+            Flag to indicate whether the stream is active or will be activated in the future
+        interval : float
+            The minimum interval at which the stream will be polled
         """
-        src = cls(sess, pred, channels, relative_start, False)
+        src = cls(sess, pred, channels, relative_start, marker=False, active=active, interval=interval)
         sess.add_ext_src(src)
 
         return src
