@@ -20,8 +20,7 @@ import liesl
 import threading
 import time
 
-
-class MPXDF(MPBase):
+class InputXDFFile(MPBase):
     """
     Utility class for extracting trial data from an XDF file for MindPype.
 
@@ -34,10 +33,9 @@ class MPXDF(MPBase):
     files : list of str
         XDF file(s) where data should be extracted from.
 
-
     tasks : list or tuple of strings
         List or Tuple of strings corresponding to the tasks to be completed by the user.
-        For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+        For example, the tasks 'target' and 'non-target'/'flash' can be used for P300-type setups.
 
     channels : list or tuple of int
         Values corresponding to the stream channels used during the session
@@ -46,7 +44,7 @@ class MPXDF(MPBase):
         Value corresponding to the start of the trial relative to the marker onset.
 
     Ns : int, default = 1
-        Number of samples to be extracted per trial. For epoched and class-separated data, this value determines the
+        Number of samples to be extracted per trial. For epoched data, this value determines the
         size of each epoch, whereas this value is used in polling for continuous data.
 
     mode : 'continuous', 'class-separated' or 'epoched', default = 'epoched'
@@ -54,7 +52,7 @@ class MPXDF(MPBase):
         epoched by class, or to leave the data in a continuous format
 
     .. warning::
-       The task list used in the MPXDF object MUST REFLECT the task list used in the XDF file.
+       The task list used in the InputXDFFile object MUST REFLECT the task list used in the XDF file.
        Differences will cause the program to fail.
 
     .. note::
@@ -118,24 +116,26 @@ class MPXDF(MPBase):
         if type(files) == str:
             files = [files]
 
-        self.files = files
-        self.relative_start = relative_start
-        self.Ns = Ns
-        self.tasks = tasks
-        self.channels = channels
-        self.label_counter = None
-        self.mode = mode
-        self.stype = stype
+        self._files = files
+        self._relative_start = relative_start
+        self._Ns = int(Ns)
+        self._tasks = tasks
+        self._channels = channels
+        self._label_counter = None
+        self._mode = mode
+        self._stype = stype
 
-        trial_data = {task: [] for task in tasks}
-
-        # Class separated mode will epoch the data by class, and will poll the data for the
-        # next Ns samples of the specified class each time the poll_data method is called.
-        if mode == "class-separated":
-            combined_marker_streams = {"time_series": None, "time_stamps": None}
+        # Epoched mode will store trial data in a 3D array, with the first dimension corresponding to the trial number
+        # and the second and third dimensions corresponding to the channel and sample number, respectively
+        # The markers will be stored in a 1D tuple, with the first dimension corresponding to the sample number.
+        if mode == "epoched":
+            self._data = {"Data": [], "Markers": []}
+            
             for filename in files:
+                # open file and extract data
                 data, header = pyxdf.load_xdf(filename)
 
+                # extract the marker and data streams
                 for stream in data:
                     if (stream["info"]["type"][0] == "Marker" or
                         stream["info"]["type"][0] == "Markers"):
@@ -144,81 +144,68 @@ class MPXDF(MPBase):
                     elif stream["info"]["type"][0] == self.stype:
                         data_stream = stream
 
+                if marker_stream is None or data_stream is None:
+                    raise ValueError(f"The XDF file {filename} does not contain the required streams")
+
                 sample_indices = np.zeros(data_stream["time_stamps"].shape)  # used to extract data samples, pre-allocated here
 
-                total_tasks = 0
+                # filter for markers that are tasks
+                task_marker_mask = np.array([marker[0] in tasks for marker in marker_stream["time_series"]])
+                marker_stream["time_series"] = marker_stream["time_series"][task_marker_mask]
+                marker_stream["time_stamps"] = marker_stream["time_stamps"][task_marker_mask]
 
+                # iterate throught the markers and extract the data for each task
                 for i_m, markers in enumerate(marker_stream["time_series"]):
-                    marker_value = markers[0]
-                    curr_task = ""
+                    task = markers[0]
 
-                    for task in self.tasks:
-                        if task in marker_value:
-                            curr_task = task
+                    # compute the correct start and end indices for the current trial
+                    marker_time = marker_stream["time_stamps"][i_m]
+                    data_window_start = marker_time + relative_start
 
-                            marker_time = marker_stream["time_stamps"][i_m]
-                            total_tasks += 1
+                    # find the index of the first sample after the marker
+                    sample_indices = np.array(data_stream["time_stamps"] >= data_window_start)
+                    first_sample_ix = np.argwhere(sample_indices)[0]
+                    sample_indices[first_sample_ix + self._Ns:] = False  # remove the samples after the end of the trial
 
-                            # compute the correct start and end indices for the current trial
-                            data_window_start = marker_time + relative_start
+                    # extract the data and append to the data dictionary
+                    sample_data = data_stream["time_series"][np.ix_(sample_indices, channels)].T  # Nc X Ns
+                    self._data["Data"].append(sample_data)
+                    self._data["Markers"].append(task)
 
-                            sample_indices = np.array(data_stream["time_stamps"] >= data_window_start)
+            # convert the data to a numpy array and the markers to a tuple
+            self._data["Data"] = np.stack(self._data["Data"], axis=0) # Nt x Nc x Ns
+            self._data["Markers"] = tuple(self._data["Markers"])
 
-                            sample_data = data_stream["time_series"][sample_indices, :][:, channels].T  # Nc X len(data_stream)
-                            trial_data[curr_task].append(sample_data[:,:int(Ns)])  # Nc x Ns
-
-                if combined_marker_streams["time_series"] is None:
-                    combined_marker_streams["time_series"] = marker_stream["time_series"]
-                    combined_marker_streams["time_stamps"] = marker_stream["time_stamps"]
-                else:
-                    combined_marker_streams["time_series"] = np.concatenate(
-                        (
-                            combined_marker_streams["time_series"],
-                            marker_stream["time_series"],
-                        ),
-                        axis=0,
-                    )
-                    combined_marker_streams["time_stamps"] = np.concatenate(
-                        (
-                            combined_marker_streams["time_stamps"],
-                            marker_stream["time_stamps"],
-                        ),
-                        axis=0,
-                    )
-
-            for task in trial_data:
-                trial_data[task] = np.stack(trial_data[task], axis=0)  # Nt x Nc x Ns
-
-            self.trial_data = {
-                "Data": {"time_series": trial_data, "time_stamps": data_stream},
-                "Markers": combined_marker_streams,
-            }
-            self.label_counter = {task: 0 for task in tasks}
+            # create a corresponding numerical task label for each task
+            self._data["numerical_labels"] = np.array([tasks.index(task) for task in self._data["Markers"]])
 
 
         # Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples
         elif mode == "continuous":
-            # Counter to track how many trials have been extracted previously
-            self.cont_trial_num = 0
-            data_stream = None
-            marker_stream = None
+            self._data = {"Data": {"time_series": None, "time_stamps": None},
+                          "Markers": {"time_series": None, "time_stamps": None}}
 
-            first_marker = []
+            # First order the files by the first marker timestamp
+            file_first_marker = np.zeros((len(files),))
+            for i_f, filename in enumerate(files):
+                data, _ = pyxdf.load_xdf(filename)
 
-            for filename in files:
-                data, header = pyxdf.load_xdf(filename)
-
-                # First order the files by the first marker value
+                # extract the first marker timestamp from the file
                 for stream in data:
                     if (stream["info"]["type"][0] == "Marker" or
                         stream["info"]["type"][0] == "Markers"):
-                        first_marker.append(stream["time_series"][0][0])
+                        file_first_marker[i_f] = stream["time_series"][0][0]
 
             # Sort the files by the first marker value
-            files = [x for _, x in sorted(zip(first_marker, files))]
+            file_order = np.argsort(file_first_marker)
+            files = [files[i] for i in file_order]
 
+            data_streams = []
+            marker_streams = []
+
+            # Iterate through all files and extract the data
             for filename in files:
-                data, header = pyxdf.load_xdf(filename)
+                data, _ = pyxdf.load_xdf(filename)
 
                 # Iterate through all streams in every file, add current file's data to the previously loaded data
                 for stream in data:
@@ -230,100 +217,34 @@ class MPXDF(MPBase):
                     elif stream["info"]["type"][0] == self.stype:
                         data_stream = stream
 
-            # Extract the data from the data stream
-            data_stream["time_series"] = data_stream["time_series"][:, channels].T
+                if marker_stream is None or data_stream is None:
+                    raise ValueError(f"The XDF file {filename} does not contain the required streams")
+
+                # Extract the data from the data stream
+                data_stream["time_series"] = data_stream["time_series"][:, channels].T
+
+                # filter for markers that are tasks
+                task_marker_mask = np.array([marker[0] in tasks for marker in marker_stream["time_series"]])
+                marker_stream["time_series"] = marker_stream["time_series"][task_marker_mask]
+                marker_stream["time_stamps"] = marker_stream["time_stamps"][task_marker_mask]
+
+                # Append the data and marker streams to the list
+                data_streams.append(data_stream)
+                marker_streams.append(marker_stream)
+            
+            # Concatenate the data and marker streams
+            self._data["Data"]["time_series"] = np.concatenate([stream["time_series"] for stream in data_streams], axis=1)
+            self._data["Data"]["time_stamps"] = np.concatenate([stream["time_stamps"] for stream in data_streams])
+            self._data["Markers"]["time_series"] = np.concatenate([stream["time_series"] for stream in marker_streams])
+            self._data["Markers"]["time_stamps"] = np.concatenate([stream["time_stamps"] for stream in marker_streams])
+            self._data["numerical_labels"] = np.array([tasks.index(task) for task in self._data["Markers"]["time_series"]])
 
 
-            self.trial_data = {"Data": data_stream, "Markers": marker_stream}
-            self.label_counter = {task: 0 for task in tasks}
-
-        # Epoched mode will epoch the data sequentially, and will poll the data for the next Ns samples of the next trial
-        elif mode == "epoched":
-            self.epoched_counter = 0
-            data_stream_data = None
-            data_stream_stamps = None
-            data_stream = None
-            marker_stream = None
-            Ns = int(Ns)
-            epoch_num = 0
-
-            self.trial_data = {"Data" : {"time_stamps": None, "time_series": None},
-                               "Markers" : {"time_stamps" : None, "time_series": None}}
-
-            for filename in files:
-                # Load the data from the current xdf file
-                data, header = pyxdf.load_xdf(filename)
-                # Iterate through all streams in every file, add current file's data to the previously loaded data
-                for stream in data:
-                    if (stream["info"]["type"][0] == "Marker"
-                        or stream["info"]["type"][0] == "Markers"):
-                        marker_stream = stream
-
-                    elif stream["info"]["type"][0] == self.stype:
-                        data_stream = stream
-
-                total_markers = len(marker_stream["time_stamps"])
-                data_stream_data = np.zeros((total_markers, len(channels), Ns))
-                data_stream_stamps = np.zeros((total_markers, Ns))
-                valid_markers_tseries = [_ for _ in range(total_markers)]
-                valid_markers_tstamps = np.zeros((total_markers,))
-
-                # Actual epoching operation
-                valid_epoch_num = 0
-                for epoch_num in range(total_markers):
-                    marker = marker_stream["time_series"][epoch_num]
-                    print(marker)
-                    if marker[0] not in self.tasks:
-                        continue
-
-                    # Find the marker value where the current epoch starts
-                    marker_time = marker_stream["time_stamps"][epoch_num]
-                    # Correct the starting time of the epoch based on the relative start time
-                    data_window_start = marker_time + relative_start
-
-                    # Find the index of the first sample after the marker
-                    first_sample_index = np.where(data_stream["time_stamps"] >= data_window_start)[0][0]
-                    # Find the index of the last sample in the window
-                    final_sample_index = first_sample_index + Ns
-                    if final_sample_index <= data_stream["time_series"].shape[0]:
-                        # Extract the data from the data stream
-                        data_stream_data[valid_epoch_num, :, :] = data_stream["time_series"][first_sample_index:final_sample_index,:][:, channels].T
-                        data_stream_stamps[valid_epoch_num, :] = data_stream["time_stamps"][first_sample_index:final_sample_index]
-                        valid_markers_tseries[valid_epoch_num] = marker_stream["time_series"][epoch_num]
-                        valid_markers_tstamps[valid_epoch_num] = marker_stream["time_stamps"][epoch_num]
-                        valid_epoch_num += 1
-
-                print(f"total markers : {total_markers}, valid_epochs: {valid_epoch_num}")
-
-                if self.trial_data["Data"]["time_series"] is None:
-                    self.trial_data = {
-                        "Data": {
-                            "time_stamps" : data_stream_stamps[:valid_epoch_num],
-                            "time_series" : data_stream_data[:valid_epoch_num],
-                        },
-                        "Markers": {
-                            "time_stamps" : valid_markers_tstamps[:valid_epoch_num],
-                            "time_series" : valid_markers_tseries[:valid_epoch_num]
-                        }
-                    }
-                else:
-                    self.trial_data["Data"]["time_stamps"] = np.concatenate((self.trial_data["Data"]["time_stamps"],
-                                                                             data_stream_stamps[:valid_epoch_num]),
-                                                                            axis=0)
-                    self.trial_data["Data"]["time_series"] = np.concatenate((self.trial_data["Data"]["time_series"],
-                                                                             data_stream_data[:valid_epoch_num]),
-                                                                            axis=0)
-                    self.trial_data["Markers"]["time_stamps"] = np.concatenate((self.trial_data["Markers"]["time_stamps"],
-                                                                             valid_markers_tstamps[:valid_epoch_num]),
-                                                                            axis=0)
-                    self.trial_data["Markers"]["time_series"] = np.concatenate((self.trial_data["Markers"]["time_series"],
-                                                                             valid_markers_tseries[:valid_epoch_num]),
-                                                                            axis=0)
+        # create a counter to keep track of the number of trials extracted when polling
+        self._task_counter = {task: 0 for task in tasks}
 
 
-
-
-    def poll_data(self, Ns=1, label=None):
+    def poll_data(self, label=None):
 
         """
         Polls the data source for new data.
@@ -331,111 +252,108 @@ class MPXDF(MPBase):
         Parameters
         ----------
 
-        Ns : int, default = 1
-            Number of samples to be extracted per trial. For continuous data, determines the size of
-            the extracted sample. This value is disregarded for epoched and class-separated data.
-
-            This parameter is used and required for continuous data only.
-
         label : string
-            Marker to be used for polling. Number of trials previously extracted is recorded internally.
-            This marker must be present in the XDF file and must be present in the list of tasks used in
-            initialization.
-
-            This parameter is used and required for epoched and class-separated data only.
-
-
+            Marker of next trial to be polled. If None, the next trial according
+            to timestamps will be polled.
         """
 
-        if self.mode == "class-separated":
-            # Extract sample data from epoched trial data and increment the label counter
-            sample_data = self.trial_data[label][self.label_counter[label], :, :]
-            self.label_counter[label] += 1
+        if label is not None and label not in self._tasks:
+            # check if the coorresponding numerical label has been provided
+            if label in self._data["numerical_label"]:
+                label = self._tasks[self._data["numerical_label"].index(label)]
+            else:
+                raise ValueError(f"Label {label} is not in the list of tasks")
+            
 
-            return sample_data
+        # determine the index of the next trial to be polled
+        if self._mode == "epoched":
+            markers = self._data["Markers"]
+        else:
+            markers = self._data["Markers"]["time_series"]
 
-        elif self.mode == "epoched":
-            # Extract sample data from epoched trial data and increment the label counter
-            sample_data = self.trial_data["Data"]["time_series"][self.epoched_counter, :, :]
-            self.epoched_counter += 1
+        if label is None:
+            num_prev_polled = sum(self.task_counter.values())
+            poll_index = num_prev_polled  # default, assumes that the trials have been polled in order
+            for task in self._tasks:
+                # find the first trial for the specified task that has not been polled
+                task_min = markers.index(task, self._task_counter[task])
+                if task_min < poll_index:
+                    poll_index = task_min
+            
+            label = markers[poll_index]
+        else:
+            poll_index = markers.index(label, self._task_counter[label])
 
-            return sample_data
+        if self.mode == "epoched":
+            # Extract sample data from epoched trial data
+            sample_data = self.trial_data["Data"][poll_index, :, :]
 
-        elif self.mode == "continuous":
-
+        else:
             # Extract the nth marker timestamp, corresponding to the nth trial in the XDF file
             data_window_start = (
-                self.trial_data["Markers"]["time_stamps"][self.cont_trial_num] + self.relative_start
+                self._trial_data["Markers"]["time_stamps"][poll_index] + self.relative_start
             )
 
             # Construct the boolean array for samples that fall after the marker timestamp
             sample_indices = self.trial_data["Data"]["time_stamps"] >= data_window_start
+            first_sample_ix = np.argwhere(sample_indices)[0]
+            sample_indices[first_sample_ix + self._Ns:] = False  # remove the samples after the end of the trial
             sample_data = self.trial_data["Data"]["time_series"][:, sample_indices]
 
-            sample_data = sample_data[:, :Ns]  # Nc x Ns
-            self.cont_trial_num += 1
+        # increment the task counter
+        self._task_counter[label] += 1
 
-            return sample_data
+        return sample_data
 
-    def load_into_tensor(self):
+    def load_into_tensors(self, include_timestamps=False):
         """
-        Loads entirity of MindPypeXDF data object into a tensor.
-        Returns 4 MindPype Tensor objects, in the following order.
+        Loads entirity of InputXDFFile data object into a tensor.
+        Returns 2-4 MindPype Tensor objects, in the following order.
 
             1. Tensor containing the Stream data
-            2. Tensor containing the Stream timestamps
-            3. Tensor containing the Marker data
-            4. Tensor containing the Marker timestamps
+            2. Tensor containing the Marker data
+            3. Tensor containing the Stream timestamps (if continuous data and include_timestamps is True)
+            4. Tensor containing the Marker timestamps (if continuous data and include_timestamps is True)
 
         Parameters
         ----------
-        None
+        include_timestamps : bool, default = False
+            If True, the function will return the Marker timestamps as well as the data.
+            Only applicable for continuous data.
 
         Returns
         -------
-        ret : Tensor
+        data : Tensor
             Tensor containing the stream data
 
-        ret_timestamps : Tensor
+        labels : Tensor
+            Tensor containing the numerical encoded markers
+
+        data_ts : Tensor
             Tensor containing the stream timestamps
-
-        ret_labels : Tensor
-            Tensor containing the Marker data
-
-        ret_labels_timestamps : Tensor
+        
+        labels_ts : Tensor
             Tensor containing the Marker timestamps
         """
-        if self.trial_data and self.mode in ("continuous", "epoched"):
-            ret = Tensor.create_from_data(
-                self.session,
-                self.trial_data["Data"]["time_series"],
-            )
 
-            ret_timestamps = Tensor.create_from_data(
-                self.session,
-                self.trial_data["Data"]["time_stamps"],
-            )
+        if self._mode == "epoched":
+            data = Tensor.create_from_data(self.session, self._data["Data"])
+            labels = Tensor.create_from_data(self.session, self._data["numerical_labels"])
 
-            ret_labels = Tensor.create_from_data(
-                self.session,
-                self.trial_data["Markers"]["time_series"],
-            )
+            return data, labels
+        
+        elif self._mode == "continuous":
+            data = Tensor.create_from_data(self.session, self._data["Data"]["time_series"])
+            labels = Tensor.create_from_data(self.session, self._data["numerical_labels"])
 
-            ret_labels_timestamps = Tensor.create_from_data(
-                self.session,
-                self.trial_data["Markers"]["time_stamps"],
-            )
+            if include_timestamps:
+                data_ts = Tensor.create_from_data(self.session, self._data["Data"]["time_stamps"])
+                labels_ts = Tensor.create_from_data(self.session, self._data["Markers"]["time_stamps"])
 
+                return data, labels, data_ts, labels_ts
+            else:
+                return data, labels
 
-        elif self.trial_data and self.mode == "class-separated":
-            warnings.warn(
-                "Class-separated data is not yet supported for Tensor loading. This must be performed manually. Use tensor.create_from_data() with the appropriate class-separated dataset to create the tensor",
-                RuntimeWarning,
-                stacklevel=5,
-            )
-            ret, ret_timestamps, ret_labels, ret_labels_timestamps = None, None, None, None
-
-        return ret, ret_timestamps, ret_labels, ret_labels_timestamps
 
     @classmethod
     def create_continuous(cls, sess, files, tasks, channels, relative_start=0, Ns=1):
@@ -468,52 +386,10 @@ class MPXDF(MPBase):
         """
 
         src = cls(sess, files, tasks, channels, relative_start, Ns, mode="continuous")
-
         sess.add_ext_src(src)
 
         return src
 
-
-    @classmethod
-    def create_class_separated(
-        cls, sess, files, tasks, channels, relative_start=0, stype='EEG', Ns=1):
-        """
-        Factory Method for creating class-separated XDF File input source.
-
-        Parameters
-        ---------
-        sess : Session Object
-            Session where the MPXDF data source will exist.
-
-        files : list of str
-            XDF file(s) where data should be extracted from.
-
-        tasks : list or tuple of strings
-            List or Tuple of strings corresponding to the tasks to be completed by the user.
-            For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
-
-        channels : list or tuple of int
-            Values corresponding to the data stream channels used during the session
-
-        relative_start : float, default = 0
-            Value corresponding to the start of the trial relative to the marker onset.
-
-        stype : str, default = EEG
-            String indicating the data type
-
-        Ns : int, default = 1
-            Number of samples to be extracted per trial. For class-separated data, this value determines the
-            size of each epoch, whereas this value is used in polling for continuous data.
-
-        """
-
-        src = cls(
-            sess, files, tasks, channels, relative_start, Ns, stype=stype, mode="class-separated"
-        )
-
-        sess.add_ext_src(src)
-
-        return src
 
     @classmethod
     def create_epoched(cls, sess, files, tasks, channels, relative_start=0, Ns=1, stype='EEG'):
@@ -548,47 +424,10 @@ class MPXDF(MPBase):
 
         """
         src = cls(sess, files, tasks, channels, relative_start, Ns, stype=stype, mode="epoched")
-
         sess.add_ext_src(src)
 
         return src
 
-    @classmethod
-    def create(
-        cls, sess, files, tasks, channels, relative_start=0, Ns=1, mode="epoched"
-    ):
-        """
-        Factory Method for creating epoched XDF File input source.
-
-        Parameters
-        ---------
-        sess : Session Object
-            Session where the MPXDF data source will exist.
-
-        files : list of str
-            XDF file(s) where data should be extracted from.
-
-        tasks : list or tuple of strings
-            List or Tuple of strings corresponding to the tasks to be completed by the user.
-            For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
-
-        channels : list or tuple of int
-            Values corresponding to the data stream channels used during the session
-
-        relative_start : float, default = 0
-            Value corresponding to the start of the trial relative to the marker onset.
-
-        Ns : int, default = 1
-            Number of samples to be extracted per trial. For epoched data, this value determines the
-            size of each epoch, whereas this value is used in polling for continuous data.
-
-        """
-
-        src = cls(sess, files, tasks, channels, relative_start, Ns, mode)
-
-        sess.add_ext_src(src)
-
-        return src
 
 
 class InputLSLStream(MPBase):
