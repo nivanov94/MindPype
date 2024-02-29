@@ -18,7 +18,7 @@ import sys
 import warnings
 import liesl
 import threading
-import time
+import json
 
 class InputXDFFile(MPBase):
     """
@@ -107,7 +107,7 @@ class InputXDFFile(MPBase):
             }
     """
 
-    def __init__(self, sess, files, tasks, channels, relative_start=0, Ns=1, stype='EEG', mode="epoched"):
+    def __init__(self, sess, files, channels, tasks=None, relative_start=0, Ns=1, stype='EEG', mode="epoched"):
         """
         Create a new xdf file reader interface
         """
@@ -149,10 +149,8 @@ class InputXDFFile(MPBase):
 
                 sample_indices = np.zeros(data_stream["time_stamps"].shape)  # used to extract data samples, pre-allocated here
 
-                # filter for markers that are tasks
-                task_marker_mask = np.array([marker[0] in tasks for marker in marker_stream["time_series"]])
-                marker_stream["time_series"] = [marker[0] for marker, mask in zip(marker_stream["time_series"], task_marker_mask) if mask]
-                marker_stream["time_stamps"] = marker_stream["time_stamps"][task_marker_mask]
+                # filter the marker stream for the specified tasks
+                marker_stream = self._filter_marker_stream(marker_stream)
 
                 # iterate throught the markers and extract the data for each task
                 for i_m, marker in enumerate(marker_stream["time_series"]):
@@ -175,7 +173,7 @@ class InputXDFFile(MPBase):
             self._data["Markers"] = tuple(self._data["Markers"])
 
             # create a corresponding numerical task label for each task
-            self._data["numerical_labels"] = np.array([tasks.index(task) for task in self._data["Markers"]])
+            self._data["numerical_labels"] = np.array([self._tasks.index(task) for task in self._data["Markers"]])
 
 
         # Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples
@@ -221,10 +219,8 @@ class InputXDFFile(MPBase):
                 # Extract the data from the data stream
                 data_stream["time_series"] = data_stream["time_series"][:, channels].T
 
-                # filter for markers that are tasks
-                task_marker_mask = np.array([marker[0] in tasks for marker in marker_stream["time_series"]])
-                marker_stream["time_series"] = marker_stream["time_series"][task_marker_mask]
-                marker_stream["time_stamps"] = marker_stream["time_stamps"][task_marker_mask]
+                # Filter the marker stream for the specified tasks
+                marker_stream = self._filter_marker_stream(marker_stream)
 
                 # Append the data and marker streams to the list
                 data_streams.append(data_stream)
@@ -233,14 +229,58 @@ class InputXDFFile(MPBase):
             # Concatenate the data and marker streams
             self._data["Data"]["time_series"] = np.concatenate([stream["time_series"] for stream in data_streams], axis=1)
             self._data["Data"]["time_stamps"] = np.concatenate([stream["time_stamps"] for stream in data_streams])
-            self._data["Markers"]["time_series"] = np.concatenate([stream["time_series"] for stream in marker_streams])
-            self._data["Markers"]["time_stamps"] = np.concatenate([stream["time_stamps"] for stream in marker_streams])
-            self._data["numerical_labels"] = np.array([tasks.index(task) for task in self._data["Markers"]["time_series"]])
 
+            self._data["Markers"]["time_series"] = marker_streams[0]["time_series"]
+            if len(marker_streams) > 1:
+                for stream in marker_streams[1:]:
+                    self._data["Markers"]["time_series"].extend(stream["time_series"])
+
+            self._data["Markers"]["time_stamps"] = np.concatenate([stream["time_stamps"] for stream in marker_streams])
+            self._data["numerical_labels"] = np.array([self._tasks.index(task) for task in self._data["Markers"]["time_series"]])
 
         # create a counter to keep track of the number of trials extracted when polling
-        self._task_counter = {task: 0 for task in tasks}
+        self._task_counter = {task: 0 for task in self._tasks}
 
+    def _filter_marker_stream(self, marker_stream):
+        """
+        Filter the marker stream for the specified tasks.
+        If no task list is provided, try to infer the tasks
+        from the marker stream (currently only supported for Mindset P300 data).
+        """
+        if self._tasks:
+            # filter for markers that are tasks
+            task_marker_mask = np.array([marker[0] in self._tasks for marker in marker_stream["time_series"]])
+            marker_stream["time_series"] = [marker[0] for marker, mask in zip(marker_stream["time_series"], task_marker_mask) if mask]
+            marker_stream["time_stamps"] = marker_stream["time_stamps"][task_marker_mask]
+        else:
+            # infer tasks from Marker stream - only works for Mindset P300 data
+            warnings.warn("No task list provided. Infering tasks from the marker stream. This is only supported for Mindset P300 data.", RuntimeWarning, stacklevel=2)
+            marker_stream["time_series"] = [marker[0] for marker in marker_stream["time_series"]]
+            self._tasks = ['non-target', 'target']  # default tasks for Mindset P300 data
+
+            inferred_markers = []
+            inferred_marker_times = []
+            current_target = None
+            for i_m, marker in enumerate(marker_stream["time_series"]):
+                if "target" in marker:
+                    # if the marker identifies a target, store the target grid
+                    current_target = json.loads(marker)["target"]
+                elif current_target and "flash" in marker:
+                    # if the marker is a flash, check if it is a target or non-target
+                    flash_positions = json.loads(marker)["flash"]
+                    if current_target in flash_positions:
+                        inferred_markers.append("target")
+                    else:
+                        inferred_markers.append("non-target")
+
+                    # record the time of the marker
+                    inferred_marker_times.append(marker_stream["time_stamps"][i_m])
+
+            # overwrite the original marker stream with the inferred markers
+            marker_stream["time_series"] = inferred_markers
+            marker_stream["time_stamps"] = np.array(inferred_marker_times)
+
+        return marker_stream
 
     def poll_data(self, label=None):
 
@@ -354,7 +394,7 @@ class InputXDFFile(MPBase):
 
 
     @classmethod
-    def create_continuous(cls, sess, files, tasks, channels, relative_start=0, Ns=1):
+    def create_continuous(cls, sess, files, channels, tasks=None, relative_start=0, Ns=1):
         """
         Factory Method for creating continuous XDF File input source.
 
@@ -367,9 +407,11 @@ class InputXDFFile(MPBase):
         files : list of str
             XDF file(s) where data should be extracted from.
 
-        tasks : list or tuple of strings
+        tasks : list or tuple of strings (default = None)
             List or Tuple of strings corresponding to the tasks to be completed by the user.
             For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+            If None, the tasks will be inferred from the marker stream. This is only
+            supported for P300 data recorded using Mindset.
 
         channels : list or tuple of int
             Values corresponding to the data stream channels used during the session
@@ -383,14 +425,14 @@ class InputXDFFile(MPBase):
 
         """
 
-        src = cls(sess, files, tasks, channels, relative_start, Ns, mode="continuous")
+        src = cls(sess, files, channels, tasks, relative_start, Ns, mode="continuous")
         sess.add_ext_src(src)
 
         return src
 
 
     @classmethod
-    def create_epoched(cls, sess, files, tasks, channels, relative_start=0, Ns=1, stype='EEG'):
+    def create_epoched(cls, sess, files, channels, tasks=None, relative_start=0, Ns=1, stype='EEG'):
 
         """
         Factory Method for creating epoched XDF File input source.
@@ -403,9 +445,11 @@ class InputXDFFile(MPBase):
         files : list of str
             XDF file(s) where data should be extracted from.
 
-        tasks : list or tuple of strings
+        tasks : list or tuple of strings (default = None)
             List or Tuple of strings corresponding to the tasks to be completed by the user.
             For P300-type setups, the tasks 'target' and 'non-target'/'flash' can be used.
+            If None, the tasks will be inferred from the marker stream. This is only
+            supported for P300 data recorded using Mindset.
 
         channels : list or tuple of int
             Values corresponding to the data stream channels used during the session
@@ -421,7 +465,7 @@ class InputXDFFile(MPBase):
             size of each epoch, whereas this value is used in polling for continuous data.
 
         """
-        src = cls(sess, files, tasks, channels, relative_start, Ns, stype=stype, mode="epoched")
+        src = cls(sess, files, channels, tasks, relative_start, Ns, stype=stype, mode="epoched")
         sess.add_ext_src(src)
 
         return src
