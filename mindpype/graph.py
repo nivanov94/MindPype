@@ -10,7 +10,7 @@ import sys
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
-
+import time
 
 class Graph(MPBase):
     """
@@ -137,7 +137,6 @@ class Graph(MPBase):
         self._verified = True
 
         # cleanup any data used within verification that are no longer needed
-        self._edges = {}  # clear edges for garbage collection
         self.session.free_unreferenced_data()
 
     def _schedule_nodes(self):
@@ -445,7 +444,7 @@ class Graph(MPBase):
         for datum in self._volatile_outputs:
             datum.push_volatile_outputs(label=label)
 
-    
+
     def cross_validate(self, target_validation_output, folds=5,
                        shuffle=False, random_state=None, statistic='accuracy'):
         """
@@ -459,7 +458,7 @@ class Graph(MPBase):
 
         folds : int, default = 5
             Number of folds to use for cross validation.
-        
+
         shuffle : bool, default = False
             Whether to shuffle the data before splitting into folds.
 
@@ -467,10 +466,9 @@ class Graph(MPBase):
             Random state to use for shuffling the data.
 
         statistic : str, default = 'accuracy'
-            Statistic to use for cross validation. 
+            Statistic to use for cross validation.
             Options include 'accuracy', 'f1', 'precision', 'recall', and 'cross_entropy'.
         """
-
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
         if not self._verified:
@@ -483,6 +481,7 @@ class Graph(MPBase):
         # the first node is the node that produces the target validation output
         n = self._edges[target_validation_output.session_id].producers[0]
         upstream_nodes.append(n)
+        subset_node_ids = set([n.session_id])
         init_data_nodes = []
 
         # now find all upstream nodes that are required for the cross validation
@@ -494,13 +493,16 @@ class Graph(MPBase):
             for n_ii in n.kernel.init_inputs:
                 if n_ii.virtual:
                     init_provided = False
-            
+
             if not init_provided:
                 # add nodes that produce the current node's inputs
                 # to the uptream nodes set
                 for n_i in n.extract_inputs():
-                    for p in self._edges[n_i.session_id].producers:
+                    p = self._edges[n_i.session_id].producers[0]
+                    # add this node if it has not been added yet
+                    if p.session_id not in subset_node_ids:
                         upstream_nodes.append(p)
+                        subset_node_ids.add(p.session_id)
             else:
                 init_data_nodes.append(n)
 
@@ -524,7 +526,7 @@ class Graph(MPBase):
                 if nn.session_id == n.session_id:
                     node_execution_position[index] = position
                     break
-        
+
         # sort the nodes by execution order
         subset_order = np.argsort(node_execution_position)
         cv_node_subset = [cv_node_subset[i] for i in subset_order]
@@ -539,15 +541,15 @@ class Graph(MPBase):
 
         if init_data.mp_type != MPEnums.TENSOR:
             init_data = init_data.convert_to_tensor()
-        
+
         if init_labels.mp_type != MPEnums.TENSOR:
             init_labels = init_labels.convert_to_tensor()
-        
+
 
         # create the cross validation object
         skf = StratifiedKFold(n_splits=folds, shuffle=shuffle, random_state=random_state)
         mean_stat = 0
-        for i_cv, (train_index, test_index) in enumerate(skf.split(init_data.data, init_labels.data)):
+        for train_index, test_index in skf.split(init_data.data, init_labels.data):
             # create Tensors for the CV training and testing data
             train_data = Tensor.create_from_data(self.session,  init_data.data[train_index])
             train_labels = Tensor.create_from_data(self.session,  init_labels.data[train_index])
@@ -563,15 +565,15 @@ class Graph(MPBase):
             for n in cv_node_subset:
                 n.initialize()
 
-            predictions = np.zeros((test_labels.shape[0],))            
+            predictions = np.zeros((test_labels.shape[0],))
             for i_t in range(test_labels.shape[0]):
                 # set the test data input for the ingestion nodes
                 for n in init_data_nodes:
                     n.kernel.inputs[0].data = test_data.data[i_t]
-                
+
                 # execute the subset of nodes
                 for n in cv_node_subset:
-                    n.kernel.execute(label=test_labels.data[i_t])
+                    n.kernel.execute()
 
                 # get the output of the target validation node
                 predictions[i_t] = target_validation_output.data
@@ -591,7 +593,7 @@ class Graph(MPBase):
 
             mean_stat += stat
 
-        # compute mean statistic across folds        
+        # compute mean statistic across folds
         mean_stat /= folds
 
         # reset the initialization data for the nodes
@@ -605,7 +607,7 @@ class Graph(MPBase):
 
         return mean_stat
 
-        
+
     @classmethod
     def create(cls, sess):
         """

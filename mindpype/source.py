@@ -130,7 +130,7 @@ class InputXDFFile(MPBase):
         # The markers will be stored in a 1D tuple, with the first dimension corresponding to the sample number.
         if mode == "epoched":
             self._data = {"Data": [], "Markers": []}
-            
+
             for filename in files:
                 # open file and extract data
                 data, header = pyxdf.load_xdf(filename)
@@ -141,7 +141,7 @@ class InputXDFFile(MPBase):
                         stream["info"]["type"][0] == "Markers"):
                         marker_stream = stream
 
-                    elif stream["info"]["type"][0] == self.stype:
+                    elif stream["info"]["type"][0] == self._stype:
                         data_stream = stream
 
                 if marker_stream is None or data_stream is None:
@@ -151,26 +151,24 @@ class InputXDFFile(MPBase):
 
                 # filter for markers that are tasks
                 task_marker_mask = np.array([marker[0] in tasks for marker in marker_stream["time_series"]])
-                marker_stream["time_series"] = marker_stream["time_series"][task_marker_mask]
+                marker_stream["time_series"] = [marker[0] for marker, mask in zip(marker_stream["time_series"], task_marker_mask) if mask]
                 marker_stream["time_stamps"] = marker_stream["time_stamps"][task_marker_mask]
 
                 # iterate throught the markers and extract the data for each task
-                for i_m, markers in enumerate(marker_stream["time_series"]):
-                    task = markers[0]
-
+                for i_m, marker in enumerate(marker_stream["time_series"]):
                     # compute the correct start and end indices for the current trial
                     marker_time = marker_stream["time_stamps"][i_m]
                     data_window_start = marker_time + relative_start
 
                     # find the index of the first sample after the marker
                     sample_indices = np.array(data_stream["time_stamps"] >= data_window_start)
-                    first_sample_ix = np.argwhere(sample_indices)[0]
+                    first_sample_ix = np.argwhere(sample_indices)[0][0]
                     sample_indices[first_sample_ix + self._Ns:] = False  # remove the samples after the end of the trial
 
                     # extract the data and append to the data dictionary
                     sample_data = data_stream["time_series"][np.ix_(sample_indices, channels)].T  # Nc X Ns
                     self._data["Data"].append(sample_data)
-                    self._data["Markers"].append(task)
+                    self._data["Markers"].append(marker)
 
             # convert the data to a numpy array and the markers to a tuple
             self._data["Data"] = np.stack(self._data["Data"], axis=0) # Nt x Nc x Ns
@@ -231,7 +229,7 @@ class InputXDFFile(MPBase):
                 # Append the data and marker streams to the list
                 data_streams.append(data_stream)
                 marker_streams.append(marker_stream)
-            
+
             # Concatenate the data and marker streams
             self._data["Data"]["time_series"] = np.concatenate([stream["time_series"] for stream in data_streams], axis=1)
             self._data["Data"]["time_stamps"] = np.concatenate([stream["time_stamps"] for stream in data_streams])
@@ -263,7 +261,7 @@ class InputXDFFile(MPBase):
                 label = self._tasks[self._data["numerical_label"].index(label)]
             else:
                 raise ValueError(f"Label {label} is not in the list of tasks")
-            
+
 
         # determine the index of the next trial to be polled
         if self._mode == "epoched":
@@ -279,7 +277,7 @@ class InputXDFFile(MPBase):
                 task_min = markers.index(task, self._task_counter[task])
                 if task_min < poll_index:
                     poll_index = task_min
-            
+
             label = markers[poll_index]
         else:
             poll_index = markers.index(label, self._task_counter[label])
@@ -296,7 +294,7 @@ class InputXDFFile(MPBase):
 
             # Construct the boolean array for samples that fall after the marker timestamp
             sample_indices = self.trial_data["Data"]["time_stamps"] >= data_window_start
-            first_sample_ix = np.argwhere(sample_indices)[0]
+            first_sample_ix = np.argwhere(sample_indices)[0][0]
             sample_indices[first_sample_ix + self._Ns:] = False  # remove the samples after the end of the trial
             sample_data = self.trial_data["Data"]["time_series"][:, sample_indices]
 
@@ -331,7 +329,7 @@ class InputXDFFile(MPBase):
 
         data_ts : Tensor
             Tensor containing the stream timestamps
-        
+
         labels_ts : Tensor
             Tensor containing the Marker timestamps
         """
@@ -341,7 +339,7 @@ class InputXDFFile(MPBase):
             labels = Tensor.create_from_data(self.session, self._data["numerical_labels"])
 
             return data, labels
-        
+
         elif self._mode == "continuous":
             data = Tensor.create_from_data(self.session, self._data["Data"]["time_series"])
             labels = Tensor.create_from_data(self.session, self._data["numerical_labels"])
@@ -683,7 +681,7 @@ class InputLSLStream(MPBase):
                     f"The stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
                 )
             time.sleep(0.1)
-            
+
 
         if self._marker_coupled:
             # reset the maker peeked flag since we have polled new data
@@ -783,7 +781,7 @@ class InputLSLStream(MPBase):
         if len(available_streams) == 0:
             raise RuntimeError("No streams found matching the predicate")
         else:
-            warnings.warn("More than one stream found matching the predicate. Using the first stream found.", 
+            warnings.warn("More than one stream found matching the predicate. Using the first stream found.",
                           RuntimeWarning, stacklevel=2)
 
         self._data_buffer = {"time_series": None, "time_stamps": None}
@@ -813,9 +811,9 @@ class InputLSLStream(MPBase):
             if len(marker_streams) == 0:
                 raise RuntimeError("No marker streams found matching the predicate")
             else:
-                warnings.warn("More than one marker stream found matching the predicate. Using the first stream found.", 
+                warnings.warn("More than one marker stream found matching the predicate. Using the first stream found.",
                               RuntimeWarning, stacklevel=2)
-                
+
             self._marker_inlet = pylsl.StreamInlet(marker_streams[0])
             self._peek_marker_inlet = pylsl.StreamInlet(marker_streams[0])
 
@@ -882,7 +880,7 @@ class InputLSLStream(MPBase):
         return src
 
     @classmethod
-    def create_marker_uncoupled_data_stream(cls, sess, 
+    def create_marker_uncoupled_data_stream(cls, sess,
                                             pred=None,
                                             channels=None,
                                             relative_start=0,
@@ -907,7 +905,7 @@ class InputLSLStream(MPBase):
         interval : float
             The minimum interval at which the stream will be polled
         """
-        src = cls(sess, pred, channels, relative_start, marker=False, active=active, interval=interval)
+        src = cls(sess, pred, channels, relative_start, marker_coupled=False, active=active, interval=interval)
         sess.add_ext_src(src)
 
         return src
