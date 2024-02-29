@@ -2,16 +2,14 @@
 Created on Mon Dec  2 12:00:43 2019
 
 graph.py - Defines the graph object
-
-@author: ivanovn
 """
-
-# import logging
-# import warnings
 
 from .core import MPBase, MPEnums
 from .containers import Tensor
 import sys
+import numpy as np
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 
 
 class Graph(MPBase):
@@ -29,9 +27,6 @@ class Graph(MPBase):
     ----------
     _nodes : List of Node
         List of Node objects within the graph
-
-    initialization_edges : List of Edge objects
-        List of Edge objects used within the graph
 
     _verified : bool
         True is graph has been verified, false otherwise
@@ -62,7 +57,6 @@ class Graph(MPBase):
 
         # private attributes
         self._nodes = []
-        self.initialization_edges = []
         self._verified = False
         self._initialized = False
         self._sess = sess
@@ -83,10 +77,6 @@ class Graph(MPBase):
         node : Node object
             Adds the specified Node object to the referenced graph
 
-        Examples
-        --------
-        example_graph.add_node(example_node)
-
         """
         self._verified = False
         self._initialized = False
@@ -94,7 +84,10 @@ class Graph(MPBase):
 
     def set_default_init_data(self, data, labels):
         """
-        Add default initialization data to the graph
+        Add default initialization data to the graph. If a node requires
+        initialization data and it is not explicitly provided, this data
+        will be used. It will be added as initialization data to any
+        root nodes that ingest data from outside of the graph.
 
         Parameters
         ----------
@@ -119,7 +112,6 @@ class Graph(MPBase):
             return
 
         # begin by scheduling the nodes in execution order
-        print("Scheduling nodes...")
         self._schedule_nodes()
 
         # assign default initialization data to nodes that require it
@@ -127,19 +119,15 @@ class Graph(MPBase):
 
         # now all the nodes are in execution order create any
         # necessary initialization edges
-        print("Inserting init edges...")
         self._insert_init_edges()
 
         # insert phony edges for verification
-        print("Inserting phony edges...")
         self._insert_phony_edges()
 
         # set phony inputs with random data for validation
-        print("Initializing phony edges...")
         self._init_phony_edges()
 
         # finally, validate each node
-        print("Validating nodes...")
         self._validate_nodes()
 
         # delete phony inputs and outputs
@@ -202,7 +190,7 @@ class Graph(MPBase):
         for e_key in self._edges:
             if len(self._edges[e_key].producers) == 0:
                 # these edges have no producing nodes, so they are inputs to
-                # the block and therefore can be consumed immediately
+                # the graph and therefore can be consumed immediately
                 consumable_edges[e_key] = self._edges[e_key]
 
         scheduled_nodes = 0
@@ -457,6 +445,167 @@ class Graph(MPBase):
         for datum in self._volatile_outputs:
             datum.push_volatile_outputs(label=label)
 
+    
+    def cross_validate(self, target_validation_output, folds=5,
+                       shuffle=False, random_state=None, statistic='accuracy'):
+        """
+        Perform cross validation on the graph or a portion of the graph.
+
+        Parameters
+        ----------
+        target_validation_output : MindPype Container
+            MindPype container (Tensor, Scalar, etc.) containing the target validation output.
+            Likely, this will be the output of a classification node.
+
+        folds : int, default = 5
+            Number of folds to use for cross validation.
+        
+        shuffle : bool, default = False
+            Whether to shuffle the data before splitting into folds.
+
+        random_state : int, default = None
+            Random state to use for shuffling the data.
+
+        statistic : str, default = 'accuracy'
+            Statistic to use for cross validation. 
+            Options include 'accuracy', 'f1', 'precision', 'recall', and 'cross_entropy'.
+        """
+
+        # first ensure the graph has been verified,
+        # if not, verify and schedule the nodes
+        if not self._verified:
+            self.verify()
+
+        # find the subset of nodes that need to executed for cross validation
+        cv_node_subset = []
+        upstream_nodes = []
+
+        # the first node is the node that produces the target validation output
+        n = self._edges[target_validation_output.session_id].producers[0]
+        upstream_nodes.append(n)
+        init_data_nodes = []
+
+        # now find all upstream nodes that are required for the cross validation
+        while len(upstream_nodes):
+            n = upstream_nodes.pop()
+
+            # check if this node has initialization data
+            init_provided = True
+            for n_ii in n.kernel.init_inputs:
+                if n_ii.virtual:
+                    init_provided = False
+            
+            if not init_provided:
+                # add nodes that produce the current node's inputs
+                # to the uptream nodes set
+                for n_i in n.extract_inputs():
+                    for p in self._edges[n_i.session_id].producers:
+                        upstream_nodes.append(p)
+            else:
+                init_data_nodes.append(n)
+
+            # add the current node to the cross validation subset
+            cv_node_subset.insert(0, n)
+
+        if len(init_data_nodes) != 1:
+            # check that all these nodes are ingesting the same init data
+            for n in init_data_nodes:
+                if n.kernel.init_inputs[0].session_id != init_data_nodes[0].kernel.init_inputs[0].session_id:
+                    raise Exception("Cross validation could not be performed. " +
+                                    "This may be because the target validation output " +
+                                    "is generated by a node that does not require " +
+                                    "initialization or because there are multiple " +
+                                    "nodes that require initialization data.")
+
+        # check the execution order of the subset of nodes
+        node_execution_position = np.zeros((len(cv_node_subset),))
+        for index, n in enumerate(cv_node_subset):
+            for position, nn in enumerate(self._nodes):
+                if nn.session_id == n.session_id:
+                    node_execution_position[index] = position
+                    break
+        
+        # sort the nodes by execution order
+        subset_order = np.argsort(node_execution_position)
+        cv_node_subset = [cv_node_subset[i] for i in subset_order]
+
+        # verify that the the node with initialization data is the first node
+        if init_data_nodes[0].session_id != cv_node_subset[0].session_id:
+            raise Exception("Cross validation could not be performed. Invalid graph structure")
+
+        # copy the initialization data object
+        init_data = init_data_nodes[0].kernel.init_inputs[0]
+        init_labels = init_data_nodes[0].kernel.init_input_labels
+
+        if init_data.mp_type != MPEnums.TENSOR:
+            init_data = init_data.convert_to_tensor()
+        
+        if init_labels.mp_type != MPEnums.TENSOR:
+            init_labels = init_labels.convert_to_tensor()
+        
+
+        # create the cross validation object
+        skf = StratifiedKFold(n_splits=folds, shuffle=shuffle, random_state=random_state)
+        mean_stat = 0
+        for i_cv, (train_index, test_index) in enumerate(skf.split(init_data.data, init_labels.data)):
+            # create Tensors for the CV training and testing data
+            train_data = Tensor.create_from_data(self.session,  init_data.data[train_index])
+            train_labels = Tensor.create_from_data(self.session,  init_labels.data[train_index])
+            test_data = Tensor.create_from_data(self.session,  init_data.data[test_index])
+            test_labels = Tensor.create_from_data(self.session,  init_labels.data[test_index])
+
+            # set the initialization data for the nodes
+            for n in init_data_nodes:
+                n.kernel.init_inputs[0] = train_data
+                n.kernel.init_input_labels = train_labels
+
+            # initialize the subset of nodes
+            for n in cv_node_subset:
+                n.initialize()
+
+            predictions = np.zeros((test_labels.shape[0],))            
+            for i_t in range(test_labels.shape[0]):
+                # set the test data input for the ingestion nodes
+                for n in init_data_nodes:
+                    n.kernel.inputs[0].data = test_data.data[i_t]
+                
+                # execute the subset of nodes
+                for n in cv_node_subset:
+                    n.kernel.execute(label=test_labels.data[i_t])
+
+                # get the output of the target validation node
+                predictions[i_t] = target_validation_output.data
+
+            # calculate the statistic
+            target = test_labels.data
+            if statistic == 'accuracy':
+                stat = accuracy_score(target, predictions)
+            elif statistic == 'f1':
+                stat = f1_score(target, predictions)
+            elif statistic == 'precision':
+                stat = precision_score(target, predictions)
+            elif statistic == 'recall':
+                stat = recall_score(target, predictions)
+            elif statistic == 'cross_entropy':
+                stat = log_loss(target, predictions)
+
+            mean_stat += stat
+
+        # compute mean statistic across folds        
+        mean_stat /= folds
+
+        # reset the initialization data for the nodes
+        for n in init_data_nodes:
+            n.kernel.init_inputs[0] = init_data
+            n.kernel.init_input_labels = init_labels
+
+        # cleanup data objects
+        del train_data, train_labels, test_data, test_labels
+        self.session.free_unreferenced_data()
+
+        return mean_stat
+
+        
     @classmethod
     def create(cls, sess):
         """
