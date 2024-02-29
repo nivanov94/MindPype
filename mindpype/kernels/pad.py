@@ -25,7 +25,7 @@ class PadKernel(Kernel):
         """
         Constructor for the PadKernel class
         """
-        super().__init__('BaselineCorrection', MPEnums.INIT_FROM_NONE, graph)
+        super().__init__('Pad', MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
         
