@@ -297,8 +297,8 @@ class InputXDFFile(MPBase):
 
         if label is not None and label not in self._tasks:
             # check if the coorresponding numerical label has been provided
-            if label in self._data["numerical_label"]:
-                label = self._tasks[self._data["numerical_label"].index(label)]
+            if label in self._data["numerical_labels"]:
+                label = self._tasks[np.argwhere(self._data["numerical_labels"]==label)[0][0]]
             else:
                 raise ValueError(f"Label {label} is not in the list of tasks")
 
@@ -310,7 +310,7 @@ class InputXDFFile(MPBase):
             markers = self._data["Markers"]["time_series"]
 
         if label is None:
-            num_prev_polled = sum(self.task_counter.values())
+            num_prev_polled = sum(self._task_counter.values())
             poll_index = num_prev_polled  # default, assumes that the trials have been polled in order
             for task in self._tasks:
                 # find the first trial for the specified task that has not been polled
@@ -322,21 +322,21 @@ class InputXDFFile(MPBase):
         else:
             poll_index = markers.index(label, self._task_counter[label])
 
-        if self.mode == "epoched":
+        if self._mode == "epoched":
             # Extract sample data from epoched trial data
-            sample_data = self.trial_data["Data"][poll_index, :, :]
+            sample_data = self._data["Data"][poll_index, :, :]
 
         else:
             # Extract the nth marker timestamp, corresponding to the nth trial in the XDF file
             data_window_start = (
-                self._trial_data["Markers"]["time_stamps"][poll_index] + self.relative_start
+                self._data["Markers"]["time_stamps"][poll_index] + self.relative_start
             )
 
             # Construct the boolean array for samples that fall after the marker timestamp
-            sample_indices = self.trial_data["Data"]["time_stamps"] >= data_window_start
+            sample_indices = self._data["Data"]["time_stamps"] >= data_window_start
             first_sample_ix = np.argwhere(sample_indices)[0][0]
             sample_indices[first_sample_ix + self._Ns:] = False  # remove the samples after the end of the trial
-            sample_data = self.trial_data["Data"]["time_series"][:, sample_indices]
+            sample_data = self._data["Data"]["time_series"][:, sample_indices]
 
         # increment the task counter
         self._task_counter[label] += 1

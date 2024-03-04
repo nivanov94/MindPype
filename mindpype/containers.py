@@ -749,7 +749,7 @@ class Tensor(MPBase):
         if not self.volatile:
             return
 
-        data = self.ext_src.poll_data(Ns=self.shape[1], label=label)
+        data = self.ext_src.poll_data(label=label)
         # if we only pulled one trial, remove the first dimension
         if len(data.shape) > 2:
             data = np.squeeze(data, axis=0)
