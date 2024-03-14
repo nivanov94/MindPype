@@ -693,7 +693,7 @@ class InputLSLStream(MPBase):
                     valid_timestamps = timestamps >= t_begin
 
                     # discard extra channels and old data
-                    data = data[np.ix_(self.channels, valid_timestamps)]
+                    data = data[np.ix_(self._channels, valid_timestamps)]
                     timestamps = timestamps[valid_timestamps]
 
                     # append the latest chunk to the trial_data array
@@ -736,6 +736,7 @@ class InputLSLStream(MPBase):
             # reset the maker peeked flag since we have polled new data
             self._already_peeked = False
 
+        print(trial_data.shape)
         return trial_data
 
     def peek_marker(self):
@@ -844,7 +845,7 @@ class InputLSLStream(MPBase):
         )
         self._data_inlet.open_stream()
 
-        if channels:
+        if channels is not None:
             if max(channels) >= self._data_inlet.channel_count or min(channels) < 0:
                 raise ValueError(
                     "The number of channels in the stream does not match the channel indices specified in the channels parameter. Please check the channels parameter and try again."
