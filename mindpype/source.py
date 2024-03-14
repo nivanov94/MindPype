@@ -736,7 +736,6 @@ class InputLSLStream(MPBase):
             # reset the maker peeked flag since we have polled new data
             self._already_peeked = False
 
-        print(trial_data.shape)
         return trial_data
 
     def peek_marker(self):
