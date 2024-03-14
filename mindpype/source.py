@@ -19,6 +19,7 @@ import warnings
 import liesl
 import threading
 import json
+import time
 
 class InputXDFFile(MPBase):
     """
@@ -471,7 +472,6 @@ class InputXDFFile(MPBase):
         return src
 
 
-
 class InputLSLStream(MPBase):
     """
     An object for maintaining an LSL inlet
@@ -510,7 +510,8 @@ class InputLSLStream(MPBase):
         stream_info=None,
         marker_stream_info=None,
         active=True,
-        interval=None
+        interval=None,
+        Ns=1
     ):
         """
         Create a new LSL inlet stream object
@@ -553,12 +554,14 @@ class InputLSLStream(MPBase):
             The minimum interval between polling the stream for new data. Only used for marker uncoupled streams.
             If None, then the stream will be polled as fast as possible.
 
+        Ns : int, default = 1
+            The number of samples to be extracted per poll.
+
         .. note::
             The active parameter is used when the session is created before the LSL stream is started, or the stream is
             not available when the session is created. In that case, the stream can be updated later by calling the update_input_stream() method.
         """
         super().__init__(MPEnums.SRC, sess)
-        self._active = active
         self._marker_coupled = marker_coupled
 
         self._marker_inlet = None
@@ -570,11 +573,14 @@ class InputLSLStream(MPBase):
         self._time_correction = None
         self._interval = interval
         self._channels = channels
+        self._Ns = Ns
+        self._data_buffer = {"time_series": None, "time_stamps": None}
 
         if active:
-            self.update_input_stream(pred, channels, marker_coupled, marker_fmt, marker_pred, stream_info, marker_stream_info)
+            self._active = False # will be set to True when the stream is opened
+            self.update_input_streams(pred, channels, marker_coupled, marker_fmt, marker_pred, stream_info, marker_stream_info, Ns)
 
-    def poll_data(self, Ns, label=None):
+    def poll_data(self, label=None):
         """
         Pull data from the inlet stream until we have Ns data points for each
         channel.
@@ -586,7 +592,7 @@ class InputLSLStream(MPBase):
             used for file-based polling, not used here
         """
 
-        if not self.active:
+        if not self._active:
             raise RuntimeWarning("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
         if self._marker_inlet is not None:
@@ -600,7 +606,7 @@ class InputLSLStream(MPBase):
                     null_reads = 0  # reset the null reads counter
                     marker = marker[0]  # extract the string portion of the marker
 
-                    if (self.marker_pattern == None) or self._marker_pattern.match(marker):
+                    if (self._marker_pattern is None) or self._marker_pattern.match(marker):
                         t_begin = t
                         self._marker_buffer["time_stamps"] = t_begin
                         self._marker_buffer["time_series"] = marker
@@ -614,7 +620,7 @@ class InputLSLStream(MPBase):
 
         else:
             # marker-uncoupled stream, determine the start time based on the interval attribute
-            if self._data_buffer["Data"] is not None:
+            if self._data_buffer["time_series"] is not None:
                 if self._interval is not None:
                     t_begin = self._data_buffer["time_stamps"][0] + self._interval # shift forward by interval
                 elif self._data_buffer["time_stamps"].shape[0] > 1:
@@ -629,8 +635,8 @@ class InputLSLStream(MPBase):
         t_begin += self._relative_start
 
         # pull the data in chunks until we get the total number of samples
-        trial_data = np.zeros((len(self.channels), Ns))  # allocate the array
-        trial_timestamps = np.zeros((Ns,))
+        trial_data = np.zeros((len(self._channels), self._Ns))  # allocate the array
+        trial_timestamps = np.zeros((self._Ns,))
         samples_polled = 0
 
         # First, pull the data required data from the buffer
@@ -647,37 +653,37 @@ class InputLSLStream(MPBase):
             self._data_buffer["time_stamps"] = self._data_buffer["time_stamps"][valid_indices]
 
             # If the number of samples in the buffer is greater than the number of samples required, extract the required data
-            if samples_polled >= Ns:
+            if samples_polled >= self._Ns:
                 # Buffer contains a backlog of data, warn that execution may be too slow for target polling rate
                 warnings.warn("Buffer contains a backlog of data. Execution may be too slow for target polling rate.", RuntimeWarning, stacklevel=2)
 
                 if self._marker_coupled:
                     # if this is a marker-coupled stream, use the oldest valid data in the buffer
                     # to ensure that the data is aligned with the marker
-                    trial_data = self._data_buffer["time_series"][:, :Ns]
-                    trial_timestamps = self.data_buffer["time_stamps"][:Ns]
+                    trial_data = self._data_buffer["time_series"][:, :self._Ns]
+                    trial_timestamps = self._data_buffer["time_stamps"][:self._Ns]
                 else:
                     # if this is a marker-uncoupled stream, use the newest valid data in the buffer
                     # to ensure that the data is as recent as possible
-                    trial_data = self._data_buffer["time_series"][:, -Ns:]
-                    trial_timestamps = self.data_buffer["time_stamps"][-Ns:]
+                    trial_data = self._data_buffer["time_series"][:, -self._Ns:]
+                    trial_timestamps = self._data_buffer["time_stamps"][-self._Ns:]
 
             # If the number of valid samples in the buffer is less than the number of samples required, extract all the data in the buffer
             else:
-                trial_data[:, :samples_polled] = self.data_buffer["time_series"]
-                trial_timestamps[:samples_polled] = self.data_buffer["time_stamps"]
+                trial_data[:, :samples_polled] = self._data_buffer["time_series"]
+                trial_timestamps[:samples_polled] = self._data_buffer["time_stamps"]
 
         # If the buffer does not contain enough data, pull data from the inlet
         null_reads = 0
-        while samples_polled < Ns:
-            data, timestamps = self.data_inlet.pull_chunk(timeout=0.0)
+        while samples_polled < self._Ns:
+            data, timestamps = self._data_inlet.pull_chunk(timeout=0.0)
             timestamps = np.asarray(timestamps)
 
             if len(timestamps) > 0:
                 null_reads = 0  # reset the null reads counter
 
                 # apply time correction to timestamps
-                self._time_correction = self.data_inlet.time_correction()
+                self._time_correction = self._data_inlet.time_correction()
                 timestamps += self._time_correction
 
                 # check if the data is within the target time window
@@ -694,10 +700,10 @@ class InputLSLStream(MPBase):
                     # start by indentifying the start and end indices
                     # of the source and destination arrays
                     chunk_sz = data.shape[1]
-                    if samples_polled + chunk_sz > Ns:
+                    if samples_polled + chunk_sz > self._Ns:
                         # more data in the chunk than required
-                        dst_end_ix = Ns
-                        src_end_ix = Ns - samples_polled
+                        dst_end_ix = self._Ns
+                        src_end_ix = self._Ns - samples_polled
                     else:
                         # less data in the chunk than required
                         dst_end_ix = samples_polled + chunk_sz
@@ -706,14 +712,14 @@ class InputLSLStream(MPBase):
                     trial_data[:, samples_polled:dst_end_ix] = data[:, :src_end_ix]
                     trial_timestamps[samples_polled:dst_end_ix] = timestamps[:src_end_ix]
 
-                    if dst_end_ix == Ns:
+                    if dst_end_ix == self._Ns:
                         # we have polled enough data, update the buffer
                         # with the latest data plus any extra data
                         # that we did not use in this trial
-                        self.data_buffer["Data"] = np.concatenate(
+                        self._data_buffer["time_series"] = np.concatenate(
                             (trial_data, data[:, src_end_ix:]), axis=1
                         )
-                        self.data_buffer["time_stamps"] = np.concatenate(
+                        self._data_buffer["time_stamps"] = np.concatenate(
                             (trial_timestamps, timestamps[src_end_ix:])
                         )
 
@@ -725,7 +731,6 @@ class InputLSLStream(MPBase):
                     f"The stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
                 )
             time.sleep(0.1)
-
 
         if self._marker_coupled:
             # reset the maker peeked flag since we have polled new data
@@ -776,7 +781,7 @@ class InputLSLStream(MPBase):
             The last marker string
 
         """
-        if not self.active:
+        if not self._active:
             raise RuntimeError("InputLSLStream.last_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
         return self._marker_buffer["time_series"]
@@ -790,6 +795,7 @@ class InputLSLStream(MPBase):
         marker_pred=None,
         stream_info=None,
         marker_stream_info=None,
+        Ns=1
     ):
         """
         Update the input stream with new parameters
@@ -811,9 +817,11 @@ class InputLSLStream(MPBase):
             The stream info object for the stream can be passed instead of the predicate to avoid the need to resolve the stream
         marker_stream_info : pylsl.StreamInfo
             The stream info object for the marker stream can be passed instead of the predicate to avoid the need to resolve the stream
+        Ns : int, default = 1
+            The number of samples to be extracted per poll.
 
         """
-        if self.active:
+        if self._active:
             return
 
         if not stream_info:
@@ -868,7 +876,9 @@ class InputLSLStream(MPBase):
             if marker_fmt:
                 self._marker_pattern = re.compile(marker_fmt)
 
-        self.active = True
+        self._Ns = Ns
+
+        self._active = True
 
     @classmethod
     def create_marker_coupled_data_stream(
@@ -881,6 +891,7 @@ class InputLSLStream(MPBase):
         marker_pred="type='Markers'",
         stream_info=None,
         marker_stream_info=None,
+        Ns=1,
         active=True,
     ):
         """
@@ -903,6 +914,8 @@ class InputLSLStream(MPBase):
             Predicate string to match the marker stream, if None all streams will be matched
         stream_info : StreamInfo object
             StreamInfo object to use for the data stream, if None a default StreamInfo object will be created
+        Ns : int, default = 1
+            Number of samples to be extracted per poll.
 
         Examples
         --------
@@ -918,6 +931,7 @@ class InputLSLStream(MPBase):
             stream_info,
             marker_stream_info,
             active,
+            Ns=Ns
         )
         sess.add_ext_src(src)
 
@@ -929,7 +943,8 @@ class InputLSLStream(MPBase):
                                             channels=None,
                                             relative_start=0,
                                             active=True,
-                                            interval=None):
+                                            interval=None,
+                                            Ns=1):
         """
         Create a LSLStream data object that maintains only a data stream with
         no associated marker stream
@@ -948,8 +963,10 @@ class InputLSLStream(MPBase):
             Flag to indicate whether the stream is active or will be activated in the future
         interval : float
             The minimum interval at which the stream will be polled
+        Ns : int, default = 1
+            Number of samples to be extracted per poll.
         """
-        src = cls(sess, pred, channels, relative_start, marker_coupled=False, active=active, interval=interval)
+        src = cls(sess, pred, channels, relative_start, marker_coupled=False, active=active, interval=interval, Ns=Ns)
         sess.add_ext_src(src)
 
         return src
