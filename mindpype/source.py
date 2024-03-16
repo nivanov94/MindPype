@@ -496,7 +496,7 @@ class InputLSLStream(MPBase):
 
     """
 
-    MAX_NULL_READS = 100
+    MAX_NULL_READS = 1000
 
     def __init__(
         self,
@@ -616,7 +616,7 @@ class InputLSLStream(MPBase):
                         raise RuntimeError(
                             f"The marker stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
                         )
-                    time.sleep(0.1)
+                    time.sleep(0.001)
 
         else:
             # marker-uncoupled stream, determine the start time based on the interval attribute
@@ -635,8 +635,6 @@ class InputLSLStream(MPBase):
         t_begin += self._relative_start
 
         # pull the data in chunks until we get the total number of samples
-        trial_data = np.zeros((len(self._channels), self._Ns))  # allocate the array
-        trial_timestamps = np.zeros((self._Ns,))
         samples_polled = 0
 
         # First, pull the data required data from the buffer
@@ -660,26 +658,26 @@ class InputLSLStream(MPBase):
                 if self._marker_coupled:
                     # if this is a marker-coupled stream, use the oldest valid data in the buffer
                     # to ensure that the data is aligned with the marker
-                    trial_data = self._data_buffer["time_series"][:, :self._Ns]
-                    trial_timestamps = self._data_buffer["time_stamps"][:self._Ns]
+                    self._trial_data = self._data_buffer["time_series"][:, :self._Ns]
+                    self._trial_timestamps = self._data_buffer["time_stamps"][:self._Ns]
                 else:
                     # if this is a marker-uncoupled stream, use the newest valid data in the buffer
                     # to ensure that the data is as recent as possible
-                    trial_data = self._data_buffer["time_series"][:, -self._Ns:]
-                    trial_timestamps = self._data_buffer["time_stamps"][-self._Ns:]
+                    self._trial_data = self._data_buffer["time_series"][:, -self._Ns:]
+                    self._trial_timestamps = self._data_buffer["time_stamps"][-self._Ns:]
 
             # If the number of valid samples in the buffer is less than the number of samples required, extract all the data in the buffer
             else:
-                trial_data[:, :samples_polled] = self._data_buffer["time_series"]
-                trial_timestamps[:samples_polled] = self._data_buffer["time_stamps"]
+                self._trial_data[:, :samples_polled] = self._data_buffer["time_series"]
+                self._trial_timestamps[:samples_polled] = self._data_buffer["time_stamps"]
 
         # If the buffer does not contain enough data, pull data from the inlet
         null_reads = 0
         while samples_polled < self._Ns:
             data, timestamps = self._data_inlet.pull_chunk(timeout=0.0)
-            timestamps = np.asarray(timestamps)
 
             if len(timestamps) > 0:
+                timestamps = np.asarray(timestamps)
                 null_reads = 0  # reset the null reads counter
 
                 # apply time correction to timestamps
@@ -709,34 +707,34 @@ class InputLSLStream(MPBase):
                         dst_end_ix = samples_polled + chunk_sz
                         src_end_ix = chunk_sz
 
-                    trial_data[:, samples_polled:dst_end_ix] = data[:, :src_end_ix]
-                    trial_timestamps[samples_polled:dst_end_ix] = timestamps[:src_end_ix]
+                    self._trial_data[:, samples_polled:dst_end_ix] = data[:, :src_end_ix]
+                    self._trial_timestamps[samples_polled:dst_end_ix] = timestamps[:src_end_ix]
 
                     if dst_end_ix == self._Ns:
                         # we have polled enough data, update the buffer
                         # with the latest data plus any extra data
                         # that we did not use in this trial
                         self._data_buffer["time_series"] = np.concatenate(
-                            (trial_data, data[:, src_end_ix:]), axis=1
+                            (self._trial_data, data[:, src_end_ix:]), axis=1
                         )
                         self._data_buffer["time_stamps"] = np.concatenate(
-                            (trial_timestamps, timestamps[src_end_ix:])
+                            (self._trial_timestamps, timestamps[src_end_ix:])
                         )
 
                     samples_polled += chunk_sz
-        else:
-            null_reads += 1
-            if null_reads > self.MAX_NULL_READS:
-                raise RuntimeError(
-                    f"The stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
-                )
-            time.sleep(0.1)
+            else:
+                null_reads += 1
+                if null_reads > self.MAX_NULL_READS:
+                    raise RuntimeError(
+                        f"The stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
+                    )
+                time.sleep(0.001)
 
         if self._marker_coupled:
             # reset the maker peeked flag since we have polled new data
             self._already_peeked = False
 
-        return trial_data
+        return self._trial_data
 
     def peek_marker(self):
         """
@@ -877,6 +875,10 @@ class InputLSLStream(MPBase):
                 self._marker_pattern = re.compile(marker_fmt)
 
         self._Ns = Ns
+
+        # allocate array for trial data and timestamps
+        self._trial_data = np.zeros((len(self._channels), self._Ns))
+        self._trial_timestamps = np.zeros((self._Ns,))
 
         self._active = True
 
