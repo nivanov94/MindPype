@@ -14,24 +14,24 @@ class RiemannMDMClassifierKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
 
-    inA : Tensor or Array 
+    inA : Tensor or Array
         First input data
 
-    outA : Tensor or Scalar 
+    outA : Tensor or Scalar
         Output trial data
 
     initialization_data : Tensor
         Initialization data to train the classifier (n_trials, n_channels, n_samples)
-    
+
     labels : Tensor
         Labels corresponding to initialization data class labels (n_trials, )
         (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
 
     """
-    
+
     def __init__(self,graph,inA,outA,num_classes,initialization_data,labels):
         """
         Kernel takes Tensor input and produces scalar label representing
@@ -50,7 +50,7 @@ class RiemannMDMClassifierKernel(Kernel):
 
         if labels is not None:
             self.init_input_labels = labels
-    
+
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set the means for the classifier
@@ -76,7 +76,7 @@ class RiemannMDMClassifierKernel(Kernel):
     def _train_classifier(self, init_in, labels):
         """
         Train the classifier
-        
+
         The method will update the kernel's internal representation of the
         classifier
         """
@@ -86,22 +86,22 @@ class RiemannMDMClassifierKernel(Kernel):
             (labels.mp_type != MPEnums.TENSOR and
              labels.mp_type != MPEnums. ARRAY)):
                 raise TypeError('RiemannianMDM kernel: invalid initialization data or labels')
-        
+
         # extract the initialiation data
         X = extract_init_inputs(init_in)
         y = extract_init_inputs(labels)
-            
+
         # ensure the shpaes are valid
         if len(X.shape) != 3 or len(y.shape) != 1:
             raise ValueError('RiemannianMDM kernel: invalid dimensions for initialization data or labels')
-        
+
         if X.shape[0] != y.shape[0]:
             raise ValueError('RiemannianMDM kernel: number of trials in initialization data and labels must match')
-        
+
         self._classifier = classification.MDM()
         self._classifier.fit(X,y)
-        
-    
+
+
     def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized and typed
@@ -118,24 +118,24 @@ class RiemannMDMClassifierKernel(Kernel):
         if (d_out.mp_type != MPEnums.TENSOR and
             d_out.mp_type != MPEnums.SCALAR):
             raise TypeError('RiemannianMDM kernel: output must be a tensor or scalar')
-        
+
         input_shape = d_in.shape
         input_rank = len(input_shape)
-        
+
         # input tensor should not be greater than rank 3
         if input_rank > 3 or input_rank < 2:
             raise ValueError('RiemannianMDM kernel: input tensor must be rank 2 or 3')
-        
-        # if the output is a virtual tensor and dimensionless, 
+
+        # if the output is a virtual tensor and dimensionless,
         # add the dimensions now
-        if (d_out.mp_type == MPEnums.TENSOR and 
+        if (d_out.mp_type == MPEnums.TENSOR and
             d_out.virtual and
             len(d_out.shape) == 0):
             if input_rank == 2:
                 d_out.shape = (1,)
             else:
                 d_out.shape = (input_shape[0],)
-        
+
         # check for dimensional alignment
         if d_out.mp_type == MPEnums.SCALAR:
             # input tensor should only be a single trial
@@ -152,42 +152,42 @@ class RiemannMDMClassifierKernel(Kernel):
             # output tensor should be one dimensional
             if len(d_out.shape) > 1:
                 raise ValueError('RiemannianMDM kernel: output tensor must be one dimensional')
-        
+
     def _process_data(self, inputs, outputs):
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:
-            # pyriemann library requires input data to have 3 dimensions with the 
+            # pyriemann library requires input data to have 3 dimensions with the
             # first dimension being 1
             input_data = input_data[np.newaxis,:,:]
 
         outputs[0].data = self._classifier.predict(input_data)
 
     @classmethod
-    def add_riemann_MDM_node(cls,graph,inA,outA,num_classes=2,
-                             initialization_data=None,labels=None):
+    def add_to_graph(cls,graph,inA,outA,num_classes=2,
+                     initialization_data=None,labels=None):
         """
-        Factory method to create an untrained riemann minimum distance 
+        Factory method to create an untrained riemann minimum distance
         to the mean classifier kernel and add it to a graph
         as a generic node object.
-        
-        Note that the node will have to be initialized (i.e. trained) prior 
+
+        Note that the node will have to be initialized (i.e. trained) prior
         to execution of the kernel.
 
         Parameters
         ----------
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
 
-        inA : Tensor or Array 
+        inA : Tensor or Array
             First input data
 
-        outA : Tensor or Scalar 
+        outA : Tensor or Scalar
             Output trial data
 
-        initialization_data : Tensor 
+        initialization_data : Tensor
             Initialization data to train the classifier with (n_trials, n_channels, n_samples)
 
-        labels : Tensor 
+        labels : Tensor
             Class labels for initialization data (n_trials,)
 
         Returns
@@ -195,19 +195,18 @@ class RiemannMDMClassifierKernel(Kernel):
         node : Node
             Node object that contains the kernel
         """
-        
-        # create the kernel object            
+
+        # create the kernel object
         k = cls(graph,inA,outA,num_classes,initialization_data,labels)
-        
+
         # create parameter objects for the input and output
-        params = (Parameter(inA,MPEnums.INPUT), 
+        params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
-        
+
         return node
-    

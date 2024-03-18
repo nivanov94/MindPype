@@ -15,7 +15,7 @@ import numpy as np
 class RunningAverageKernel(Kernel):
     """
     Kernel to calculate running average across multiple trials in a session. Trials are automatically included into the next running average
-    calculation. 
+    calculation.
 
     Parameters
     ----------
@@ -33,7 +33,7 @@ class RunningAverageKernel(Kernel):
 
     flush_on_init : bool, default = False
         If true, flushes the buffer on initialization.
-    
+
     """
     def __init__(self, graph, inA, outA, running_average_len, axis = 0, flush_on_init = False):
         super().__init__('RunningAverage',MPEnums.INIT_FROM_NONE,graph)
@@ -43,7 +43,7 @@ class RunningAverageKernel(Kernel):
         self._running_average_len = running_average_len
         self._flush_on_init = flush_on_init
         self._axis = axis
-        
+
         self._data_buff = None
 
     def _verify(self):
@@ -82,7 +82,7 @@ class RunningAverageKernel(Kernel):
             # extract the data from the buffer
             X = extract_nested_data(self._data_buff)
             init_out.data = np.mean(X,axis=self._axis)
-        
+
 
     def _process_data(self, inputs, outputs):
         """
@@ -97,7 +97,7 @@ class RunningAverageKernel(Kernel):
 
 
     @classmethod
-    def add_running_average_node(cls, graph, inA, outA, running_average_len, axis=0, flush_on_init=False, init_input=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, outA, running_average_len, axis=0, flush_on_init=False, init_input=None, init_labels=None):
         """
         Factory method to create running average node and add it to the specified graph
 
@@ -105,7 +105,7 @@ class RunningAverageKernel(Kernel):
         ----------
         graph : Graph
             The graph where the node object should be added
-        
+
         inA : Tensor or Scalar
             Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
 
@@ -125,7 +125,7 @@ class RunningAverageKernel(Kernel):
         -------
         node : Node
             The node object that was added to the graph containing the running average kernel
-    
+
     """
         kernel = cls(graph, inA, outA, running_average_len, axis, flush_on_init)
 

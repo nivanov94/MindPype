@@ -81,7 +81,7 @@ class FeatureSelectionKernel(Kernel):
 
             self._process_data([init_tensor],
                                self.init_outputs)
-            
+
         self._initialized = True
 
 
@@ -123,7 +123,7 @@ class FeatureSelectionKernel(Kernel):
         outA.data = self._model.transform(input_data)
 
     @classmethod
-    def add_feature_selection_node(cls, graph, inA, outA, k=10, init_inputs = None, labels = None):
+    def add_to_graph(cls, graph, inA, outA, k=10, init_inputs = None, labels = None):
         """
         Factory method to create a feature selection kernel and add it to a graph as a generic node object
 

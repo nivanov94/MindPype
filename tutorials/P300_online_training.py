@@ -73,16 +73,15 @@ def main():
 
 
     # add the enqueue node to the training graph, will automatically enqueue the data from the lsl
-    mp.kernels.EnqueueKernel.add_enqueue_node(training_graph, training_input_data, training_data['data'])
+    mp.kernels.EnqueueKernel.add_to_graph(training_graph, training_input_data, training_data['data'])
 
     # online graph nodes
-    mp.kernels.FiltFiltKernel.add_filtfilt_node(online_graph, online_input_data, f, t_virt[0])
-    mp.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[0], resample_fs/Fs, t_virt[1])
-    mp.kernels.ExtractKernel.add_extract_node(online_graph, t_virt[1], extract_indices, t_virt[2])
-    mp.kernels.XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[2],
-                                                                t_virt[3])
-    mp.kernels.TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[3], t_virt[4])
-    mp.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_label, online_output_data)
+    mp.kernels.FiltFiltKernel.add_to_graph(online_graph, online_input_data, f, t_virt[0])
+    mp.kernels.ResampleKernel.add_to_graph(online_graph, t_virt[0], resample_fs/Fs, t_virt[1])
+    mp.kernels.ExtractKernel.add_to_graph(online_graph, t_virt[1], extract_indices, t_virt[2])
+    mp.kernels.XDawnCovarianceKernel.add_to_graph(online_graph, t_virt[2],t_virt[3])
+    mp.kernels.TangentSpaceKernel.add_to_graph(online_graph, t_virt[3], t_virt[4])
+    mp.kernels.ClassifierKernel.add_to_graph(online_graph, t_virt[4], classifier, pred_label, online_output_data)
 
     online_graph.set_default_initialization_data(training_data['data'], training_data['labels'])
 

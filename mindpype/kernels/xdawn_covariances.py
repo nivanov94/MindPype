@@ -8,16 +8,16 @@ import numpy as np
 class XDawnCovarianceKernel(Kernel):
     """
     Kernel to estimate special form covariance matrices for ERP combined with Xdawn
-    
+
     Parameters
     ----------
-    inA : Tensor 
+    inA : Tensor
         Input data
-    outA : Tensor 
+    outA : Tensor
         Output data
-    initialization_data : Tensor 
+    initialization_data : Tensor
         Data to initialize the estimator with (n_trials, n_channels, n_samples)
-    labels : Tensor 
+    labels : Tensor
         Class labels for initialization data
     nfilter : int, default=4
         Number of Xdawn filters per class.
@@ -37,7 +37,7 @@ class XDawnCovarianceKernel(Kernel):
     """
 
 
-    def __init__(self, graph, inA, outA, initialization_data=None, labels=None, num_filters=4, applyfilters=True, 
+    def __init__(self, graph, inA, outA, initialization_data=None, labels=None, num_filters=4, applyfilters=True,
                  classes=None, estimator='scm', xdawn_estimator='scm', baseline_cov=None, num_classes=2):
         """
         Constructor for the XDawnCovarianceKernel class
@@ -48,7 +48,7 @@ class XDawnCovarianceKernel(Kernel):
 
         if initialization_data is not None:
             self.init_inputs = [initialization_data]
-            
+
         if labels is not None:
             self.init_input_labels = labels
 
@@ -64,11 +64,11 @@ class XDawnCovarianceKernel(Kernel):
 
         init_in = init_inputs[0]
         init_out = init_outputs[0]
-        
+
         # check if the initialization data is in a Tensor, if not convert it
         if init_in.mp_type != MPEnums.TENSOR:
             init_in = init_in.to_tensor()
- 
+
         # check if the labels are in a tensor
         if labels.mp_type != MPEnums.TENSOR:
             labels = labels.to_tensor()
@@ -77,7 +77,7 @@ class XDawnCovarianceKernel(Kernel):
             raise ValueError("Number of unique labels must match number of classes")
 
         self._xdawn_estimator.fit(init_in.data, np.squeeze(labels.data))
-        
+
         if init_in is not None and init_out is not None:
             # update the init output shape as needed
             Nt = init_in.shape[0]
@@ -107,13 +107,13 @@ class XDawnCovarianceKernel(Kernel):
 
         if len(inputs[0].shape) == 2:
             input_data = input_data[np.newaxis, :, :] # input must be 3D
-        
+
         outputs[0].data = self._xdawn_estimator.transform(input_data.data)
-        
+
     @classmethod
-    def add_xdawn_covariance_node(cls, graph, inA, outA, initialization_data=None, labels=None,
-                                  num_filters=4, applyfilters=True, classes=None, 
-                                  estimator='scm', xdawn_estimator='scm', baseline_cov=None, num_classes=2):
+    def add_to_graph(cls, graph, inA, outA, initialization_data=None, labels=None,
+                     num_filters=4, applyfilters=True, classes=None,
+                     estimator='scm', xdawn_estimator='scm', baseline_cov=None, num_classes=2):
         """
         Factory method to create xdawn_covariance kernel, add it to a node, and add the node to the specified graph.
 
@@ -122,13 +122,13 @@ class XDawnCovarianceKernel(Kernel):
 
         graph : Graph
             Graph to add the node to
-        inA : Tensor 
+        inA : Tensor
             Input data
-        outA : Tensor 
+        outA : Tensor
             Output data
-        initialization_data : Tensor 
+        initialization_data : Tensor
             Data to initialize the estimator with (n_trials, n_channels, n_samples)
-        labels : Tensor 
+        labels : Tensor
             Class labels for initialization data
         nfilter : int, default=4
             Number of Xdawn filters per class.
@@ -142,7 +142,7 @@ class XDawnCovarianceKernel(Kernel):
             Covariance matrix estimator for Xdawn spatial filtering. Should be regularized using ‘lwf’ or ‘oas’, see pyriemann.utils.covariance.covariances().
         baseline_covarray, shape (n_chan, n_chan) | None, default=None
             Baseline covariance for Xdawn spatial filtering, see pyriemann.spatialfilters.Xdawn
-        
+
         Returns
         -------
         node : Node
@@ -150,7 +150,7 @@ class XDawnCovarianceKernel(Kernel):
         """
         kernel = cls(graph, inA, outA, initialization_data, labels, num_filters,
                      applyfilters, classes, estimator, xdawn_estimator, baseline_cov, num_classes)
-        
+
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))
 

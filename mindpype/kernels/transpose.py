@@ -7,23 +7,23 @@ import numpy as np
 class TransposeKernel(Kernel):
     """
     Kernel to compute the tensor transpose
-    
+
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
 
-    inputA : Tensor or Scalar 
+    inputA : Tensor or Scalar
         Input trial data
 
-    outputA : Tensor or Scalar 
+    outputA : Tensor or Scalar
         Output trial data
 
     axes : tuple or list of ints, optional
         If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
-    
+
     """
-    
+
     def __init__(self,graph,inputA,outputA,axes):
         super().__init__('Transpose',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inputA]
@@ -34,7 +34,7 @@ class TransposeKernel(Kernel):
         # check the shape
         input_shape = inA.shape
         input_rank = len(input_shape)
-        
+
         # determine what the output shape should be
         if input_rank == 0:
             return ()
@@ -57,7 +57,7 @@ class TransposeKernel(Kernel):
             if init_in.mp_type != MPEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
-            
+
             if init_out.virtual:
                 if self._axes == None:
                     init_axes = [_ for _ in range(len(init_in.shape))]
@@ -66,9 +66,9 @@ class TransposeKernel(Kernel):
                     init_axes = [0] + [a+1 for a in self._axes]
                 else:
                     init_axes = self._axes
-                    
+
                 init_out.shape = self._compute_output_shape(init_in, init_axes)
-            
+
             self._process_data([init_in], init_outputs)
 
     def _process_data(self, inputs, outputs):
@@ -78,46 +78,46 @@ class TransposeKernel(Kernel):
         outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 
     @classmethod
-    def add_transpose_node(cls,graph,inputA,outputA,axes=None,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inputA,outputA,axes=None,init_input=None,init_labels=None):
         """
         Factory method to create a transpose kernel and add it to a graph
         as a generic node object.
 
         Parameters
         ----------
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
 
-        inputA : Tensor or Scalar 
+        inputA : Tensor or Scalar
             Input trial data
 
-        outputA : Tensor or Scalar 
+        outputA : Tensor or Scalar
             Output trial data
 
         axes : tuple or list of ints, default = None
             If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
-        
+
         Returns
         -------
         node : Node
             Node object that was added to the graph containing the kernel
         """
-        
+
         # create the kernel object
         k = cls(graph,inputA,outputA,axes)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inputA,MPEnums.INPUT),
                   Parameter(outputA,MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
 
         # if initialization data is provided, add it to the node
         if init_input is not None:
             node.add_initialization_data([init_input], init_labels)
-        
+
         return node

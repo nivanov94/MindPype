@@ -106,7 +106,7 @@ class CDFKernel(Kernel):
                                        scale=self._scale)
 
     @classmethod
-    def add_cdf_node(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1,init_input=None,init_labels=None):
         """
         Factory method to create a CDF node
         """
@@ -262,7 +262,7 @@ class CovarianceKernel(Kernel):
 
 
     @classmethod
-    def add_covariance_node(cls,graph,inputA,outputA,regularization=0,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inputA,outputA,regularization=0,init_input=None,init_labels=None):
         """
         Factory method to create a covariance kernel and add it to a graph
         as a generic node object.
@@ -386,7 +386,7 @@ class MaxKernel(Descriptive, Kernel):
                                       keepdims=self._keepdims)
 
     @classmethod
-    def add_max_node(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a maximum value kernel
         and add it to a graph as a generic node object.
@@ -468,7 +468,7 @@ class MinKernel(Descriptive, Kernel):
                                       keepdims=self._keepdims)
 
     @classmethod
-    def add_min_node(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a minimum value kernel
         and add it to a graph as a generic node object.
@@ -551,7 +551,7 @@ class MeanKernel(Descriptive, Kernel):
                                   keepdims=self._keepdims)
 
     @classmethod
-    def add_mean_node(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a mean calculating kernel
 
@@ -658,7 +658,7 @@ class StdKernel(Descriptive, Kernel):
                                  keepdims=self._keepdims)
 
     @classmethod
-    def add_std_node(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to add a standard deviation node to a graph
 
@@ -764,7 +764,7 @@ class VarKernel(Descriptive, Kernel):
                                  keepdims=self._keepdims)
 
     @classmethod
-    def add_var_node(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None,ddof=0,keepdims=False,init_input=None,init_labels=None):
         """
         Factory method to create a variance kernel
 
@@ -868,9 +868,9 @@ class KurtosisKernel(Descriptive, Kernel):
                                    nan_policy=self._nan_policy)
 
     @classmethod
-    def add_kurtosis_node(cls,graph,inA,outA,axis=None,keepdims=False,
-                          bias=True,fisher=True,nan_policy='propagate',
-                          init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None,keepdims=False,
+                     bias=True,fisher=True,nan_policy='propagate',
+                     init_input=None,init_labels=None):
         """
         Factory method to create a kurtosis calculating kernel
 
@@ -987,9 +987,9 @@ class SkewnessKernel(Descriptive, Kernel):
                                nan_policy=self._nan_policy)
 
     @classmethod
-    def add_skewness_node(cls,graph,inA,outA,axis=None,keepdims=False,
-                          bias=True,nan_policy='propagate',
-                          init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None,keepdims=False,
+                     bias=True,nan_policy='propagate',
+                     init_input=None,init_labels=None):
         """
         Factory method to create a skewness calculating kernel
 
@@ -1141,7 +1141,7 @@ class ZScoreKernel(Kernel):
         outputs[0].data = (inputs[0].data - self._mu) / self._sigma
 
     @classmethod
-    def add_zscore_node(cls,graph,inA,outA,init_data):
+    def add_to_graph(cls,graph,inA,outA,init_data):
         """
         Factory method to create a z-score value kernel
         and add it to a graph as a generic node object.

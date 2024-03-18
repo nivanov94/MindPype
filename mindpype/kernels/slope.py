@@ -120,8 +120,8 @@ class SlopeKernel(Kernel):
         outA.data = np.expand_dims(Y.dot(X) / X.dot(X), axis=-1)
 
     @classmethod
-    def add_slope_node(cls, graph, inA, outA, Fs=1, axis=-1,
-                       init_inputs=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, outA, Fs=1, axis=-1,
+                     init_inputs=None, init_labels=None):
         """
         Factory method to create a slope estimation kernel
 

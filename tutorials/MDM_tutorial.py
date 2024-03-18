@@ -23,7 +23,7 @@ def main():
     training_data = np.zeros((180,12,12))
     for i in range(180):
         training_data[i,:,:] = np.cov(raw_training_data[i,:,:],rowvar=False)
-        
+
     labels = np.asarray([0]*60 + [1]*60 + [2]*60)
     X = mp.Tensor.create_from_data(s,training_data)
     y = mp.Tensor.create_from_data(s,labels)
@@ -31,9 +31,9 @@ def main():
     input_data = np.random.randn(12,500)
     t_in = mp.Tensor.create_from_data(s,input_data)
     s_out = mp.Scalar.create_from_value(s,-1)
-    t_virt = [mp.Tensor.create_virtual(s), 
+    t_virt = [mp.Tensor.create_virtual(s),
               mp.Tensor.create_virtual(s)]
-    
+
     # create a filter
     order = 4
     bandpass = (8,35) # in Hz
@@ -41,11 +41,11 @@ def main():
     f = mp.Filter.create_butter(s,order,bandpass,btype='bandpass',fs=fs,implementation='sos')
 
     # add the nodes
-    mp.kernels.CovarianceKernel.add_covariance_node(trial_graph,t_virt[0],t_virt[1])
-    mp.kernels.FilterKernel.add_filter_node(trial_graph,t_in,f,t_virt[0])
-    mp.kernels.RiemannMDMClassifierKernel.add_riemann_MDM_node(trial_graph,
-                                                               t_virt[1],
-                                                               s_out,3,X,y)
+    mp.kernels.CovarianceKernel.add_to_graph(trial_graph,t_virt[0],t_virt[1])
+    mp.kernels.FilterKernel.add_to_graph(trial_graph,t_in,f,t_virt[0])
+    mp.kernels.RiemannMDMClassifierKernel.add_to_graph(trial_graph,
+                                                       t_virt[1],
+                                                       s_out,3,X,y)
 
     # verify the session (i.e. schedule the nodes)
     trial_graph.verify()
@@ -54,9 +54,9 @@ def main():
 
     # RUN!
     trial_graph.execute(0)
-    
+
     print(s_out.data)
-    
+
     print("Test Passed =D")
 
 

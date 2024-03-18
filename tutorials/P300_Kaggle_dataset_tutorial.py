@@ -65,16 +65,16 @@ def main():
 
     classifier = mp.Classifier.create_logistic_regression(sess)
 
-    mp.kernels.PadKernel.add_pad_node(online_graph, online_tensor, t_virt[0], pad_width=((0,0), (0,0), (len(f.coeffs['fir']), len(f.coeffs['fir']))), mode='edge')
-    mp.kernels.FilterKernel.add_filter_node(online_graph, t_virt[0], f, t_virt[1], axis=2)
+    mp.kernels.PadKernel.add_to_graph(online_graph, online_tensor, t_virt[0], pad_width=((0,0), (0,0), (len(f.coeffs['fir']), len(f.coeffs['fir']))), mode='edge')
+    mp.kernels.FilterKernel.add_to_graph(online_graph, t_virt[0], f, t_virt[1], axis=2)
 
-    mp.kernels.ExtractKernel.add_extract_node(online_graph, t_virt[1], extract_indices, t_virt[2])
-    mp.kernels.BaselineCorrectionKernel.add_baseline_node(online_graph, t_virt[2], t_virt[4], baseline_period=[0*Fs, 0.2*Fs])
+    mp.kernels.ExtractKernel.add_to_graph(online_graph, t_virt[1], extract_indices, t_virt[2])
+    mp.kernels.BaselineCorrectionKernel.add_to_graph(online_graph, t_virt[2], t_virt[4], baseline_period=[0*Fs, 0.2*Fs])
 
-    mp.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[4], resample_fs/Fs, t_virt[5], axis=2)
-    mp.kernels.XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[5], t_virt[6], num_filters=4, estimator="lwf", xdawn_estimator="lwf")
-    mp.kernels.TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[6], t_virt[7], metric="riemann")
-    node_9 = mp.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[7], classifier , pred_label, pred_probs)
+    mp.kernels.ResampleKernel.add_to_graph(online_graph, t_virt[4], resample_fs/Fs, t_virt[5], axis=2)
+    mp.kernels.XDawnCovarianceKernel.add_to_graph(online_graph, t_virt[5], t_virt[6], num_filters=4, estimator="lwf", xdawn_estimator="lwf")
+    mp.kernels.TangentSpaceKernel.add_to_graph(online_graph, t_virt[6], t_virt[7], metric="riemann")
+    node_9 = mp.kernels.ClassifierKernel.add_to_graph(online_graph, t_virt[7], classifier , pred_label, pred_probs)
 
     online_graph.set_default_init_data(offline_tensor, offline_labels)
 

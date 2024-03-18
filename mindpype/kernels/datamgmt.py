@@ -156,7 +156,7 @@ class ConcatenationKernel(Kernel):
 
 
     @classmethod
-    def add_concatenation_node(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
         """
         Factory method to create a concatenation kernel and add it to a graph
         as a generic node object.
@@ -277,7 +277,7 @@ class EnqueueKernel(Kernel):
             inputs[1].enqueue(cpy)
 
     @classmethod
-    def add_enqueue_node(cls,graph,inA,queue,enqueue_flag=None):
+    def add_to_graph(cls,graph,inA,queue,enqueue_flag=None):
         """
         Factory method to create a enqueue kernel and add it to a graph as a generic node object.
 
@@ -529,7 +529,7 @@ class ExtractKernel(Kernel):
 
 
     @classmethod
-    def add_extract_node(cls,graph,inA,indices,outA,reduce_dims=False,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,indices,outA,reduce_dims=False,init_input=None,init_labels=None):
         """
         Factory method to create an extract kernel
         and add it to a graph as a generic node object.
@@ -659,7 +659,7 @@ class StackKernel(Kernel):
         outA.data = np.stack(input_data,axis=stack_axis)
 
     @classmethod
-    def add_stack_node(cls,graph,inA,outA,axis=None):
+    def add_to_graph(cls,graph,inA,outA,axis=None):
         """
         Factory method to create a stack kernel and add it to a graph
         as a generic node object.
@@ -803,7 +803,7 @@ class TensorStackKernel(Kernel):
 
 
     @classmethod
-    def add_tensor_stack_node(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,inB,outA,axis=0,init_inputs=None,init_labels=None):
         """
         Factory method to create a tensor stack kernel and add it to a graph
         as a generic node object.
@@ -931,8 +931,8 @@ class ReshapeKernel(Kernel):
         outA.data = inA.data.reshape(outA.shape)
 
     @classmethod
-    def add_reshape_node(cls, graph, inA, outA, shape,
-                         init_inputs=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, outA, shape,
+                     init_inputs=None, init_labels=None):
         """
         Factory method to create a reshape kernel and add it to a graph
         as a generic node object.

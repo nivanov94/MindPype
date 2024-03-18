@@ -159,7 +159,7 @@ class ClassifierKernel(Kernel):
 
 
     @classmethod
-    def add_classifier_node(cls, graph, inA, classifier, outA, outB = None, num_classes = 2, initialization_data = None, labels = None):
+    def add_to_graph(cls, graph, inA, classifier, outA, outB = None, num_classes = 2, initialization_data = None, labels = None):
         """
         Factory method to create a classifier kernel and add it to a graph as a generic node object
 

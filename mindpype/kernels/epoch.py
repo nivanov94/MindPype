@@ -72,7 +72,7 @@ class EpochKernel(Kernel):
             if len(init_in.shape) == len(self.inputs[0].shape)+1 and self._axis >= 0:
                 self._axis += 1
                 axis_adjusted = True
-            
+
             # update output size, as needed
             if init_out.virtual:
                 init_out.shape = self._compute_output_shape(init_in.shape)
@@ -134,8 +134,8 @@ class EpochKernel(Kernel):
             outA.data[tuple(dst_slc)] = inA.data[tuple(src_slc)]
 
     @classmethod
-    def add_epoch_node(cls, graph, inA, outA, epoch_len, epoch_stride=None,
-                       axis=-1, init_inputs=None, labels=None):
+    def add_to_graph(cls, graph, inA, outA, epoch_len, epoch_stride=None,
+                     axis=-1, init_inputs=None, labels=None):
         """
         Factory method to create an epoch kernel and add it to a graph as a
         generic node object.

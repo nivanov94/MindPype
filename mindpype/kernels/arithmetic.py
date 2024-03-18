@@ -22,7 +22,7 @@ class Unary:
         Input data container
     outA : MindPype Tensor or Scalar data container
         Output data container
-    
+
     See Also
     --------
     Kernel : Base class for all kernels
@@ -109,7 +109,7 @@ class AbsoluteKernel(Unary, Kernel):
         outputs[0].data = np.absolute(inputs[0].data)
 
     @classmethod
-    def add_absolute_node(cls, graph, inA, outA, init_input=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, outA, init_input=None, init_labels=None):
         """
         Factory method to create an absolute value kernel node
         and add it to a graph.
@@ -123,13 +123,13 @@ class AbsoluteKernel(Unary, Kernel):
         outA : MindPype Tensor or Scalar data container
             Output data container
         init_input : MindPype Tensor or Scalar data container, default=None
-            MindPype data container with initialization data to be 
-            transformed and passed to downstream nodes during graph 
+            MindPype data container with initialization data to be
+            transformed and passed to downstream nodes during graph
             initialization
 
         Return
         ------
-        node : Node 
+        node : Node
             Node object containing the absolute kernel and parameters
 
         """
@@ -160,11 +160,11 @@ class LogKernel(Unary, Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
-    inA : Tensor or Scalar 
+    inA : Tensor or Scalar
         Input trial data
-    outA : Tensor or Scalar 
+    outA : Tensor or Scalar
         Output trial data
     """
 
@@ -181,16 +181,16 @@ class LogKernel(Unary, Kernel):
 
         Parameters
         ----------
-        input_data : Tensor or Scalar 
+        input_data : Tensor or Scalar
             Input trial data
-        output_data : Tensor or Scalar 
+        output_data : Tensor or Scalar
             Output trial data
 
         """
         outputs[0].data = np.log(inputs[0].data)
 
     @classmethod
-    def add_log_node(cls, graph, inA, outA, init_input=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, outA, init_input=None, init_labels=None):
         """
         Factory method to create a log kernel node
         and add it to a graph.
@@ -204,8 +204,8 @@ class LogKernel(Unary, Kernel):
         outA : MindPype Tensor or Scalar data container
             Output data container
         init_input : MindPype Tensor or Scalar data container, default=None
-            MindPype data container with initialization data to be 
-            transformed and passed to downstream nodes during graph 
+            MindPype data container with initialization data to be
+            transformed and passed to downstream nodes during graph
             initialization
         init_labels : MindPype Tensor or Array data container, default=None
             MindPype data container with initialization labels to be
@@ -213,7 +213,7 @@ class LogKernel(Unary, Kernel):
 
         Return
         ------
-        node : Node 
+        node : Node
             Node object containing the log kernel and parameters
         """
 
@@ -254,7 +254,7 @@ class Binary:
         Input data container
     outA : MindPype Tensor or Scalar data container
         Output data container
-    
+
     See Also
     --------
     Kernel : Base class for all kernels
@@ -290,12 +290,12 @@ class Binary:
 
         accepted_data_inputs = (MPEnums.TENSOR, MPEnums.ARRAY,
                                 MPEnums.CIRCLE_BUFFER, MPEnums.SCALAR)
-        
+
         # check the init inputs are in valid data objects
         for init_obj in (init_inA, init_inB):
             if init_obj.mp_type not in accepted_data_inputs:
                 raise TypeError("Invalid initialization input type")
-            
+
         # extract the data from the input
         X = [None] * 2
         for i, i_in in enumerate((init_inA, init_inB)):
@@ -352,7 +352,7 @@ class AdditionKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data + inputs[1].data
 
     @classmethod
-    def add_addition_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
         Factory method to create an addition kernel node
         and add it to a graph
@@ -368,8 +368,8 @@ class AdditionKernel(Binary, Kernel):
         outA : MindPype Tensor or Scalar data container
             Output data container
         init_inputs : List of two MindPype Tensor or Scalar data containers, default=None
-            MindPype data containers with initialization data to be 
-            transformed and passed to downstream nodes during graph 
+            MindPype data containers with initialization data to be
+            transformed and passed to downstream nodes during graph
             initialization
         init_labels : MindPype Tensor or Array data container, default=None
             MindPype data container with initialization labels to be
@@ -417,7 +417,7 @@ class DivisionKernel(Binary, Kernel):
         Input containing the divisor
     outA : MindPype Tensor or Scalar data container
         Output data container
- 
+
     See Also
     --------
     Kernel : Base class for all kernels
@@ -446,9 +446,9 @@ class DivisionKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data / inputs[1].data
 
     @classmethod
-    def add_division_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
-        Factory method to create a division kernel node 
+        Factory method to create a division kernel node
         and add it to a graph.
 
         Parameters
@@ -462,8 +462,8 @@ class DivisionKernel(Binary, Kernel):
         outA : MindPype Tensor or Scalar data container
             Output data container
         init_inputs : List of two MindPype Tensor or Scalar data containers, default=None
-            MindPype data containers with initialization data to be 
-            transformed and passed to downstream nodes during graph 
+            MindPype data containers with initialization data to be
+            transformed and passed to downstream nodes during graph
             initialization
         init_labels : MindPype Tensor or Array data container, default=None
             MindPype data container with initialization labels to be
@@ -513,7 +513,7 @@ class MultiplicationKernel(Binary, Kernel):
         Input data container
     outA : MindPype Tensor or Scalar data container
         Output data container
-    
+
     See Also
     --------
     Kernel : Base class for all kernels
@@ -542,9 +542,9 @@ class MultiplicationKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data * inputs[1].data
 
     @classmethod
-    def add_multiplication_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
-        Factory method to create a multiplication kernel node 
+        Factory method to create a multiplication kernel node
         and add it to a graph
 
         Parameters
@@ -567,7 +567,7 @@ class MultiplicationKernel(Binary, Kernel):
 
         Returns
         -------
-        node : Node 
+        node : Node
             Node object that has kernel and parameter stored in it
         """
 
@@ -600,7 +600,7 @@ class SubtractionKernel(Binary, Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
     inA : MindPype Tensor or Scalar data container
         Input containing the minuend
@@ -608,7 +608,7 @@ class SubtractionKernel(Binary, Kernel):
         Input containing the subtrahend
     outA : MindPype Tensor or Scalar data container
         Output data container
-    
+
     See Also
     --------
     Kernel : Base class for all kernels
@@ -637,7 +637,7 @@ class SubtractionKernel(Binary, Kernel):
         outputs[0].data = inputs[0].data - inputs[1].data
 
     @classmethod
-    def add_subtraction_node(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
+    def add_to_graph(cls, graph, inA, inB, outA, init_inputs=None, init_labels=None):
         """
         Factory method to create a subtraction kernel node
         and add it to a graph

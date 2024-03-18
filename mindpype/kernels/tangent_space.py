@@ -91,9 +91,9 @@ class TangentSpaceKernel(Kernel):
         outputs[0].data = self._tangent_space.transform(local_input_data)
 
     @classmethod
-    def add_tangent_space_node(cls, graph, inA, outA, initialization_data=None,
-                               regularization=0, metric='riemann',
-                               tsupdate=False, sample_weight=None):
+    def add_to_graph(cls, graph, inA, outA, initialization_data=None,
+                     regularization=0, metric='riemann',
+                     tsupdate=False, sample_weight=None):
         """
         Factory method to create a tangent_space_kernel, add it to a node,
         and add the node to a specified graph

@@ -7,24 +7,24 @@ from ..containers import Scalar
 class ThresholdKernel(Kernel):
     """
     Determine if scalar or tensor data elements are above or below threshold
-    
+
     Parameters
     ----------
 
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
 
-    inA : Tensor or Scalar 
+    inA : Tensor or Scalar
         Input trial data
 
-    outA : Tensor or Scalar 
+    outA : Tensor or Scalar
         Output trial data
 
     thresh : float
-        Threshold value 
+        Threshold value
 
     """
-    
+
     def __init__(self,graph,inA,outA,thresh):
         super().__init__('Threshold',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA, thresh]
@@ -57,7 +57,7 @@ class ThresholdKernel(Kernel):
         thresh = self.inputs[1]
 
         # input/output must be a tensor or scalar
-        if not ((d_in.mp_type == MPEnums.TENSOR and d_out.mp_type == MPEnums.TENSOR) or 
+        if not ((d_in.mp_type == MPEnums.TENSOR and d_out.mp_type == MPEnums.TENSOR) or
                 (d_in.mp_type == MPEnums.SCALAR and d_out.mp_type == MPEnums.SCALAR)):
             raise TypeError("Threshold Kernel: Input and output must be either both tensors or both scalars")
 
@@ -92,50 +92,50 @@ class ThresholdKernel(Kernel):
         """
         thresh = inputs[1]
         outputs[0].data = inputs[0].data > thresh.data
-    
+
     @classmethod
-    def add_threshold_node(cls,graph,inA,outA,thresh,init_inputs=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,thresh,init_inputs=None,init_labels=None):
         """
-        Factory method to create a threshold value kernel 
+        Factory method to create a threshold value kernel
         and add it to a graph as a generic node object.
 
         Parameters
         ----------
 
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
 
-        inA : Tensor or Scalar 
+        inA : Tensor or Scalar
             Input trial data
 
-        outA : Tensor or Scalar 
+        outA : Tensor or Scalar
             Output trial data
 
         thresh : float
             Threshold value
-        
+
         Returns
         -------
         node : Node
             Node object that was added to the graph containing the kernel
         """
-        
+
         # create the kernel object
         k = cls(graph,inA,outA,thresh)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT),
                   Parameter(thresh,MPEnums.INPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
 
         # if initialization data is provided, add it to the node
         if init_inputs is not None:
             node.add_initialization_data(init_inputs, init_labels)
-        
+
         return node

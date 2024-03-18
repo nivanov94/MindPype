@@ -8,25 +8,25 @@ import numpy as np
 class ResampleKernel(Kernel):
     """
     Kernel to resample timeseries data
-    
+
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
 
-    inA : Tensor or Array 
+    inA : Tensor or Array
         Input trial data
 
     factor: float
         Resample factor
 
-    outA : Tensor 
+    outA : Tensor
         Resampled timeseries data
-        
+
     axis :
         The axis that is to be resampled
     """
-    
+
     def __init__(self,graph,inA,factor,outA,axis = 1):
         super().__init__('Resample',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
@@ -54,7 +54,7 @@ class ResampleKernel(Kernel):
 
             if axis_adjusted:
                 self._axis -= 1
-    
+
 
     def _process_data(self, inputs, outputs):
         """
@@ -64,51 +64,51 @@ class ResampleKernel(Kernel):
                                           np.ceil(inputs[0].shape[self._axis] * self._factor).astype(int),
                                           axis=self._axis)
 
-    
+
     @classmethod
-    def add_resample_node(cls,graph,inA,factor,outA,axis=1,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,factor,outA,axis=1,init_input=None,init_labels=None):
         """
-        Factory method to create an extract kernel 
+        Factory method to create an extract kernel
         and add it to a graph as a generic node object.
 
         Parameters
         ----------
-        graph : Graph 
+        graph : Graph
             Graph that the kernel should be added to
 
-        inA : Tensor or Array 
+        inA : Tensor or Array
             Input trial data
 
         factor: float
             Resample factor
 
-        outA : Tensor 
+        outA : Tensor
             Resampled timeseries data
-        
+
         axis : int, default = 1
             The axis that is to be resampled
-        
+
         Returns
         -------
         node : Node
             Node object that contains the kernel and its parameters
         """
-        
+
         # create the kernel object
         k = cls(graph,inA,factor,outA,axis)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
 
         # if initialization data is provided, add it to the node
         if init_input is not None:
             node.add_initialization_data([init_input], init_labels)
-        
+
         return node

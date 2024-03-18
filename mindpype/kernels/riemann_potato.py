@@ -17,21 +17,21 @@ class RiemannPotatoKernel(Kernel):
 
     Parameters
     ----------
-   
-    graph : Graph 
+
+    graph : Graph
         Graph that the kernel should be added to
 
-    inputA : Tensor or Array 
+    inputA : Tensor or Array
         First input data
 
-    outputA : Tensor or Scalar 
+    outputA : Tensor or Scalar
         Output trial data
 
-    out_score : 
+    out_score :
 
 
     """
-    
+
     def __init__(self,graph,inA,outA,thresh,max_iter,regulization,
                  initialization_data=None):
         """
@@ -45,7 +45,7 @@ class RiemannPotatoKernel(Kernel):
         self._thresh = thresh
         self._max_iter = max_iter
         self._r = regulization
-        
+
         if initialization_data is not None:
             self.init_inputs = [initialization_data]
 
@@ -55,8 +55,8 @@ class RiemannPotatoKernel(Kernel):
 
         self._covariance_inputs = (0,)
 
-        
-    
+
+
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set reference covariance matrix, mean, and standard deviation
@@ -64,7 +64,7 @@ class RiemannPotatoKernel(Kernel):
 
         init_in = init_inputs[0]
         init_out = init_outputs[0]
-        
+
         self._fit_filter(init_in)
 
         # compute init output
@@ -80,7 +80,7 @@ class RiemannPotatoKernel(Kernel):
                 init_trial_data = init_in.data
                 init_covs = covariances(init_trial_data)
                 init_in = Tensor.create_from_data(self.session, init_covs)
- 
+
             self._process_data([init_in], init_outputs)
 
     def _fit_filter(self, init_in):
@@ -92,18 +92,18 @@ class RiemannPotatoKernel(Kernel):
             init_in.mp_type != MPEnums.ARRAY  and
             init_in.mp_type != MPEnums.CIRCLE_BUFFER):
             raise TypeError("Riemannian potato kernel: Initialization data must be a Tensor or Array")
-        
+
         # extract the initialization data
         X = extract_init_inputs(init_in)
 
         if len(X.shape) != 3:
             raise ValueError("Riemannian potato kernel: Initialization data must be a 3D Tensor")
-        
+
         if X.shape[-2] != X.shape[-1]:
             # convert to covs
             X = covariances(X)
             X = (1-self._r)*X + self._r*np.eye(X.shape[-1])
-        
+
         self._potato_filter = Potato(threshold=self._thresh, n_iter_max=self._max_iter)
         self._potato_filter.fit(X)
 
@@ -128,29 +128,29 @@ class RiemannPotatoKernel(Kernel):
             raise ValueError("Riemannian potato kernel: Threshold must be greater than 0")
 
         if self._max_iter < 0:
-            raise ValueError("Riemannian potato kernel: Maximum iterations must be greater than 0")            
+            raise ValueError("Riemannian potato kernel: Maximum iterations must be greater than 0")
 
-        # check in/out dimensions        
+        # check in/out dimensions
         input_shape = d_in.shape
         input_rank = len(input_shape)
-        
+
         if input_rank > 3 or input_rank < 2:
             raise ValueError("Riemannian potato kernel: Input tensor must be rank 2 or 3")
-        
+
         # input should be a covariance matrix
         if input_shape[-2] != input_shape[-1]:
             raise ValueError("Riemannian potato kernel: Input tensor must be a covariance matrix")
-        
-        # if the output is a virtual tensor and dimensionless, 
+
+        # if the output is a virtual tensor and dimensionless,
         # add the dimensions now
-        if (d_out.mp_type == MPEnums.TENSOR and 
+        if (d_out.mp_type == MPEnums.TENSOR and
             d_out.virtual and
             len(d_out.shape) == 0):
             if input_rank == 2:
                 d_out.shape = (1,)
             else:
                 d_out.shape = (input_shape[0],)
-        
+
         # check for dimensional alignment
         if d_out.mp_type == MPEnums.SCALAR:
             # input tensor should only be a single trial
@@ -167,21 +167,21 @@ class RiemannPotatoKernel(Kernel):
             # output tensor should be one dimensional
             if len(np.squeeze(d_out.shape)) > 1:
                 raise ValueError("Riemannian potato kernel: Output tensor must be one dimensional")
-        
+
     def _process_data(self, inputs, outputs):
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:
-            # pyriemann library requires input data to have 3 dimensions with the 
+            # pyriemann library requires input data to have 3 dimensions with the
             # first dimension being 1
             input_data = input_data[np.newaxis,:,:]
 
-        
+
         input_data = (1-self._r)*input_data + self._r*np.eye(inputs[0].shape[-1])
         outputs[0].data = self._potato_filter.predict(input_data)
 
     @classmethod
-    def add_riemann_potato_node(cls,graph,inA,outA, initialization_data=None,
-                                thresh=3,max_iter=100,regularization=0.01):
+    def add_to_graph(cls,graph,inA,outA, initialization_data=None,
+                     thresh=3,max_iter=100,regularization=0.01):
         """
         Factory method to create a riemann potato artifact detector
 
@@ -208,20 +208,20 @@ class RiemannPotatoKernel(Kernel):
         regularization : float, default = 0.01
             Regularization parameter for the potato filter
         """
-        
-        # create the kernel object            
+
+        # create the kernel object
 
         k = cls(graph,inA,outA,thresh,max_iter,regularization,
                 initialization_data)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA, MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
-        
+
         return node

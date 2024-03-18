@@ -10,13 +10,13 @@ class RiemannMeanKernel(Kernel):
 
     Parameters
     ----------
-    graph : Graph 
+    graph : Graph
         Graph that the kernel should be added to
 
-    inA : Tensor 
+    inA : Tensor
         Input data
 
-    outA : Tensor 
+    outA : Tensor
         Output trial data
 
     axis : int
@@ -25,7 +25,7 @@ class RiemannMeanKernel(Kernel):
     weights : array_like
         Weights for each sample
     """
-    
+
     def __init__(self,graph,inA,outA,weights):
         """
         Kernel takes 3D Tensor input and produces 2D Tensor representing mean
@@ -52,13 +52,13 @@ class RiemannMeanKernel(Kernel):
                 init_out.shape = init_in.shape[-2:] # TODO what are the expected inputs? will we ever compute more than one mean here?
 
             self._process_data([init_in], init_outputs)
-            
+
 
     def _process_data(self, inputs, outputs):
         outputs[0].data = mean_riemann(inputs[0].data, sample_weight=self._w)
 
     @classmethod
-    def add_riemann_mean_node(cls,graph,inA,outA,weights=None,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,weights=None,init_input=None,init_labels=None):
         """
         Factory method to create a Riemann mean calculating kernel
 
@@ -69,29 +69,29 @@ class RiemannMeanKernel(Kernel):
 
         inA : Tensor
             Input data
-        
+
         outA : Tensor
             Output trial data
 
         weights : array_like, default=None
         """
-        
+
         # create the kernel object
         k = cls(graph,inA,outA,weights)
-        
+
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
                   Parameter(outA,MPEnums.OUTPUT))
-        
+
         # add the kernel to a generic node object
         node = Node(graph,k,params)
-        
+
         # add the node to the graph
         graph.add_node(node)
 
         # if initialization data is provided, add it to the node
         if init_input is not None:
             node.add_initialization_data([init_input],init_labels)
-        
+
         return node
-    
+

@@ -115,8 +115,8 @@ class FeatureNormalizationKernel(Kernel):
         outputs[0].data = (inputs[0].data - self._translate) / self._scale
 
     @classmethod
-    def add_feature_normalization_node(cls,graph,inA,outA,
-                                       init_data=None,labels=None,method='zscore-norm', axis=0):
+    def add_to_graph(cls,graph,inA,outA,
+                     init_data=None,labels=None,method='zscore-norm', axis=0):
         """
         Factory method to create a feature normalization kernel
 

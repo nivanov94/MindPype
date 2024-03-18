@@ -26,13 +26,13 @@ def preprocess_labels(sess,offline_data_src, labels):
             else:
                 scalar.data = 0
                 task_series_list.append(0)
-            
+
             labels.enqueue(scalar)
 
     # Remove all markers that are not 'flash'
     i = 0
     l = len(ls)
-    
+
     offline_data_src.trial_data['Markers']['time_series'] = np.squeeze(offline_data_src.trial_data['Markers']['time_series'])
     while i < l:
         if list(json.loads(offline_data_src.trial_data['Markers']['time_series'][i]).keys())[0] != 'flash':
@@ -43,7 +43,7 @@ def preprocess_labels(sess,offline_data_src, labels):
             i += 1
 
     # Convert flash markers to target/non-target labels
-    for i in range(len(offline_data_src.trial_data['Markers']['time_series'])):    
+    for i in range(len(offline_data_src.trial_data['Markers']['time_series'])):
         if task_series_list[i] == 1:
             offline_data_src.trial_data['Markers']['time_series'][i] = json.dumps({'target': 1})
         elif task_series_list[i] == 0:
@@ -64,19 +64,19 @@ def main(file):
     channels = tuple([_ for _ in range(3,17)])
 
     # Data sources from LSL
-    LSL_data_src = mp.source.InputLSLStream.create_marker_coupled_data_stream(sess, 
-                                                                              "type='EEG'", 
-                                                                              channels, 
-                                                                              relative_start=-0.2, 
-                                                                              marker_fmt='.*flash', 
+    LSL_data_src = mp.source.InputLSLStream.create_marker_coupled_data_stream(sess,
+                                                                              "type='EEG'",
+                                                                              channels,
+                                                                              relative_start=-0.2,
+                                                                              marker_fmt='.*flash',
                                                                               marker_pred="type='Marker'")
-    
-    # training data sources from XDF file
-    offline_data_src = mp.source.BcipXDF.create_class_separated(sess, file, ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs)) 
 
-    xdf_tensor = mp.containers.Tensor.create_from_data(sess, 
+    # training data sources from XDF file
+    offline_data_src = mp.source.BcipXDF.create_class_separated(sess, file, ['flash'], channels=channels, relative_start=-0.2, Ns = np.ceil(Fs))
+
+    xdf_tensor = mp.containers.Tensor.create_from_data(sess,
                                                        offline_data_src.trial_data['Data']['time_series']['flash'])
-    
+
     init_d = pickle.load(open(r'/path/to/init_data', 'rb'))[0]
 
     xdf_tensor = mp.containers.Tensor.create_from_data(sess, init_d)
@@ -92,7 +92,7 @@ def main(file):
 
     # online graph data containers (i.e. graph edges)
     pred_probs = mp.Tensor.create_virtual(sess, shape=(1,2)) # output of classifier
-    pred_label = mp.Tensor.create_virtual(sess, shape=(1,)) 
+    pred_label = mp.Tensor.create_virtual(sess, shape=(1,))
 
     t_virt = [mp.Tensor.create_virtual(sess), # output of filter, input to resample
               mp.Tensor.create_virtual(sess), # output of resample, input to extract
@@ -102,14 +102,14 @@ def main(file):
               mp.Tensor.create_virtual(sess),
               mp.Tensor.create_virtual(sess),
               mp.Tensor.create_virtual(sess)]
-    
+
     classifier = mp.Classifier.create_logistic_regression(sess)
-    mp.kernels.FilterKernel.add_filter_node(online_graph, online_input_data, f, t_virt[1], axis=1)
-    mp.kernels.BaselineCorrectionKernel.add_baseline_node(online_graph, t_virt[1], t_virt[4], baseline_period=[0*Fs, 0.2*Fs])
-    mp.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[4], resample_fs/Fs, t_virt[5], axis=1)
-    mp.kernels.XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[5], t_virt[6], num_filters=4, estimator="lwf", xdawn_estimator="lwf")
-    mp.kernels.TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[6], t_virt[7], metric="riemann")
-    mp.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[7], classifier , pred_label, pred_probs)
+    mp.kernels.FilterKernel.add_to_graph(online_graph, online_input_data, f, t_virt[1], axis=1)
+    mp.kernels.BaselineCorrectionKernel.add_to_graph(online_graph, t_virt[1], t_virt[4], baseline_period=[0*Fs, 0.2*Fs])
+    mp.kernels.ResampleKernel.add_to_graph(online_graph, t_virt[4], resample_fs/Fs, t_virt[5], axis=1)
+    mp.kernels.XDawnCovarianceKernel.add_to_graph(online_graph, t_virt[5], t_virt[6], num_filters=4, estimator="lwf", xdawn_estimator="lwf")
+    mp.kernels.TangentSpaceKernel.add_to_graph(online_graph, t_virt[6], t_virt[7], metric="riemann")
+    mp.kernels.ClassifierKernel.add_to_graph(online_graph, t_virt[7], classifier , pred_label, pred_probs)
 
     online_graph.set_default_init_data(xdf_tensor, labels)
 
@@ -117,7 +117,7 @@ def main(file):
 
     # initialize the classifiers (i.e., train the classifier)
     online_graph.initialize()
-        
+
     # Run the online trials
     for t_num in range(100):
         try:
@@ -126,7 +126,7 @@ def main(file):
             print(f"trial {t_num+1} Probabilities = {pred_probs.data}")
         except:
             print(f"Trial {t_num+1} raised error")
-    
+
 
 if __name__ == "__main__":
     files = ['path/to/data/files/']

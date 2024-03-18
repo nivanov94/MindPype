@@ -104,55 +104,55 @@ def main():
 
     # offline
     offline_graph = mp.Graph.create(s)
-    mp.kernels.EnqueueKernel.add_enqueue_node(offline_graph,
-                                              t_trial,
-                                              cb_prev_trials)
+    mp.kernels.EnqueueKernel.add_to_graph(offline_graph,
+                                          t_trial,
+                                          cb_prev_trials)
 
-    mp.kernels.EnqueueKernel.add_enqueue_node(offline_graph,
-                                              s_true,
-                                              cb_labels)
+    mp.kernels.EnqueueKernel.add_to_graph(offline_graph,
+                                          s_true,
+                                          cb_labels)
 
     # online
     online_graph = mp.Graph.create(s)
-    mp.kernels.FiltFiltKernel.add_filtfilt_node(online_graph,
-                                                   t_trial,
-                                                   f_bp_filt,
-                                                   t_filtered,
-                                                   axis=1)
+    mp.kernels.FiltFiltKernel.add_to_graph(online_graph,
+                                           t_trial,
+                                           f_bp_filt,
+                                           t_filtered,
+                                           axis=1)
 
-    mp.kernels.ExtractKernel.add_extract_node(online_graph,
-                                                 t_filtered,
-                                                 [slice(None),crop_indices],
-                                                 t_cropped)
+    mp.kernels.ExtractKernel.add_to_graph(online_graph,
+                                          t_filtered,
+                                          [slice(None),crop_indices],
+                                          t_cropped)
 
-    mp.kernels.EnqueueKernel.add_enqueue_node(online_graph,
-                                                 t_trial,
-                                                 cb_prev_trials,
-                                                 s_artifact)
+    mp.kernels.EnqueueKernel.add_to_graph(online_graph,
+                                          t_trial,
+                                          cb_prev_trials,
+                                          s_artifact)
 
-    mp.kernels.EnqueueKernel.add_enqueue_node(online_graph,
-                                                 s_true,
-                                                 cb_labels,
-                                                 s_artifact)
+    mp.kernels.EnqueueKernel.add_to_graph(online_graph,
+                                          s_true,
+                                          cb_labels,
+                                          s_artifact)
 
-    mp.kernels.CommonSpatialPatternKernel.add_uninitialized_CSP_node(online_graph,
-                                                                        t_cropped,
-                                                                        t_csp,
-                                                                        num_filts=4, # number of filters
-                                                                        Ncls=3) # number of classes
+    mp.kernels.CommonSpatialPatternKernel.add_to_graph(online_graph,
+                                                       t_cropped,
+                                                       t_csp,
+                                                       num_filts=4, # number of filters
+                                                       Ncls=3) # number of classes
 
-    mp.kernels.VarKernel.add_var_node(online_graph, t_csp, t_var, 1, 1)
-    mp.kernels.LogKernel.add_log_node(online_graph, t_var, t_log)
+    mp.kernels.VarKernel.add_to_graph(online_graph, t_csp, t_var, 1, 1)
+    mp.kernels.LogKernel.add_to_graph(online_graph, t_var, t_log)
 
-    mp.kernels.ClassifierKernel.add_classifier_node(online_graph,
-                                                       t_log,
-                                                       c_lda,
-                                                       s_pred,
-                                                       num_classes=3)
+    mp.kernels.ClassifierKernel.add_to_graph(online_graph,
+                                             t_log,
+                                             c_lda,
+                                             s_pred,
+                                             num_classes=3)
 
-    mp.kernels.CovarianceKernel.add_covariance_node(online_graph, t_cropped, t_cov)
-    mp.kernels.RiemannPotatoKernel.add_riemann_potato_node(online_graph,
-                                                            t_cov, s_artifact)
+    mp.kernels.CovarianceKernel.add_to_graph(online_graph, t_cropped, t_cov)
+    mp.kernels.RiemannPotatoKernel.add_to_graph(online_graph,
+                                                t_cov, s_artifact)
 
 
 

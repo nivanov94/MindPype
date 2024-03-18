@@ -30,8 +30,8 @@ def main():
 
     # create the output label
     label = mp.Scalar.create_from_value(s,-1)
-    
-    
+
+
     # create a filter object
     order = 4
     bandpass = (8,35) # in Hz
@@ -40,13 +40,13 @@ def main():
 
 
     # add the nodes to the block
-    mp.kernels.CovarianceKernel.add_covariance_node(g,t_virt[0],t_virt[1])
-    
-    mp.kernels.FiltFiltKernel.add_filtfilt_node(g,eeg,f,t_virt[0])
-    
-    mp.kernels.RiemannMDMClassifierKernel.add_riemann_MDM_node(g,
-                                                               t_virt[1],
-                                                               label,3,X,y)
+    mp.kernels.CovarianceKernel.add_to_graph(g,t_virt[0],t_virt[1])
+
+    mp.kernels.FiltFiltKernel.add_to_graph(g,eeg,f,t_virt[0])
+
+    mp.kernels.RiemannMDMClassifierKernel.add_to_graph(g,
+                                                       t_virt[1],
+                                                       label,3,X,y)
 
     # verify the session (i.e. schedule the nodes)
     s.verify()
@@ -56,7 +56,7 @@ def main():
 
     trial_seq = [0]*4 + [1]*4 + [2]*4
     shuffle(trial_seq)
-    
+
     # RUN!
     correct_labels = 0
     for t_num in range(len(trial_seq)):
@@ -69,10 +69,10 @@ def main():
         g.execute(label=y)
         y_bar = label.data
         print("Trial {}: Label = {}, Predicted label = {}".format(t_num+1,y,y_bar))
-        
+
         if y == y_bar:
             correct_labels += 1
-        
+
     print("\nAccuracy = {:.2f}%.".format(100 * correct_labels/len(trial_seq)))
 
 
