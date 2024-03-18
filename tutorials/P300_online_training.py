@@ -17,13 +17,13 @@ def main():
 
     # Create a graph that will be used to run online trials
     online_graph = mp.Graph.create(sess)
-    
-    # Constants
-    training_trials = 6          
 
-    Fs = 128    
+    # Constants
+    training_trials = 6
+
+    Fs = 128
     resample_fs = 50
-    
+
     # create a filter
     order = 4
     bandpass = (1,25) # in Hz
@@ -35,11 +35,11 @@ def main():
     # Data sources from LSL
     LSL_data_src = mp.source.InputLSLStream.create_marker_coupled_data_stream(sess,
                                                                              "type='EEG'",
-                                                                             channels, 
+                                                                             channels,
                                                                              relative_start=-0.4,
                                                                              marker_fmt='(^SPACE pressed$)|(^RSHIFT pressed$)')
     LSL_data_out = mp.source.OutputLSLStream.create_outlet(sess, 'outlet', 'type="Markers"', 1, channel_format='float32')
-    
+
     # Data input tensors connected to LSL data sources
     online_input_data = mp.Tensor.create_from_handle(sess, (len(channels), 700), LSL_data_src)
     training_input_data = mp.Tensor.create_from_handle(sess, (len(channels), 700), LSL_data_src)
@@ -50,7 +50,7 @@ def main():
     # Initialization data circle buffers; the training graph will enqueue the training data to these buffers with each trial
     training_data = {'data'   : mp.CircleBuffer.create(sess, training_trials, mp.Tensor.create(sess, (len(channels), 700))),
                      'labels' : mp.CircleBuffer.create(sess, training_trials, mp.Scalar.create(sess, int))}
-            
+
     # output classifier label
     pred_label = mp.Scalar.create(sess, int)
 
@@ -60,25 +60,26 @@ def main():
               mp.Tensor.create_virtual(sess), # output of extract, input to xdawn
               mp.Tensor.create_virtual(sess), # output of xdawn, input to tangent space
               mp.Tensor.create_virtual(sess)] # output of tangent space, input to classifier
-    
+
     classifier = mp.Classifier.create_logistic_regression(sess)
-    
+
     # extraction indices
     start_time = 0.2
     end_time = 1.2
-    extract_indices = [":", # all channels
-                       [_ for _ in range(int(start_time*resample_fs),int(end_time*resample_fs))] # central 1s
-                      ]
-    
+    extract_indices = [
+        slice(None), # all channels
+        slice(int(start_time*resample_fs), int(end_time*resample_fs)) # central 1s
+    ]
+
 
     # add the enqueue node to the training graph, will automatically enqueue the data from the lsl
     mp.kernels.EnqueueKernel.add_enqueue_node(training_graph, training_input_data, training_data['data'])
-    
-    # online graph nodes 
+
+    # online graph nodes
     mp.kernels.FiltFiltKernel.add_filtfilt_node(online_graph, online_input_data, f, t_virt[0])
     mp.kernels.ResampleKernel.add_resample_node(online_graph, t_virt[0], resample_fs/Fs, t_virt[1])
     mp.kernels.ExtractKernel.add_extract_node(online_graph, t_virt[1], extract_indices, t_virt[2])
-    mp.kernels.XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[2], 
+    mp.kernels.XDawnCovarianceKernel.add_xdawn_covariance_node(online_graph, t_virt[2],
                                                                 t_virt[3])
     mp.kernels.TangentSpaceKernel.add_tangent_space_node(online_graph, t_virt[3], t_virt[4])
     mp.kernels.ClassifierKernel.add_classifier_node(online_graph, t_virt[4], classifier, pred_label, online_output_data)
@@ -96,16 +97,16 @@ def main():
 
     # Execute the training graph
     for t_num in range(training_trials):
-        try: 
+        try:
             training_graph.execute()
             # Get the most recent marker and add the equivalent label to the training labels circle buffer.
             last_marker = LSL_data_src.last_marker()
             training_data['labels'].enqueue(mp.Scalar.create_from_value(sess, 1) if last_marker == 'SPACE pressed' else mp.Scalar.create_from_value(sess, 0))
-        
+
             print(f"Training Trial {t_num+1} Complete")
         except:
             print("Training graph error...")
-             
+
     # initialize the online graph with the collected data
     online_graph.initialize()
 
@@ -114,7 +115,7 @@ def main():
     for t_num in range(Ntrials):
 
         try:
-            sts = online_graph.execute()        
+            sts = online_graph.execute()
             y_bar = online_output_data.data
             print(f"\tTrial {t_num+1}: Max Probability = {y_bar}")
         except:

@@ -331,7 +331,7 @@ class ExtractKernel(Kernel):
     inA : Tensor or Array
         Input trial data
 
-    Indicies : list slices, list of ints
+    Indicies : list of slices and/or ints
         Indicies within inA from which to extract data
 
     outA : Tensor
@@ -365,7 +365,8 @@ class ExtractKernel(Kernel):
             if (self.inputs[0].mp_type == MPEnums.TENSOR and
                 len(init_in.shape) == (len(self.inputs[0].shape)+1)):
                 init_output_shape = (init_in.shape[0],) + self.outputs[0].shape
-                self._indices.insert(0, ":")
+                self._indices.insert(0, slice(None)) # insert an empty slice for the batch dimension
+                self._ix_grid.insert(0, range(init_in.shape[0]))
                 add_batch_dim = True
 
             elif len(init_in.shape) == len(self.inputs[0].shape):
@@ -382,6 +383,7 @@ class ExtractKernel(Kernel):
             # remove the additional slice for the batch dimension
             if add_batch_dim:
                 self._indices.pop(0)
+                self._ix_grid.pop(0)
 
     def _verify(self):
         """
@@ -465,20 +467,24 @@ class ExtractKernel(Kernel):
                 raise ValueError("ExtractKernel requires number of dimensions to extract to be less than or equal to the tensor's rank")
 
             output_sz = []
+            self._ix_grid = []
             for axis in range(len(self._indices)):
-                if self._indices[axis] != ":":
-                    axis_indices = self._indices[axis]
-                    if isinstance(axis_indices,int):
-                        axis_indices = (axis_indices,)
-                    for index in axis_indices:
-                        # check that the index is valid for the given axis
-                        if index < -d_in.shape[axis] or index >= d_in.shape[axis]:
-                            raise ValueError("ExtractKernel extraction index in dimension {} exceeds the input Tensor's shape".format(axis))
+                axis_indices = self._indices[axis]
+                if isinstance(axis_indices, int):
+                    axis_indices = (axis_indices,)
+                elif isinstance(axis_indices, slice):
+                    axis_indices = range(*axis_indices.indices(d_in.shape[axis]))
 
-                    if not self._reduce_dims or len(self._indices[axis]) > 1:
-                        output_sz.append(len(axis_indices))
-                else:
-                    output_sz.append(d_in.shape[axis])
+                for index in axis_indices:
+                    # check that the index is valid for the given axis
+                    if index < -d_in.shape[axis] or index >= d_in.shape[axis]:
+                        raise ValueError("ExtractKernel extraction index in dimension {} exceeds the input Tensor's shape".format(axis))
+
+                # add the indices to the extraction grid
+                self._ix_grid.append(axis_indices)
+
+                if not self._reduce_dims or len(self._indices[axis]) > 1:
+                    output_sz.append(len(axis_indices))
 
             # check that the output tensor's dimensions are valid
             output_sz = tuple(output_sz)
@@ -488,7 +494,6 @@ class ExtractKernel(Kernel):
 
             if d_out.shape != output_sz:
                 raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
-
 
     def _process_data(self, inputs, outputs):
         inA = inputs[0]
@@ -514,18 +519,7 @@ class ExtractKernel(Kernel):
                 outA.data = out_array
         else:
             # tensor input
-            ix_grid = []
-            for axis in range(len(self._indices)):
-                axis_indices = self._indices[axis]
-                if axis_indices == ":":
-                    ix_grid.append([_ for _ in range(inA.shape[axis])])
-                else:
-                    if isinstance(axis_indices,int):
-                        ix_grid.append([axis_indices])
-                    else:
-                        ix_grid.append(list(axis_indices))
-
-            npixgrid = np.ix_(*ix_grid)
+            npixgrid = np.ix_(*self._ix_grid)
             extr_data = inA.data[npixgrid]
 
             if self._reduce_dims:

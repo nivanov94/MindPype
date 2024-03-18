@@ -18,7 +18,7 @@ from copy import deepcopy
 
 
 def main():
-    # Create a session and graph   
+    # Create a session and graph
     sess = mp.Session.create()
     online_graph = mp.Graph.create(sess)
 
@@ -40,12 +40,12 @@ def main():
     offline_tensor = mp.Tensor.create_from_data(sess, offline_data)
     online_labels = mp.Tensor.create_from_data(sess, online_labels)
     offline_labels = mp.Tensor.create_from_data(sess, offline_labels)
-    
+
 
     # online graph data containers (i.e. graph edges)
     Ntrials = online_data.shape[0]
     pred_probs = mp.Tensor.create(sess, shape=(Ntrials, 2)) # output of classifier, input to label
-    pred_label = mp.Tensor.create(sess, shape=(Ntrials,)) 
+    pred_label = mp.Tensor.create(sess, shape=(Ntrials,))
 
     t_virt = [mp.Tensor.create_virtual(sess), # output of filter, input to resample
               mp.Tensor.create_virtual(sess), # output of resample, input to extract
@@ -58,10 +58,13 @@ def main():
 
     start_time = 0
     end_time = 1.0
-    extract_indices = [":", ":", [_ for _ in range(int(start_time*Fs + len(f.coeffs['fir'])),int(np.ceil(end_time*Fs + len(f.coeffs['fir']))))]]# All epochs, all channels, start_time to end_time
-    
+    extract_indices = [slice(None),
+                       slice(None),
+                       slice(int(start_time*Fs + len(f.coeffs['fir'])), int(np.ceil(end_time*Fs + len(f.coeffs['fir']))))
+    ]# All epochs, all channels, start_time to end_time
+
     classifier = mp.Classifier.create_logistic_regression(sess)
-   
+
     mp.kernels.PadKernel.add_pad_node(online_graph, online_tensor, t_virt[0], pad_width=((0,0), (0,0), (len(f.coeffs['fir']), len(f.coeffs['fir']))), mode='edge')
     mp.kernels.FilterKernel.add_filter_node(online_graph, t_virt[0], f, t_virt[1], axis=2)
 
@@ -78,9 +81,9 @@ def main():
     online_graph.verify()
     # initialize the classifiers (i.e., train the classifier)
     online_graph.initialize()
-        
+
     init_probs = node_9._kernel.init_outputs[1].data
-    
+
     online_graph.execute()
 
     print(f"Probabilities = {pred_probs.data}")
@@ -110,7 +113,7 @@ def main():
         if offline_labels.data[i] == 1:
             num_ones_init += 1
 
-    
+
     train_C_accuracy = init_correct/len(init_probs)
     print(train_C_accuracy, num_ones_init/len(init_probs))
 
@@ -119,7 +122,7 @@ def main():
 
     online_C_A = correct/len(probs)
     print(online_C_A, num_ones_online/len(probs))
-    
+
 if __name__ == "__main__":
     main()
 
