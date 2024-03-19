@@ -1,46 +1,43 @@
 from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
-from ..containers import Tensor
 
 import numpy as np
 
+
 class BaselineCorrectionKernel(Kernel):
     """
-    Kernel to conduct baseline correction on data
+    Kernel to perform baseline correction.
+    Input data is baseline corrected by subtracting
+    the mean of the baseline period from the input data
+    along a specified axis.
 
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
-
-    inA : Tensor
-        Input trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
-
-    outA : Tensor
-        Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
-
-    baseline_period : array-like, np.array, or Tensor, default = None
-        Baseline period to use for baseline correction (n_trials, 2) where column 1 is the start index and column 2 is the end index
-        If the same baseline period is to be used for all trials, then the baseline period can be a list of length 2, or a 1D tensor (2, ) where the first element is the start index and the second element is the end index
-
+    inA : MindPype Tensor object
+        Input data container
+    outA : MindPype Tensor object
+        Output data container
+    axis : int, default = -1
+        Axis along which to perform baseline correction
+    baseline_period : array-like (start, end)
+        Baseline period where start and end are the start
+        and end indices of the baseline period within the
+        target axis.
     """
 
-    def __init__(self, graph, inA, outA, baseline_period = None):
+    def __init__(self, graph, inA, outA, axis=-1, baseline_period=(0,-1)):
         super().__init__('BaselineCorrection', MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
-
-        if baseline_period is not None:
-            if type(baseline_period) == list:
-                baseline_period = np.array(baseline_period)
-            elif type(baseline_period) == Tensor:
-                baseline_period = np.array(baseline_period.data)
-        self._baseline_period = baseline_period
+        self._baseline_period = np.asarray(baseline_period)
+        self._axis = axis
 
     def _verify(self):
         """
-        Verify the inputs and outputs are appropriately sized
+        Verify the kernel parameters
         """
 
         d_in = self.inputs[0]
@@ -52,42 +49,47 @@ class BaselineCorrectionKernel(Kernel):
             raise TypeError("Input and output must be a tensor")
 
         # check the baseline period is valid
-        if self._baseline_period is not None:
-            # if the baseline period is a 1D tensor, then the same baseline period is used for all trials (ie. self._baseline_period.shape = (2, )
-            if len(self._baseline_period.shape) == 1:
-                if self._baseline_period.shape[0] != 2:
-                    raise ValueError("Baseline period must include start and end points")
+        if self._baseline_period.shape[0] != 2:
+            raise ValueError("Baseline period must include start and end points")
 
-                # start index must be less than end index and both must be within the range of the data
-                if ((self._baseline_period[0] > self._baseline_period[1]) or
-                    (self._baseline_period[0] < 0) or
-                    (self._baseline_period[1] > d_in.shape[-1])):
-                    raise ValueError("Baseline period must be within the range of the data")
+        # if the axis or baseline indices are negative, convert them to positive
+        if self._axis < 0:
+            self._axis = self._axis + len(d_in.shape)
 
-            elif len(self._baseline_period.shape) == 2:
-                if self._baseline_period.shape[1] != 2 or self._baseline_period.shape[0] != d_in.shape[0]:
-                    raise ValueError("Baseline period must include start and end points for each trial")
+        for i, idx in enumerate(self._baseline_period):
+            if idx < 0:
+                self._baseline_period[i] = d_in.shape[self._axis] + idx
 
-                # each start index must be less than end index and both must be within the range of the data
-                for i in range(self._baseline_period.shape[0]):
-                    if (self._baseline_period[i][0] > self._baseline_period[i][1])\
-                        or (self._baseline_period[i][0] < 0)\
-                        or (self._baseline_period[i][1] > d_in.shape[-1]):
-                        raise ValueError("Baseline period must be within the range of the data")
+        # force the baseline period to be an integer
+        self._baseline_period = np.array(self._baseline_period, dtype=int)
 
+        # start index must be less than end index and both must be
+        # within the range of the data
+        if ((self._baseline_period[0] > self._baseline_period[1]) or
+            (self._baseline_period[0] < 0) or
+            (self._baseline_period[1] > d_in.shape[-1])):
+            raise ValueError("Baseline period must be within the range of the data")
 
         # check the output dimensions are valid
         if d_out.virtual and len(d_out.shape) == 0:
             d_out.shape = d_in.shape
 
-
-    def _initialize(self, init_inputs, init_outputs, labels):
+    def _initialize(self, init_inputs, init_outputs, labels=None):
         """
-        Initialize the kernel by processing the initialization inputs
+        Initialize the kernel and compute initialization data output
+
+        Parameters
+        ----------
+        init_inputs : list of MindPype Tensor or Array data containers
+            Initialization input data container, list of length 1
+        init_outputs : list of MindPype Tensor or Array data containers
+            Initialization output data container, list of length 1
+        labels : None
+            Not used, here for compatibility with other kernels
         """
 
-        init_in = self.init_inputs[0]
-        init_out = self.init_outputs[0]
+        init_in = init_inputs[0]
+        init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             if init_in.mp_type != MPEnums.TENSOR:
@@ -101,68 +103,82 @@ class BaselineCorrectionKernel(Kernel):
             self._process_data([init_in], init_outputs)
 
     def _process_data(self, inputs, outputs):
+        """
+        Perform baseline correction on the input data and
+        store the result in the output data. Compute the
+        baseline along the specified axis between the start
+        and end indices. Then subtract the mean of the baseline
+        from the input data.
+
+        Parameters
+        ----------
+        inputs : list of MindPype Tensor or Array data containers
+            Input data container, list of length 1
+        outputs : list of MindPype Tensor or Array data containers
+            Output data container, list of length 1
+        """
         inA = inputs[0]
         outA = outputs[0]
 
-        # if the baseline period is not specified, then return the input
-        if self._baseline_period is None:
-            inA.copy_to(outA)
+        # compute baseline
+        baseline = np.mean(inA.data[..., self._baseline_period[0]:self._baseline_period[1]],
+                           axis=self._axis,
+                           keepdims=True)
 
-        # if the baseline period is specified, then perform baseline correction
-        else:
-            # if the baseline period is a 1D tensor, calculate mean of same indices across all trials
-            if len(self._baseline_period.shape) == 1:
-                baseline_period = self._baseline_period
-                baseline_corrected_data = inA.data - np.mean(inA.data[..., int(baseline_period[0]):int(baseline_period[1])], axis = -1, keepdims = True)
-
-            else:
-                baseline_corrected_data = np.zeros(inA.shape)
-                for i in range(inA.shape[0]):
-                    baseline_period = self._baseline_period[i]
-                    baseline_corrected_data[i] = inA.data[i] - np.mean(inA.data[i, ..., int(baseline_period[0]):int(np.ceil(baseline_period[1]))],
-                                                                        axis = -1, keepdims = True)
-
-            # copy the baseline corrected data to the output
-            outA.data = baseline_corrected_data
-
+        # remove baseline and assign to output
+        outA.data = inA.data - baseline
 
     @classmethod
-    def add_to_graph(cls, graph, inputA, outputA, baseline_period, init_input=None, init_labels=None):
+    def add_to_graph(cls, graph, inputA, outputA,
+                     baseline_period=(0,-1), axis=-1,
+                     init_input=None, init_labels=None):
         """
-        Factory method to add a baseline correction kernel to a graph
+        Factory method to create a baseline correction kernel
+        and add it to a graph
 
         Parameters
         ----------
         graph : Graph
             Graph that the kernel should be added to
+        inputA : MindPype Tensor
+            Input data container
+        outputA : MindPype Tensor
+            Output data container
+        baseline_period : array-like (start, end)
+            Baseline period where start and end are the start
+            and end indices of the baseline period within the
+            target axis.
+        axis : int, default = -1
+            Axis along which to perform baseline correction
+        init_input : MindPype Tensor or Scalar data container, default=None
+            MindPype data container with initialization data to be
+            transformed and passed to downstream nodes during graph
+            initialization
+        init_labels : MindPype Tensor or Array data container, default=None
+            MindPype data container with initialization labels to be
+            passed to downstream nodes during graph initialization
 
-        inputA : Tensor
-            Input trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
-
-        outputA : Tensor
-            Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
-
-        baseline_period : array-like, np.array, or Tensor
-            Baseline period to use for baseline correction (n_trials, 2) where column 1 is the start index and column 2 is the end index
-            If the same baseline period is to be used for all trials, then the baseline period can be a list of length 2, or a 1D tensor (2, ) where the first element is the start index and the second element is the end index
-
+        Returns
+        -------
+        node : Node
+            Node object containing the baseline correction kernel and parameters
         """
 
         # create the kernel object
-        k = cls(graph,inputA,outputA,baseline_period)
+        k = cls(graph, inputA, outputA, axis, baseline_period)
 
         # create parameter objects for the input and output
-        params = (Parameter(inputA,MPEnums.INPUT),
-                  Parameter(outputA,MPEnums.OUTPUT))
+        params = (Parameter(inputA, MPEnums.INPUT),
+                  Parameter(outputA, MPEnums.OUTPUT))
 
         # add the kernel to a generic node object
-        node = Node(graph,k,params)
+        node = Node(graph, k, params)
 
         # add the node to the graph
         graph.add_node(node)
 
         # if initialization data is provided, then add it to the node
         if init_input is not None:
-            node.add_initialization_data([init_input],init_labels)
+            node.add_initialization_data([init_input], init_labels)
 
         return node
