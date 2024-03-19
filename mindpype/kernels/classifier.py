@@ -4,41 +4,37 @@ from ..graph import Node, Parameter
 from ..containers import Tensor
 from .kernel_utils import extract_init_inputs
 
-
 import numpy as np
-import warnings
+
 
 class ClassifierKernel(Kernel):
     """
-    Classify data using MindPype Classifier Object
+    Kernel to classify input data using a MindPype Classifier object
 
     Parameters
     ----------
-
     graph : Graph
         Graph that the kernel should be added to
-
-    inA : Tensor
-        Input trial data (n_channels, n_samples)
-
-    classifier : Classifier
+    inA : MindPype Tensor
+        Input data
+    classifier : MindPype Classifier object
         MindPype Classifier object to be used for classification
-
-    Prediction : Scalar
-        Classifier prediction
-
-    output_probs : Tensor
-        If not None, the output will be the probability of each class. Default is None.
-
-    initialization_data : Tensor
-        Initialization data to train the classifier (n_trials, n_channels, n_samples)
-
-    labels : Tensor
-        Labels corresponding to initialization data class labels (n_trials, )
-        (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
+    Prediction : MindPype Tensor or Scalar
+        Predicted labels of the classifier
+    output_probs : MindPype Tensor, default None
+        If not None, the output will be the probability of each class.
+    initialization_data : MindPype Tensor or Array, default None
+        Initialization data to train the classifier. If None, training
+        data will be supplied by upstream nodes in the graph during
+        graph initialization.
+    labels : MindPype Tensor or Array, default None
+        Class labels for classifier training. If None, training labels
+        will be supplied by upstream nodes in the graph during graph
+        initialization.
     """
 
-    def __init__(self, graph, inA, classifier, prediction, output_probs, num_classes, initialization_data = None, labels = None):
+    def __init__(self, graph, inA, classifier, prediction, output_probs,
+                 num_classes, initialization_data=None, labels=None):
         super().__init__('Classifier', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self._classifier = classifier
@@ -55,12 +51,24 @@ class ClassifierKernel(Kernel):
 
 
     def _initialize(self, init_inputs, init_outputs, labels):
+        """
+        Initialize the classifier and compute initialization data output.
+
+        Parameters
+        ----------
+        init_inputs : list of MindPype Tensor or Array
+            Initialization data to train the classifier
+        init_outputs : list of MindPype Tensor or Array
+            Output data from the initialization process
+        labels : MindPype Tensor or Array
+            Class labels for classifier training
+        """
 
         # check that the input init data is in the correct type
         init_in = init_inputs[0]
-        accepted_inputs = (MPEnums.TENSOR,MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
+        accepted_inputs = (MPEnums.TENSOR, MPEnums.ARRAY, MPEnums.CIRCLE_BUFFER)
 
-        for init_obj in (init_in,labels):
+        for init_obj in (init_in, labels):
             if init_obj.mp_type not in accepted_inputs:
                 raise TypeError('Initialization data must be a tensor or array of tensors')
 
@@ -93,12 +101,12 @@ class ClassifierKernel(Kernel):
             if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
                 self.init_outputs[1].shape = (X.shape[0], self._num_classes)
 
-            self._process_data([init_tensor],
-                               self.init_outputs)
-
+            self._process_data([init_tensor], self.init_outputs)
 
     def _verify(self):
-        """similar verification process to individual classifier kernels"""
+        """
+        Verify the kernel's properties and inputs/outputs
+        """
 
         # inputs must be a tensor or array of tensors
         accepted_input_types = (MPEnums.TENSOR,
@@ -130,10 +138,18 @@ class ClassifierKernel(Kernel):
              not callable(self._classifier._classifier.predict_proba))):
             raise Exception('Classifier does not have a predict_proba method')
 
-
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Predict the class of the input data using the classifier.
+
+        Parameters
+        ----------
+        inputs : list of MindPype Tensor or Array
+            Input data to be classified, list of 1
+        outputs : list of MindPype Tensor or Scalar
+            Output data from the classification process. The first element
+            is the predicted class label, and the second element is the
+            probability of each class.
         """
         inA = inputs[0]
         outA, outB = outputs
@@ -157,37 +173,33 @@ class ClassifierKernel(Kernel):
         else:
             outA.data = output_data
 
-
     @classmethod
     def add_to_graph(cls, graph, inA, classifier, outA, outB = None, num_classes = 2, initialization_data = None, labels = None):
         """
-        Factory method to create a classifier kernel and add it to a graph as a generic node object
+        Factory method to create a classifier kernel and
+        add it to the graph.
 
         Parameters
         ----------
-
         graph : Graph
             Graph that the kernel should be added to
-
-        inA : Tensor
-            Input trial data (n_channels, n_samples)
-
-        classifier : Classifier
+        inA : MindPype Tensor or Array
+            Input data to classify
+        classifier : MindPype Classifier
             MindPype Classifier object to be used for classification
-
-        outA : Scalar
-            Output trial data
-
-        outB : Tensor
-            If not None, the output will be the probability of each class. Default is None
-
-        initialization_data : Tensor
-            Initialization data to train the classifier (n_trials, n_channels, n_samples)
-
-        labels : Tensor
-            Labels corresponding to initialization data class labels (n_trials, )
-            (n_trials, 2) for class separated data where column 1 is the trial label and column 2 is the start index
-
+        outA : MindPype Tensor or Scalar
+            Predicted labels of the classifier
+        outB : MindPype Tensor, default None
+            The probability of each class.
+            If None, probability output will not be computed.
+        initialization_data : MindPype Tensor or Array, default None
+            Initialization data to train the classifier. If None, training
+            data will be supplied by upstream nodes in the graph during
+            graph initialization.
+        labels : MindPype Tensor or Array, default None
+            Class labels for classifier training. If None, training labels
+            will be supplied by upstream nodes in the graph during graph
+            initialization.
         """
 
         # create the kernel object
