@@ -77,6 +77,30 @@ class ConcatenationKernel(Kernel):
                 self._axis -= 1
 
     def _resolve_dims(self, inA, inB):
+        """
+        Determine dimensions of concatenated tensor
+
+        Parameters
+        ----------
+
+        inA : Tensor
+            First input trial data
+
+        inB : Tensor
+          Second input trial data
+
+        Returns
+        -------
+
+        output_sz: Tuple
+            Dimensions of concatenated tensor
+
+        noncat_sz_A: Array
+            Non concatendated size of tensor A
+
+        noncat_size_B: Array
+            Non concatendated size of tensor B
+        """
         sz_A = inA.shape
         sz_B = inB.shape
         concat_axis = self._axis
@@ -137,7 +161,15 @@ class ConcatenationKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process input data according to outlined kernel function
+        Concatenate tensors into single tensor
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input data
+
+        outputs: Output data
         """
         inA_data = inputs[0].data
         inB_data = inputs[1].data
@@ -201,6 +233,7 @@ class ConcatenationKernel(Kernel):
             node.add_initialization_data(init_inputs,init_labels)
 
         return node
+
 
 
 class EnqueueKernel(Kernel):
@@ -270,6 +303,13 @@ class EnqueueKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy function
+
+        Parameters
+        ----------
+        
+        inputs: MPBase
+            Input data
+        
         """
         # need to make a deep copy of the object to enqueue
         if not self._gated or inputs[2].data:
@@ -342,6 +382,7 @@ class ExtractKernel(Kernel):
     """
 
     def __init__(self,graph,inA,indices,outA,reduce_dims):
+        """ Init """
         super().__init__('Extract',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -496,6 +537,18 @@ class ExtractKernel(Kernel):
                 raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
 
     def _process_data(self, inputs, outputs):
+        """
+        Extract portion of tensor or array
+
+        Parameters
+        ----------
+
+        inputs: Tensor or Array
+            Input trial data
+
+        outputs: Tensor
+            Output trial data
+        """
         inA = inputs[0]
         outA = outputs[0]
 
@@ -646,6 +699,15 @@ class StackKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy functions
+
+        Parameters
+        ----------
+
+        inA : Array
+            Container where specified data will be added to
+
+        outA : Tensor
+            Tensor of stacked tensors
         """
 
         inA = inputs[0]
@@ -796,7 +858,16 @@ class TensorStackKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function.
+        Stack 2 tensors into single tensor
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input trial data
+
+        outputs: Tensor
+            Output trial data
         """
         input_tensors = [inputs[i].data for i in range(len(inputs))]
         outputs[0].data = np.stack(input_tensors,axis=self._axis)
@@ -924,6 +995,15 @@ class ReshapeKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy functions
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input tensor
+
+        outputs: Tensor
+            Output tensor
         """
         inA = inputs[0]
         outA = outputs[0]
