@@ -31,6 +31,7 @@ class TangentSpaceKernel(Kernel):
 
     def __init__(self, graph, inA, outA, initialization_data, regularization,
                  metric, tsupdate, sample_weight):
+        """ Init """
         super().__init__("TangentSpaceKernel", MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -47,6 +48,14 @@ class TangentSpaceKernel(Kernel):
         """
         Initialize internal state of the kernel and update initialization
         data if downstream nodes are missing data
+
+        Parameters
+        ----------
+        init_inputs: Tensor
+            Input data
+        init_outputs: Tensor
+            Output data
+        labels: None
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
@@ -77,6 +86,13 @@ class TangentSpaceKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
+
+        Parameters
+        ----------
+        inputs: Tensor
+            Input data to be processed
+        outputs: Tensor
+            Output data to be procesed
         """
         inA = inputs[0]
 

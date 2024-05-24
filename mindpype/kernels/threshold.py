@@ -26,6 +26,7 @@ class ThresholdKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,thresh):
+        """ Init """
         super().__init__('Threshold',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA, thresh]
         self.outputs = [outA]

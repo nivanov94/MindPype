@@ -25,6 +25,7 @@ class TransposeKernel(Kernel):
     """
 
     def __init__(self,graph,inputA,outputA,axes):
+        """ Init """
         super().__init__('Transpose',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inputA]
         self.outputs = [outputA]
