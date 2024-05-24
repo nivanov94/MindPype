@@ -31,6 +31,18 @@ class TransposeKernel(Kernel):
         self._axes = axes
 
     def _compute_output_shape(self, inA, axes):
+        """
+        Determine the shape of the transposed tensor
+
+        Parameters
+        ----------
+        inA: Tensor or Scalar
+            Input trial data
+
+        axes : tuple or list of ints, optional
+        If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
+
+        """
         # check the shape
         input_shape = inA.shape
         input_rank = len(input_shape)
@@ -74,6 +86,14 @@ class TransposeKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
+
+        Parameters
+        ----------
+        inputs: List of MindPype Tensor or Scalar data containers
+            Input data container, list of length 1
+            
+        outputs: List of MindPype Tensor or Scalar data containers
+            Output data container, list of length 1
         """
         outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 
