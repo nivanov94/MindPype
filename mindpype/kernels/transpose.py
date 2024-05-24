@@ -89,11 +89,11 @@ class TransposeKernel(Kernel):
 
         Parameters
         ----------
-        inputs: List of MindPype Tensor or Scalar data containers
-            Input data container, list of length 1
-            
-        outputs: List of MindPype Tensor or Scalar data containers
-            Output data container, list of length 1
+        inputs: Tensor or Scalar
+            Input trial data to be processed
+
+        outputs: Tensor or Scalar 
+            Output trial data to be processed
         """
         outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 
