@@ -89,6 +89,14 @@ class ThresholdKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel method
+
+        Parameters
+        ----------
+        inputs: List of MindPype Tensor or Scalar data containers
+            Input data container, list of length 1
+            
+        outputs: List of MindPype Tensor or Scalar data containers
+            Output data container, list of length 1
         """
         thresh = inputs[1]
         outputs[0].data = inputs[0].data > thresh.data
