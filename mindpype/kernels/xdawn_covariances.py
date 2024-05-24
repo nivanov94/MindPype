@@ -60,6 +60,17 @@ class XDawnCovarianceKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Initialize the internal state of the kernel. Fit the xdawn_estimator classifier, etc.
+
+        Parameters
+        ----------
+        init_inputs : Tensor
+            Input data
+
+        init_outputs : Tensor
+           Output data
+
+        labels : None
+            Not used, here for compatability with other kernels
         """
 
         init_in = init_inputs[0]
