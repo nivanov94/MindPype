@@ -10,7 +10,7 @@ class TransposeKernel(Kernel):
 
     .. note::
         This kernel utilizes the numpy function
-        `transpose <numpy:numpy.transpose>`.
+        :func:`transpose <numpy:numpy.transpose>`.
 
     Parameters
     ----------
