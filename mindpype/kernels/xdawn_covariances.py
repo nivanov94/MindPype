@@ -9,6 +9,9 @@ class XDawnCovarianceKernel(Kernel):
     """
     Kernel to perform XDawn spatial filtering and covariance estimation.
 
+    .. note:: This kernel utilizes the :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` 
+    class from the :mod:`pyriemann` package.
+
     Parameters
     ----------
     graph : Graph
@@ -32,6 +35,7 @@ class XDawnCovarianceKernel(Kernel):
     See Also
     --------
     :class:`Kernel` : Base class for all kernels
+
     :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` : XDawn Covariance Estimator
     """
 
