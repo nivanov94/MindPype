@@ -45,6 +45,17 @@ class SlopeKernel(Kernel):
         This kernel has no internal state that must be initialized.
         Call initialization_execution if downstream nodes are missing training
         data
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor
+            Input data
+
+        init_outputs: Tensor
+            Output data
+
+        labels: None
         """
 
         init_in = init_inputs[0]
@@ -103,6 +114,16 @@ class SlopeKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel and compute the polynomial fit
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input data
+
+        outputs: Tensor
+            Output data
+
         """
 
         inA = inputs[0]

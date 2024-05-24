@@ -40,7 +40,6 @@ class RiemannDistanceKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data
-
         """
 
         init_inA, init_inB = init_inputs
@@ -60,6 +59,18 @@ class RiemannDistanceKernel(Kernel):
 
 
     def _compute_output_shape(self, inA, inB):
+        """
+        Determine the shape of the tensor that contains the calculated Riemann mean of covariances
+
+        Parameters
+        ----------
+
+        inA : Tensor or Array
+            First input data
+
+        inB : Tensor or Array
+            Second input data
+        """
         out_sz = []
         mat_sz = None
         for param in (inA,inB):
@@ -137,6 +148,15 @@ class RiemannDistanceKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel and calculate the mean
+
+        Parameters
+        ----------
+
+        inputs: Tensor or Array
+            Input data
+
+        outputs: Tensor or Scalar
+            Output data
         """
         def get_obj_data_at_index(obj,index,rank):
             if obj.mp_type == MPEnums.TENSOR:

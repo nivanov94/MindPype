@@ -55,6 +55,18 @@ class RiemannMeanKernel(Kernel):
 
 
     def _process_data(self, inputs, outputs):
+        """
+        Process data according to outlined kernel function
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input data
+        
+        outputs: Tensor
+            Output data
+        """
         outputs[0].data = mean_riemann(inputs[0].data, sample_weight=self._w)
 
     @classmethod

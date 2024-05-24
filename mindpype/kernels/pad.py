@@ -39,6 +39,18 @@ class PadKernel(Kernel):
         self._kwargs_dict = kwargs
 
     def _initialize(self, init_inputs, init_outputs, labels):
+        """
+        Parameters
+        ----------
+
+        init_inputs: Tensor
+            Input trial data
+
+        init_outputs: Tensor
+            Output trial data
+
+        labels : None
+        """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
@@ -72,6 +84,18 @@ class PadKernel(Kernel):
 
 
     def _process_data(self, inputs, outputs):
+        """
+        Conduct padding on the data
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input trial data
+
+        outputs: Tensor
+            Output trial data
+        """
         inp = inputs[0]
         # TODO: make this more efficient/reduce code duplication
         if self._mode in ('maximum', 'mean', 'median', 'minimum'):
