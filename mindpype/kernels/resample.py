@@ -28,6 +28,7 @@ class ResampleKernel(Kernel):
     """
 
     def __init__(self,graph,inA,factor,outA,axis = 1):
+        """ Init """
         super().__init__('Resample',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -59,6 +60,15 @@ class ResampleKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Process trial data according to the scipy function
+
+        Parameters
+        ----------
+
+        inputs: Tensor or Array
+            Input trial data
+
+        outputs: Tensor or Scalar
+            Resampled timeseries data
         """
         outputs[0].data = signal.resample(inputs[0].data,
                                           np.ceil(inputs[0].shape[self._axis] * self._factor).astype(int),
