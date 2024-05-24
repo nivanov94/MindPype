@@ -21,6 +21,15 @@ class Filter:
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Method to initialize the filter kernel. This method will make the necessary adjustments to the axis attributes for initialization processing
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Scalar
+            Input trial data
+        
+        init_outputs: Tensor or Scalar
+            Output trial data
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
