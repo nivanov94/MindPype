@@ -33,7 +33,7 @@ extensions = [
 
 # Looks for objects in external projects
 intersphinx_mapping = {
-    'numpy': ('https://numpy.readthedocs.io/en/latest/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
     'pyriemann' : ('https://pyriemann.readthedocs.io/en/latest/', None),
 }
 
