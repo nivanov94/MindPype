@@ -31,6 +31,7 @@ class ReducedSumKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None,keep_dims=False):
+        """ Init """
         super().__init__('ReducedSum',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -39,6 +40,15 @@ class ReducedSumKernel(Kernel):
 
 
     def _compute_output_sz(self, input_sz):
+        """ 
+        Determine the shape of the output
+
+        Parameters
+        ----------
+
+        input_sz: Array
+            Dimensions of the input data tensor
+        """
         if self._axis != None:
             axis = (self._axis,)
         else:
@@ -113,6 +123,18 @@ class ReducedSumKernel(Kernel):
             raise ValueError('ReducedSum kernel: Multidimensional output cannot be assigned to a Scalar')
 
     def _process_data(self, inputs, outputs):
+        """
+        Process data according to outlined kernel function
+
+        Parameters
+        ----------
+
+        inputs: Tensor 
+            Input data
+
+        outputs: Tensor or Scalar
+            Output data
+        """
         outputs[0].data = np.sum(inputs[0].data,
                                  axis=self._axis,
                                  keepdims=self._keep_dims)

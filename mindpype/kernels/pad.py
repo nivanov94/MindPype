@@ -72,6 +72,18 @@ class PadKernel(Kernel):
 
 
     def _process_data(self, inputs, outputs):
+        """
+        Process data according to outlined kernel function
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input trial data
+
+        outputs: Tensor
+            Output trial data
+        """
         inp = inputs[0]
         # TODO: make this more efficient/reduce code duplication
         if self._mode in ('maximum', 'mean', 'median', 'minimum'):
