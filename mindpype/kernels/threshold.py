@@ -15,10 +15,10 @@ class ThresholdKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        Input trial data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     thresh : float
         Threshold value
@@ -89,15 +89,15 @@ class ThresholdKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel method
+        Determine if data elements are below or above threshold.
 
         Parameters
         ----------
-        inputs: Tensor or Scalar 
-            Input trial data 
+        inputs: list of Tensors or Scalars 
+            Input data container, list of length 1
 
-        outputs: Tensor or Scalar
-            Output trial data 
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         thresh = inputs[1]
         outputs[0].data = inputs[0].data > thresh.data
@@ -115,10 +115,10 @@ class ThresholdKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Scalar
-            Input trial data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         thresh : float
             Threshold value

@@ -13,7 +13,9 @@ import numpy as np
 
 class RiemannPotatoKernel(Kernel):
     """
-    Riemannian potato artifact detection detector
+    Riemannian potato artifact detection detector.
+    Kernel takes Tensor input and produces scalar label representing
+    the predicted class
 
     Parameters
     ----------
@@ -22,10 +24,10 @@ class RiemannPotatoKernel(Kernel):
         Graph that the kernel should be added to
 
     inputA : Tensor or Array
-        First input data
+        Input data
 
     outputA : Tensor or Scalar
-        Output trial data
+        Output data
 
     out_score :
 
@@ -34,10 +36,7 @@ class RiemannPotatoKernel(Kernel):
 
     def __init__(self,graph,inA,outA,thresh,max_iter,regulization,
                  initialization_data=None):
-        """
-        Kernel takes Tensor input and produces scalar label representing
-        the predicted class
-        """
+        """ Init """
         super().__init__('RiemannPotato',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -187,16 +186,16 @@ class RiemannPotatoKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        TODO: description
 
         Parameters
         ----------
 
-        inputs: Tensor or Array
-            Input data
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 1
         
-        outputs: Tensor or Scalar
-            Output data
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:

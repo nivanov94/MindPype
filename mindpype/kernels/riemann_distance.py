@@ -9,7 +9,8 @@ from pyriemann.utils.distance import distance_riemann
 
 class RiemannDistanceKernel(Kernel):
     """
-    Calculates the Riemann mean of covariances contained in a tensor. Kernel computes pairwise distances between 2D tensors
+    Calculates the Riemann mean of covariances contained in a tensor. 
+    Kernel computes pairwise distances between 2D tensors
 
     Parameters
     ----------
@@ -17,20 +18,18 @@ class RiemannDistanceKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Array
-        First input data
+        Input 1 data
 
     inB : Tensor or Array
-        Second Input data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     """
 
     def __init__(self,graph,inA,inB,outA):
-        """
-        Kernel computes pairwise distances between 2D tensors
-        """
+        """ Init """
         super().__init__('RiemannDistance',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
@@ -66,10 +65,10 @@ class RiemannDistanceKernel(Kernel):
         ----------
 
         inA : Tensor or Array
-            First input data
+            Input 1 data
 
         inB : Tensor or Array
-            Second input data
+            Input 2 data
         """
         out_sz = []
         mat_sz = None
@@ -152,13 +151,34 @@ class RiemannDistanceKernel(Kernel):
         Parameters
         ----------
 
-        inputs: Tensor or Array
-            Input data
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 2
 
-        outputs: Tensor or Scalar
-            Output data
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         def get_obj_data_at_index(obj,index,rank):
+            """
+            Get value at specified index from tensor or array
+
+            Parameters
+            ----------
+
+            obj: Tensor or Array
+                Data container to extract data from
+            
+            index: Int
+                Index to extract data from
+
+            rank: Int
+                Number of dimensions of data container
+
+            Returns
+            -------
+
+            data: numpy.ndarray
+                Data at specified index of tensor or array
+            """
             if obj.mp_type == MPEnums.TENSOR:
                 if rank == 1 and len(obj.shape) == 2:
                     return obj.data
@@ -168,6 +188,21 @@ class RiemannDistanceKernel(Kernel):
                 return obj.get_element(index).data
 
         def set_obj_data_at_index(obj,index,data):
+            """
+            Set value at specified index from tensor or array
+
+            Parameters
+            ----------
+
+            obj: Tensor or Array
+                Data container to extract data from
+            
+            index: Int
+                Index to extract data from
+
+            rank: Int
+                Number of dimensions of data container
+            """
             if obj.mp_type == MPEnums.TENSOR:
                 tensor_data = obj.data # need to extract and edit numpy array b/c tensor currently does not allow sliced modifications
                 tensor_data[index] = data
@@ -214,13 +249,13 @@ class RiemannDistanceKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Array
-            First input data
+            Input 1 data
 
         inB : Tensor or Array
-            Second Input data
+            Input 2 data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         Returns
         -------

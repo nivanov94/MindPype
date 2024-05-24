@@ -14,13 +14,15 @@ class TransposeKernel(Kernel):
         Graph that the kernel should be added to
 
     inputA : Tensor or Scalar
-        Input trial data
+        Input data
 
     outputA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axes : tuple or list of ints, optional
-        If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
+        If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is 
+        the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered 
+        axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
 
     """
 
@@ -38,10 +40,12 @@ class TransposeKernel(Kernel):
         Parameters
         ----------
         inA: Tensor or Scalar
-            Input trial data
+            Input data
 
         axes : tuple or list of ints, optional
-        If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
+        If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is 
+        the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered 
+        axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
 
         """
         # check the shape
@@ -86,15 +90,15 @@ class TransposeKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Compute tensor transpose
 
         Parameters
         ----------
-        inputs: Tensor or Scalar
-            Input trial data 
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
 
-        outputs: Tensor or Scalar 
-            Output trial data
+        outputs: list of Tensors or Scalars 
+            Output data container, list of length 1
         """
         outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 
@@ -110,13 +114,16 @@ class TransposeKernel(Kernel):
             Graph that the kernel should be added to
 
         inputA : Tensor or Scalar
-            Input trial data
+            Input  data
 
         outputA : Tensor or Scalar
-            Output trial data
+            Output data
 
         axes : tuple or list of ints, default = None
-            If specified, it must be a tuple or list which contains a permutation of [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array will correspond to the axis numbered axes[i] of the input. If not specified, defaults to range(a.ndim)[::-1], which reverses the order of the axes.
+            If specified, it must be a tuple or list which contains a permutation of 
+            [0,1,..,N-1] where N is the number of axes of a. The i'th axis of the returned array 
+            will correspond to the axis numbered axes[i] of the input. If not specified, defaults 
+            to range(a.ndim)[::-1], which reverses the order of the axes.
 
         Returns
         -------

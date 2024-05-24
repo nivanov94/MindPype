@@ -6,7 +6,8 @@ from pyriemann.utils.mean import mean_riemann
 
 class RiemannMeanKernel(Kernel):
     """
-    Calculates the Riemann mean of covariances contained in a tensor
+    Calculates the Riemann mean of covariances contained in a tensor.
+    Kernel takes 3D Tensor input and produces 2D Tensor representing mean
 
     Parameters
     ----------
@@ -27,9 +28,7 @@ class RiemannMeanKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,weights):
-        """
-        Kernel takes 3D Tensor input and produces 2D Tensor representing mean
-        """
+        """ Init """
         super().__init__('RiemannMean',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -56,16 +55,16 @@ class RiemannMeanKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Calculate the Riemann mean of covariances contained in tensor.
 
         Parameters
         ----------
 
-        inputs: Tensor
-            Input data
+        inputs: list of Tensors
+            Input data container, list of length 1
         
-        outputs: Tensor
-            Output data
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         outputs[0].data = mean_riemann(inputs[0].data, sample_weight=self._w)
 

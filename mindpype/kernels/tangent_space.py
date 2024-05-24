@@ -85,14 +85,14 @@ class TangentSpaceKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Estimate tangent space.
 
         Parameters
         ----------
-        inputs: Tensor
-            Input data 
-        outputs: Tensor
-            Output data 
+        inputs: list of Tensors
+            Input data container, list of length 1
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         inA = inputs[0]
 

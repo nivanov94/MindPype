@@ -55,13 +55,13 @@ class XDawnCovarianceKernel(Kernel):
 
         Parameters
         ----------
-        init_inputs : list of MindPype Tensor data containers
+        init_inputs : list of Tensors
             Initialization input data container, list of length 1
 
-        init_outputs : list of MindPype Tensor data containers
+        init_outputs : list of Tensors
            Initialization output data container, list of length 1
 
-        labels : MindPype Tensor data container
+        labels : Tensor
             Labels corresponding to the initialization data class labels (n_trials,)
         """
 
@@ -98,9 +98,9 @@ class XDawnCovarianceKernel(Kernel):
 
         Parameters
         ----------
-        inputs : list of MindPype Tensor
+        inputs : list of Tensors
             Input data container, list of length 1
-        outputs : list of MindPype Tensor
+        outputs : list Tensors
             Output data container, list of length 1
         """
         input_data = inputs[0].data
@@ -124,11 +124,11 @@ class XDawnCovarianceKernel(Kernel):
             Graph that the kernel should be added to
         inA : MindPype Tensor object
             Input data container
-        outA : MindPype Tensor object
+        outA : Tensor
             Output data container
-        initialization_data : MindPype Tensor object
+        initialization_data : Tensor
             Data to initialize the estimator with (n_trials, n_channels, n_samples)
-        labels : MindPype Tensor object
+        labels : Tensor
             Class labels for initialization data
         n_filters : int, default=4
             Number of Xdawn filters per class.

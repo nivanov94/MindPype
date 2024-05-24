@@ -18,10 +18,10 @@ class RiemannMDMClassifierKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Array
-        First input data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     initialization_data : Tensor
         Initialization data to train the classifier (n_trials, n_channels, n_samples)
@@ -33,10 +33,7 @@ class RiemannMDMClassifierKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,num_classes,initialization_data,labels):
-        """
-        Kernel takes Tensor input and produces scalar label representing
-        the predicted class
-        """
+        """ Init """
         super().__init__('RiemannMDM',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -94,7 +91,7 @@ class RiemannMDMClassifierKernel(Kernel):
         ----------
 
         init_in: Tensor or Array
-            Input initialization data
+            Input data
 
         labels: Tensor
             Class labels for initialization data (n_trials,)
@@ -174,16 +171,16 @@ class RiemannMDMClassifierKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Execute Riemann MDM classifier.
 
         Parameters
         ----------
 
-        inputs: Tensor or Array
-            Input data
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 1
         
-        outputs: Tensor or Scalar
-            Output data
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:
@@ -210,10 +207,10 @@ class RiemannMDMClassifierKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Array
-            First input data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         initialization_data : Tensor
             Initialization data to train the classifier with (n_trials, n_channels, n_samples)

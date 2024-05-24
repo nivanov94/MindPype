@@ -31,9 +31,7 @@ class SlopeKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, Fs=1, axis=-1):
-        """
-        Kernel to estimate the slope of a time series data
-        """
+        """ Init """
         super().__init__('Slope',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -113,16 +111,16 @@ class SlopeKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Execute the kernel and compute the polynomial fit
+        Estimate slope of time series.
 
         Parameters
         ----------
 
-        inputs: Tensor
-            Input data
+        inputs: list of Tensors
+            Input data container, list of length 1
 
-        outputs: Tensor
-            Output data
+        outputs: list of Tensors
+            Output data container, list of length 1
 
         """
 

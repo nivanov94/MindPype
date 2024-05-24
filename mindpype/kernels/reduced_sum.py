@@ -17,10 +17,10 @@ class ReducedSumKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor
-        Input trial data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axis : int or tuple of ints, default = None
         Axis or axes along which the sum is computed.
@@ -46,7 +46,7 @@ class ReducedSumKernel(Kernel):
         Parameters
         ----------
 
-        input_sz: Array
+        input_sz: nd.array
             Dimensions of the input data tensor
         """
         if self._axis != None:
@@ -124,16 +124,16 @@ class ReducedSumKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Compute the sum of the tensor's element along given axis.
 
         Parameters
         ----------
 
-        inputs: Tensor 
-            Input data
+        inputs: list of Tensors 
+            Input data container, list of length 1
 
-        outputs: Tensor or Scalar
-            Output data
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = np.sum(inputs[0].data,
                                  axis=self._axis,
@@ -151,10 +151,10 @@ class ReducedSumKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor
-            Input trial data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         axis : int or tuple of ints, default = None
             Axis or axes along which the sum is computed.
