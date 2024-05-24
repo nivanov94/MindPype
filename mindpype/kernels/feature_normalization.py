@@ -55,6 +55,18 @@ class FeatureNormalizationKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Calculate the normalization parameters using the setup data
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor
+            Input trial data
+
+        init_outputs: Tensor
+            Output trial data
+
+        labels : Tensor
+            Labels corresponding to initialization data class labels (n_trials, )
         """
         # get the initialization input
         init_in = init_inputs[0]
@@ -112,6 +124,18 @@ class FeatureNormalizationKernel(Kernel):
             raise ValueError('FeatureNormalization kernel: output shape must match input shape')
 
     def _process_data(self, inputs, outputs):
+        """
+        Perform feature normalization
+
+        Parameters
+        ----------
+
+        inputs: Tensor
+            Input trial data
+
+        outputs: Tensor
+            Output trial data
+        """
         outputs[0].data = (inputs[0].data - self._translate) / self._scale
 
     @classmethod
