@@ -60,6 +60,17 @@ class RiemannPotatoKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set reference covariance matrix, mean, and standard deviation
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Array
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data
+
+        labels: None
         """
 
         init_in = init_inputs[0]
@@ -85,7 +96,13 @@ class RiemannPotatoKernel(Kernel):
 
     def _fit_filter(self, init_in):
         """
-        fit the potato filter using the initialization data
+        Fit the potato filter using the initialization data
+
+        Parameters
+        ----------
+
+        init_in: Tensor or Array
+            Input initialization data
         """
         # check that the input data is valid
         if (init_in.mp_type != MPEnums.TENSOR and
@@ -169,6 +186,18 @@ class RiemannPotatoKernel(Kernel):
                 raise ValueError("Riemannian potato kernel: Output tensor must be one dimensional")
 
     def _process_data(self, inputs, outputs):
+        """
+        Process data according to outlined kernel function
+
+        Parameters
+        ----------
+
+        inputs: Tensor or Array
+            Input data
+        
+        outputs: Tensor or Scalar
+            Output data
+        """
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:
             # pyriemann library requires input data to have 3 dimensions with the
