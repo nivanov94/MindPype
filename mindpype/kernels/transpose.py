@@ -91,10 +91,10 @@ class TransposeKernel(Kernel):
         Parameters
         ----------
         inputs: Tensor or Scalar
-            Input trial data to be processed
+            Input trial data 
 
         outputs: Tensor or Scalar 
-            Output trial data to be processed
+            Output trial data
         """
         outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 

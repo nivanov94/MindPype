@@ -105,9 +105,9 @@ class XDawnCovarianceKernel(Kernel):
         Parameters
         ----------
         input_data : Tensor
-            Input data to be processed
+            Input data 
         output_data : Tensor
-            Output data to be processed
+            Output data 
 
         Returns
         -------

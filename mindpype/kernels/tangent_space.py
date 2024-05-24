@@ -90,9 +90,9 @@ class TangentSpaceKernel(Kernel):
         Parameters
         ----------
         inputs: Tensor
-            Input data to be processed
+            Input data 
         outputs: Tensor
-            Output data to be procesed
+            Output data 
         """
         inA = inputs[0]
 

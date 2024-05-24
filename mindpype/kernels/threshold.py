@@ -94,10 +94,10 @@ class ThresholdKernel(Kernel):
         Parameters
         ----------
         inputs: Tensor or Scalar 
-            Input trial data to be processed
+            Input trial data 
 
         outputs: Tensor or Scalar
-            Output trial data to be processed
+            Output trial data 
         """
         thresh = inputs[1]
         outputs[0].data = inputs[0].data > thresh.data
