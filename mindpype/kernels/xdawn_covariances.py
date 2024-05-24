@@ -7,41 +7,37 @@ import numpy as np
 
 class XDawnCovarianceKernel(Kernel):
     """
-    Kernel to estimate special form covariance matrices for ERP combined with Xdawn
+    Kernel to perform XDawn spatial filtering and covariance estimation.
 
     Parameters
     ----------
-    inA : Tensor
-        Input data
-    outA : Tensor
-        Output data
-    initialization_data : Tensor
+    graph : Graph
+        Graph that the kernel should be added to
+    inA : MindPype Tensor object
+        Input data container
+    outA : MindPype Tensor object
+        Output data container
+    initialization_data : MindPype Tensor object
         Data to initialize the estimator with (n_trials, n_channels, n_samples)
-    labels : Tensor
+    labels : MindPype Tensor object
         Class labels for initialization data
-    nfilter : int, default=4
+    n_filters : int, default=4
         Number of Xdawn filters per class.
-    applyfilters : bool, default=True
-        If true, spatial filter are applied to the prototypes and the signals. If False, filters are applied only to the ERP prototypes allowing for a better generalization across subject and session at the expense of dimensionality increase. In that case, the estimation is similar to pyriemann.estimation.ERPCovariances with svd=nfilter but with more compact prototype reduction.
-    classeslist of int | None, default=None
-        list of classes to take into account for prototype estimation. If None, all classes will be accounted.
-    estimatorstring, default=’scm’
-        Covariance matrix estimator, see pyriemann.utils.covariance.covariances().
-    xdawn_estimatorstring, default=’scm’
-        Covariance matrix estimator for Xdawn spatial filtering. Should be regularized using ‘lwf’ or ‘oas’, see pyriemann.utils.covariance.covariances().
-    baseline_covarray, shape (n_chan, n_chan) | None, default=None
-        Baseline covariance for Xdawn spatial filtering, see pyriemann.spatialfilters.Xdawn
+    classes : list of int | None, default=None
+        list of classes to use for prototype estimation.
+        If None, all classes will be used.
+    n_classes : int, default=2
+        Number of classes to use for prototype estimation
 
-    Examples
+    See Also
     --------
+    Kernel : Base class for all kernels
+    :py:class:XdawnCovariances: `pyriemann.estimation.XdawnCovariances`
     """
 
-
-    def __init__(self, graph, inA, outA, initialization_data=None, labels=None, num_filters=4, applyfilters=True,
-                 classes=None, estimator='scm', xdawn_estimator='scm', baseline_cov=None, num_classes=2):
-        """
-        Constructor for the XDawnCovarianceKernel class
-        """
+    def __init__(self, graph, inA, outA, initialization_data=None, labels=None, 
+                 n_filters=4, classes=None):
+        """Init"""
         super().__init__("XDawnCovarianceKernel", MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -53,13 +49,25 @@ class XDawnCovarianceKernel(Kernel):
             self.init_input_labels = labels
 
         self._initialized = False
-        self._num_filters = num_filters
-        self._num_classes = num_classes
-        self._xdawn_estimator = XdawnCovariances(num_filters, applyfilters, classes, estimator, xdawn_estimator, baseline_cov)
+        self.n_filters = n_filters
+        self._xdawn_estimator = XdawnCovariances(n_filters, classes)
+
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
-        Initialize the internal state of the kernel. Fit the xdawn_estimator classifier, etc.
+        Initialize the internal state of the kernel. Fit the xdawn_estimator classifier
+        using the provided initialization data.
+
+        Parameters
+        ----------
+        init_inputs : list of MindPype Tensor data containers
+            Initialization input data container, list of length 1
+
+        init_outputs : list of MindPype Tensor data containers
+           Initialization output data container, list of length 1
+
+        labels : MindPype Tensor data container
+            Labels corresponding to the initialization data class labels (n_trials,)
         """
 
         init_in = init_inputs[0]
@@ -73,15 +81,16 @@ class XDawnCovarianceKernel(Kernel):
         if labels.mp_type != MPEnums.TENSOR:
             labels = labels.to_tensor()
 
-        if np.unique(labels.data).shape[0] != self._num_classes:
-            raise ValueError("Number of unique labels must match number of classes")
+        n_cls = np.unique(labels.data).shape[0]
 
+        # fit the xdawn estimator
         self._xdawn_estimator.fit(init_in.data, np.squeeze(labels.data))
 
+        # compute the initialization output
         if init_in is not None and init_out is not None:
             # update the init output shape as needed
             Nt = init_in.shape[0]
-            Nc = self._xdawn_estimator.nfilter*(self._num_classes**2)
+            Nc = self._xdawn_estimator.nfilter*(n_cls**2)
             if init_out.shape != (Nt,Nc,Nc):
                 init_out.shape = (Nt,Nc,Nc)
             # process the initialization data
@@ -89,19 +98,15 @@ class XDawnCovarianceKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process input data according to outlined kernel function
+        Perform XDawn spatial filtering on the input data 
+        and store the result in the output data.
 
         Parameters
         ----------
-        input_data : Tensor
-            Input data to be processed
-        output_data : Tensor
-            Output data to be processed
-
-        Returns
-        -------
-        sts : MPEnums
-            Status of the processing
+        inputs : list of MindPype Tensor
+            Input data container, list of length 1
+        outputs : list of MindPype Tensor
+            Output data container, list of length 1
         """
         input_data = inputs[0].data
 
@@ -112,51 +117,45 @@ class XDawnCovarianceKernel(Kernel):
 
     @classmethod
     def add_to_graph(cls, graph, inA, outA, initialization_data=None, labels=None,
-                     num_filters=4, applyfilters=True, classes=None,
-                     estimator='scm', xdawn_estimator='scm', baseline_cov=None, num_classes=2):
+                     num_filters=4, classes=None):
         """
-        Factory method to create xdawn_covariance kernel, add it to a node, and add the node to the specified graph.
+        Factory method to create xdawn_covariance kernel, add it to a node,
+        and add the node to the specified graph.
 
         Parameters
         ----------
 
         graph : Graph
-            Graph to add the node to
-        inA : Tensor
-            Input data
-        outA : Tensor
-            Output data
-        initialization_data : Tensor
+            Graph that the kernel should be added to
+        inA : MindPype Tensor object
+            Input data container
+        outA : MindPype Tensor object
+            Output data container
+        initialization_data : MindPype Tensor object
             Data to initialize the estimator with (n_trials, n_channels, n_samples)
-        labels : Tensor
+        labels : MindPype Tensor object
             Class labels for initialization data
-        nfilter : int, default=4
+        n_filters : int, default=4
             Number of Xdawn filters per class.
-        applyfilters : bool, default=True
-            If true, spatial filter are applied to the prototypes and the signals. If False, filters are applied only to the ERP prototypes allowing for a better generalization across subject and session at the expense of dimensionality increase. In that case, the estimation is similar to pyriemann.estimation.ERPCovariances with svd=nfilter but with more compact prototype reduction.
-        classeslist of int | None, default=None
-            list of classes to take into account for prototype estimation. If None, all classes will be accounted.
-        estimatorstring, default=’scm’
-            Covariance matrix estimator, see pyriemann.utils.covariance.covariances().
-        xdawn_estimatorstring, default=’scm’
-            Covariance matrix estimator for Xdawn spatial filtering. Should be regularized using ‘lwf’ or ‘oas’, see pyriemann.utils.covariance.covariances().
-        baseline_covarray, shape (n_chan, n_chan) | None, default=None
-            Baseline covariance for Xdawn spatial filtering, see pyriemann.spatialfilters.Xdawn
+        classes : list of int | None, default=None
+            list of classes to use for prototype estimation.
+            If None, all classes will be used.
+        n_classes : int, default=2
+            Number of classes to use for prototype estimation
 
         Returns
         -------
         node : Node
             Node containing the kernel
         """
-        kernel = cls(graph, inA, outA, initialization_data, labels, num_filters,
-                     applyfilters, classes, estimator, xdawn_estimator, baseline_cov, num_classes)
+        kernel = cls(graph, inA, outA, initialization_data, labels, 
+                     num_filters, classes)
 
-        params = (Parameter(inA,MPEnums.INPUT),
-                  Parameter(outA,MPEnums.OUTPUT))
+        params = (Parameter(inA, MPEnums.INPUT),
+                  Parameter(outA, MPEnums.OUTPUT))
 
         node = Node(graph, kernel, params)
 
         graph.add_node(node)
 
         return node
-
