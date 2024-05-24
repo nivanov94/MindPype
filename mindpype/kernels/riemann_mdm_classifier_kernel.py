@@ -54,6 +54,18 @@ class RiemannMDMClassifierKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set the means for the classifier
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Array
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data
+        
+        labels: Tensor
+            Class labels for initialization data (n_trials,)
         """
         self._train_classifier(init_inputs[0], labels)
 
@@ -75,10 +87,17 @@ class RiemannMDMClassifierKernel(Kernel):
 
     def _train_classifier(self, init_in, labels):
         """
-        Train the classifier
-
-        The method will update the kernel's internal representation of the
+        Train the classifier. The method will update the kernel's internal representation of the
         classifier
+
+        Parameters
+        ----------
+
+        init_in: Tensor or Array
+            Input initialization data
+
+        labels: Tensor
+            Class labels for initialization data (n_trials,)
         """
         # check that the input data is valid
         if ((init_in.mp_type != MPEnums.TENSOR and
@@ -154,6 +173,18 @@ class RiemannMDMClassifierKernel(Kernel):
                 raise ValueError('RiemannianMDM kernel: output tensor must be one dimensional')
 
     def _process_data(self, inputs, outputs):
+        """
+        Process data according to outlined kernel function
+
+        Parameters
+        ----------
+
+        inputs: Tensor or Array
+            Input data
+        
+        outputs: Tensor or Scalar
+            Output data
+        """
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:
             # pyriemann library requires input data to have 3 dimensions with the
