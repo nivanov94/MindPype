@@ -92,11 +92,11 @@ class ThresholdKernel(Kernel):
 
         Parameters
         ----------
-        inputs: List of MindPype Tensor or Scalar data containers
-            Input data container, list of length 1
-            
-        outputs: List of MindPype Tensor or Scalar data containers
-            Output data container, list of length 1
+        inputs: Tensor or Scalar 
+            Input trial data to be processed
+
+        outputs: Tensor or Scalar
+            Output trial data to be processed
         """
         thresh = inputs[1]
         outputs[0].data = inputs[0].data > thresh.data
