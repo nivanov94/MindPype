@@ -109,6 +109,24 @@ class NotKernel(Unary, Kernel):
         return node
 
 class Binary:
+    """ 
+    Base class for binary logical operator kernels.
+
+    Parameters
+    ----------
+
+    graph: Graph
+        Graph that the kernel should be added to
+        
+    inA: Tensor or Scalar
+        Input data
+
+    inB: Tensor or Scalar
+        Input data
+
+    outA: Tensor or Scalar
+        Output data
+    """
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized

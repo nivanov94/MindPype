@@ -6,6 +6,18 @@ from scipy import signal
 import warnings
 
 class Filter:
+    """
+    Base class for filter kernels
+
+    Parameters
+    ----------
+
+    inputs: Tensor or Scalar
+        Input trial data
+
+    outputs: Tensor or Scalar
+        Output trial data
+    """
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Method to initialize the filter kernel. This method will make the necessary adjustments to the axis attributes for initialization processing
@@ -111,6 +123,18 @@ class FilterKernel(Filter, Kernel):
         self._axis = axis
 
     def _process_data(self, inputs, outputs):
+        """
+        Filter a tensor along the first non-singleton dimension
+
+        Parameters
+        ----------  
+        
+        inputs: Tensor or Scalar
+            Input trial data
+
+        outputs: Tensor or Scalar
+            Output trial data
+        """
         if self._filt.implementation == 'ba':
             outputs[0].data = signal.lfilter(self._filt.coeffs['b'],
                                             self._filt.coeffs['a'],
@@ -210,7 +234,18 @@ class FiltFiltKernel(Filter, Kernel):
         self._axis = axis
 
     def _process_data(self, inputs, outputs):
+        """
+        Zero phase filter a data along the first non-singleton dimension
 
+        Parameters
+        ----------
+
+        inputs: Tensor or Scalar
+            Input trial data  
+
+        outputs: Tensor or Scalar
+            Output trial data  
+        """
         if self._filt.implementation == 'ba':
             outputs[0].data = signal.filtfilt(self._filt.coeffs['b'],
                                                 self._filt.coeffs['a'],
