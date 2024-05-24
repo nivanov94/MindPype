@@ -27,7 +27,8 @@ extensions = [
     "sphinx.ext.napoleon",
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'sphinx.ext.intersphinx'
 ]
 
 # Looks for objects in external projects
