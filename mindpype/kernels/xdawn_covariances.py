@@ -31,8 +31,8 @@ class XDawnCovarianceKernel(Kernel):
 
     See Also
     --------
-    Kernel : Base class for all kernels
-    :py:class:XdawnCovariances: `pyriemann.estimation.XdawnCovariances`
+    :class:`Kernel` : Base class for all kernels
+    :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` : XDawn Covariance Estimator
     """
 
     def __init__(self, graph, inA, outA, initialization_data=None, labels=None, 
