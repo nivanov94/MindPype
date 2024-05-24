@@ -36,6 +36,7 @@ class RunningAverageKernel(Kernel):
 
     """
     def __init__(self, graph, inA, outA, running_average_len, axis = 0, flush_on_init = False):
+        """ Init """
         super().__init__('RunningAverage',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -47,6 +48,9 @@ class RunningAverageKernel(Kernel):
         self._data_buff = None
 
     def _verify(self):
+        """
+        Verify the inputs and outputs are appropriately sized
+        """
         # need to set the CB here to ensure that inA size is available TODO, kinda hacky, might need to require that size is defined by user
         self._data_buff = CircleBuffer.create(self.session, self._running_average_len,
                                               Tensor.create(self.session, self.inputs[0].shape))
@@ -56,6 +60,15 @@ class RunningAverageKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state to be initialized. Call initialization_execution if downstream nodes are missing training data.
+        
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Scalar
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data
         """
 
         init_in = init_inputs[0]
@@ -87,6 +100,15 @@ class RunningAverageKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Add input data to data object storing previous trials and process the stacked data
+
+        Parameters
+        ----------
+
+        inputs: Tensor or Scalar
+            Input data
+
+        outputs: Tensor or Scalar
+            Output data
         """
         # enqueue the input data
         self._data_buff.enqueue(inputs[0])
@@ -126,7 +148,7 @@ class RunningAverageKernel(Kernel):
         node : Node
             The node object that was added to the graph containing the running average kernel
 
-    """
+        """
         kernel = cls(graph, inA, outA, running_average_len, axis, flush_on_init)
 
         params = (Parameter(inA,MPEnums.INPUT),
