@@ -14,10 +14,10 @@ class PadKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor
-        Input trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
+        Input data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
 
     outA : Tensor
-        Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
+        Output data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
 
     """
 
@@ -44,10 +44,10 @@ class PadKernel(Kernel):
         ----------
 
         init_inputs: Tensor
-            Input trial data
+            Input data
 
         init_outputs: Tensor
-            Output trial data
+            Output data
 
         labels : None
         """
@@ -90,11 +90,11 @@ class PadKernel(Kernel):
         Parameters
         ----------
 
-        inputs: Tensor
-            Input trial data
+        inputs: list of Tensors
+            Input data container, list of length 1
 
-        outputs: Tensor
-            Output trial data
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         inp = inputs[0]
         # TODO: make this more efficient/reduce code duplication
@@ -126,11 +126,14 @@ class PadKernel(Kernel):
         graph : Graph
             Graph that the kernel should be added to
         inA : Tensor
-            Input trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
+            Input data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
         outA : Tensor
-            Output trial data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
+            Output data (n_channels, n_samples) or (n_trials, n_channels, n_samples)
         pad_width : int or sequence of ints, optional
-            Number of values padded to the edges of each axis. ((before_1, after_1), ... (before_N, after_N)) unique pad widths for each axis. ((before, after),) yields same before and after pad for each axis. (pad,) or int is a shortcut for before = after = pad width for all axes. Default is None, in which case no padding is added.
+            Number of values padded to the edges of each axis. ((before_1, after_1), ... (before_N, after_N)) 
+            unique pad widths for each axis. ((before, after),) yields same before and after pad for each 
+            axis. (pad,) or int is a shortcut for before = after = pad width for all axes. 
+            Default is None, in which case no padding is added.
         mode : str or function, optional
             One of the following string values or a user supplied function.
             'constant' (default)
@@ -156,15 +159,20 @@ class PadKernel(Kernel):
             'empty'
                 Pads with undefined values.
             <function>
-                Padding function, see Notes in numpy.pad documentation, linked `here <https://numpy.org/doc/stable/reference/generated/numpy.pad.html#numpy.pad>` _ .
+                Padding function, see Notes in numpy.pad documentation, 
+                linked `here <https://numpy.org/doc/stable/reference/generated/numpy.pad.html#numpy.pad>` _ .
         stat_length : sequence or int, optional
-            Number of values at edge of each axis except the concatenation axis from which the median/mean is calculated. Default is None.
+            Number of values at edge of each axis except the concatenation axis from 
+            which the median/mean is calculated. Default is None.
         constant_values : sequence or int, optional
             Used in 'constant'. The values to set the padded values for each axis. Default is 0.
         end_values : sequence or int, optional
-            Used in 'linear_ramp'. The values used for the ending value of the linear_ramp and that will form the edge of the padded array. Default is 0.
+            Used in 'linear_ramp'. The values used for the ending value of the linear_ramp and that 
+            will form the edge of the padded array. Default is 0.
         reflect_type : str, optional
-            Used in 'reflect' and 'symmetric'. The 'reflect' type is the default which reflects the values at the edge of the array. The 'symmetric' type extends the array in both directions with the reflection of the array on the nearest edge. Default is 'even'.
+            Used in 'reflect' and 'symmetric'. The 'reflect' type is the default which reflects the 
+            values at the edge of the array. The 'symmetric' type extends the array in both directions 
+            with the reflection of the array on the nearest edge. Default is 'even'.
         kwargs : dict, optional
             Keyword arguments for other modes. See Notes linked above.
 
