@@ -9,17 +9,22 @@ class XDawnCovarianceKernel(Kernel):
     """
     Kernel to perform XDawn spatial filtering and covariance estimation.
 
+    .. note:: 
+        This kernel utilizes the 
+        :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` 
+        class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor object
+    inA : Tensor
         Input data container
-    outA : MindPype Tensor object
+    outA : Tensor
         Output data container
-    initialization_data : MindPype Tensor object
+    initialization_data : Tensor 
         Data to initialize the estimator with (n_trials, n_channels, n_samples)
-    labels : MindPype Tensor object
+    labels : Tensor
         Class labels for initialization data
     n_filters : int, default=4
         Number of Xdawn filters per class.
@@ -28,6 +33,11 @@ class XDawnCovarianceKernel(Kernel):
         If None, all classes will be used.
     n_classes : int, default=2
         Number of classes to use for prototype estimation
+
+    See Also
+    --------
+    :class:`Kernel` : Base class for all kernels
+    :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` : XDawn Covariance Estimator
     """
 
     def __init__(self, graph, inA, outA, initialization_data=None, labels=None, 
@@ -122,7 +132,7 @@ class XDawnCovarianceKernel(Kernel):
 
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor object
+        inA : Tensor
             Input data container
         outA : Tensor
             Output data container
