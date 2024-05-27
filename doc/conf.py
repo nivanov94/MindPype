@@ -14,8 +14,8 @@ sys.path.append(os.path.abspath(
 ))
 
 project = 'mindpype'
-copyright = '2023, Nicolas Ivanov, Aaron Lio'
-author = 'Nicolas Ivanov, Aaron Lio'
+copyright = '2024, Nicolas Ivanov, Aaron Lio, Maddie Wong'
+author = 'Nicolas Ivanov, Aaron Lio, Maddie Wong'
 
 version = '0.1'
 release = '0.1'
@@ -27,8 +27,15 @@ extensions = [
     "sphinx.ext.napoleon",
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'sphinx.ext.intersphinx'
 ]
+
+# Looks for objects in external projects
+intersphinx_mapping = {
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'pyriemann' : ('https://pyriemann.readthedocs.io/en/latest/', None),
+}
 
 templates_path = ['_templates']
 
