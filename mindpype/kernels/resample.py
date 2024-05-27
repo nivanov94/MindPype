@@ -15,7 +15,7 @@ class ResampleKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Array
-        Input trial data
+        Input data
 
     factor: float
         Resample factor
@@ -64,11 +64,11 @@ class ResampleKernel(Kernel):
         Parameters
         ----------
 
-        inputs: Tensor or Array
-            Input trial data
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 1
 
-        outputs: Tensor or Scalar
-            Resampled timeseries data
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = signal.resample(inputs[0].data,
                                           np.ceil(inputs[0].shape[self._axis] * self._factor).astype(int),
@@ -87,7 +87,7 @@ class ResampleKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Array
-            Input trial data
+            Input data
 
         factor: float
             Resample factor
