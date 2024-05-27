@@ -125,11 +125,11 @@ class FeatureSelectionKernel(Kernel):
         Parameters
         ----------
 
-        inputs: Tensor
-            Input data
-        
-        outputs: Tensor
-            Output data
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         inA = inputs[0]
         outA = outputs[0]

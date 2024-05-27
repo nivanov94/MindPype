@@ -50,7 +50,7 @@ class EpochKernel(Kernel):
         Parameters
         ----------
 
-        input_shape: Array
+        input_shape: np array
             Shape of input tensor
         """
         output_shape = list(input_shape)
@@ -129,11 +129,11 @@ class EpochKernel(Kernel):
         Parameters
         ----------
 
-        inputs: Tensor
-            Input data
+        inputs: list of Tensors
+            Input data container, list of length 1
         
-        outputs: Tensor
-            Output data
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
 
         inA = inputs[0]

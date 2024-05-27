@@ -19,18 +19,16 @@ class CommonSpatialPatternKernel(Kernel):
     graph : Graph
         Graph that the kernel should be added to
     inA : Tensor or Scalar
-        First input trial data
+        Input data
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     """
 
     def __init__(self,graph,inA,outA,
                  init_style,init_params,
                  num_filts=2,Ncls=2,multi_class_mode='OVA'):
-        """
-        Constructor for CSP filter kernel
-        """
+        """ Init """
         super().__init__('CSP',init_style,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -269,10 +267,10 @@ class CommonSpatialPatternKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Scalar
-            First input trial dat
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         initialization_data : Tensor
             Initialization data to configure the filters (n_trials, n_channels, n_samples)

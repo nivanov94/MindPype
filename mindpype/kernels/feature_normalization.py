@@ -15,10 +15,10 @@ class FeatureNormalizationKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor
-        Input trial data
+        Input data
 
     outA : Tensor
-        Extracted trial data
+        Output data
 
     initialization_data : Tensor
         Initialization data to train the classifier (n_trials, n_channels, n_samples)
@@ -34,9 +34,7 @@ class FeatureNormalizationKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,method,axis=0,initialization_data=None,labels=None):
-        """
-        Kernal normalizes features for classification
-        """
+        """ Init """
         super().__init__('FeatureNormalization',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -60,10 +58,10 @@ class FeatureNormalizationKernel(Kernel):
         ----------
 
         init_inputs: Tensor
-            Input trial data
+            Input data
 
         init_outputs: Tensor
-            Output trial data
+            Output data
 
         labels : Tensor
             Labels corresponding to initialization data class labels (n_trials, )
@@ -125,16 +123,16 @@ class FeatureNormalizationKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Perform feature normalization
+        Normalize values within a feature vector
 
         Parameters
         ----------
 
-        inputs: Tensor
-            Input trial data
+        inputs: list of Tensors
+            Input data container, list of length 1
 
-        outputs: Tensor
-            Output trial data
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         outputs[0].data = (inputs[0].data - self._translate) / self._scale
 
@@ -150,10 +148,10 @@ class FeatureNormalizationKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor
-            Input trial data
+            Input data
 
         outA : Tensor
-            Extracted trial data
+            Output data
 
         init_data : Tensor, default = None
             Initialization data
