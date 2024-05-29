@@ -134,6 +134,13 @@ class CommonSpatialPatternKernel(Kernel):
     def _compute_filters(self,X,y):
         """
         Compute CSP filters
+
+        Parameters
+        ----------
+        X: Tensor
+            Initialization data
+        y: np.array
+            Labels
         """
         # ensure the shapes are valid
         if len(X.shape) == 2:
@@ -192,6 +199,18 @@ class CommonSpatialPatternKernel(Kernel):
     def _compute_binary_filters(self, X, y):
         """
         Compute binary CSP filters
+
+        Parameters
+        ----------
+        X: Tensor
+            Initialization data
+        y: np.array
+            Labels
+
+        Returns
+        -------
+        W: NDArray
+            Binary filters which are rotated back into the channel space
         """
         _ , Nc, Ns = X.shape
 
