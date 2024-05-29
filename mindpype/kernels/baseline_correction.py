@@ -90,8 +90,8 @@ class BaselineCorrectionKernel(Kernel):
             Initialization input data container, list of length 1
         init_outputs : list of MindPype Tensor or Array data containers
             Initialization output data container, list of length 1
-        labels : None
-            Not used, here for compatibility with other kernels
+        labels : Tensor 
+            Class labels for initialization data
         """
 
         init_in = init_inputs[0]

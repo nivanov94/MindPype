@@ -53,7 +53,8 @@ class PadKernel(Kernel):
         init_outputs: Tensor
             Output data
 
-        labels : None
+        labels : Tensor 
+            Class labels for initialization data
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
