@@ -13,7 +13,7 @@ class XDawnCovarianceKernel(Kernel):
         This kernel utilizes the 
         :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` 
         class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
-    
+  
     .. note::
         This kernel utilizes the numpy functions
         :func:`newaxis <numpy:numpy.newaxis>`,
@@ -30,7 +30,7 @@ class XDawnCovarianceKernel(Kernel):
         Output data container
     initialization_data : Tensor 
         Data to initialize the estimator with (n_trials, n_channels, n_samples)
-    labels : Tensor
+    labels : MindPype Tensor object
         Class labels for initialization data
     n_filters : int, default=4
         Number of Xdawn filters per class.
@@ -43,6 +43,7 @@ class XDawnCovarianceKernel(Kernel):
     See Also
     --------
     :class:`Kernel` : Base class for all kernels
+
     :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` : XDawn Covariance Estimator
     """
 
@@ -114,6 +115,7 @@ class XDawnCovarianceKernel(Kernel):
 
         Parameters
         ----------
+
         inputs : list of Tensors
             Input data container, list of length 1
         outputs : list Tensors
@@ -144,7 +146,7 @@ class XDawnCovarianceKernel(Kernel):
             Output data container
         initialization_data : Tensor
             Data to initialize the estimator with (n_trials, n_channels, n_samples)
-        labels : Tensor
+        labels : MindPype Tensor object
             Class labels for initialization data
         n_filters : int, default=4
             Number of Xdawn filters per class.

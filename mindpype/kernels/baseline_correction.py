@@ -107,7 +107,18 @@ class BaselineCorrectionKernel(Kernel):
                 output_shape = list(init_in.shape)
                 init_out.shape = tuple(output_shape)
 
+            # update the output shape, as needed
+            axis_adjusted = False
+            if (len(self.inputs[0].shape) != len(init_in.shape) and
+                self._axis >= 0):
+                self._axis += 1 # adjust axis assuming stacked data
+                axis_adjusted = True
+
             self._process_data([init_in], init_outputs)
+
+            # adjust the axis back to the original value
+            if axis_adjusted:
+                self._axis -= 1
 
     def _process_data(self, inputs, outputs):
         """

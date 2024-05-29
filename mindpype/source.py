@@ -121,6 +121,7 @@ class InputXDFFile(MPBase):
         self._relative_start = relative_start
         self._Ns = int(Ns)
         self._tasks = tasks
+        self._inferred_tasks = tasks is None
         self._channels = channels
         self._label_counter = None
         self._mode = mode
@@ -137,10 +138,13 @@ class InputXDFFile(MPBase):
                 data, header = pyxdf.load_xdf(filename)
 
                 # extract the marker and data streams
+                marker_stream = None
+                data_stream = None
                 for stream in data:
                     if (stream["info"]["type"][0] == "Marker" or
                         stream["info"]["type"][0] == "Markers"):
-                        marker_stream = stream
+                        if marker_stream is None or stream["time_stamps"].shape[0] > marker_stream["time_stamps"].shape[0]:
+                            marker_stream = stream
 
                     elif stream["info"]["type"][0] == self._stype:
                         data_stream = stream
@@ -248,7 +252,7 @@ class InputXDFFile(MPBase):
         If no task list is provided, try to infer the tasks
         from the marker stream (currently only supported for Mindset P300 data).
         """
-        if self._tasks:
+        if not self._inferred_tasks and self._tasks:
             # filter for markers that are tasks
             task_marker_mask = np.array([marker[0] in self._tasks for marker in marker_stream["time_series"]])
             marker_stream["time_series"] = [marker[0] for marker, mask in zip(marker_stream["time_series"], task_marker_mask) if mask]
@@ -266,7 +270,7 @@ class InputXDFFile(MPBase):
                 if "target" in marker:
                     # if the marker identifies a target, store the target grid
                     current_target = json.loads(marker)["target"]
-                elif current_target and "flash" in marker:
+                elif current_target is not None and "flash" in marker:
                     # if the marker is a flash, check if it is a target or non-target
                     flash_positions = json.loads(marker)["flash"]
                     if current_target in flash_positions:

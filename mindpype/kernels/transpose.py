@@ -74,8 +74,7 @@ class TransposeKernel(Kernel):
             Initialization input data container, list of length 1
         init_outputs : list of Tensor or Array
             Initialization output data container, list of length 1
-        labels : Tensor
-            Class labels for initialization data
+        labels : None
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
