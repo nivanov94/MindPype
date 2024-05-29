@@ -35,6 +35,7 @@ class BaselineCorrectionKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, axis=-1, baseline_period=(0,-1)):
+        """ Init """
         super().__init__('BaselineCorrection', MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]

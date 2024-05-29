@@ -26,9 +26,7 @@ class PadKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, pad_width = None, mode = 'constant', stat_length = None, constant_values = 0, end_values = 0, reflect_type = 'even', **kwargs):
-        """
-        Constructor for the PadKernel class
-        """
+        """ Init """
         super().__init__('Pad', MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]

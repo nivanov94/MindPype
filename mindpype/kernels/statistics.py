@@ -326,10 +326,10 @@ class CovarianceKernel(Kernel):
         Parameters
         ----------
 
-        inputs: list of Tensor or Scalar
+        inputs: list of Tensors or Scalars
             Input data container, list of length 1
 
-        outputs: Tensor or Scalar
+        outputs: list of Tensors or Scalars
             Output data container, list of length 1
 
         """
@@ -483,10 +483,10 @@ class MaxKernel(Descriptive, Kernel):
         ----------
 
         inputs: list of Tensors
-            Input data
+            Input data container, list of length 1
 
         outputs: list of Tensors or Scalars
-            Output data
+            Output data container, list of length 1
 
         """
         if outputs[0].mp_type == MPEnums.SCALAR:
@@ -995,7 +995,7 @@ class KurtosisKernel(Descriptive, Kernel):
         Input data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints
         Axis or axes along which to operate. By default, flattened input in used.

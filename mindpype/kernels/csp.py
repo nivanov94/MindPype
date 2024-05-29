@@ -120,6 +120,13 @@ class CommonSpatialPatternKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Process input data according to outlined kernel function
+
+        Parameters
+        ----------
+        inputs : list of Tensors or Scalars
+            Input data container, list of length 1
+        outputs: Tensor or Scalar
+            Output data container, list of length 1
         """
 
         outputs[0].data = np.matmul(self._W.T, inputs[0].data)

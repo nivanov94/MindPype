@@ -42,6 +42,7 @@ class ClassifierKernel(Kernel):
 
     def __init__(self, graph, inA, classifier, prediction, output_probs,
                  num_classes, initialization_data=None, labels=None):
+        """ Init """
         super().__init__('Classifier', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self._classifier = classifier

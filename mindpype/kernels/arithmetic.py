@@ -171,9 +171,9 @@ class LogKernel(Unary, Kernel):
     graph : Graph
         Graph that the kernel should be added to
     inA : Tensor or Scalar
-        Input trial data
+        Input data
     outA : Tensor or Scalar
-        Output trial data
+        Output data
     """
 
     def __init__(self, graph, inA, outA):
@@ -189,10 +189,10 @@ class LogKernel(Unary, Kernel):
 
         Parameters
         ----------
-        input_data : Tensor or Scalar
-            Input trial data
+        input_data : list of Tensors or Scalars
+            Input data container, list of length 1
         output_data : Tensor or Scalar
-            Output trial data
+            Output data container, list of length 1
 
         """
         outputs[0].data = np.log(inputs[0].data)
