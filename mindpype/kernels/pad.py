@@ -8,6 +8,10 @@ class PadKernel(Kernel):
     """
     Kernel to conduct padding on data
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`pad <numpy:numpy.pad>`.
+
     Parameters
     ----------
     graph : Graph

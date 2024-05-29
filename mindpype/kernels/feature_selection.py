@@ -11,6 +11,13 @@ class FeatureSelectionKernel(Kernel):
     """
     Performs feature selection using f_classif method from sklearn.feature_selection
 
+    .. note:: 
+        This kernel utilizes the 
+        :class:`SelectKBest <sklearn:sklearn.feature_selection.SelectKBest>` 
+        class from the :mod:`sklearn <sklearn:sklearn>` package.
+
+     
+
     Parameters
     ----------
 

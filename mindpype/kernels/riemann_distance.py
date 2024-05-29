@@ -12,6 +12,15 @@ class RiemannDistanceKernel(Kernel):
     Calculates the Riemann mean of covariances contained in a tensor. 
     Kernel computes pairwise distances between 2D tensors
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`squeeze <numpy:numpy.squeeze>`,
+        :func:`asarray <numpy:numpy.asarray>`.
+
+    .. note::
+        This kernel utilizes the pyriemann function
+        :func:`distance_riemann <pyriemann:pyriemann.utils.distance.distance_riemann>`,
+
     Parameters
     ----------
     graph : Graph

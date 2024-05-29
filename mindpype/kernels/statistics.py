@@ -11,6 +11,30 @@ class CDFKernel(Kernel):
     """
     Calculates the CDF for a distribution given a RV as input. Currently supports normal and chi2 distributions
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`cov <numpy:numpy.cov>`,
+        :func:`eye <numpy:numpy.eye>`,
+        :func:`zeros <numpy:numpy.zeros>`,
+        :func:`reshape <numpy:numpy.reshape>`,
+        :func:`transpose <numpy:numpy.transpose>`,
+        :func:`mean <numpy:numpy.mean>`,
+        :func:`amax <numpy:numpy.amax>`,
+        :func:`amin <numpy:numpy.amin>`,
+        :func:`std <numpy:numpy.std>`,
+        :func:`var <numpy:numpy.var>`,
+        :func:`squeeze <numpy:numpy.squeeze>`,
+        :func:`sum <numpy:numpy.sum>`,
+        :func:`asarray <numpy:numpy.reshape>`,
+        :func:`concatenate <numpy:numpy.concatenate>`.
+
+    .. note::
+        This kernel utilizes the scipy functions
+        :func:`norm <scipy:scipy.stats.norm>`,
+        :func:`chi2 <scipy:scipy.stats.chi2>`,
+        :func:`kurtosis <scipy:scipy.stats.kurtosis>`,
+        :func:`skew <scipy:scipy.stats.skew>`.
+
     Parameters
     ----------
     graph : Graph

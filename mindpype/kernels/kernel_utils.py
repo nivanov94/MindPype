@@ -5,6 +5,13 @@ def extract_nested_data(mp_obj):
     """
     Recursively extract Tensor data within a MindPype array or array-of-arrays
 
+    .. note::
+        This method utilizes the numpy functions
+        :func:`array <numpy:numpy.array>`,
+        :func:`asarray <numpy:numpy.asarray>`,
+        :func:`append <numpy:numpy.append>`,
+        :func:`exapnd_dims <numpy:numpy.expand_dims>`.
+
     Parameters
     ----------
     mp_obj : MindPype array or array-of-arrays

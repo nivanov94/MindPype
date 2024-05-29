@@ -134,6 +134,10 @@ class FilterKernel(Filter, Kernel):
         """
         Filter a tensor along the first non-singleton dimension
 
+        .. note::
+            This kernel utilizes the scipy module
+            :mod:`signal <scipy:scipy.signal>`.
+
         Parameters
         ----------  
         

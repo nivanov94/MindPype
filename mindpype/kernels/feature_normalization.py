@@ -9,6 +9,13 @@ class FeatureNormalizationKernel(Kernel):
     """
     Normalizes the values within a feature vector
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`max <numpy:numpy.max>`,
+        :func:`min <numpy:numpy.min>`,
+        :func:`std <numpy:numpy.std>`,
+        :func:`mean <numpy:numpy.mean>`.
+
     Parameters
     ----------
     graph : Graph

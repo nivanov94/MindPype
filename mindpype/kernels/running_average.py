@@ -18,6 +18,10 @@ class RunningAverageKernel(Kernel):
     Trials are automatically included into the next running average
     calculation.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`mean <numpy:numpy.mean>`.
+
     Parameters
     ----------
     inA : Tensor or Scalar

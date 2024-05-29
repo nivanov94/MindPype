@@ -17,6 +17,12 @@ class RiemannPotatoKernel(Kernel):
     Kernel takes Tensor input and produces scalar label representing
     the predicted class
 
+    .. note:: 
+        This kernel utilizes the 
+        :class:`Potato <pyriemann:pyriemann.clustering.Potato>` 
+        class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
+
+
     Parameters
     ----------
 

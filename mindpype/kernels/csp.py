@@ -14,6 +14,37 @@ class CommonSpatialPatternKernel(Kernel):
     """
     CSP Filter Kernel that applies a set of common spatial patter filters to tensors of covariance matrices
 
+    .. note::
+        This kernel utilizes the scipy functions
+        :func:`eigh <scipy:scipy.linalg.eigh>`,
+        :func:`binom <scipy:scipy.special.binom>`,
+
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`matmul <numpy:numpy.matmul>`,
+        :func:`newaxis <numpy:numpy.newaxis>`,
+        :func:`unique <numpy:numpy.unique>`,
+        :func:`zeros <numpy:numpy.zeros>`,
+        :func:`copy <numpy:numpy.copy>`,
+        :func:`concatenate <numpy:numpy.concatenate>`,
+        :func:`ones <numpy:numpy.ones>`,
+        :func:`asarray <numpy:numpy.asarray>`,
+        :func:`all <numpy:numpy.all>`,
+        :func:`mean <numpy:numpy.mean>`,
+        :func:`sum <numpy:numpy.sum>`,
+        :func:`isclose <numpy:numpy.isclose>`,
+        :func:`diag <numpy:numpy.diag>`,
+        :func:`flip <numpy:numpy.flip>`,
+        :func:`argsort <numpy:numpy.argsort>`,
+        :func:`eigvals <numpy:numpy.linalg.eigvals>`,
+        :func:`eig <numpy:numpy.linalg.eig>`,
+        :func:`squeeze <numpy:numpy.squeeze>`.
+
+    .. note::
+        This kernel utilizes the pyriemann function
+        :func:`covariances <pyriemann:pyriemann.utils.covariance.covariances>`.
+
+
     Parameters
     ----------
     graph : Graph

@@ -11,6 +11,13 @@ class ClassifierKernel(Kernel):
     """
     Kernel to classify input data using a MindPype Classifier object
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`reshape <numpy:numpy.reshape>`,
+        :func:`squeeze <numpy:numpy.squeeze>`,
+        :func:`unique <numpy:numpy.unique>`,
+        :func:`expand_dims <numpy:numpy.expand_dims>`.
+
     Parameters
     ----------
     graph : Graph

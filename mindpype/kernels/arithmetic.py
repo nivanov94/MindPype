@@ -73,6 +73,10 @@ class AbsoluteKernel(Unary, Kernel):
     Kernel to calculate the element-wise absolute value of
     one MindPype data container (i.e. tensor or scalar)
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`absolute <numpy:numpy.absolute>`.
+
     Parameters
     ----------
     graph : Graph
@@ -157,6 +161,10 @@ class LogKernel(Unary, Kernel):
     """
     Kernel to perform element-wise natural logarithm operation on
     one MindPype data container (i.e. tensor or scalar)
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`log <numpy:numpy.log>`.
 
     Parameters
     ----------

@@ -9,6 +9,10 @@ class RiemannMeanKernel(Kernel):
     Calculates the Riemann mean of covariances contained in a tensor.
     Kernel takes 3D Tensor input and produces 2D Tensor representing mean
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`mean_riemann <pyriemann:pyriemann.utils.mean.mean_riemann>`,
+    
     Parameters
     ----------
     graph : Graph

@@ -12,6 +12,14 @@ class RiemannMDMClassifierKernel(Kernel):
     Riemannian Minimum Distance to the Mean Classifier. Kernel takes Tensor input and produces scalar label representing
     the predicted class. Review classmethods for specific input parameters
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`newaxis <numpy:numpy.newaxis>`.
+
+    .. note::
+        This kernel utilizes the pyriemann module
+        :mod:`classification <pyriemann:pyriemann.classification>`.
+
     Parameters
     ----------
     graph : Graph

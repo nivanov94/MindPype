@@ -12,6 +12,12 @@ class BaselineCorrectionKernel(Kernel):
     the mean of the baseline period from the input data
     along a specified axis.
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`asarray <numpy:numpy.asarray>`,
+        :func:`array <numpy:numpy.array>`,
+        :func:`mean <numpy:numpy.mean>`.
+
     Parameters
     ----------
     graph : Graph

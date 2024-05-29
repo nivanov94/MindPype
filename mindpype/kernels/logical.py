@@ -33,6 +33,10 @@ class NotKernel(Unary, Kernel):
 
     Numpy broadcasting rules apply.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_not <numpy:numpy.logical_not>`.
+
     Parameters
     ----------
     graph : Graph
@@ -112,6 +116,10 @@ class Binary:
     """ 
     Base class for binary logical operator kernels.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_and <numpy:numpy.logical_and>`.
+
     Parameters
     ----------
 
@@ -166,6 +174,10 @@ class AndKernel(Binary,Kernel):
     two MindPype data containers (i.e. tensor or scalar)
 
     Numpy broadcasting rules apply.
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_and <numpy:numpy.logical_and>`.
 
     Parameters
     ----------
@@ -253,6 +265,10 @@ class OrKernel(Binary,Kernel):
 
     Numpy broadcasting rules apply.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_or <numpy:numpy.logical_or>`.
+
     Parameters
     ----------
     graph : Graph
@@ -335,6 +351,10 @@ class XorKernel(Binary,Kernel):
     two MindPype data containers (i.e. tensor or scalar)
 
     Numpy broadcasting rules apply.
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_xor <numpy:numpy.logical_xor>`.
 
     Parameters
     ----------

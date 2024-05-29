@@ -12,6 +12,13 @@ class SlopeKernel(Kernel):
     """
     Estimates the slope of a time series
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`mean <numpy:numpy.mean>`,
+        :func:`expand_dims <numpy:numpy.expand_dims>`,
+        :func:`moveaxis <numpy:numpy.moveaxis>`,
+        :func:`linspace <numpy:numpy.linspace>`.
+
     Parameters
     ----------
     graph : Graph
