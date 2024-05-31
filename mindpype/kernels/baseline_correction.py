@@ -13,9 +13,7 @@ class BaselineCorrectionKernel(Kernel):
     along a specified axis.
 
     .. note::
-        This kernel utilizes the numpy functions
-        :func:`asarray <numpy:numpy.asarray>`,
-        :func:`array <numpy:numpy.array>`,
+        This kernel utilizes the numpy function
         :func:`mean <numpy:numpy.mean>`.
 
     Parameters
