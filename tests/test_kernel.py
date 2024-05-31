@@ -237,3 +237,24 @@ def test_execute():
     assert res[1].all() == (res[0] + res[0]).all()
     del KernelExecutionUnitTest_Object
 
+    KernelExecutionUnitTest_Object = KernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestSubtractionKernelExecution()
+    assert res[1].all() == (res[0] - res[0]).all()
+    del KernelExecutionUnitTest_Object
+
+    KernelExecutionUnitTest_Object = KernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestMultiplicationKernelExecution()
+    assert res[1].all() == (res[0] * res[0]).all()
+    del KernelExecutionUnitTest_Object
+
+    KernelExecutionUnitTest_Object = KernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestDivisionKernelExecution()
+    assert res[1].all() == (res[0] / res[0]).all()
+    del KernelExecutionUnitTest_Object
+
+    KernelExecutionUnitTest_Object = KernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestLogKernelExecution()
+    assert res[1].all() == np.log(res[0]).all()
+    del KernelExecutionUnitTest_Object
+
+
