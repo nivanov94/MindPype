@@ -457,6 +457,11 @@ class Kernel(MPBase, ABC):
     def copy_init_labels_to_output(self, verification=False):
         """
         Copies the input labels from initialization to the output
+
+        Parameters
+        ----------
+        verification: Bool
+            TODO: add description of parameter
         """
         if not verification or self.phony_init_input_labels is None:
             src = self.init_input_labels
@@ -632,6 +637,15 @@ class Kernel(MPBase, ABC):
     def is_covariance_input(self, param):
         """
         Returns true if the parameter is a covariance input
+
+        Parameters
+        ----------
+        param: TODO
+
+        Returns
+        -------
+        is_cov_input: Bool
+            Whether or not the input parameter is a covariance input
         """
         if self._covariance_inputs is None:
             return False  # kernel does not have covariance inputs
