@@ -298,6 +298,18 @@ class Scalar(MPBase):
         """
         Assign random data to the scalar. This is useful for testing and
         verification purposes.
+
+        Parameters
+        ----------
+        whole_numbers: bool
+            Assigns data that is only whole numbers if True
+        vmin: int
+            Lower limit for values in the random data
+        vmax: int
+            Upper limits for values in the random data
+        covarinace: bool
+            If True, assigns random covariance matrix
+
         """
         if self.data_type == int or whole_numbers:
             self.data = np.random.randint(vmin, vmax+1)
@@ -336,8 +348,8 @@ class Scalar(MPBase):
         """
         Valid numeric types for a MindPype Scalar object
 
-        Return
-        ------
+        Returns
+        -------
         [int, float, complex]
         """
         return [int, float, complex, str, bool]
@@ -714,6 +726,17 @@ class Tensor(MPBase):
         """
         Assign random data to the tensor. This is useful for testing and
         verification purposes.
+
+        Parameters
+        ----------
+        whole_numbers: bool
+            Assigns data that is only whole numbers if True
+        vmin: int
+            Lower limit for values in the random data
+        vmax: int
+            Upper limits for values in the random data
+        covarinace: bool
+            If True, assigns random covariance matrix
         """
         if whole_numbers:
             self.data = np.random.randint(vmin, vmax+1, size=self.shape)
@@ -743,6 +766,11 @@ class Tensor(MPBase):
     def poll_volatile_data(self, label=None):
         """
         Pull data from external sources or MindPype input data sources.
+
+        Parameters
+        ----------
+        Label : int, default = None
+            Class label corresponding to class data to poll.
         """
 
         # check if the data is actually volatile, if not just return
@@ -860,7 +888,7 @@ class Tensor(MPBase):
     @classmethod
     def create_for_volatile_output(cls, sess, shape, out):
         """
-
+        TODO: method description
 
         Parameters
         ----------
@@ -888,6 +916,16 @@ class Tensor(MPBase):
         """
         Method that returns True if  the data within the tensor is the right
         shape and is a numpy ndarray. False otherwise.
+
+        Parameters
+        ----------
+        data: Tensor
+            Data to be validated
+
+        Returns
+        -------
+        is_valid: bool
+            Returns true if the data in the tensor is the correct shape and is a numpy ndarray
         """
         if data is None:
             return False
@@ -915,7 +953,8 @@ class Array(MPBase):
 
     Attributes
     ----------
-
+    TODO
+    
     Examples
     --------
     >>> # Creating An Array of tensors
@@ -933,6 +972,7 @@ class Array(MPBase):
     """
 
     def __init__(self, sess, capacity, element_template):
+        """ Init """
         super().__init__(MPEnums.ARRAY, sess)
 
         self._virtual = False  # no virtual arrays for now
@@ -1085,6 +1125,17 @@ class Array(MPBase):
         """
         Assign random data to the array. This is useful for testing and
         verification purposes.
+
+        Parameters
+        ----------
+        whole_numbers: bool
+            Assigns data that is only whole numbers if True
+        vmin: int
+            Lower limit for values in the random data
+        vmax: int
+            Upper limits for values in the random data
+        covarinace: bool
+            If True, assigns random covariance matrix
         """
         for i in range(self.capacity):
             self.get_element(i).assign_random_data(whole_numbers, vmin, vmax,
@@ -1093,6 +1144,10 @@ class Array(MPBase):
     def to_tensor(self):
         """
         Stack the elements of the array into a Tensor object.
+
+        Returns
+        -------
+        Tensor
         """
         element = self.get_element(0)
 
@@ -1182,6 +1237,8 @@ class CircleBuffer(Array):
 
     def is_empty(self):
         """
+        Checks if circle buffer is empty
+
         Parameters
         ----------
 
@@ -1206,8 +1263,7 @@ class CircleBuffer(Array):
 
     def is_full(self):
         """
-        Parameters
-        ----------
+        Checks if circle buffer is full
 
         Return
         ------
@@ -1281,6 +1337,14 @@ class CircleBuffer(Array):
         return super(CircleBuffer, self).get_element(self._head)
 
     def enqueue(self, obj):
+        """
+        Enqueue an element into circle buffer
+
+        Parameters
+        ----------
+        obj: MindPype data object
+            Object to be added to circle buffer
+        """
         if self.is_empty():
             self._head = 0
             self._tail = -1
@@ -1295,6 +1359,11 @@ class CircleBuffer(Array):
         """
         enqueue a number of elements from another circle buffer into this
         circle buffer
+        
+        Parameters
+        ----------
+        cb: Circle Buffer
+            Circle buffer to enqueue into the other Circle buffer
         """
 
         while not cb.is_empty():
@@ -1302,6 +1371,14 @@ class CircleBuffer(Array):
             self.enqueue(element)
 
     def dequeue(self):
+        """ 
+        Dequeue element from circle buffer 
+        
+        Returns
+        -------
+        ret: MindPype data object
+            MindPype data object at the head of the circle buffer that is removed
+        """
         if self.is_empty():
             return None
 
@@ -1317,10 +1394,15 @@ class CircleBuffer(Array):
 
     def make_copy(self):
         """
-        Create and return a deep copy of the array
-        The copied array will maintain references to the same objects.
+        Create and return a deep copy of the Circle Buffer
+        The copied Circle Buffer will maintain references to the same objects.
         If a copy of these is also desired, they will need to be copied
         separately.
+
+        Returns
+        -------
+        cpy: Circle Buffer
+            Copy of the circle buffer
         """
         cpy = CircleBuffer(self.session,
                            self.capacity,
@@ -1341,8 +1423,12 @@ class CircleBuffer(Array):
 
     def copy_to(self, dest_array):
         """
-        Copy all the attributes of the array to another array. Note
-        these will reference the same objects within the element list
+        Copy all the attributes of the circle buffer to another circle buffer
+
+        Parameters
+        ----------
+        dest_array: Circle buffer
+            Circle buffer to copy attributes to
         """
         dest_array.capacity = self.capacity
         for i in range(self.capacity):
@@ -1392,6 +1478,21 @@ class CircleBuffer(Array):
 
     @classmethod
     def create(cls, sess, capacity, element_template):
+        """ 
+        Create circle buffer 
+
+        Parameters
+        ----------
+        sess: Session Object
+            Session where graph will exist
+        capacity: Int
+            Capacity of buffer
+        element_template: TODO
+
+        Returns
+        -------
+        cb: Circle Buffer
+        """
         cb = cls(sess, capacity, element_template)
 
         # add to the session

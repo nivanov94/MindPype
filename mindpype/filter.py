@@ -544,7 +544,7 @@ class Filter(MPBase):
         `MNE documentation <https://mne.tools/stable/generated/mne.filter.create_filter.html>`_
         for more information on the parameters.
 
-        Return
+        Returns
         ------
         MindPype Filter object : Filter
             The filter object containing the filter and its parameters
