@@ -22,7 +22,7 @@ class RiemannMeanKernel(Kernel):
         Input data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : int
         Axis over which the mean should be calculated (see np.mean for more info)
@@ -86,7 +86,7 @@ class RiemannMeanKernel(Kernel):
             Input data
 
         outA : Tensor
-            Output trial data
+            Output data
 
         weights : array_like, default=None
         """
