@@ -251,6 +251,17 @@ class InputXDFFile(MPBase):
         Filter the marker stream for the specified tasks.
         If no task list is provided, try to infer the tasks
         from the marker stream (currently only supported for Mindset P300 data).
+
+        Parameters
+        ----------
+
+        marker_stream: dictionary
+            Time series and time stamps for data 
+
+        Returns
+        -------
+        marker_stream: dictionary
+            Time series and time stamps for inferred tasks
         """
         if not self._inferred_tasks and self._tasks:
             # filter for markers that are tasks
@@ -298,6 +309,8 @@ class InputXDFFile(MPBase):
         label : string
             Marker of next trial to be polled. If None, the next trial according
             to timestamps will be polled.
+
+        TODO add return information
         """
 
         if label is not None and label not in self._tasks:
@@ -428,6 +441,11 @@ class InputXDFFile(MPBase):
             Number of samples to be extracted per trial. For epoched data, this value determines the
             size of each epoch, whereas this value is used in polling for continuous data.
 
+        
+        Returns
+        -------
+        src: InputXDFFile
+            Continous XDF file input source
         """
 
         src = cls(sess, files, channels, tasks, relative_start, Ns, mode="continuous")
@@ -468,6 +486,11 @@ class InputXDFFile(MPBase):
         Ns : int, default = 1
             Number of samples to be extracted per trial. For class-separated data, this value determines the
             size of each epoch, whereas this value is used in polling for continuous data.
+
+        Returns
+        -------
+        src: InputXDFFile
+            Epoched XDF file input source
 
         """
         src = cls(sess, files, channels, tasks, relative_start, Ns, stype=stype, mode="epoched")
@@ -588,6 +611,7 @@ class InputLSLStream(MPBase):
         """
         Pull data from the inlet stream until we have Ns data points for each
         channel.
+
         Parameters
         ----------
         Ns: int
@@ -922,9 +946,6 @@ class InputLSLStream(MPBase):
             StreamInfo object to use for the data stream, if None a default StreamInfo object will be created
         Ns : int, default = 1
             Number of samples to be extracted per poll.
-
-        Examples
-        --------
         """
         src = cls(
             sess,
@@ -956,8 +977,6 @@ class InputLSLStream(MPBase):
         no associated marker stream
         Parameters
         ----------
-        Examples
-        --------
         sess : session object
             Session object where the data source will exist
         pred : str
@@ -981,7 +1000,7 @@ class InputLSLStream(MPBase):
 class OutputLSLStream(MPBase):
     """
     An object for maintaining an LSL outlet
-
+    TODO fill in attributes section
     Attributes
     ----------
 
@@ -1022,6 +1041,12 @@ class OutputLSLStream(MPBase):
         output_save_thread.start()
 
     def _check_status(self, filesave):
+        """
+        TODO
+        Parameters
+        ----------
+        filesave:
+        """
         if filesave is not None:
             streamargs = [
                 {
@@ -1059,7 +1084,8 @@ class OutputLSLStream(MPBase):
 
         Parameters
         ----------
-
+        data: Tensor
+            Data to be pushed to the output stream
         """
 
         try:
@@ -1085,8 +1111,10 @@ class OutputLSLStream(MPBase):
         stream_info : pylsl.StreamInfo object
             pylsl.StreamInfo object that describes the stream to be created
 
-        Examples
-        --------
+        Returns
+        -------
+        src: OutputLSLStream
+            Output LSL Stream
         """
         src = cls(sess, stream_info, filesave)
         sess.add_ext_out(src)
@@ -1137,6 +1165,12 @@ class OutputLSLStream(MPBase):
 
         filesave : str, default = None
             If not None, the data will be saved to the given file.
+
+        Returns
+        -------
+
+        src: OutputLSLStream
+            Output LSL Stream
         """
 
         stream_info = pylsl.StreamInfo(
