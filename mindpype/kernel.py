@@ -644,8 +644,7 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        is_cov_input: Bool
-            Whether or not the input parameter is a covariance input
+        bool: True if the data object is a covariance matrix, False otherwise
         """
         if self._covariance_inputs is None:
             return False  # kernel does not have covariance inputs
