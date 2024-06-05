@@ -30,7 +30,7 @@ class XDawnCovarianceKernel(Kernel):
         Output data container
     initialization_data : Tensor 
         Data to initialize the estimator with (n_trials, n_channels, n_samples)
-    labels : MindPype Tensor object
+    labels : Tensor
         Class labels for initialization data
     n_filters : int, default=4
         Number of Xdawn filters per class.
@@ -146,7 +146,7 @@ class XDawnCovarianceKernel(Kernel):
             Output data container
         initialization_data : Tensor
             Data to initialize the estimator with (n_trials, n_channels, n_samples)
-        labels : MindPype Tensor object
+        labels : Tensor
             Class labels for initialization data
         n_filters : int, default=4
             Number of Xdawn filters per class.

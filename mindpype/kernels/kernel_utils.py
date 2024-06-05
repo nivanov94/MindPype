@@ -14,7 +14,7 @@ def extract_nested_data(mp_obj):
 
     Parameters
     ----------
-    mp_obj : MindPype array or array-of-arrays
+    mp_obj : Array or array-of-arrays
         The input to be extracted from
     
     Returns
@@ -64,7 +64,7 @@ def extract_init_inputs(init_in):
     
     Parameters
     ----------
-    init_in : MindPype Object
+    init_in : Object
         The input to be extracted from
 
     Returns

@@ -68,9 +68,9 @@ class CommonSpatialPatternKernel(Kernel):
     filters : ndarray, default=None
         Pre-calculated CSP filters to be applied to input trial data. If provided, this will 
         be used to initialize the kernel.
-    init_data : MindPype Tensor or Array, default=None
+    init_data : Tensor or Array, default=None
         Initialization data to configure the filters (n_trials, n_channels, n_samples)
-    labels : MindPype Tensor or Array, default=None
+    labels : Tensor or Array, default=None
         Labels corresponding to initialization data class labels (n_trials,)
 
     See Also
@@ -114,11 +114,11 @@ class CommonSpatialPatternKernel(Kernel):
 
         Parameters
         ----------
-        init_inputs : list of MindPype Tensor or Array data containers
+        init_inputs : list of Tensors or Arrays 
             Initialization input data container, list of length 1
-        init_outputs : list of MindPype Tensor or Array data containers
+        init_outputs : list of Tensors or Arrays
             Initialization output data container, list of length 1
-        labels : MindPype Tensor or Array
+        labels : Tensor or Array
             Labels corresponding to initialization data class labels (n_trials,)
         """
 
@@ -158,9 +158,9 @@ class CommonSpatialPatternKernel(Kernel):
 
         Parameters
         ----------
-        inputs : list of MindPype Tensor
+        inputs : list of Tensors
             Input data container, list of length 1
-        outputs : list of MindPype Tensor
+        outputs : list of Tensors
             Output data container, list of length 1
         """
         outputs[0].data = np.matmul(self._W.T, inputs[0].data)
@@ -361,14 +361,14 @@ class CommonSpatialPatternKernel(Kernel):
         graph : Graph
             Graph that the kernel should be added to
 
-        inA : MindPype Tensor
+        inA : Tensor
             Input trial data
-        outA : MindPype Tensor
+        outA : Tensor
             Filtered trial data
-        initialization_data : MindPype Tensor or Array, default=None
+        initialization_data : Tensor or Array, default=None
 
             Initialization data to configure the filters (n_trials, n_channels, n_samples)
-        labels : MindPype Tensor or Array, default=None
+        labels : Tensor or Array, default=None
             Labels corresponding to initialization data class labels (n_trials,)
         n_filt_pairs : int, default=2
             Number of CSP filter pairs to compute. Each pair consists of eigenvectors associated 

@@ -20,9 +20,9 @@ class BaselineCorrectionKernel(Kernel):
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor object
+    inA : Tensor object
         Input data container
-    outA : MindPype Tensor object
+    outA : Tensor object
         Output data container
     axis : int, default = -1
         Axis along which to perform baseline correction
@@ -85,9 +85,9 @@ class BaselineCorrectionKernel(Kernel):
 
         Parameters
         ----------
-        init_inputs : list of MindPype Tensor or Array data containers
+        init_inputs : list of Tensors or Arrays
             Initialization input data container, list of length 1
-        init_outputs : list of MindPype Tensor or Array data containers
+        init_outputs : list of Tensors or Arrays 
             Initialization output data container, list of length 1
         labels : Tensor 
             Class labels for initialization data
@@ -128,9 +128,9 @@ class BaselineCorrectionKernel(Kernel):
 
         Parameters
         ----------
-        inputs : list of MindPype Tensor or Array data containers
+        inputs : list of Tensors or Arrays 
             Input data container, list of length 1
-        outputs : list of MindPype Tensor or Array data containers
+        outputs : list of Tensors or Arrays
             Output data container, list of length 1
         """
         inA = inputs[0]
@@ -156,9 +156,9 @@ class BaselineCorrectionKernel(Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inputA : MindPype Tensor
+        inputA : Tensor
             Input data container
-        outputA : MindPype Tensor
+        outputA : Tensor
             Output data container
         baseline_period : array-like (start, end)
             Baseline period where start and end are the start
@@ -166,11 +166,11 @@ class BaselineCorrectionKernel(Kernel):
             target axis.
         axis : int, default = -1
             Axis along which to perform baseline correction
-        init_input : MindPype Tensor or Scalar data container, default=None
+        init_input : Tensor or Scalar data container, default=None
             MindPype data container with initialization data to be
             transformed and passed to downstream nodes during graph
             initialization
-        init_labels : MindPype Tensor or Array data container, default=None
+        init_labels : Tensor or Array data container, default=None
             MindPype data container with initialization labels to be
             passed to downstream nodes during graph initialization
 

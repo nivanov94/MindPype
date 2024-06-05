@@ -22,19 +22,19 @@ class ClassifierKernel(Kernel):
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor
+    inA : Tensor
         Input data
-    classifier : MindPype Classifier object
+    classifier : Classifier
         MindPype Classifier object to be used for classification
-    Prediction : MindPype Tensor or Scalar
+    Prediction : Tensor or Scalar
         Predicted labels of the classifier
-    output_probs : MindPype Tensor, default None
+    output_probs : Tensor, default None
         If not None, the output will be the probability of each class.
-    initialization_data : MindPype Tensor or Array, default None
+    initialization_data : Tensor or Array, default None
         Initialization data to train the classifier. If None, training
         data will be supplied by upstream nodes in the graph during
         graph initialization.
-    labels : MindPype Tensor or Array, default None
+    labels : Tensor or Array, default None
         Class labels for classifier training. If None, training labels
         will be supplied by upstream nodes in the graph during graph
         initialization.
@@ -64,11 +64,11 @@ class ClassifierKernel(Kernel):
 
         Parameters
         ----------
-        init_inputs : list of MindPype Tensor or Array
+        init_inputs : list of Tensors or Arrays
             Initialization data to train the classifier
-        init_outputs : list of MindPype Tensor or Array
+        init_outputs : list of Tensors or Arrays
             Output data from the initialization process
-        labels : MindPype Tensor or Array
+        labels : Tensor or Array
             Class labels for classifier training
         """
 
@@ -152,9 +152,9 @@ class ClassifierKernel(Kernel):
 
         Parameters
         ----------
-        inputs : list of MindPype Tensor or Array
+        inputs : list of Tensors or Arrays
             Input data to be classified, list of 1
-        outputs : list of MindPype Tensor or Scalar
+        outputs : list of Tensors or Scalars
             Output data from the classification process. The first element
             is the predicted class label, and the second element is the
             probability of each class.
@@ -191,20 +191,20 @@ class ClassifierKernel(Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor or Array
+        inA : Tensor or Array
             Input data to classify
-        classifier : MindPype Classifier
+        classifier : Classifier
             MindPype Classifier object to be used for classification
-        outA : MindPype Tensor or Scalar
+        outA : Tensor or Scalar
             Predicted labels of the classifier
-        outB : MindPype Tensor, default None
+        outB : Tensor, default None
             The probability of each class.
             If None, probability output will not be computed.
-        initialization_data : MindPype Tensor or Array, default None
+        initialization_data : Tensor or Array, default None
             Initialization data to train the classifier. If None, training
             data will be supplied by upstream nodes in the graph during
             graph initialization.
-        labels : MindPype Tensor or Array, default None
+        labels : Tensor or Array, default None
             Class labels for classifier training. If None, training labels
             will be supplied by upstream nodes in the graph during graph
             initialization.
