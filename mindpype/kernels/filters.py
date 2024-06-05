@@ -132,7 +132,7 @@ class FilterKernel(Filter, Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Filter a tensor along the first non-singleton dimension
+        Filter a tensor along the specified axis
 
         .. note::
             This kernel utilizes the scipy module
@@ -245,7 +245,7 @@ class FiltFiltKernel(Filter, Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Zero phase filter a data along the first non-singleton dimension
+        Zero phase filter a data along the specified axis
 
         Parameters
         ----------

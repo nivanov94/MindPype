@@ -88,7 +88,7 @@ class PadKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Conduct padding on the data
+        Apply padding on the data
 
         Parameters
         ----------
