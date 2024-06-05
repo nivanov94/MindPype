@@ -192,7 +192,8 @@ class RiemannPotatoKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        TODO: description
+        Apply Riemann Potato Filter and produce scalar label representing
+        the predicted class
 
         Parameters
         ----------

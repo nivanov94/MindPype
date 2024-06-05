@@ -888,7 +888,7 @@ class Tensor(MPBase):
     @classmethod
     def create_for_volatile_output(cls, sess, shape, out):
         """
-        TODO: method description
+        Create data source for volatile output
 
         Parameters
         ----------

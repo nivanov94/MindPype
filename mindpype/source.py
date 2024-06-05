@@ -310,7 +310,9 @@ class InputXDFFile(MPBase):
             Marker of next trial to be polled. If None, the next trial according
             to timestamps will be polled.
 
-        TODO add return information
+        Returns
+        -------
+        sample_data: dictionary
         """
 
         if label is not None and label not in self._tasks:
@@ -1042,10 +1044,10 @@ class OutputLSLStream(MPBase):
 
     def _check_status(self, filesave):
         """
-        TODO
+        TODO: add description
         Parameters
         ----------
-        filesave:
+        filesave: TODO - add type
         """
         if filesave is not None:
             streamargs = [

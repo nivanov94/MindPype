@@ -640,7 +640,7 @@ class Kernel(MPBase, ABC):
 
         Parameters
         ----------
-        param: TODO
+        param: TODO - add type
 
         Returns
         -------
