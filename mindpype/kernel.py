@@ -688,9 +688,9 @@ class Kernel(MPBase, ABC):
 
         Parameters
         ----------
-        init_data : list or tuple of MindPype data objects
+        init_data : list or tuple of data objects
             MindPype container containing the initialization data
-        init_labels : MindPype data object containing initialization
+        init_labels : data object containing initialization
         labels, default = None
             MindPype container containing the initialization labels
 

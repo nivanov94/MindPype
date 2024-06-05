@@ -298,7 +298,7 @@ class Classifier(MPBase):
 
         Parameters
         ----------
-        sess : MindPype Session Object
+        sess : Session
             The MindPype Session object to which the classifier will be added.
         classifier_object : Sklearn Classifier object
             The classifier object to be added to the MindPype Session.

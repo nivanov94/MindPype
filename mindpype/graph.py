@@ -448,7 +448,7 @@ class Graph(MPBase):
 
         Parameters
         ----------
-        target_validation_output : MindPype Container
+        target_validation_output : data container
             MindPype container (Tensor, Scalar, etc.) containing the target validation output.
             Likely, this will be the output of a classification node.
 
@@ -750,9 +750,9 @@ class Node(MPBase):
 
         Parameters
         ----------
-        init_data : list or tuple of MindPype data objects
+        init_data : list or tuple of data objects
             MindPype container containing the initialization data
-        init_labels : MindPype data object containing initialization
+        init_labels : data object containing initialization
         labels, default = None
             MindPype container containing the initialization labels
 
@@ -848,7 +848,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._data
@@ -864,7 +864,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._init_data
@@ -880,7 +880,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._init_labels
@@ -1180,7 +1180,7 @@ class Parameter:
 
         Return Type
         ------------
-        MindPype Data object
+        Data object
 
         """
 

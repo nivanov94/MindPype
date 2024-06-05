@@ -252,7 +252,7 @@ class Scalar(MPBase):
 
         Return Type
         -----------
-        MindPype Scalar object
+        Scalar
 
         Examples
         --------
@@ -370,7 +370,7 @@ class Scalar(MPBase):
 
         Return
         ------
-        MindPype Scalar object
+        Scalar 
 
         Examples
         --------
@@ -407,7 +407,7 @@ class Scalar(MPBase):
 
         Return
         ------
-        MindPype Scalar object
+        Scalar 
 
         Examples
         --------
@@ -448,7 +448,7 @@ class Scalar(MPBase):
 
         Return
         ------
-        MindPype Scalar object
+        Scalar
 
         Examples
         --------
@@ -487,7 +487,7 @@ class Scalar(MPBase):
 
         Return
         ------
-        MindPype Scalar object
+        Scalar
 
         Examples
         --------
@@ -527,10 +527,10 @@ class Tensor(MPBase):
         Data to be stored within the array
     is_virtual : bool
         If False, the Tensor is non-virtual, if True, the Tensor is virtual
-    ext_src : MindPype input Source
+    ext_src : input Source
         Data source the tensor pulls data from (only applies to Tensors
         created from a handle)
-    ext_out : MindPype output Source
+    ext_out : output Source
         Data source the tensor pushes data to (only applies to Tensors created
         from a handle)
     """
@@ -874,7 +874,7 @@ class Tensor(MPBase):
         shape : shape_like
             Shape of the Tensor
 
-        ext_src : MindPype input Source
+        ext_src : input Source
             Data source the tensor pulls data from (only applies to Tensors
             created from a handle)
 
@@ -898,7 +898,7 @@ class Tensor(MPBase):
         shape : shape_like
             Shape of the Tensor
 
-        out : MindPype output Source
+        out : output Source
             Data source the tensor pushes data to (only applies to Tensors
             created for volatile output)
         """
@@ -1342,7 +1342,7 @@ class CircleBuffer(Array):
 
         Parameters
         ----------
-        obj: MindPype data object
+        obj: data object
             Object to be added to circle buffer
         """
         if self.is_empty():
@@ -1376,7 +1376,7 @@ class CircleBuffer(Array):
         
         Returns
         -------
-        ret: MindPype data object
+        ret: data object
             MindPype data object at the head of the circle buffer that is removed
         """
         if self.is_empty():
