@@ -9,13 +9,22 @@ class ResampleKernel(Kernel):
     """
     Kernel to resample timeseries data
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`ceil <numpy:numpy.ceil>`.
+    
+    .. note::
+        This kernel utilizes the sscipy module
+        :mod:`signal <scipy:scipy.signal>`.
+
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Array
-        Input trial data
+        Input data
 
     factor: float
         Resample factor
@@ -28,6 +37,7 @@ class ResampleKernel(Kernel):
     """
 
     def __init__(self,graph,inA,factor,outA,axis = 1):
+        """ Init """
         super().__init__('Resample',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -59,6 +69,15 @@ class ResampleKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Process trial data according to the scipy function
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = signal.resample(inputs[0].data,
                                           np.ceil(inputs[0].shape[self._axis] * self._factor).astype(int),
@@ -77,7 +96,7 @@ class ResampleKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Array
-            Input trial data
+            Input data
 
         factor: float
             Resample factor

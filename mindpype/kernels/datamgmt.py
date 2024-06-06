@@ -9,19 +9,30 @@ class ConcatenationKernel(Kernel):
     """
     Kernel to concatenate multiple tensors into a single tensor
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`expand_dims <numpy:numpy.expand_dims>`,
+        :func:`concatenate <numpy:numpy.concatenate>`,
+        :func:`std <numpy:numpy.std>`,
+        :func:`squeeze <numpy:numpy.squeeze>`,
+        :func:`stack <numpy:numpy.stack>`,
+        :func:`zeros <numpy:numpy.zeros>`,
+        :func:`reshape <numpy:numpy.reshape>`,
+        :func:`ix_ <numpy:numpy.ix_>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor
-        First input trial data
+        Input 1 data
 
     inB : Tensor
-        Second input trial data
+        Input 2 data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : int or tuple of ints, default = 0
         The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0.
@@ -29,9 +40,7 @@ class ConcatenationKernel(Kernel):
     """
 
     def __init__(self,graph,outA,inA,inB,axis=0):
-        """
-        Constructor for the Concatenation kernel
-        """
+        """ Init """
         super().__init__('Concatenation',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
@@ -77,6 +86,30 @@ class ConcatenationKernel(Kernel):
                 self._axis -= 1
 
     def _resolve_dims(self, inA, inB):
+        """
+        Determine dimensions of concatenated tensor
+
+        Parameters
+        ----------
+
+        inA : Tensor
+            Input 1 data
+
+        inB : Tensor
+          Input 2 data
+
+        Returns
+        -------
+
+        output_sz: Tuple
+            Dimensions of concatenated tensor
+
+        noncat_sz_A: np array
+            Non concatendated size of tensor A
+
+        noncat_size_B: np array
+            Non concatendated size of tensor B
+        """
         sz_A = inA.shape
         sz_B = inB.shape
         concat_axis = self._axis
@@ -137,7 +170,16 @@ class ConcatenationKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process input data according to outlined kernel function
+        Concatenate tensors into single tensor
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 2
+
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         inA_data = inputs[0].data
         inB_data = inputs[1].data
@@ -166,11 +208,11 @@ class ConcatenationKernel(Kernel):
         graph : Graph
             Graph that the kernel should be added to
         inA : Tensor
-            First input trial data
+            Input 1 data
         inB : Tensor
-            Second input trial data
+            Input 2 data
         outA : Tensor
-            Output trial data
+            Output data
         axis : int or tuple of ints, default = 0
             The axis along which the arrays will be joined. If axis is None, arrays are flattened before use. Default is 0.
             See numpy.concatenate for more information
@@ -203,6 +245,7 @@ class ConcatenationKernel(Kernel):
         return node
 
 
+
 class EnqueueKernel(Kernel):
     """
     Kernel to enqueue a MindPype object into a MindPype circle buffer
@@ -221,9 +264,7 @@ class EnqueueKernel(Kernel):
     """
 
     def __init__(self,graph,inA,queue,enqueue_flag):
-        """
-        Constructor for the Enqueue kernel
-        """
+        """ Init """
         super().__init__('Enqueue',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA, queue, enqueue_flag]
 
@@ -270,6 +311,13 @@ class EnqueueKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy function
+
+        Parameters
+        ----------
+        
+        inputs: list of MPBases
+            Input data container, list of length 1
+        
         """
         # need to make a deep copy of the object to enqueue
         if not self._gated or inputs[2].data:
@@ -290,10 +338,10 @@ class EnqueueKernel(Kernel):
             Input data to enqueue into circle buffer
 
         queue : CircleBuffer
-            Circle buffer to have data enqueud to
+            Circle buffer to have data enqueued to
 
         enqueue_flag : bool
-            (optional) Scalar boolean used to determine if the inputis to be added to the queue
+            (optional) Scalar boolean used to determine if the inputs to be added to the queue
 
         Returns
         -------
@@ -329,19 +377,20 @@ class ExtractKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Array
-        Input trial data
+        Input data
 
     Indicies : list of slices and/or ints
         Indicies within inA from which to extract data
 
     outA : Tensor
-        Extracted trial data
+        Output data
 
     reduce_dims : bool, default = False
         Remove singleton dimensions if true, don't squeeze otherwise
     """
 
     def __init__(self,graph,inA,indices,outA,reduce_dims):
+        """ Init """
         super().__init__('Extract',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -496,6 +545,18 @@ class ExtractKernel(Kernel):
                 raise ValueError("ExtractKernel Tensor output shape does not match expected output shape")
 
     def _process_data(self, inputs, outputs):
+        """
+        Extract portion of tensor or array
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
+        """
         inA = inputs[0]
         outA = outputs[0]
 
@@ -540,13 +601,13 @@ class ExtractKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Array
-            Input trial data
+            Input data
 
         Indicies : list slices, list of ints
             Indicies within inA from which to extract data
 
         outA : Tensor, Scalar, or Array
-            Extracted trial data
+            Output data
 
         reduce_dims : bool, default = False
             Remove singleton dimensions if true, don't squeeze otherwise
@@ -596,9 +657,7 @@ class StackKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None):
-        """
-        Constructor for the Stack kernel
-        """
+        """ Init """
         super().__init__('stack',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -646,6 +705,15 @@ class StackKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy functions
+
+        Parameters
+        ----------
+
+        inA : list of Arrays
+            Container where specified data will be added to
+
+        outA : list of Tensors
+            Tensor of stacked tensors
         """
 
         inA = inputs[0]
@@ -709,22 +777,20 @@ class TensorStackKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor
-        First input trial data
+        Input 1 data
 
     inB : Tensor
-        Second input trial data
+        Input 2 data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : int, default=None
         Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
     """
 
     def __init__(self,graph,inA,inB,outA,axis=None):
-        """
-        Constructor for the TensorStack kernel
-        """
+        """ Init  """
         super().__init__('TensorStack',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
@@ -796,7 +862,16 @@ class TensorStackKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function.
+        Stack 2 tensors into single tensor
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 2
+
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         input_tensors = [inputs[i].data for i in range(len(inputs))]
         outputs[0].data = np.stack(input_tensors,axis=self._axis)
@@ -813,11 +888,11 @@ class TensorStackKernel(Kernel):
         graph : Graph
             Graph that the kernel should be added to
         inA : Tensor or Scalar
-            First input trial data
+            Input 1 data
         inB : Tensor or Scalar
-            Second input trial data
+            Input 2 data
         outA : Tensor or Scalar
-            Output trial data
+            Output data
         axis : int, default=None
             Axis over which to stack the tensors. If none, the tensors are flattened before they are stacked
 
@@ -867,9 +942,7 @@ class ReshapeKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, shape):
-        """
-        Constructor for the Reshape kernel
-        """
+        """ Init """
         super().__init__('Reshape',MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -924,6 +997,16 @@ class ReshapeKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel function using numpy functions
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
+
         """
         inA = inputs[0]
         outA = outputs[0]

@@ -18,9 +18,9 @@ class Unary:
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor or Scalar data container
+    inA : Tensor or Scalar 
         Input data container
-    outA : MindPype Tensor or Scalar data container
+    outA : Tensor or Scalar 
         Output data container
 
     See Also
@@ -36,9 +36,9 @@ class Unary:
 
         Parameters
         ----------
-        init_inputs : List of MindPype Tensor or Array data containers
+        init_inputs : List of Tensors or Arrays
             Initialization input data container, list of length 1
-        init_outputs : List of MindPype Tensor or Array data containers
+        init_outputs : List of Tensors or Arrays
             Initialization output data container, list of length 1
         labels : None
             Not used, here for compatability with other kernels
@@ -73,13 +73,17 @@ class AbsoluteKernel(Unary, Kernel):
     Kernel to calculate the element-wise absolute value of
     one MindPype data container (i.e. tensor or scalar)
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`absolute <numpy:numpy.absolute>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor or Scalar data container
+    inA : Tensor or Scalar
         Input data container
-    outA : MindPype Tensor or Scalar data container
+    outA : Tensor or Scalar
         Output data container
 
     See Also
@@ -101,9 +105,9 @@ class AbsoluteKernel(Unary, Kernel):
 
         Parameters
         ----------
-        inputs: List of MindPype Tensor or Scalar data containers
+        inputs: List of Tensors or Scalars
             Input data container, list of length 1
-        outputs: List of MindPype Tensor or Scalar data containers
+        outputs: List of Tensors or Scalars
             Output data container, list of length 1
         """
         outputs[0].data = np.absolute(inputs[0].data)
@@ -118,11 +122,11 @@ class AbsoluteKernel(Unary, Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor or Scalar data container
+        inA : Tensor or Scalar 
             Input data container
-        outA : MindPype Tensor or Scalar data container
+        outA : Tensor or Scalar data 
             Output data container
-        init_input : MindPype Tensor or Scalar data container, default=None
+        init_input : Tensor or Scalar, default=None
             MindPype data container with initialization data to be
             transformed and passed to downstream nodes during graph
             initialization
@@ -158,14 +162,18 @@ class LogKernel(Unary, Kernel):
     Kernel to perform element-wise natural logarithm operation on
     one MindPype data container (i.e. tensor or scalar)
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`log <numpy:numpy.log>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
     inA : Tensor or Scalar
-        Input trial data
+        Input data
     outA : Tensor or Scalar
-        Output trial data
+        Output data
     """
 
     def __init__(self, graph, inA, outA):
@@ -181,10 +189,10 @@ class LogKernel(Unary, Kernel):
 
         Parameters
         ----------
-        input_data : Tensor or Scalar
-            Input trial data
+        input_data : list of Tensors or Scalars
+            Input data container, list of length 1
         output_data : Tensor or Scalar
-            Output trial data
+            Output data container, list of length 1
 
         """
         outputs[0].data = np.log(inputs[0].data)
@@ -199,15 +207,15 @@ class LogKernel(Unary, Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor or Scalar data container
+        inA : Tensor or Scalar
             Input data container
-        outA : MindPype Tensor or Scalar data container
+        outA : Tensor or Scalar 
             Output data container
-        init_input : MindPype Tensor or Scalar data container, default=None
+        init_input : Tensor or Scalar, default=None
             MindPype data container with initialization data to be
             transformed and passed to downstream nodes during graph
             initialization
-        init_labels : MindPype Tensor or Array data container, default=None
+        init_labels : Tensor or Array, default=None
             MindPype data container with initialization labels to be
             passed to downstream nodes during graph initialization
 
@@ -248,11 +256,11 @@ class Binary:
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor or Scalar data container
+    inA : Tensor or Scalar 
         Input data container
-    inB : MindPype Tensor or Scalar data container
+    inB : Tensor or Scalar 
         Input data container
-    outA : MindPype Tensor or Scalar data container
+    outA : Tensor or Scalar
         Output data container
 
     See Also
@@ -270,9 +278,9 @@ class Binary:
 
         Parameters
         ----------
-        init_inputs : List of MindPype Tensor or Array data containers
+        init_inputs : List of Tensors or Arrays 
             Initialization input data container, list of length 2
-        init_outputs : List of MindPype Tensor or Array data containers
+        init_outputs : List of Tensors or Arrays
             Initialization output data container, list of length 1
         labels : None
             Not used, here for compatability with other kernels
@@ -317,11 +325,11 @@ class AdditionKernel(Binary, Kernel):
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor or Scalar data container
+    inA : Tensor or Scalar 
         Input data container
-    inB : MindPype Tensor or Scalar data container
+    inB : Tensor or Scalar
         Input data container
-    outA : MindPype Tensor or Scalar data container
+    outA : Tensor or Scalar 
         Output data container
 
     See Also
@@ -344,9 +352,9 @@ class AdditionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data : List of MindPype data containers
+        input_data : List of data containers
             Input data containers, list of length 2
-        output_data : List of MindPype data containers
+        output_data : List of data containers
             Output data containers, list of length 1
         """
         outputs[0].data = inputs[0].data + inputs[1].data
@@ -361,17 +369,17 @@ class AdditionKernel(Binary, Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor or Scalar data container
+        inA : Tensor or Scalar
             Input data container
-        inB : MindPype Tensor or Scalar data container
+        inB : Tensor or Scalar 
             Input data container
-        outA : MindPype Tensor or Scalar data container
+        outA : Tensor or Scalar 
             Output data container
-        init_inputs : List of two MindPype Tensor or Scalar data containers, default=None
+        init_inputs : List of two Tensors or Scalars, default=None
             MindPype data containers with initialization data to be
             transformed and passed to downstream nodes during graph
             initialization
-        init_labels : MindPype Tensor or Array data container, default=None
+        init_labels : Tensor or Array, default=None
             MindPype data container with initialization labels to be
             passed to downstream nodes during graph initialization
 
@@ -411,11 +419,11 @@ class DivisionKernel(Binary, Kernel):
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor or Scalar data container
+    inA : Tensor or Scalar 
         Input containing the dividend
-    inB : MindPype Tensor or Scalar data container
+    inB : Tensor or Scalar 
         Input containing the divisor
-    outA : MindPype Tensor or Scalar data container
+    outA : Tensor or Scalar 
         Output data container
 
     See Also
@@ -438,9 +446,9 @@ class DivisionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data : List of MindPype data containers
+        input_data : List of data containers
             Input data containers, list of length 2
-        output_data : List of MindPype data containers
+        output_data : List of data containers
             Output data containers, list of length 1
         """
         outputs[0].data = inputs[0].data / inputs[1].data
@@ -455,17 +463,17 @@ class DivisionKernel(Binary, Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor or Scalar data container
+        inA : Tensor or Scalar 
             Input containing the dividend
-        inB : MindPype Tensor or Scalar data container
+        inB : Tensor or Scalar 
             Input containing the divisor
-        outA : MindPype Tensor or Scalar data container
+        outA : Tensor or Scalar 
             Output data container
-        init_inputs : List of two MindPype Tensor or Scalar data containers, default=None
+        init_inputs : List of two Tensors or Scalars, default=None
             MindPype data containers with initialization data to be
             transformed and passed to downstream nodes during graph
             initialization
-        init_labels : MindPype Tensor or Array data container, default=None
+        init_labels : Tensor or Array, default=None
             MindPype data container with initialization labels to be
             passed to downstream nodes during graph initialization
 
@@ -507,11 +515,11 @@ class MultiplicationKernel(Binary, Kernel):
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor or Scalar data container
+    inA : Tensor or Scalar
         Input data container
-    inB : MindPype Tensor or Scalar data container
+    inB : Tensor or Scalar
         Input data container
-    outA : MindPype Tensor or Scalar data container
+    outA : Tensor or Scalar 
         Output data container
 
     See Also
@@ -534,9 +542,9 @@ class MultiplicationKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data : List of MindPype data containers
+        input_data : List of data containers
             Input data containers, list of length 2
-        output_data : List of MindPype data containers
+        output_data : List of data containers
             Output data containers, list of length 1
         """
         outputs[0].data = inputs[0].data * inputs[1].data
@@ -551,17 +559,17 @@ class MultiplicationKernel(Binary, Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor or Scalar data container
+        inA : Tensor or Scalar 
             Input data container
-        inB : MindPype Tensor or Scalar data container
+        inB : Tensor or Scalar 
             Input data container
-        outA : MindPype Tensor or Scalar data container
+        outA : Tensor or Scalar 
             Output data container
-        init_inputs : List of two MindPype data containers, default=None
+        init_inputs : List of two data containers, default=None
             MindPype data containers with initialization data to be
             transformed and passed to downstream nodes during graph
             initialization
-        init_labels : MindPype Tensor or Array data container, default=None
+        init_labels : Tensor or Array, default=None
             MindPype data container with initialization labels to be
             passed to downstream nodes during graph initialization
 
@@ -602,11 +610,11 @@ class SubtractionKernel(Binary, Kernel):
     ----------
     graph : Graph
         Graph that the kernel should be added to
-    inA : MindPype Tensor or Scalar data container
+    inA : Tensor or Scalar
         Input containing the minuend
-    inB : MindPype Tensor or Scalar data container
+    inB : Tensor or Scalar 
         Input containing the subtrahend
-    outA : MindPype Tensor or Scalar data container
+    outA : Tensor or Scalar
         Output data container
 
     See Also
@@ -629,9 +637,9 @@ class SubtractionKernel(Binary, Kernel):
 
         Parameters
         ----------
-        input_data : List of MindPype data containers
+        input_data : List of data containers
             Input data containers, list of length 2
-        output_data : List of MindPype data containers
+        output_data : List of data containers
             Output data containers, list of length 1
         """
         outputs[0].data = inputs[0].data - inputs[1].data
@@ -646,17 +654,17 @@ class SubtractionKernel(Binary, Kernel):
         ----------
         graph : Graph
             Graph that the kernel should be added to
-        inA : MindPype Tensor or Scalar data container
+        inA : Tensor or Scalar
             Input containing the minuend
-        inB : MindPype Tensor or Scalar data container
+        inB : Tensor or Scalar 
             Input containing the subtrahend
-        outA : MindPype Tensor or Scalar data container
+        outA : Tensor or Scalar
             Output data container
-        init_inputs : List of two MindPype data containers, default=None
+        init_inputs : List of two data containers, default=None
             MindPype data containers with initialization data to be
             transformed and passed to downstream nodes during graph
             initialization
-        init_labels : MindPype Tensor or Array data container, default=None
+        init_labels : Tensor or Array, default=None
             MindPype data container with initialization labels to be
             passed to downstream nodes during graph initialization
 

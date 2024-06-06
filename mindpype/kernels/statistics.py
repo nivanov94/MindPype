@@ -11,14 +11,40 @@ class CDFKernel(Kernel):
     """
     Calculates the CDF for a distribution given a RV as input. Currently supports normal and chi2 distributions
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`cov <numpy:numpy.cov>`,
+        :func:`eye <numpy:numpy.eye>`,
+        :func:`zeros <numpy:numpy.zeros>`,
+        :func:`reshape <numpy:numpy.reshape>`,
+        :func:`transpose <numpy:numpy.transpose>`,
+        :func:`mean <numpy:numpy.mean>`,
+        :func:`amax <numpy:numpy.amax>`,
+        :func:`amin <numpy:numpy.amin>`,
+        :func:`std <numpy:numpy.std>`,
+        :func:`var <numpy:numpy.var>`,
+        :func:`squeeze <numpy:numpy.squeeze>`,
+        :func:`sum <numpy:numpy.sum>`,
+        :func:`asarray <numpy:numpy.reshape>`,
+        :func:`concatenate <numpy:numpy.concatenate>`.
+
+    .. note::
+        This kernel utilizes the scipy functions
+        :func:`norm <scipy:scipy.stats.norm>`,
+        :func:`chi2 <scipy:scipy.stats.chi2>`,
+        :func:`kurtosis <scipy:scipy.stats.kurtosis>`,
+        :func:`skew <scipy:scipy.stats.skew>`.
+
+    Parameters
+    ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor
-        First input trial data
+        Input data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     dist : str, {'norm', 'chi2'}
         Distribution type
@@ -34,9 +60,7 @@ class CDFKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,dist,df,loc,scale):
-        """
-        Kernel takes tensor input of RVs
-        """
+        """ Init """
         super().__init__('CDF',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -46,7 +70,17 @@ class CDFKernel(Kernel):
         self._df = df
 
     def _initialize(self, init_inputs, init_outputs, labels):
+        """
+        Initialize the kernel and compute initialization data output.
 
+        Parameters
+        ----------
+        init_inputs: Tensor
+            Input data
+        
+        init_outputs: Tensor
+            Output data
+        """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
@@ -95,6 +129,19 @@ class CDFKernel(Kernel):
             raise ValueError("CDF Kernel: Chi2 distribution requires a df parameter")
 
     def _process_data(self, inputs, outputs):
+        """
+        Calculate the CDF.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors 
+            Input data container, list of length 1
+
+        outputs: list of Tensors 
+            Output data container, list of length 1
+
+        """
         if self._dist == 'norm':
             outputs[0].data = norm.cdf(inputs[0].data,
                                        loc=self._loc,
@@ -109,6 +156,34 @@ class CDFKernel(Kernel):
     def add_to_graph(cls,graph,inA,outA,dist='norm',df=None,loc=0,scale=1,init_input=None,init_labels=None):
         """
         Factory method to create a CDF node
+
+        Parameters
+        ----------
+ 
+        graph: Graph
+            Graph that the kernel should be added to
+
+        inA: Tensor
+            Input data
+
+        OutA:
+            Output data
+
+        dist: str, {'norm', 'chi2'}
+            Distribution type
+
+        df: shape_like
+            The shape parameter(s) for the distribution. See scipy.stats.chi2 docstring for more detailed information
+        
+        loc: array_like, default = 0
+            Location Parameter
+
+        scale: array_like, default = 1
+            Scale Parameter
+
+        init_input: None
+
+        init_output: None
         """
 
         # create the kernel object
@@ -144,10 +219,10 @@ class CovarianceKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First input trial data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     regularization : float, 0 < r < 1
         Regularization parameter
@@ -168,6 +243,7 @@ class CovarianceKernel(Kernel):
     """
 
     def __init__(self,graph,inputA,outputA,regularization):
+        """ Init """
         super().__init__('Covariance',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inputA]
         self.outputs = [outputA]
@@ -176,6 +252,17 @@ class CovarianceKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Initialize internal state and initialization output of the kernel
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Scalar
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data 
+
+        labels: None
         """
 
         init_in = init_inputs[0]
@@ -234,7 +321,17 @@ class CovarianceKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process input data according to outlined kernel function
+        Compute covariance of tensor.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+
         """
         shape = inputs[0].shape
         rank = len(shape)
@@ -273,10 +370,10 @@ class CovarianceKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Scalar
-            First input trial data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         regularization : float, 0 < r < 1
             Regularization parameter
@@ -357,10 +454,10 @@ class MaxKernel(Descriptive, Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor
-        Input data (max value will be extracted from here)
+        Input data 
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints
         Axis or axes along which to operate. By default, flattened input in used.
@@ -370,6 +467,7 @@ class MaxKernel(Descriptive, Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
+        """ Init """
         super().__init__('Max',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -378,6 +476,19 @@ class MaxKernel(Descriptive, Kernel):
         self._keepdims = keepdims
 
     def _process_data(self, inputs, outputs):
+        """
+        Extract maximum value along tensor axis.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+
+        """
         if outputs[0].mp_type == MPEnums.SCALAR:
             outputs[0].data = np.amax(inputs[0].data).item()
         else:
@@ -397,10 +508,10 @@ class MaxKernel(Descriptive, Kernel):
             Graph that the node should be added to
 
         inA : Tensor
-            Input data (max value will be extracted from here)
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         axis : None or int or tuple of ints
             Axis or axes along which to operate. By default, flattened input in used.
@@ -439,10 +550,10 @@ class MinKernel(Descriptive, Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor
-        Input data (min value will be extracted from here)
+        Input data 
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints
         Axis or axes along which to operate. By default, flattened input in used.
@@ -452,6 +563,7 @@ class MinKernel(Descriptive, Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
+        """ Init """
         super().__init__('Min',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -460,6 +572,19 @@ class MinKernel(Descriptive, Kernel):
 
 
     def _process_data(self, inputs, outputs):
+        """
+        Extract minimum value from tensor.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
+
+        """
         if outputs[0].mp_type == MPEnums.SCALAR:
             outputs[0].data = np.amin(inputs[0].data).item()
         else:
@@ -481,10 +606,10 @@ class MinKernel(Descriptive, Kernel):
             Graph that the node should be added to
 
         inA : Tensor
-            Input data (min value will be extracted from here)
+            Input data 
 
         outA : Tensor
-            Output trial data
+            Output data
 
         axis : None or int or tuple of ints
             Axis or axes along which to operate. By default, flattened input in used.
@@ -526,7 +651,7 @@ class MeanKernel(Descriptive, Kernel):
         Input data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints
         Axis or axes along which to operate. By default, flattened input in used.
@@ -536,9 +661,7 @@ class MeanKernel(Descriptive, Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None,keepdims=False):
-        """
-        Kernal calculates arithmetic mean of values in tensor or array
-        """
+        """ Init """
         super().__init__('Mean',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -546,6 +669,19 @@ class MeanKernel(Descriptive, Kernel):
         self._keepdims = keepdims
 
     def _process_data(self, inputs, outputs):
+        """
+        Calculate mean of values in tensor.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
+
+        """
         outputs[0].data = np.mean(inputs[0].data,
                                   axis=self._axis,
                                   keepdims=self._keepdims)
@@ -566,7 +702,7 @@ class MeanKernel(Descriptive, Kernel):
             Input data
 
         outA : Tensor
-            Output trial data
+            Output data
 
         axis : None or int or tuple of ints
             Axis or axes along which to operate. By default, flattened input in used.
@@ -598,29 +734,32 @@ class StdKernel(Descriptive, Kernel):
     """
     Calculates the standard deviation of values in a tensor
 
+    Parameters
+    ----------
+
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor
-        First input trial data
+        Input data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints, optional
-        Axis or axes along which the standard deviation is computed. The default is to compute the standard deviation of the flattened array.
+        Axis or axes along which the standard deviation is computed. The default is to compute
+        the standard deviation of the flattened array.
 
     ddof : int, optional
-        Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+        Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N
+        represents the number of elements. By default ddof is zero.
 
     keepdims : bool
         If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
     """
 
     def __init__(self,graph,inA,outA,axis=None,ddof=0,keepdims=False):
-        """
-        Kernal calculates arithmetic standard deviation of values in tensor
-        """
+        """Init"""
         super().__init__('Std',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -629,6 +768,9 @@ class StdKernel(Descriptive, Kernel):
         self._keepdims = keepdims
 
     def _verify(self):
+        """
+        Verify the inputs and outputs are appropriately sized
+        """
         super()._verify()
 
         d_in = self.inputs[0]
@@ -650,7 +792,16 @@ class StdKernel(Descriptive, Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Calculate standard deviation of values in tensor.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+        
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         outputs[0].data = np.std(inputs[0].data,
                                  axis=self._axis,
@@ -664,20 +815,25 @@ class StdKernel(Descriptive, Kernel):
 
         Calculates the standard deviation of values in a tensor
 
+        Parameters
+        ----------
+
         graph : Graph
             Graph that the kernel should be added to
 
         inA : Tensor
-            First input trial data
+            Input data
 
         outA : Tensor
-            Output trial data
+            Output data
 
         axis : None or int or tuple of ints, optional
-            Axis or axes along which the standard deviation is computed. The default is to compute the standard deviation of the flattened array.
+            Axis or axes along which the standard deviation is computed. The default is to compute the 
+            standard deviation of the flattened array.
 
         ddof : int, optional
-            Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements. By default ddof is zero.
+            Means Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N 
+            represents the number of elements. By default ddof is zero.
 
         keepdims : bool
             If this is set to True, the axes which are reduced are left in the result as dimensions with size one.
@@ -710,25 +866,26 @@ class VarKernel(Descriptive, Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        Input trial data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints, optional
-        Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
+        Axis or axes along which the variance is computed. The default is to 
+        compute the variance of the flattened array.
 
     ddof : int, optional
-        "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
+        "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N 
+        represents the number of elements. By default ddof is zero.
 
     keepdims : bool, optional
-        If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
+        If this is set to True, the axes which are reduced are left in the result as dimensions 
+        with size one. With this option, the result will broadcast correctly against the input array.
     """
 
     def __init__(self,graph,inA,outA,axis,ddof,keepdims):
-        """
-        Kernal calculates arithmetic variance of values in tensor
-        """
+        """ Init """
         super().__init__('Var',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -737,6 +894,9 @@ class VarKernel(Descriptive, Kernel):
         self._keepdims = keepdims
 
     def _verify(self):
+        """
+        Verify the inputs and outputs are appropriately sized
+        """
         d_in = self.inputs[0]
 
         # verify ddof is valid
@@ -756,7 +916,16 @@ class VarKernel(Descriptive, Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Calculate arithmetic variance of values in a tensor.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = np.var(inputs[0].data,
                                  axis=self._axis,
@@ -768,23 +937,29 @@ class VarKernel(Descriptive, Kernel):
         """
         Factory method to create a variance kernel
 
+        Parameters
+        ----------
+
         graph : Graph
             Graph that the kernel should be added to
 
         inA : Tensor or Scalar
-            Input trial data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         axis : None or int or tuple of ints, optional
-            Axis or axes along which the variance is computed. The default is to compute the variance of the flattened array.
+            Axis or axes along which the variance is computed. The default is to 
+            compute the variance of the flattened array.
 
         ddof : int, optional
-            "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, where N represents the number of elements. By default ddof is zero.
+            "Delta Degrees of Freedom": the divisor used in the calculation is N - ddof, 
+            where N represents the number of elements. By default ddof is zero.
 
         keepdims : bool, optional
-            If this is set to True, the axes which are reduced are left in the result as dimensions with size one. With this option, the result will broadcast correctly against the input array.
+            If this is set to True, the axes which are reduced are left in the result as dimensions with
+            size one. With this option, the result will broadcast correctly against the input array.
 
         """
 
@@ -820,7 +995,7 @@ class KurtosisKernel(Descriptive, Kernel):
         Input data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints
         Axis or axes along which to operate. By default, flattened input in used.
@@ -847,9 +1022,7 @@ class KurtosisKernel(Descriptive, Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None,keepdims=False,bias=True,fisher=True,nan_policy='propagate'):
-        """
-        Kernal calculates the kurtosis of values in tensor or array
-        """
+        """ Init """
         super().__init__('Kurtosis',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -860,6 +1033,18 @@ class KurtosisKernel(Descriptive, Kernel):
         self._nan_policy = nan_policy
 
     def _process_data(self, inputs, outputs):
+        """
+        Calculate kurtosis of values in tensor.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1 
+        """
         outputs[0].data = kurtosis(inputs[0].data,
                                    axis=self._axis,
                                    keepdims=self._keepdims,
@@ -885,7 +1070,7 @@ class KurtosisKernel(Descriptive, Kernel):
             Input data
 
         outA : Tensor
-            Output trial data
+            Output data
 
         axis : None or int or tuple of ints
             Axis or axes along which to operate. By default, flattened input in used.
@@ -945,7 +1130,7 @@ class SkewnessKernel(Descriptive, Kernel):
         Input data
 
     outA : Tensor
-        Output trial data
+        Output data
 
     axis : None or int or tuple of ints
         Axis or axes along which to operate. By default, flattened input in used.
@@ -968,9 +1153,7 @@ class SkewnessKernel(Descriptive, Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None,keepdims=False,bias=True,nan_policy='propagate'):
-        """
-        Kernal calculates the skewness of values in tensor or array
-        """
+        """ Init """
         super().__init__('Skewness',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -980,6 +1163,18 @@ class SkewnessKernel(Descriptive, Kernel):
         self._nan_policy = nan_policy
 
     def _process_data(self, inputs, outputs):
+        """
+        Calculate the skewness of values in tensor.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1 
+
+        outputs: list of Tensors
+            Output data container, list of length 1 
+        """
         outputs[0].data = skew(inputs[0].data,
                                axis=self._axis,
                                keepdims=self._keepdims,
@@ -1004,7 +1199,7 @@ class SkewnessKernel(Descriptive, Kernel):
             Input data
 
         outA : Tensor
-            Output trial data
+            Output data
 
         axis : None or int or tuple of ints
             Axis or axes along which to operate. By default, flattened input in used.
@@ -1055,16 +1250,17 @@ class ZScoreKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        Input trial data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     init_data: Tensor or Array
         Initialization data (n_trials, n_channels, n_samples)
     """
 
     def __init__(self,graph,inA,outA,init_data):
+        """ Init """
         super().__init__('Zscore',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -1078,7 +1274,17 @@ class ZScoreKernel(Kernel):
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
-        Initialize the mean and std. Call initialization_execution if downstream nodes are missing training data
+        Initialize the mean and std. Call initialization_execution 
+        if downstream nodes are missing training data
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Scalar
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data
         """
 
         init_in = init_inputs[0]
@@ -1135,7 +1341,15 @@ class ZScoreKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Calculate z-score.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
 
         outputs[0].data = (inputs[0].data - self._mu) / self._sigma
@@ -1150,10 +1364,10 @@ class ZScoreKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Scalar
-            Input trial data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         init_data: Tensor or Array
             Initialization data (n_trials, n_channels, n_samples)

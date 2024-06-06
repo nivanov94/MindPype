@@ -32,6 +32,7 @@ class EpochKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, epoch_length, epoch_stride=None, axis=-1):
+        """ Init """
         super().__init__('Epoch', MPEnums.INIT_FROM_NONE, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -45,6 +46,12 @@ class EpochKernel(Kernel):
     def _compute_output_shape(self, input_shape):
         """
         Computes the shape of the output tensor based on the input shape
+
+        Parameters
+        ----------
+
+        input_shape: np array
+            Shape of input tensor
         """
         output_shape = list(input_shape)
         output_shape[self._axis] = self._epoch_length
@@ -118,6 +125,15 @@ class EpochKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel and epoch the data
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+        
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
 
         inA = inputs[0]

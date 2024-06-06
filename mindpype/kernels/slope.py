@@ -12,6 +12,13 @@ class SlopeKernel(Kernel):
     """
     Estimates the slope of a time series
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`mean <numpy:numpy.mean>`,
+        :func:`expand_dims <numpy:numpy.expand_dims>`,
+        :func:`moveaxis <numpy:numpy.moveaxis>`,
+        :func:`linspace <numpy:numpy.linspace>`.
+
     Parameters
     ----------
     graph : Graph
@@ -31,9 +38,7 @@ class SlopeKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, Fs=1, axis=-1):
-        """
-        Kernel to estimate the slope of a time series data
-        """
+        """ Init """
         super().__init__('Slope',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -45,6 +50,17 @@ class SlopeKernel(Kernel):
         This kernel has no internal state that must be initialized.
         Call initialization_execution if downstream nodes are missing training
         data
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor
+            Input data
+
+        init_outputs: Tensor
+            Output data
+
+        labels: None
         """
 
         init_in = init_inputs[0]
@@ -102,7 +118,17 @@ class SlopeKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Execute the kernel and compute the polynomial fit
+        Estimate slope of time series.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
+
         """
 
         inA = inputs[0]

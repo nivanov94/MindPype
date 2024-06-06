@@ -42,10 +42,6 @@ class Graph(MPBase):
         Data outputs within this array will push to external sources when
         the graph is executed.
 
-    Examples
-    --------
-
-
     """
 
     def __init__(self, sess):
@@ -91,10 +87,10 @@ class Graph(MPBase):
 
         Parameters
         ----------
-        data : MindPype Tensor or Array
+        data : Tensor or Array
             Tensor or array containing the default initialization data
 
-        labels : MindPype Tensor or Array
+        labels : Tensor or Array
             Tensor or array containing the default initialization labels
 
         """
@@ -452,7 +448,7 @@ class Graph(MPBase):
 
         Parameters
         ----------
-        target_validation_output : MindPype Container
+        target_validation_output : data container
             MindPype container (Tensor, Scalar, etc.) containing the target validation output.
             Likely, this will be the output of a classification node.
 
@@ -468,6 +464,11 @@ class Graph(MPBase):
         statistic : str, default = 'accuracy'
             Statistic to use for cross validation.
             Options include 'accuracy', 'f1', 'precision', 'recall', and 'cross_entropy'.
+
+        Returns
+        -------
+        mean_stat: float
+            Average score for the specified statistic (accuracy, f1, etc.)
         """
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
@@ -612,6 +613,15 @@ class Graph(MPBase):
     def create(cls, sess):
         """
         Generic factory method for a graph
+
+        Parameters
+        ----------
+        cls: Graph
+        sess: Session Object
+            Session where graph will exist
+        Returns
+        -------
+        graph: Graph
         """
         graph = cls(sess)
         sess.add_graph(graph)
@@ -740,9 +750,9 @@ class Node(MPBase):
 
         Parameters
         ----------
-        init_data : list or tuple of MindPype data objects
+        init_data : list or tuple of data objects
             MindPype container containing the initialization data
-        init_labels : MindPype data object containing initialization
+        init_labels : data object containing initialization
         labels, default = None
             MindPype container containing the initialization labels
 
@@ -838,7 +848,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._data
@@ -854,7 +864,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._init_data
@@ -870,7 +880,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._init_labels
@@ -1077,6 +1087,15 @@ class Edge:
         """
         Find and return the numerical index of the producer's output that
         corresponds to this edge
+
+        Parameters
+        ----------
+        producer: Node
+            Edge object
+        Returns
+        -------
+        output_index: int
+            Index of the data from the producer node
         """
         # find the index of the data from the producer node (output index)
         for index, producer_output in enumerate(producer.kernel.outputs):
@@ -1091,6 +1110,15 @@ class Edge:
         """
         Find and return the numerical index of the consumer's input that
         corresponds to this edge
+
+        Parameters
+        ----------
+        consumer: Node
+            Edge object
+        Returns
+        -------
+        input_index: int
+            index of the data from the consumer node
         """
         # find the index of the data from the consumer node (input index)
         for index, consumer_input in enumerate(consumer.kernel.inputs):
@@ -1152,7 +1180,7 @@ class Parameter:
 
         Return Type
         ------------
-        MindPype Data object
+        Data object
 
         """
 

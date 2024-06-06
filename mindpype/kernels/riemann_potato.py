@@ -13,7 +13,15 @@ import numpy as np
 
 class RiemannPotatoKernel(Kernel):
     """
-    Riemannian potato artifact detection detector
+    Riemannian potato artifact detection detector.
+    Kernel takes Tensor input and produces scalar label representing
+    the predicted class
+
+    .. note:: 
+        This kernel utilizes the 
+        :class:`Potato <pyriemann:pyriemann.clustering.Potato>` 
+        class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
+
 
     Parameters
     ----------
@@ -22,10 +30,10 @@ class RiemannPotatoKernel(Kernel):
         Graph that the kernel should be added to
 
     inputA : Tensor or Array
-        First input data
+        Input data
 
     outputA : Tensor or Scalar
-        Output trial data
+        Output data
 
     out_score :
 
@@ -34,10 +42,7 @@ class RiemannPotatoKernel(Kernel):
 
     def __init__(self,graph,inA,outA,thresh,max_iter,regulization,
                  initialization_data=None):
-        """
-        Kernel takes Tensor input and produces scalar label representing
-        the predicted class
-        """
+        """ Init """
         super().__init__('RiemannPotato',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -60,6 +65,17 @@ class RiemannPotatoKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set reference covariance matrix, mean, and standard deviation
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Array
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data
+
+        labels: None
         """
 
         init_in = init_inputs[0]
@@ -85,7 +101,13 @@ class RiemannPotatoKernel(Kernel):
 
     def _fit_filter(self, init_in):
         """
-        fit the potato filter using the initialization data
+        Fit the potato filter using the initialization data
+
+        Parameters
+        ----------
+
+        init_in: Tensor or Array
+            Input initialization data
         """
         # check that the input data is valid
         if (init_in.mp_type != MPEnums.TENSOR and
@@ -169,6 +191,19 @@ class RiemannPotatoKernel(Kernel):
                 raise ValueError("Riemannian potato kernel: Output tensor must be one dimensional")
 
     def _process_data(self, inputs, outputs):
+        """
+        Apply Riemann Potato Filter and produce scalar label representing
+        the predicted class
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 1
+        
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+        """
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:
             # pyriemann library requires input data to have 3 dimensions with the

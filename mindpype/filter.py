@@ -537,14 +537,14 @@ class Filter(MPBase):
         Parameters
         ----------
 
-        sess : MindPype Session object
+        sess : Session 
             The session object to which the filter will be added
 
         Other Parameters are the same as the MNE create_filter method, see the
         `MNE documentation <https://mne.tools/stable/generated/mne.filter.create_filter.html>`_
         for more information on the parameters.
 
-        Return
+        Returns
         ------
         MindPype Filter object : Filter
             The filter object containing the filter and its parameters

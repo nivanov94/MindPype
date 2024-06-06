@@ -457,6 +457,11 @@ class Kernel(MPBase, ABC):
     def copy_init_labels_to_output(self, verification=False):
         """
         Copies the input labels from initialization to the output
+
+        Parameters
+        ----------
+        verification: Bool
+            TODO: add description of parameter
         """
         if not verification or self.phony_init_input_labels is None:
             src = self.init_input_labels
@@ -632,6 +637,14 @@ class Kernel(MPBase, ABC):
     def is_covariance_input(self, param):
         """
         Returns true if the parameter is a covariance input
+
+        Parameters
+        ----------
+        param: TODO - add type
+
+        Returns
+        -------
+        bool: True if the data object is a covariance matrix, False otherwise
         """
         if self._covariance_inputs is None:
             return False  # kernel does not have covariance inputs
@@ -675,9 +688,9 @@ class Kernel(MPBase, ABC):
 
         Parameters
         ----------
-        init_data : list or tuple of MindPype data objects
+        init_data : list or tuple of data objects
             MindPype container containing the initialization data
-        init_labels : MindPype data object containing initialization
+        init_labels : data object containing initialization
         labels, default = None
             MindPype container containing the initialization labels
 

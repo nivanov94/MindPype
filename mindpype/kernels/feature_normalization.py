@@ -9,16 +9,23 @@ class FeatureNormalizationKernel(Kernel):
     """
     Normalizes the values within a feature vector
 
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`max <numpy:numpy.max>`,
+        :func:`min <numpy:numpy.min>`,
+        :func:`std <numpy:numpy.std>`,
+        :func:`mean <numpy:numpy.mean>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor
-        Input trial data
+        Input data
 
     outA : Tensor
-        Extracted trial data
+        Output data
 
     initialization_data : Tensor
         Initialization data to train the classifier (n_trials, n_channels, n_samples)
@@ -34,9 +41,7 @@ class FeatureNormalizationKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,method,axis=0,initialization_data=None,labels=None):
-        """
-        Kernal normalizes features for classification
-        """
+        """ Init """
         super().__init__('FeatureNormalization',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -55,6 +60,18 @@ class FeatureNormalizationKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Calculate the normalization parameters using the setup data
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor
+            Input data
+
+        init_outputs: Tensor
+            Output data
+
+        labels : Tensor
+            Labels corresponding to initialization data class labels (n_trials, )
         """
         # get the initialization input
         init_in = init_inputs[0]
@@ -112,6 +129,18 @@ class FeatureNormalizationKernel(Kernel):
             raise ValueError('FeatureNormalization kernel: output shape must match input shape')
 
     def _process_data(self, inputs, outputs):
+        """
+        Normalize values within a feature vector
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
+        """
         outputs[0].data = (inputs[0].data - self._translate) / self._scale
 
     @classmethod
@@ -126,10 +155,10 @@ class FeatureNormalizationKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor
-            Input trial data
+            Input data
 
         outA : Tensor
-            Extracted trial data
+            Output data
 
         init_data : Tensor, default = None
             Initialization data

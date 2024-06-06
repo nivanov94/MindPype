@@ -9,7 +9,17 @@ from pyriemann.utils.distance import distance_riemann
 
 class RiemannDistanceKernel(Kernel):
     """
-    Calculates the Riemann mean of covariances contained in a tensor. Kernel computes pairwise distances between 2D tensors
+    Calculates the Riemann mean of covariances contained in a tensor. 
+    Kernel computes pairwise distances between 2D tensors
+
+    .. note::
+        This kernel utilizes the numpy functions
+        :func:`squeeze <numpy:numpy.squeeze>`,
+        :func:`asarray <numpy:numpy.asarray>`.
+
+    .. note::
+        This kernel utilizes the pyriemann function
+        :func:`distance_riemann <pyriemann:pyriemann.utils.distance.distance_riemann>`,
 
     Parameters
     ----------
@@ -17,20 +27,18 @@ class RiemannDistanceKernel(Kernel):
         Graph that the kernel should be added to
 
     inA : Tensor or Array
-        First input data
+        Input 1 data
 
     inB : Tensor or Array
-        Second Input data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     """
 
     def __init__(self,graph,inA,inB,outA):
-        """
-        Kernel computes pairwise distances between 2D tensors
-        """
+        """ Init """
         super().__init__('RiemannDistance',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
@@ -40,7 +48,6 @@ class RiemannDistanceKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized. Call initialization_execution if downstream nodes are missing training data
-
         """
 
         init_inA, init_inB = init_inputs
@@ -60,6 +67,18 @@ class RiemannDistanceKernel(Kernel):
 
 
     def _compute_output_shape(self, inA, inB):
+        """
+        Determine the shape of the tensor that contains the calculated Riemann mean of covariances
+
+        Parameters
+        ----------
+
+        inA : Tensor or Array
+            Input 1 data
+
+        inB : Tensor or Array
+            Input 2 data
+        """
         out_sz = []
         mat_sz = None
         for param in (inA,inB):
@@ -137,8 +156,38 @@ class RiemannDistanceKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel and calculate the mean
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 2
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         def get_obj_data_at_index(obj,index,rank):
+            """
+            Get value at specified index from tensor or array
+
+            Parameters
+            ----------
+
+            obj: Tensor or Array
+                Data container to extract data from
+            
+            index: Int
+                Index to extract data from
+
+            rank: Int
+                Number of dimensions of data container
+
+            Returns
+            -------
+
+            data: numpy.ndarray
+                Data at specified index of tensor or array
+            """
             if obj.mp_type == MPEnums.TENSOR:
                 if rank == 1 and len(obj.shape) == 2:
                     return obj.data
@@ -148,6 +197,21 @@ class RiemannDistanceKernel(Kernel):
                 return obj.get_element(index).data
 
         def set_obj_data_at_index(obj,index,data):
+            """
+            Set value at specified index from tensor or array
+
+            Parameters
+            ----------
+
+            obj: Tensor or Array
+                Data container to extract data from
+            
+            index: Int
+                Index to extract data from
+
+            rank: Int
+                Number of dimensions of data container
+            """
             if obj.mp_type == MPEnums.TENSOR:
                 tensor_data = obj.data # need to extract and edit numpy array b/c tensor currently does not allow sliced modifications
                 tensor_data[index] = data
@@ -194,13 +258,13 @@ class RiemannDistanceKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Array
-            First input data
+            Input 1 data
 
         inB : Tensor or Array
-            Second Input data
+            Input 2 data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         Returns
         -------

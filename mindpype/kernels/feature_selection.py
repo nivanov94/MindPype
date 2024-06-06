@@ -11,6 +11,13 @@ class FeatureSelectionKernel(Kernel):
     """
     Performs feature selection using f_classif method from sklearn.feature_selection
 
+    .. note:: 
+        This kernel utilizes the 
+        :class:`SelectKBest <sklearn:sklearn.feature_selection.SelectKBest>` 
+        class from the :mod:`sklearn <sklearn:sklearn>` package.
+
+     
+
     Parameters
     ----------
 
@@ -31,6 +38,7 @@ class FeatureSelectionKernel(Kernel):
     """
 
     def __init__(self, graph, inA, outA, k=10, initialization_data=None, labels=None):
+        """ Init """
         super().__init__('FeatureSelection', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -46,7 +54,21 @@ class FeatureSelectionKernel(Kernel):
 
 
     def _initialize(self, init_inputs, init_outputs, labels):
+        """
+        Initialize feature selection kernel
 
+        Parameters
+        ----------
+
+        init_inputs: Tensor 
+            Input data
+        
+        init_outputs: Tensor
+            Output data
+        
+        labels : Tensor
+            Initialization data labels (n_samples, )
+        """
         # check that the input init data is in the correct type
         init_in = init_inputs[0]
         accepted_inputs = (MPEnums.TENSOR,MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
@@ -106,6 +128,15 @@ class FeatureSelectionKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Process data according to outlined kernel function
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         inA = inputs[0]
         outA = outputs[0]

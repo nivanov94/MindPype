@@ -124,6 +124,11 @@ class Classifier(MPBase):
         .. note::
             This is simply a wrapper for the sklearn SVC object.
 
+        .. note:: 
+        This method utilizes the 
+        :class:`SVC <sklearn:sklearn.svm.SVC>` 
+        class from the :mod:`sklearn <sklearn:sklearn>` package.
+
         Parameters
         ----------
         sess : session object
@@ -178,11 +183,16 @@ class Classifier(MPBase):
 
         .. note::
             This is simply a wrapper for the sklearn LDA object.
+        
+        .. note:: 
+            This method utilizes the 
+            :class:`LinearDiscriminantAnalysis <sklearn:sklearn.discriminant_analysis.LinearDiscriminantAnalysis>` 
+            class from the :mod:`sklearn <sklearn:sklearn>` package.
 
         Parameters
         ----------
         sess : Session
-            Session where the SVM MindPype Classifier object will exist
+            Session where the LDA MindPype Classifier object will exist
 
         Return
         ------
@@ -235,6 +245,11 @@ class Classifier(MPBase):
               This is simply a wrapper for the sklearn Logistic Regression
               object.
 
+        .. note:: 
+            This method utilizes the 
+            :class:`LogisticRegression <sklearn:sklearn.linear_model.LogisticRegression>` 
+            class from the :mod:`sklearn <sklearn:sklearn>` package.
+              
         Parameters
         ----------
         sess : session object
@@ -283,7 +298,7 @@ class Classifier(MPBase):
 
         Parameters
         ----------
-        sess : MindPype Session Object
+        sess : Session
             The MindPype Session object to which the classifier will be added.
         classifier_object : Sklearn Classifier object
             The classifier object to be added to the MindPype Session.

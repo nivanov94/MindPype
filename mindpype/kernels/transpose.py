@@ -108,10 +108,11 @@ class TransposeKernel(Kernel):
 
         Parameters
         ----------
-        inputs: Tensor or Scalar
-            Input trial data 
-        outputs: Tensor or Scalar 
-            Output trial data
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars 
+            Output data container, list of length 1
         """
         outputs[0].data = np.transpose(inputs[0].data,axes=self._axes)
 

@@ -33,24 +33,41 @@ class NotKernel(Unary, Kernel):
 
     Numpy broadcasting rules apply.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_not <numpy:numpy.logical_not>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First Input trial data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
     """
 
     def __init__(self,graph,inA,outA):
+        """ Init """
         super().__init__('NOT',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
     def _process_data(self, inputs, outputs):
+        """
+        Perform logical NOT operation elementwise
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors
+            Input data container, list of length 1
+
+        outputs: list pf Tensors
+            Output data container, list of length 1
+        """
         outputs[0].data = np.logical_not(inputs[0].data)
 
     @classmethod
@@ -65,10 +82,10 @@ class NotKernel(Unary, Kernel):
             Graph that the node should be added to
 
         inA : Tensor or Scalar
-            Input trial data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         Returns
         -------
@@ -96,6 +113,28 @@ class NotKernel(Unary, Kernel):
         return node
 
 class Binary:
+    """ 
+    Base class for binary logical operator kernels.
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_and <numpy:numpy.logical_and>`.
+
+    Parameters
+    ----------
+
+    graph: Graph
+        Graph that the kernel should be added to
+        
+    inA: Tensor or Scalar
+        Input data
+
+    inB: Tensor or Scalar
+        Input data
+
+    outA: Tensor or Scalar
+        Output data
+    """
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
@@ -136,29 +175,44 @@ class AndKernel(Binary,Kernel):
 
     Numpy broadcasting rules apply.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_and <numpy:numpy.logical_and>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First Input trial data
+        Input 1 data
 
     inB : Tensor or Scalar
-        Second Input trial data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
     """
 
     def __init__(self,graph,inA,inB,outA):
+        """ Init """
         super().__init__('AND',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to the outlined kernel function
+        Perform logical AND operation elementwise
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 2
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+
         """
         outputs[0].data = np.logical_and(inputs[0].data, inputs[1].data)
 
@@ -174,13 +228,13 @@ class AndKernel(Binary,Kernel):
             Graph that the node should be added to
 
         inA : Tensor or Scalar
-            First Input trial data
+            Input 1 data
 
         inB : Tensor or Scalar
-            Second Input trial data
+            Input 2 data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         """
 
@@ -211,29 +265,42 @@ class OrKernel(Binary,Kernel):
 
     Numpy broadcasting rules apply.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_or <numpy:numpy.logical_or>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First Input trial data
+        Input 1 data
 
     inB : Tensor or Scalar
-        Second Input trial data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
     """
 
     def __init__(self,graph,inA,inB,outA):
+        """ Init """
         super().__init__('OR',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to the outlined kernel function
+        Perform logical OR operation elementwise
+
+        Parameters
+        ----------
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 2
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = np.logical_or(inputs[0].data, inputs[1].data)
 
@@ -249,13 +316,13 @@ class OrKernel(Binary,Kernel):
             Graph that the node should be added to
 
         inA : Tensor or Scalar
-            First Input trial data
+            Input 1 data
 
         inB : Tensor or Scalar
-            Second Input trial data
+            Input 2 data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
         """
 
         # create the kernel object
@@ -285,29 +352,42 @@ class XorKernel(Binary,Kernel):
 
     Numpy broadcasting rules apply.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`logical_xor <numpy:numpy.logical_xor>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First Input trial data
+        Input 1 data
 
     inB : Tensor or Scalar
-        Second Input trial data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
     """
 
     def __init__(self,graph,inA,inB,outA):
+        """ Init """
         super().__init__('XOR',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to the outlined kernel function
+        Perform logical XOR operation elementwise
+
+        Parameters
+        ----------
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 2
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = np.logical_xor(inputs[0].data, inputs[1].data)
 
@@ -323,13 +403,13 @@ class XorKernel(Binary,Kernel):
             Graph that the node should be added to
 
         inA : Tensor or Scalar
-            First Input trial data
+            Input 1 data
 
         inB : Tensor or Scalar
-            Second Input trial data
+            Input 2 data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
         """
 
         # create the kernel object
@@ -360,22 +440,26 @@ class GreaterKernel(Binary,Kernel):
 
     Numpy broadcasting rules apply.
 
+    Parameters
+    ----------
+
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First input trial data
+        Input 1 data
 
     inB : Tensor or Scalar
-        Second input trial data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     Note: The calculation is _inA .> _inB
     """
 
     def __init__(self,graph,inA,inB,outA):
+        """ Init """
         super().__init__('Greater',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
@@ -383,7 +467,15 @@ class GreaterKernel(Binary,Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to the outlined kernel function
+        Perform greater than logical operation elementwise
+
+        Parameters
+        ----------
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 2
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = inputs[0].data > inputs[1].data
 
@@ -399,13 +491,13 @@ class GreaterKernel(Binary,Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Scalar
-            First input trial data
+            Input 1 data
 
         inB : Tensor or Scalar
-            Second input trial data
+            Input 2 data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         Note: The calculation is _inA .> _inB
         """
@@ -437,32 +529,40 @@ class LessKernel(Binary,Kernel):
 
     Numpy broadcasting rules apply.
 
-
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First input trial data
+        Input 1 data
 
     inB : Tensor or Scalar
-        Second input trial data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     Note: The calculation is _inA .< _inB
     """
 
     def __init__(self,graph,inA,inB,outA):
+        """ Init """
         super().__init__('Less',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to the outlined kernel function
+        Perform less than logical operation elementwise
+
+        Parameters
+        ----------
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 2
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = inputs[0].data < inputs[1].data
 
@@ -472,19 +572,22 @@ class LessKernel(Binary,Kernel):
         Factory method to create a less than comparison kernel
         and add it to a graph as a generic node object.
 
+        Parameters
+        ----------
+
         graph : Graph
             Graph that the node should be added to
 
         inA : Tensor or Scalar
-            First input trial data
+            Input 1 data
 
         inB : Tensor or Scalar
-            Second input trial data
+            Input 2 data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
-        Note: The calculation is _inA .> _inB
+        Note: The calculation is _inA .< _inB
         """
 
         # create the kernel object
@@ -509,32 +612,44 @@ class LessKernel(Binary,Kernel):
 
 class EqualKernel(Binary,Kernel):
     """
-    Kernel to perform greater than logical operation elementwise on
+    Kernel to perform equal to logical operation elementwise on
     two MindPype data containers (i.e. tensor or scalar)
 
     Numpy broadcasting rules apply.
+
+    Parameters
+    ----------
 
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Scalar
-        First input trial data
+        Input 1 data
 
     inB : Tensor or Scalar
-        Second input trial data
+        Input 2 data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
     """
 
     def __init__(self,graph,inA,inB,outA):
+        """ Init """
         super().__init__('Equal',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA,inB]
         self.outputs = [outA]
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to the outlined kernel function
+        Perform equal to logical operation elementwise
+
+        Parameters
+        ----------
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 2
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         outputs[0].data = inputs[0].data == inputs[1].data
 
@@ -543,6 +658,21 @@ class EqualKernel(Binary,Kernel):
         """
         Factory method to create a equality comparison kernel
         and add it to a graph as a generic node object.
+
+        Parameters
+        ----------
+
+        graph : Graph
+            Graph that the node should be added to
+
+        inA : Tensor or Scalar
+            Input 1 data
+
+        inB : Tensor or Scalar
+            Input 2 data
+
+        outA : Tensor or Scalar
+            Output data
         """
 
         # create the kernel object

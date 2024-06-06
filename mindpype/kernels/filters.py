@@ -6,9 +6,31 @@ from scipy import signal
 import warnings
 
 class Filter:
+    """
+    Base class for filter kernels
+
+    Parameters
+    ----------
+
+    inputs: Tensor or Scalar
+        Input data
+
+    outputs: Tensor or Scalar
+        Output data
+    """
     def _initialize(self, init_inputs, init_outputs, labels):
         """
-        Method to initialize the filter kernel. This method will make the necessary adjustments to the axis attributes for initialization processing
+        Method to initialize the filter kernel. This method will make the necessary adjustments 
+        to the axis attributes for initialization processing
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Scalar
+            Input data
+        
+        init_outputs: Tensor or Scalar
+            Output data
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
@@ -87,22 +109,20 @@ class FilterKernel(Filter, Kernel):
         Graph that the kernel should be added to
 
     inputA : Tensor or Scalar
-        Input trial data
+        Input data
 
     filt : Filter
         MindPype Filter object outputted by mindpype.classes
 
     outputA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axis : int
         axis along which to apply the filter
     """
 
     def __init__(self,graph,inA,filt,outA,axis):
-        """
-        Constructor for the FilterKernel class
-        """
+        """ Init """
         super().__init__('Filter',MPEnums.INIT_FROM_COPY,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -111,6 +131,22 @@ class FilterKernel(Filter, Kernel):
         self._axis = axis
 
     def _process_data(self, inputs, outputs):
+        """
+        Filter a tensor along the specified axis
+
+        .. note::
+            This kernel utilizes the scipy module
+            :mod:`signal <scipy:scipy.signal>`.
+
+        Parameters
+        ----------  
+        
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+        """
         if self._filt.implementation == 'ba':
             outputs[0].data = signal.lfilter(self._filt.coeffs['b'],
                                             self._filt.coeffs['a'],
@@ -140,13 +176,13 @@ class FilterKernel(Filter, Kernel):
             Graph that the node should be added to
 
         inputA : Tensor or Scalar
-            Input trial data
+            Input data
 
         filt : Filter
             MindPype Filter object outputted by mindpype.classes
 
         outputA : Tensor or Scalar
-            Output trial data
+            Output data
 
         axis : int
             Axis along which to apply the filter
@@ -186,22 +222,20 @@ class FiltFiltKernel(Filter, Kernel):
         Graph that the kernel should be added to
 
     inputA : Tensor or Scalar
-        Input trial data
+        Input data
 
     filt : Filter
         MindPype Filter object outputted by mindpype.classes
 
     outputA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axis : int
         axis along which to apply the filter
     """
 
     def __init__(self,graph,inA,filt,outA,axis):
-        """
-        Constructor for the FiltFiltKernel class
-        """
+        """ Init  """
         super().__init__('FiltFilt',MPEnums.INIT_FROM_COPY,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -210,7 +244,18 @@ class FiltFiltKernel(Filter, Kernel):
         self._axis = axis
 
     def _process_data(self, inputs, outputs):
+        """
+        Zero phase filter a data along the specified axis
 
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+        """
         if self._filt.implementation == 'ba':
             outputs[0].data = signal.filtfilt(self._filt.coeffs['b'],
                                                 self._filt.coeffs['a'],
@@ -235,13 +280,13 @@ class FiltFiltKernel(Filter, Kernel):
             Graph that the node should be added to
 
         inputA : Tensor or Scalar
-            Input trial data
+            Input data
 
         filt : Filter
             MindPype Filter object outputted by mindpype.filters
 
         outputA : Tensor or Scalar
-            Output trial data
+            Output data
 
         axis : int
             axis along which to apply the filter
