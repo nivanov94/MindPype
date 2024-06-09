@@ -46,6 +46,11 @@ class PatternStateKernel(Kernel):
         input covariance data prior to clustering.
     scale_data : bool, default=True
         Whether to scale the input data prior to clustering.
+    outlier_state : bool, default=False
+        Whether the model should include an outlier state. If True,
+        the predictions will be made using a set of Riemannian Potato
+        models. If the input data is not close to any of the potato
+        models, it will be classified as an outlier.
     update_rate : float, default=0.1
         Learning rate for updating the clustering model.
     init_data : Tensor, default=None
@@ -66,12 +71,20 @@ class PatternStateKernel(Kernel):
                  k_selection_method='pred_strength', 
                  n_clusters=2, k_sel_thresh=0.5, 
                  tangent_space=True, scale_data=True,
-                 update_rate=0.1,
+                 outlier_state=False, update_rate=0.1,
                  init_data=None, init_labels=None):
         """Init."""
         super().__init__('PatternState', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA, outB]
+
+        # determine the mode of the kernel
+        if outlier_state:
+            self._mode = 'potato'
+        elif tangent_space:
+            self._mode = 'tangent_space'
+        else:
+            self._mode = 'covariance'
 
         # mark the input as being a covariance input
         self._covariance_inputs = (0,)
@@ -80,6 +93,8 @@ class PatternStateKernel(Kernel):
         self._n_clusters = n_clusters
         self._k_sel_thresh = k_sel_thresh
         self._tangent_space = tangent_space
+        self._scale_data = scale_data
+        self._update_rate = update_rate
 
         if init_data is not None:
             self.init_inputs = [init_data]
@@ -127,14 +142,16 @@ class PatternStateKernel(Kernel):
             if len(pipeline) > 0:
                 # create a pipeline with the preprocessing steps and apply it
                 pre_pipe = sklearn.pipeline.Pipeline(pipeline)
-                X = pre_pipe.fit_transform(X)
+                Xk = pre_pipe.fit_transform(X)
             
             # determine the number of clusters using the prediction strength
             # of the clustering algorithm
-            self._n_clusters = self._prediction_strength(X)
+            self._n_clusters = self._prediction_strength(Xk)
         
         # add the clustering step to the pipeline
-        if self._tangent_space:
+        if self._mode == 'potato':
+            pipeline.append(('clustering', MultiPotatoClustering(n_clusters=self._n_clusters)))
+        elif self._mode == 'tanget_space':
             pipeline.append(('clustering', sklearn.cluster.KMeans(n_clusters=self._n_clusters)))
         else:
             pipeline.append(('clustering', pyriemann.clustering.Kmeans(n_clusters=self._n_clusters)))
@@ -181,7 +198,30 @@ class PatternStateKernel(Kernel):
         X = update_inputs[0].data
 
         # update the clustering model
-        self._mod.partial_fit(X, sample_weight=self._update_rate)
+        if self._mode == 'potato':
+            self._mod.update(X, alpha=self._update_rate)
+        else:
+            # identify the state of the new samples
+            y = self._mod.predict(X)
+
+            for i in range(self._n_clusters):
+                clust_mod = self._mod.named_steps['clustering']
+                # compute the means within each cluster with
+                # only the new samples, then update the 
+                # cluster means using the learning rate
+                # as the weight in a convex sum
+                if self._mode == 'tangent_space':
+                    sample_mean = np.mean(X[y == i], axis=0)
+                    clust_mod.cluster_centers_[i] = (
+                        (1-self._update_rate)*clust_mod.cluster_centers_[i] 
+                        + self._update_rate*sample_mean
+                    )
+                else:
+                    sample_mean = pyriemann.utils.mean.mean_covariance(X[y == i])
+                    clust_mod.cluster_centers_[i] = pyriemann.utils.geodesic.geodesic_riemann(
+                        clust_mod.cluster_centers_[i], sample_mean, alpha=self._update_rate
+                    )
+
 
         # compute the output data
         self._process_data(update_inputs, update_outputs)
@@ -410,10 +450,11 @@ class MultiPotatoClustering(sklearn.base.BaseEstimator,
 
     """
 
-    def __init__(self, n_clusters=2, threshold=2.0):
+    def __init__(self, n_clusters=2, threshold=2.0, space='tangent_space'):
         """Init."""
         self.n_clusters = n_clusters
         self.threshold = threshold
+        self.space = space
         self._state_models = []
 
 
@@ -430,7 +471,11 @@ class MultiPotatoClustering(sklearn.base.BaseEstimator,
         """
 
         # first use KMeans to define the initial set of clusters
-        km = sklearn.cluster.KMeans(n_clusters=self.n_clusters)
+        if self.space == 'tangent_space':
+            km = sklearn.cluster.KMeans(n_clusters=self.n_clusters)
+        else:
+            km = pyriemann.clustering.Kmeans(n_clusters=self.n_clusters)
+            
         km.fit(X)
 
         # create a set of Riemannian Potato models
