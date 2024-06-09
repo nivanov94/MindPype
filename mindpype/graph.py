@@ -356,6 +356,33 @@ class Graph(MPBase):
         self._initialized = True
         self.session.free_unreferenced_data()
 
+    def update(self):
+        """
+        Update each node within the graph for trial execution
+
+        Parameters
+        ----------
+        default_init_dataA : Tensor, default = None
+            If the graph has no initialization data, this
+            tensor will be used to initialize the graph
+        default_init_labels : Tensor, default = None
+            If the graph has no initialization labels,
+            this tensor will be used to initialize the graph
+
+        """
+        if not self._verified:
+            self.verify()
+
+        # execute initialization for each node in the graph
+        for n in self._nodes:
+            try:
+                n.update()
+            except Exception as e:
+                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
+                               "failed update")).with_traceback(sys.exc_info()[2])
+
+        self.session.free_unreferenced_data()
+
     def execute(self, label=None):
         """
         Execute the graph by iterating over all the nodes within the graph
@@ -734,6 +761,12 @@ class Node(MPBase):
         Initialize the kernel function for execution
         """
         return self.kernel.initialize()
+    
+    def update(self):
+        """
+        Update the kernel function for execution
+        """
+        return self.kernel.update()
 
     def update_parameters(self, parameter, value):
         """

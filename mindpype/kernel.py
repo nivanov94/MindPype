@@ -614,6 +614,20 @@ class Kernel(MPBase, ABC):
             self._initialized = True
             self.copy_init_labels_to_output()
 
+
+    def update(self):
+        """
+        Update kernel
+        """
+        if hasattr(self, '_update'):
+            self._initialized = False
+            self._update(self.init_inputs,
+                         self.init_outputs,
+                         self.init_input_labels)
+            self._initialized = True
+            self.copy_init_labels_to_output()
+            
+
     def execute(self):
         """
         Execute kernel to process data
