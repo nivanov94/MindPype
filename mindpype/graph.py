@@ -774,7 +774,6 @@ class Node(MPBase):
         """
 
         self.kernel.update_parameters(parameter, value)
-
         self._graph._verified = False
 
     def add_initialization_data(self, init_data, init_labels=None):
@@ -792,6 +791,23 @@ class Node(MPBase):
         """
         self.kernel.add_initialization_data(init_data, init_labels)
         self._graph.verified = False
+
+    def update_initialization_data(self, init_data, init_labels=None):
+        """
+        Update the initialization data of the node
+
+        Parameters
+        ----------
+        init_data : list or tuple of data objects
+            MindPype container containing the initialization data
+        init_labels : data object containing initialization
+        labels, default = None
+            MindPype container containing the initialization labels
+
+        """
+        self.kernel.remove_initialization_data()
+        self.add_initialization_data(init_data, init_labels)
+        self._session.free_unreferenced_data()
 
 
 class Edge:
