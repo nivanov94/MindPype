@@ -356,6 +356,33 @@ class Graph(MPBase):
         self._initialized = True
         self.session.free_unreferenced_data()
 
+    def update(self):
+        """
+        Update each node within the graph for trial execution
+
+        Parameters
+        ----------
+        default_init_dataA : Tensor, default = None
+            If the graph has no initialization data, this
+            tensor will be used to initialize the graph
+        default_init_labels : Tensor, default = None
+            If the graph has no initialization labels,
+            this tensor will be used to initialize the graph
+
+        """
+        if not self._verified:
+            self.verify()
+
+        # execute initialization for each node in the graph
+        for n in self._nodes:
+            try:
+                n.update()
+            except Exception as e:
+                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
+                               "failed update")).with_traceback(sys.exc_info()[2])
+
+        self.session.free_unreferenced_data()
+
     def execute(self, label=None):
         """
         Execute the graph by iterating over all the nodes within the graph
@@ -734,6 +761,12 @@ class Node(MPBase):
         Initialize the kernel function for execution
         """
         return self.kernel.initialize()
+    
+    def update(self):
+        """
+        Update the kernel function for execution
+        """
+        return self.kernel.update()
 
     def update_parameters(self, parameter, value):
         """
@@ -741,7 +774,6 @@ class Node(MPBase):
         """
 
         self.kernel.update_parameters(parameter, value)
-
         self._graph._verified = False
 
     def add_initialization_data(self, init_data, init_labels=None):
@@ -759,6 +791,23 @@ class Node(MPBase):
         """
         self.kernel.add_initialization_data(init_data, init_labels)
         self._graph.verified = False
+
+    def update_initialization_data(self, init_data, init_labels=None):
+        """
+        Update the initialization data of the node
+
+        Parameters
+        ----------
+        init_data : list or tuple of data objects
+            MindPype container containing the initialization data
+        init_labels : data object containing initialization
+        labels, default = None
+            MindPype container containing the initialization labels
+
+        """
+        self.kernel.remove_initialization_data()
+        self.add_initialization_data(init_data, init_labels)
+        self._session.free_unreferenced_data()
 
 
 class Edge:
