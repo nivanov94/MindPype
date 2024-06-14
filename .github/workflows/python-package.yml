@@ -44,4 +44,4 @@ jobs:
       with:
         verbose: true
       env:
-        CODEENV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
