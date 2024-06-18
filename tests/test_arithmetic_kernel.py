@@ -98,31 +98,59 @@ class KernelExecutionUnitTest:
         return (raw_data, outTensor.data)
 
     def TestSubtractionKernelExecution(self):
-        inTensor = mp.Tensor.create(self.__session, (1,1))
-        inTensor2 = mp.Tensor.create(self.__session, (1,1))
-        outTensor = mp.Tensor.create(self.__session, (1,1))
-        node = mp.kernels.arithmetic.SubtractionKernel.add_to_graph(self.__graph,inTensor, inTensor2, outTensor)
-        return node.mp_type
+        np.random.seed(7)
+        raw_data = np.random.randint(-10,10, size=(2,2,2))
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+        tensor_node = mp.kernels.arithmetic.SubtractionKernel.add_to_graph(self.__graph, inTensor, inTensor2, outTensor)
+        sys.stdout = open(os.devnull, 'w')
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        sys.stdout = sys.__stdout__
+        return (raw_data, outTensor.data)
 
     def TestMultiplicationKernelExecution(self):
-        inTensor = mp.Tensor.create(self.__session, (1,1))
-        inTensor2 = mp.Tensor.create(self.__session, (1,1))
-        outTensor = mp.Tensor.create(self.__session, (1,1))
-        node = mp.kernels.arithmetic.MultiplicationKernel.add_to_graph(self.__graph,inTensor,inTensor2,outTensor)
-        return node.mp_type
+        np.random.seed(7)
+        raw_data = np.random.randint(-10,10, size=(2,2,2))
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+        tensor_node = mp.kernels.arithmetic.MultiplicationKernel.add_to_graph(self.__graph, inTensor, inTensor2, outTensor)
+        sys.stdout = open(os.devnull, 'w')
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        sys.stdout = sys.__stdout__
+        return (raw_data, outTensor.data)
 
     def TestDivisionKernelExecution(self):
-        inTensor = mp.Tensor.create(self.__session, (1,1))
-        inTensor2 = mp.Tensor.create(self.__session, (1,1))
-        outTensor = mp.Tensor.create(self.__session, (1,1))
-        node = mp.kernels.arithmetic.DivisionKernel.add_to_graph(self.__graph,inTensor,inTensor2,outTensor)
-        return node.mp_type
+        np.random.seed(7)
+        raw_data = np.random.randint(-10,10, size=(2,2,2))
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+        tensor_node = mp.kernels.arithmetic.DivisionKernel.add_to_graph(self.__graph, inTensor, inTensor2, outTensor)
+        sys.stdout = open(os.devnull, 'w')
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        sys.stdout = sys.__stdout__
+        return (raw_data, outTensor.data)
 
     def TestLogKernelExecution(self):
-        inTensor = mp.Tensor.create(self.__session, (1,1))
-        outTensor = mp.Tensor.create(self.__session, (1,1))
-        node = mp.kernels.arithmetic.LogKernel.add_to_graph(self.__graph,inTensor,outTensor)
-        return node.mp_type
+        np.random.seed(7)
+        raw_data = np.random.randint(-10,10, size=(2,2,2))
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+        tensor_node = mp.kernels.arithmetic.LogKernel.add_to_graph(self.__graph, inTensor, outTensor)
+        sys.stdout = open(os.devnull, 'w')
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        sys.stdout = sys.__stdout__
+        return (raw_data, outTensor.data)
 
 """
 def runCreationTests():
