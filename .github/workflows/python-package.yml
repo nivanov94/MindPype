@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ "master", "create-aritmetic-kernel-tests" ]
+    branches: [ "master", "create-arithmetic-kernel-tests" ]
   pull_request:
     branches: [ "master" ]
 
