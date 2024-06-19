@@ -1,7 +1,7 @@
 import mindpype as mp
 import sys, os
 import numpy as np
-from scipy.stats import norm, chi2, kurtosis, skew
+from scipy.stats import norm, chi2, kurtosis, skew, zscore
 
 class CDFKernelCreationUnitTest:
     def __init__(self):
@@ -428,7 +428,7 @@ def test_execute():
     
     # KernelExecutionUnitTest_Object = ZScoreKernelExecutionUnitTest()
     # res = KernelExecutionUnitTest_Object.TestZScoreKernelExecution()
-    # expected_output = skew(res[0], axis=None)
+    # expected_output = zscore(res[0])
     # assert (res[1] == expected_output).all()
     # del KernelExecutionUnitTest_Object
       
