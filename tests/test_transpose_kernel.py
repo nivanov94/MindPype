@@ -8,8 +8,8 @@ class TransposeKernelCreationUnitTest:
         self.__graph = mp.Graph.create(self.__session)
 
     def TestTransposeKernelCreation(self):
-        inTensor = mp.Tensor.create(self.__session, (1,1))
-        outTensor = mp.Tensor.create(self.__session, (1,1))
+        inTensor = mp.Tensor.create(self.__session, (2,2,2))
+        outTensor = mp.Tensor.create(self.__session, (2,2,2))
         node = mp.kernels.TransposeKernel.add_to_graph(self.__graph,inTensor,outTensor)
         return node.mp_type
     
