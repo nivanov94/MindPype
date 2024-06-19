@@ -107,6 +107,40 @@ class ExtractKernelExecutionUnitTest:
 
         return (raw_data, outTensor.data)
     
+class TensorStackKernelCreationUnitTest:
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestTensorStackKernelCreation(self):
+        inTensor1 = mp.Tensor.create(self.__session, (4,4))
+        inTensor2 = mp.Tensor.create(self.__session, (4,4))
+        outTensor = mp.Tensor.create(self.__session, (2,4,4))
+        node = mp.kernels.TensorStackKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor,axis=0)
+        return node.mp_type
+    
+class TensorStackKernelExecutionUnitTest:
+
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestTensorStackKernelExecution(self):
+        np.random.seed(44)
+        raw_data = np.random.randint(-10,10, size=(4,4))
+        inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, (2,4,4))
+        tensor_test_node = mp.kernels.TensorStackKernel.add_to_graph(self.__graph,inTensor1,inTensor2, outTensor,axis=0)
+
+        sys.stdout = open(os.devnull, 'w')
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        sys.stdout = sys.__stdout__
+
+        return (inTensor1.data, inTensor2.data, outTensor.data)
+    
 class ReshapeKernelCreationUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -152,6 +186,10 @@ def test_create():
     assert KernelUnitTest_Object.TestExtractKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
     
+    KernelUnitTest_Object = TensorStackKernelCreationUnitTest()
+    assert KernelUnitTest_Object.TestTensorStackKernelCreation() == mp.MPEnums.NODE
+    del KernelUnitTest_Object
+    
     KernelUnitTest_Object = ReshapeKernelCreationUnitTest()
     assert KernelUnitTest_Object.TestReshapeKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
@@ -176,6 +214,12 @@ def test_execute():
     # extracted_data = res[0][npixgrid]
     # assert res[2] == extracted_data
     # del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = TensorStackKernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestTensorStackKernelExecution()
+    expected_output = np.stack([res[0], res[1]], axis = 0)
+    assert (res[2] == expected_output).all()
+    del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = ReshapeKernelExecutionUnitTest()
     res = KernelExecutionUnitTest_Object.TestReshapeKernelExecution()
