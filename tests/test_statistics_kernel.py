@@ -226,6 +226,41 @@ class SkewnessKernelExecutionUnitTest:
         sys.stdout = sys.__stdout__
 
         return (inTensor.data, outTensor.data)
+    
+class ZScoreKernelCreationUnitTest:
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestZScoreKernelCreation(self):
+        inTensor = mp.Tensor.create(self.__session, (2,2,2))
+        outTensor = mp.Tensor.create(self.__session, (1,))
+        initTensor = mp.Tensor.create(self.__session,(2,2,2))
+        node = mp.kernels.ZScoreKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor)
+        return node.mp_type
+    
+class ZScoreKernelExecutionUnitTest:
+
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestZScoreKernelExecution(self):
+        np.random.seed(44)
+        raw_data = np.random.randint(-10,10, size=(2,2,2))
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, (1,))
+        init_data = data = np.random.randint(-10,10, size=(2,2,2))
+        initTensor = mp.Tensor.create_from_data(self.__session, init_data)
+        tensor_test_node = mp.kernels.ZScoreKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor),
+
+        sys.stdout = open(os.devnull, 'w')
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        sys.stdout = sys.__stdout__
+
+        return (inTensor.data, outTensor.data)
 
 
 def test_create():
@@ -255,6 +290,10 @@ def test_create():
     
     KernelUnitTest_Object = SkewnessKernelCreationUnitTest()
     assert KernelUnitTest_Object.TestSkewnessKernelCreation() == mp.MPEnums.NODE
+    del KernelUnitTest_Object
+    
+    KernelUnitTest_Object = ZScoreKernelCreationUnitTest()
+    assert KernelUnitTest_Object.TestZScoreKernelCreation() == mp.MPEnums.NODE
     del KernelUnitTest_Object
 
 
@@ -300,5 +339,11 @@ def test_execute():
     expected_output = skew(res[0], axis=None)
     assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
+    
+    # KernelExecutionUnitTest_Object = ZScoreKernelExecutionUnitTest()
+    # res = KernelExecutionUnitTest_Object.TestZScoreKernelExecution()
+    # expected_output = skew(res[0], axis=None)
+    # assert (res[1] == expected_output).all()
+    # del KernelExecutionUnitTest_Object
       
     
