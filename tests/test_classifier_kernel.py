@@ -61,5 +61,3 @@ def test_execute():
     assert (res[3] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-
-test_execute()
