@@ -8,7 +8,7 @@ class GraphUnitTest:
         
     
     def TestGraphCreation(self):
-        self.__graph.mp_type
+        return self.__graph.mp_type
     
     def TestGraphVerification(self):
         self.__graph.verify()
@@ -27,11 +27,7 @@ class GraphUnitTest:
 def test_graph():
     
     GraphUnitTest_Object = GraphUnitTest()
-    try:
-        GraphUnitTest_Object.TestGraphCreation()
-        print("Graph Creation Test: PASSED")
-    except:
-        print("Graph Creation Test: FAILED")
+    assert GraphUnitTest_Object.TestGraphCreation() == mp.MPEnums.GRAPH
 
     try:
         GraphUnitTest_Object.TestGraphScheduler()
