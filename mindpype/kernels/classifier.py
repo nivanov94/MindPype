@@ -215,7 +215,4 @@ class ClassifierKernel(Kernel):
 
         graph.add_node(node)
 
-        if initialization_data is not None:
-            node.add_initialization_data(initialization_data, labels)
-
         return node

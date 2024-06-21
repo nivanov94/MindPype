@@ -81,7 +81,7 @@ class ExtractKernelCreationUnitTest:
     def TestExtractKernelCreation(self):
         inTensor = mp.Tensor.create(self.__session, (4,4))
         indices = [0]
-        outTensor = mp.Tensor.create(self.__session, (1,))
+        outTensor = mp.Tensor.create(self.__session, (1,4))
         node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,inTensor,indices,outTensor,reduce_dims=False)
         return node.mp_type
     
@@ -96,7 +96,7 @@ class ExtractKernelExecutionUnitTest:
         raw_data = np.random.randint(-10,10, size=(4,4))
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         indices = [0]
-        outTensor = mp.Tensor.create(self.__session, (1,))
+        outTensor = mp.Tensor.create(self.__session, (1,4))
         tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,inTensor,indices,outTensor,reduce_dims=False)
 
         sys.stdout = open(os.devnull, 'w')
