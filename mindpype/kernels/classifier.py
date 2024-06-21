@@ -203,7 +203,8 @@ class ClassifierKernel(Kernel):
         """
 
         # create the kernel object
-        c = cls(graph, inA, classifier, outA, outB, num_classes)
+        c = cls(graph, inA, classifier, outA, outB, 
+                num_classes, initialization_data, labels)
 
         params = (Parameter(inA, MPEnums.INPUT),
                   Parameter(outA, MPEnums.OUTPUT))
