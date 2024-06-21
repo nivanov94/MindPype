@@ -95,7 +95,7 @@ class ExtractKernelExecutionUnitTest:
         np.random.seed(44)
         raw_data = np.random.randint(-10,10, size=(4,4))
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        indices = [0]
+        indices = [0, slice(None)]
         outTensor = mp.Tensor.create(self.__session, (1,4))
         tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,inTensor,indices,outTensor,reduce_dims=False)
 
@@ -244,17 +244,16 @@ def test_execute():
     assert (res[1] == output).all()
     del KernelExecutionUnitTest_Object
 
-    # KernelExecutionUnitTest_Object = EnqueueKernelExecutionUnitTest()
-    # res = KernelExecutionUnitTest_Object.TestEnqueueKernelExecution()
-    # assert res[0].peek() == res[1].peek()
-    # del KernelExecutionUnitTest_Object
+    KernelExecutionUnitTest_Object = EnqueueKernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestEnqueueKernelExecution()
+    assert np.all(res[0].peek().data == res[1].peek().data)
+    del KernelExecutionUnitTest_Object
     
-    # KernelExecutionUnitTest_Object = ExtractKernelExecutionUnitTest()
-    # res = KernelExecutionUnitTest_Object.TestExtractKernelExecution()
-    # npixgrid = np.ix_(res[1])
-    # extracted_data = res[0][npixgrid]
-    # assert res[2] == extracted_data
-    # del KernelExecutionUnitTest_Object
+    KernelExecutionUnitTest_Object = ExtractKernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestExtractKernelExecution()
+    extracted_data = res[0][0,:]
+    assert np.all(res[1] == extracted_data)
+    del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = StackKernelExecutionUnitTest()
     res = KernelExecutionUnitTest_Object.TestStackKernelExecution()

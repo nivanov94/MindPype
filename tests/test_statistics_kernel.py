@@ -313,10 +313,10 @@ class ZScoreKernelExecutionUnitTest:
 
     def TestZScoreKernelExecution(self):
         np.random.seed(44)
-        raw_data = np.random.randint(-10,10, size=(2,2,2))
+        raw_data = np.random.randint(-10,10, size=(2,))
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (1,))
-        init_data = data = np.random.randint(-10,10, size=(2,2,2))
+        outTensor = mp.Tensor.create(self.__session, (2,))
+        init_data = data = np.random.randint(-10,10, size=(2,))
         initTensor = mp.Tensor.create_from_data(self.__session, init_data)
         tensor_test_node = mp.kernels.ZScoreKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor),
 
@@ -402,11 +402,11 @@ def test_execute():
     assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # KernelExecutionUnitTest_Object = StdKernelExecutionUnitTest()
-    # res = KernelExecutionUnitTest_Object.TestStdKernelExecution()
-    # expected_output = np.std(res[0])
-    # assert (res[1] == expected_output).all()
-    # del KernelExecutionUnitTest_Object
+    KernelExecutionUnitTest_Object = StdKernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestStdKernelExecution()
+    expected_output = np.std(res[0])
+    assert (res[1] == expected_output).all()
+    del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = VarKernelExecutionUnitTest()
     res = KernelExecutionUnitTest_Object.TestVarKernelExecution()
@@ -426,10 +426,10 @@ def test_execute():
     assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # KernelExecutionUnitTest_Object = ZScoreKernelExecutionUnitTest()
-    # res = KernelExecutionUnitTest_Object.TestZScoreKernelExecution()
-    # expected_output = zscore(res[0])
-    # assert (res[1] == expected_output).all()
-    # del KernelExecutionUnitTest_Object
+    KernelExecutionUnitTest_Object = ZScoreKernelExecutionUnitTest()
+    res = KernelExecutionUnitTest_Object.TestZScoreKernelExecution()
+    expected_output = zscore(res[0])
+    assert (res[1] == expected_output).all()
+    del KernelExecutionUnitTest_Object
       
     
