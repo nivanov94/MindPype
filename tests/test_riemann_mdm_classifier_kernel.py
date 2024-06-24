@@ -2,7 +2,6 @@ import pyriemann
 import pyriemann.utils
 import pyriemann.utils.covariance
 import mindpype as mp
-import sys, os
 import numpy as np
 
 class RiemannMDMKernelUnitTest:
