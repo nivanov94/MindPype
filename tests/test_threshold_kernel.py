@@ -9,7 +9,7 @@ class ThresholdKernelUnitTest:
 
     def ThresholdKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,2,2))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         thresh = mp.Scalar.create_from_value(self.__session, 1)
         tensor_test_node = mp.kernels.ThresholdKernel.add_to_graph(self.__graph,inTensor, outTensor, thresh)
 

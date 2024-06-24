@@ -4,34 +4,14 @@ import numpy as np
 from scipy import signal
 import pytest
 
-class BaFilterKernelCreationUnitTest:
+class BaFilterKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestBaFilterKernelCreation(self):
-        inTensor = mp.Tensor.create(self.__session, (2,2))
-        outTensor = mp.Tensor.create(self.__session, (2,2))
-        
-        Fs = 250
-        order = 4
-        bandpass = (8,35) # in Hz
-        f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='ba')
-        
-        node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-        return node.mp_type
-    
-class BaFilterKernelExecutionUnitTest:
-
-    def __init__(self):
-        self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
-
-    def TestBaFilterKernelExecution(self):
-        np.random.seed(44)
-        raw_data = np.random.randint(-10,10, size=(2,2))
+    def TestBaFilterKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,2))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         
         Fs = 250
         order = 4
@@ -39,45 +19,19 @@ class BaFilterKernelExecutionUnitTest:
         f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='ba')
         
         tensor_test_node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-
-        sys.stdout = open(os.devnull, 'w')
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        sys.stdout = sys.__stdout__
-
         return (raw_data, f, outTensor.data)
 
-class FirFilterKernelCreationUnitTest:
+class FirFilterKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestFirFilterKernelCreation(self):
-        inTensor = mp.Tensor.create(self.__session, (2,2))
-        outTensor = mp.Tensor.create(self.__session, (2,2))
-        
-        Fs = 128
-        l_freq = 1
-        h_freq = 40
-        Nc = 14
-        Ns = int(Fs * 10)
-        f = mp.Filter.create_fir(self.__session, Fs, l_freq, h_freq, method='fir', phase='minimum')
-        
-        node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-        return node.mp_type
-    
-class FirFilterKernelExecutionUnitTest:
-
-    def __init__(self):
-        self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
-
-    def TestFirFilterKernelExecution(self):
-        np.random.seed(44)
-        raw_data = np.random.randint(-10,10, size=(2,2))
+    def TestFirFilterKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,2))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         
         Fs = 128
         l_freq = 1
@@ -87,87 +41,39 @@ class FirFilterKernelExecutionUnitTest:
         f = mp.Filter.create_fir(self.__session, Fs, l_freq, h_freq, method='fir', phase='minimum')
         
         tensor_test_node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-
-        sys.stdout = open(os.devnull, 'w')
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        sys.stdout = sys.__stdout__
-
         return (raw_data, f, outTensor.data)
 
-class SosFilterKernelCreationUnitTest:
+class SosFilterKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestSosFilterKernelCreation(self):
-        inTensor = mp.Tensor.create(self.__session, (2,2))
-        outTensor = mp.Tensor.create(self.__session, (2,2))
-        
-        Fs = 250
-        order = 4
-        bandpass = (8,35) # in Hz
-        f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
-        
-        node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-        return node.mp_type
-    
-class SosFilterKernelExecutionUnitTest:
-
-    def __init__(self):
-        self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
-
-    def TestSosFilterKernelExecution(self):
-        np.random.seed(44)
-        raw_data = np.random.randint(-10,10, size=(2,2))
+    def TestSosFilterKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,2))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         
         Fs = 250
         order = 4
         bandpass = (8,35) # in Hz
         f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
         tensor_test_node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-
-        sys.stdout = open(os.devnull, 'w')
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        sys.stdout = sys.__stdout__
-
         return (raw_data, f, outTensor.data)
 
 
-class BaFiltFiltKernelCreationUnitTest:
+class BaFiltFiltKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestBaFiltFiltKernelCreation(self):
-        inTensor = mp.Tensor.create(self.__session, (30,30))
-        outTensor = mp.Tensor.create(self.__session, (30,30))
-        
-        Fs = 250
-        order = 4
-        bandpass = (8,35) # in Hz
-        f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='ba')
-        
-        node = mp.kernels.FiltFiltKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-        return node.mp_type
-    
-class BaFiltFiltKernelExecutionUnitTest:
-
-    def __init__(self):
-        self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
-
-    def TestBaFiltFiltKernelExecution(self):
-        np.random.seed(44)
-        raw_data = np.random.randint(-10,10, size=(30,30))
+    def TestBaFiltFiltKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (30,30))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         
         Fs = 250
         order = 4
@@ -175,45 +81,19 @@ class BaFiltFiltKernelExecutionUnitTest:
         f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='ba')
         
         tensor_test_node = mp.kernels.FiltFiltKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-
-        sys.stdout = open(os.devnull, 'w')
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        sys.stdout = sys.__stdout__
-
         return (raw_data, f, outTensor.data)
     
-class FirFiltFiltKernelCreationUnitTest:
+class FirFiltFiltKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestFirFiltFiltKernelCreation(self):
-        inTensor = mp.Tensor.create(self.__session, (30,30))
-        outTensor = mp.Tensor.create(self.__session, (30,30))
-        
-        Fs = 128
-        l_freq = 1
-        h_freq = 40
-        Nc = 14
-        Ns = int(Fs * 10)
-        f = mp.Filter.create_fir(self.__session, Fs, l_freq, h_freq, method='fir', phase='minimum')
-        
-        node = mp.kernels.FiltFiltKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-        return node.mp_type
-    
-class FirFiltFiltKernelExecutionUnitTest:
-
-    def __init__(self):
-        self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
-
-    def TestFirFilterKernelExecution(self):
-        np.random.seed(44)
-        raw_data = np.random.randint(-10,10, size=(30,30))
+    def TestFirFilterKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (30,30))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         
         Fs = 128
         l_freq = 1
@@ -223,43 +103,19 @@ class FirFiltFiltKernelExecutionUnitTest:
         f = mp.Filter.create_fir(self.__session, Fs, l_freq, h_freq, method='fir', phase='minimum')
         
         tensor_test_node = mp.kernels.FiltFiltKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-
-        sys.stdout = open(os.devnull, 'w')
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        sys.stdout = sys.__stdout__
-
         return (raw_data, f, outTensor.data)
     
-class SosFiltFiltKernelCreationUnitTest:
+class SosFiltFiltKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestSosFiltFiltKernelCreation(self):
-        inTensor = mp.Tensor.create(self.__session, (30,30))
-        outTensor = mp.Tensor.create(self.__session, (30,30))
-        
-        Fs = 250
-        order = 4
-        bandpass = (8,35) # in Hz
-        f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
-        
-        node = mp.kernels.FiltFiltKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-        return node.mp_type
-    
-class SosFiltFiltKernelExecutionUnitTest:
-
-    def __init__(self):
-        self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
-
-    def TestSosFiltFiltKernelExecution(self):
-        np.random.seed(44)
-        raw_data = np.random.randint(-10,10, size=(30,30))
+    def TestSosFiltFiltKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (30,30))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         
         Fs = 250
         order = 4
@@ -267,74 +123,46 @@ class SosFiltFiltKernelExecutionUnitTest:
         f = mp.Filter.create_butter(self.__session,order,bandpass,btype='bandpass',fs=Fs,implementation='sos')
         
         tensor_test_node = mp.kernels.FiltFiltKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
-
-        sys.stdout = open(os.devnull, 'w')
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        sys.stdout = sys.__stdout__
-
         return (raw_data, f, outTensor.data)
-
-
-def test_create():
-    KernelUnitTest_Object = BaFilterKernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestBaFilterKernelCreation() == mp.MPEnums.NODE
-    del KernelUnitTest_Object
-    
-    KernelUnitTest_Object = FirFilterKernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestFirFilterKernelCreation() == mp.MPEnums.NODE
-    del KernelUnitTest_Object
-    
-    KernelUnitTest_Object = SosFilterKernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestSosFilterKernelCreation() == mp.MPEnums.NODE
-    del KernelUnitTest_Object
-
-    KernelUnitTest_Object = BaFiltFiltKernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestBaFiltFiltKernelCreation() == mp.MPEnums.NODE
-    del KernelUnitTest_Object
-    
-    KernelUnitTest_Object = FirFiltFiltKernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestFirFiltFiltKernelCreation() == mp.MPEnums.NODE
-    del KernelUnitTest_Object
-    
-    KernelUnitTest_Object = SosFiltFiltKernelCreationUnitTest()
-    assert KernelUnitTest_Object.TestSosFiltFiltKernelCreation() == mp.MPEnums.NODE
-    del KernelUnitTest_Object
 
 def test_execute():
-    KernelExecutionUnitTest_Object = BaFilterKernelExecutionUnitTest()
-    res = KernelExecutionUnitTest_Object.TestBaFilterKernelExecution()
+    np.random.seed(44)
+    raw_data = np.random.randint(-10,10, size=(30,30))
+    KernelExecutionUnitTest_Object = BaFilterKernelUnitTest()
+    res = KernelExecutionUnitTest_Object.TestBaFilterKernelExecution(raw_data)
     expected_output = signal.lfilter(res[1].coeffs['b'],res[1].coeffs['a'],res[0],axis=0)
     assert (res[2] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    KernelExecutionUnitTest_Object = FirFilterKernelExecutionUnitTest()
-    res = KernelExecutionUnitTest_Object.TestFirFilterKernelExecution()
+    KernelExecutionUnitTest_Object = FirFilterKernelUnitTest()
+    res = KernelExecutionUnitTest_Object.TestFirFilterKernelExecution(raw_data)
     expected_output = signal.lfilter(res[1].coeffs['fir'],[1],res[0],axis=0)
     assert (res[2] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    KernelExecutionUnitTest_Object = SosFilterKernelExecutionUnitTest()
-    res = KernelExecutionUnitTest_Object.TestSosFilterKernelExecution()
+    KernelExecutionUnitTest_Object = SosFilterKernelUnitTest()
+    res = KernelExecutionUnitTest_Object.TestSosFilterKernelExecution(raw_data)
     sos = signal.butter(4,(8,35),btype='bandpass',output='sos',fs=250)
     filtered_data = signal.sosfilt(sos,res[0],axis=0)
     assert (res[2] == filtered_data).all()
     del KernelExecutionUnitTest_Object
     
-    KernelExecutionUnitTest_Object = BaFiltFiltKernelExecutionUnitTest()
-    res = KernelExecutionUnitTest_Object.TestBaFiltFiltKernelExecution()
+    KernelExecutionUnitTest_Object = BaFiltFiltKernelUnitTest()
+    res = KernelExecutionUnitTest_Object.TestBaFiltFiltKernelExecution(raw_data)
     expected_output = signal.filtfilt(res[1].coeffs['b'],res[1].coeffs['a'],res[0],axis=0)
     assert (res[2] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    KernelExecutionUnitTest_Object = FirFiltFiltKernelExecutionUnitTest()
+    KernelExecutionUnitTest_Object = FirFiltFiltKernelUnitTest()
     with pytest.raises(TypeError):
-        res = KernelExecutionUnitTest_Object.TestFirFilterKernelExecution()
+        res = KernelExecutionUnitTest_Object.TestFirFilterKernelExecution(raw_data)
     del KernelExecutionUnitTest_Object
     
-    KernelExecutionUnitTest_Object = SosFiltFiltKernelExecutionUnitTest()
-    res = KernelExecutionUnitTest_Object.TestSosFiltFiltKernelExecution()
+    KernelExecutionUnitTest_Object = SosFiltFiltKernelUnitTest()
+    res = KernelExecutionUnitTest_Object.TestSosFiltFiltKernelExecution(raw_data)
     expected_output = signal.sosfiltfilt(res[1].coeffs['sos'], res[0],axis=0)
     assert (res[2] == expected_output).all()
     del KernelExecutionUnitTest_Object

@@ -9,7 +9,7 @@ class CDFKernelUnitTest:
 
     def TestCDFKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,2))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         tensor_test_node = mp.kernels.CDFKernel.add_to_graph(self.__graph,inTensor,outTensor,dist='chi2',df=55)
 
         self.__graph.verify()
@@ -25,7 +25,7 @@ class CovarianceKernelUnitTest:
 
     def TestCovarianceKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,2))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         regularization = 0
         tensor_test_node = mp.kernels.CovarianceKernel.add_to_graph(self.__graph,inTensor,outTensor, regularization)
 
