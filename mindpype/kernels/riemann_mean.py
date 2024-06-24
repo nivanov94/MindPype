@@ -33,6 +33,7 @@ class RiemannMeanKernel(Kernel):
         super().__init__('RiemannMean',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
+        self._covariance_inputs = (0,)
 
         self._w = weights
 
