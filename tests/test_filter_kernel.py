@@ -138,7 +138,7 @@ def test_execute():
     
     KernelExecutionUnitTest_Object = FirFilterKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestFirFilterKernelExecution(raw_data)
-    expected_output = signal.lfilter(res[0].coeffs['fir'],[0],raw_data,axis=0)
+    expected_output = signal.lfilter(res[0].coeffs['fir'],[1],raw_data,axis=0)
     assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
