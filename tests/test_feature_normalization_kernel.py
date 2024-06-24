@@ -15,7 +15,7 @@ class FeatureNormalizationKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize(initialization_tensor, labels)
         self.__graph.execute()
-        return (raw_data, init_data, outTensor.data)
+        return outTensor.data
 
 def test_execute():
     np.random.seed(44)
@@ -24,7 +24,7 @@ def test_execute():
     labels_data = np.random.randint(0, 4, size=(10,))
     KernelExecutionUnitTest_Object = FeatureNormalizationKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestFeatureNormalizationKernelExecution(raw_data, init_data, labels_data)
-    expected_output = (res[0] - np.mean(res[1], axis=0)) / np.std(res[1], axis=0)
-    assert (res[2] == expected_output).all()
+    expected_output = (raw_data - np.mean(init_data, axis=0)) / np.std(init_data, axis=0)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     

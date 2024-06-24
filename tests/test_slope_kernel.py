@@ -30,7 +30,7 @@ def test_execute():
     Fs = 1
     Ns = res[0].shape[axis]
     X = np.linspace(0, Ns/Fs, Ns)
-    Y = np.moveaxis(res[0].data, axis, -1)
+    Y = np.moveaxis(raw_data, axis, -1)
     X -= np.mean(X)
     Y -= np.mean(Y, axis=-1, keepdims=True)
     output = np.expand_dims(Y.dot(X) / X.dot(X), axis=-1)

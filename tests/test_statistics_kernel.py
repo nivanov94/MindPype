@@ -16,7 +16,7 @@ class CDFKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
 
 class CovarianceKernelUnitTest:
     def __init__(self):
@@ -33,7 +33,7 @@ class CovarianceKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class MaxKernelUnitTest:
     def __init__(self):
@@ -49,7 +49,7 @@ class MaxKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class MinKernelUnitTest:
     def __init__(self):
@@ -65,7 +65,7 @@ class MinKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class MeanKernelUnitTest:
     def __init__(self):
@@ -81,7 +81,7 @@ class MeanKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class StdKernelUnitTest:
     def __init__(self):
@@ -97,7 +97,7 @@ class StdKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class VarKernelUnitTest:
     def __init__(self):
@@ -113,7 +113,7 @@ class VarKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class KurtosisKernelUnitTest:
     def __init__(self):
@@ -129,7 +129,7 @@ class KurtosisKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class SkewnessKernelUnitTest:
     def __init__(self):
@@ -145,7 +145,7 @@ class SkewnessKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, outTensor.data)
+        return outTensor.data
     
 class ZScoreKernelUnitTest:
     def __init__(self):
@@ -162,88 +162,72 @@ class ZScoreKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (inTensor.data, init_data, outTensor.data)
+        return outTensor.data
 
 def test_execute():
-    KernelExecutionUnitTest_Object = CDFKernelUnitTest()      
     np.random.seed(44)
     raw_data = np.random.randn(2,2)
+    KernelExecutionUnitTest_Object = CDFKernelUnitTest()      
     res = KernelExecutionUnitTest_Object.TestCDFKernelExecution(raw_data)
-    expected_output = chi2.cdf(res[0], 55)
-    assert (res[1] == expected_output).all()
+    expected_output = chi2.cdf(raw_data, 55)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = CovarianceKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestCovarianceKernelExecution(raw_data)
-    expected_output = np.cov(res[0])
-    assert (res[1] == expected_output).all()
+    expected_output = np.cov(raw_data)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = MaxKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestMaxKernelExecution(raw_data)
-    expected_output = np.max(res[0])
-    assert (res[1] == expected_output).all()
+    expected_output = np.max(raw_data)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = MinKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestMinKernelExecution(raw_data)
-    expected_output = np.min(res[0])
-    assert (res[1] == expected_output).all()
+    expected_output = np.min(raw_data)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = MeanKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestMeanKernelExecution(raw_data)
-    expected_output = np.mean(res[0])
-    assert (res[1] == expected_output).all()
+    expected_output = np.mean(raw_data)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = StdKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestStdKernelExecution(raw_data)
-    expected_output = np.std(res[0])
-    assert (res[1] == expected_output).all()
+    expected_output = np.std(raw_data)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = VarKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestVarKernelExecution(raw_data)
-    expected_output = np.var(res[0])
-    assert (res[1] == expected_output).all()
+    expected_output = np.var(raw_data)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = KurtosisKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestKurtosisKernelExecution(raw_data)
-    expected_output = kurtosis(res[0], axis=None)
-    assert (res[1] == expected_output).all()
+    expected_output = kurtosis(raw_data, axis=None)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = SkewnessKernelUnitTest()
-    np.random.seed(44)
-    raw_data = np.random.randn(2,2)
     res = KernelExecutionUnitTest_Object.TestSkewnessKernelExecution(raw_data)
-    expected_output = skew(res[0], axis=None)
-    assert (res[1] == expected_output).all()
+    expected_output = skew(raw_data, axis=None)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # KernelExecutionUnitTest_Object = ZScoreKernelExecutionUnitTest()
+    # KernelExecutionUnitTest_Object = ZScoreKernelUnitTest()
     # np.random.seed(44)
     # raw_data = np.random.randn(2,)
-    # init_data = data = np.random.randint(-10,10, size=(2,))
+    # init_data = data = np.random.randn(2,)
     # res = KernelExecutionUnitTest_Object.TestZScoreKernelExecution(raw_data, init_data)
-    # expected_output = (res[0] - np.mean(res[1]))/np.std(res[1])
-    # assert (res[2] == expected_output).all()
+    # expected_output = (raw_data - np.mean(init_data))/np.std(init_data)
+    # assert (res == expected_output).all()
     # del KernelExecutionUnitTest_Object
       
     

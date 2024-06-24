@@ -15,7 +15,7 @@ class RiemannMDMKernelUnitTest:
         r = 0.001
         raw_data = (1-r)*raw_data + r*np.diag(np.ones(raw_data.shape[-1]))
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (10,))
+        outTensor = mp.Tensor.create(self.__session, (10))
         init_data = pyriemann.utils.covariance.covariances(init_data)
         # apply regularization
         init_data = (1-r)*init_data + r*np.diag(np.ones(init_data.shape[-1]))
@@ -27,7 +27,7 @@ class RiemannMDMKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (init_data, init_label_data, raw_data, outTensor.data)
+        return outTensor.data
 
 def test_execute():
     np.random.seed(42)
@@ -39,9 +39,7 @@ def test_execute():
     res = KernelExecutionUnitTest_Object.TestRiemannMDMKernelExecution(raw_data, init_data, init_label_data)
     
     model = pyriemann.classification.MDM()
-    model.fit(res[0], res[1])
-    expected_output = model.predict(res[2])
-    assert(res[3] == expected_output).all()
+    model.fit(init_data, init_label_data)
+    expected_output = model.predict(raw_data)
+    assert(res == expected_output).all()
     del KernelExecutionUnitTest_Object
-    
-test_execute()

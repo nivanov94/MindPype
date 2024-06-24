@@ -15,13 +15,13 @@ class ReducedSumKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         
-        return (raw_data, outTensor.data)
+        return outTensor.data
 
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(2,2,2)
     KernelExecutionUnitTest_Object = ReducedSumKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestReducedSumKernelExecution(raw_data)
-    expected_output = np.sum(res[0], axis = None)
-    assert (res[1] == expected_output).all()
+    expected_output = np.sum(raw_data, axis = None)
+    assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object

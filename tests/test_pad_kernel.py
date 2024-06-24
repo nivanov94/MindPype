@@ -15,12 +15,12 @@ class PadKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (raw_data, outTensor.data)
+        return outTensor.data
 
 def test_execute():
     np.random.seed(44)
     raw_data = np.ones(1)
     KernelExecutionUnitTest_Object = PadKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestPadKernelExecution(raw_data)
-    assert (res[1] == np.pad(res[0], pad_width=1, mode="constant", constant_values=0)).all()
+    assert (res == np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)).all()
     del KernelExecutionUnitTest_Object

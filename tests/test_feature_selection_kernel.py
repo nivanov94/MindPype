@@ -16,7 +16,7 @@ class FeatureSelectionKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return (raw_data, init_data, labels_data, outTensor.data)
+        return outTensor.data
 
 def test_execute():
     np.random.seed(44)
@@ -27,8 +27,8 @@ def test_execute():
     res = KernelExecutionUnitTest_Object.TestFeatureSelectionKernelExecution(raw_data, init_data, labels_data)
 
     model = SelectKBest(k=10)
-    model.fit(res[1], res[2])
-    expected_output = model.transform(res[0])
-    assert(res[3] == expected_output).all()
+    model.fit(init_data, labels_data)
+    expected_output = model.transform(raw_data)
+    assert(res == expected_output).all()
     del KernelExecutionUnitTest_Object
     

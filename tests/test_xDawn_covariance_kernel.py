@@ -20,7 +20,7 @@ class XDawnKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (initialization_data, init_label_data, raw_data, outTensor.data)
+        return outTensor.data
 
 def test_execute():
     np.random.seed(44)
@@ -32,10 +32,10 @@ def test_execute():
     res = KernelExecutionUnitTest_Object.TestXDawnKernelExecution(raw_data, initialization_data, init_label_data)
 
     xdawn_estimator = XdawnCovariances(nfilter=4, classes=None)
-    xdawn_estimator.fit(res[0], res[1])
-    expected_output = xdawn_estimator.transform(res[2])
+    xdawn_estimator.fit(initialization_data, init_label_data)
+    expected_output = xdawn_estimator.transform(raw_data)
 
-    assert (res[3] == expected_output).all()
+    assert (res == expected_output).all()
 
     del KernelExecutionUnitTest_Object
     

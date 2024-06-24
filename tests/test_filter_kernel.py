@@ -1,5 +1,4 @@
 import mindpype as mp
-import sys, os
 import numpy as np
 from scipy import signal
 import pytest
@@ -22,7 +21,7 @@ class BaFilterKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return (raw_data, f, outTensor.data)
+        return (f, outTensor.data)
 
 class FirFilterKernelUnitTest:
     def __init__(self):
@@ -44,7 +43,7 @@ class FirFilterKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return (raw_data, f, outTensor.data)
+        return (f, outTensor.data)
 
 class SosFilterKernelUnitTest:
     def __init__(self):
@@ -63,7 +62,7 @@ class SosFilterKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return (raw_data, f, outTensor.data)
+        return outTensor.data
 
 
 class BaFiltFiltKernelUnitTest:
@@ -84,7 +83,7 @@ class BaFiltFiltKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return (raw_data, f, outTensor.data)
+        return (f, outTensor.data)
     
 class FirFiltFiltKernelUnitTest:
     def __init__(self):
@@ -106,7 +105,7 @@ class FirFiltFiltKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return (raw_data, f, outTensor.data)
+        return (f, outTensor.data)
     
 class SosFiltFiltKernelUnitTest:
     def __init__(self):
@@ -126,34 +125,34 @@ class SosFiltFiltKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return (raw_data, f, outTensor.data)
+        return (f, outTensor.data)
 
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randint(-10,10, size=(30,30))
     KernelExecutionUnitTest_Object = BaFilterKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestBaFilterKernelExecution(raw_data)
-    expected_output = signal.lfilter(res[1].coeffs['b'],res[1].coeffs['a'],res[0],axis=0)
-    assert (res[2] == expected_output).all()
+    expected_output = signal.lfilter(res[0].coeffs['b'],res[0].coeffs['a'],raw_data,axis=0)
+    assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = FirFilterKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestFirFilterKernelExecution(raw_data)
-    expected_output = signal.lfilter(res[1].coeffs['fir'],[1],res[0],axis=0)
-    assert (res[2] == expected_output).all()
+    expected_output = signal.lfilter(res[0].coeffs['fir'],[0],raw_data,axis=0)
+    assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = SosFilterKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestSosFilterKernelExecution(raw_data)
     sos = signal.butter(4,(8,35),btype='bandpass',output='sos',fs=250)
-    filtered_data = signal.sosfilt(sos,res[0],axis=0)
-    assert (res[2] == filtered_data).all()
+    filtered_data = signal.sosfilt(sos,raw_data,axis=0)
+    assert (res == filtered_data).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = BaFiltFiltKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestBaFiltFiltKernelExecution(raw_data)
-    expected_output = signal.filtfilt(res[1].coeffs['b'],res[1].coeffs['a'],res[0],axis=0)
-    assert (res[2] == expected_output).all()
+    expected_output = signal.filtfilt(res[0].coeffs['b'],res[0].coeffs['a'],raw_data,axis=0)
+    assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = FirFiltFiltKernelUnitTest()
@@ -163,7 +162,7 @@ def test_execute():
     
     KernelExecutionUnitTest_Object = SosFiltFiltKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestSosFiltFiltKernelExecution(raw_data)
-    expected_output = signal.sosfiltfilt(res[1].coeffs['sos'], res[0],axis=0)
-    assert (res[2] == expected_output).all()
+    expected_output = signal.sosfiltfilt(res[0].coeffs['sos'], raw_data,axis=0)
+    assert (res[1] == expected_output).all()
     del KernelExecutionUnitTest_Object
    

@@ -16,7 +16,7 @@ class TransposeKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
 
-        return (raw_data, outTensor.data)
+        return outTensor.data
 
 
 def test_execute():
@@ -25,5 +25,5 @@ def test_execute():
     
     KernelExecutionUnitTest_Object = TransposeKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestTransposeKernelExecution(raw_data)
-    assert (res[1] == np.transpose(res[0])).all()
+    assert (res == np.transpose(raw_data)).all()
     del KernelExecutionUnitTest_Object
