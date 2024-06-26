@@ -604,6 +604,8 @@ class InputLSLStream(MPBase):
         self._channels = channels
         self._Ns = Ns
         self._data_buffer = {"time_series": None, "time_stamps": None}
+        self._min_time = None
+        self._Fs = None
 
         if active:
             self._active = False # will be set to True when the stream is opened
@@ -652,16 +654,27 @@ class InputLSLStream(MPBase):
             # marker-uncoupled stream, determine the start time based on the interval attribute
             if self._data_buffer["time_series"] is not None:
                 if self._interval is not None:
-                    t_begin = self._data_buffer["time_stamps"][0] + self._interval # shift forward by interval
+                    shift = int(self._interval * self._Fs)
+                    offset = 0
                 elif self._data_buffer["time_stamps"].shape[0] > 1:
-                    t_begin = self._data_buffer["time_stamps"][1] # shift forward by 1 sample
+                    shift = 1
+                    offset = 0
                 else:
                     # rare situation where the buffer only contains one sample
                     # and the interval is None. Shift forward by a very small amount.
-                    t_begin = self._data_buffer["time_stamps"][0] + 10**(-6) # shift forward by 1 microsecond
+                    shift = 0
+                    offset = 10**(-6) # 1 microsecond
+
+                # shift the data buffer forward by the appropriate amount
+                t_begin = self._data_buffer["time_stamps"][shift] + offset
             else:
                 t_begin = 0  # i.e. all data is valid
 
+        # adjust t_begin by the minimum timepoint, if set
+        if self._min_time is not None and t_begin < self._min_time:
+            t_begin = self._min_time
+
+        # adjust t_begin by the relative start time
         t_begin += self._relative_start
 
         # pull the data in chunks until we get the total number of samples
@@ -813,6 +826,26 @@ class InputLSLStream(MPBase):
             raise RuntimeError("InputLSLStream.last_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
         return self._marker_buffer["time_series"]
+    
+    def set_min_timepoint(self, t):
+        """
+        Set the minimum timepoint for the stream, any
+        data before this timepoint will be discarded and ignored
+        when polling the stream.
+
+        Parameters
+        ----------
+        t : float
+            The minimum timepoint
+        """
+        self._min_time = t
+
+        # remove any data in the buffer that is before the minimum timepoint
+        if self._data_buffer["time_stamps"] is not None:
+            valid_indices = self._data_buffer["time_stamps"] >= (t + self._relative_start)
+            self._data_buffer["time_series"] = self._data_buffer["time_series"][:, valid_indices]
+            self._data_buffer["time_stamps"] = self._data_buffer["time_stamps"][valid_indices]
+
 
     def update_input_streams(
         self,
@@ -905,6 +938,7 @@ class InputLSLStream(MPBase):
                 self._marker_pattern = re.compile(marker_fmt)
 
         self._Ns = Ns
+        self._Fs = self._data_inlet.info().nominal_srate()
 
         # allocate array for trial data and timestamps
         self._trial_data = np.zeros((len(self._channels), self._Ns))
