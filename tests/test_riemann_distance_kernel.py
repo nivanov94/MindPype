@@ -1,51 +1,56 @@
+# import pyriemann.utils
+# import pyriemann.utils.covariance
+# import pyriemann.utils.distance
 # import mindpype as mp
-# import sys, os
 # import numpy as np
-# from pyriemann.utils.distance import distance_riemann
+# import pyriemann
 
-# class RiemannDistanceKernelCreationUnitTest:
+# class RiemannDistanceKernelUnitTest:
 #     def __init__(self):
 #         self.__session = mp.Session.create()
 #         self.__graph = mp.Graph.create(self.__session)
 
-#     def TestRiemannDistanceKernelCreation(self):
-#         inTensor1 = mp.Tensor.create(self.__session, (1,1))
-#         inTensor2 = mp.Tensor.create(self.__session, (1,1))
-#         outTensor = mp.Tensor.create(self.__session, (1,1))
-#         node = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor)
-#         return node.mp_type
-    
-# class RiemannDistanceKernelExecutionUnitTest:
-
-#     def __init__(self):
-#         self.__session = mp.Session.create()
-#         self.__graph = mp.Graph.create(self.__session)
-
-#     def TestRiemannDistanceKernelExecution(self):
-#         np.random.seed(44)
-#         raw_data1 = np.random.randint(-10,10, size=(1,1))
-#         raw_data2 = np.random.randint(-10,10, size=(1,1))
+#     def TestRiemannDistanceKernelExecution(self, raw_data1, raw_data2):
+#         raw_data1 = pyriemann.utils.covariance.covariances(raw_data1)
+#         raw_data2 = pyriemann.utils.covariance.covariances(raw_data2)
+#         # apply regularization to ensure SPD matrices
+#         r = 0.001
+#         raw_data1 = (1-r)*raw_data1 + r*np.diag(np.ones(raw_data1.shape[-1]))
+#         raw_data2 = (1-r)*raw_data2 + r*np.diag(np.ones(raw_data2.shape[-1]))
 #         inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data1)
 #         inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data2)
-#         outTensor = mp.Tensor.create(self.__session, (1,1))
+#         outTensor = mp.Tensor.create(self.__session, raw_data1.shape)
 #         tensor_test_node = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor)
 
-#         sys.stdout = open(os.devnull, 'w')
 #         self.__graph.verify()
 #         self.__graph.initialize()
 #         self.__graph.execute()
-#         sys.stdout = sys.__stdout__
 
-#         return (raw_data1, raw_data2, outTensor.data)
-
-# def test_create():
-#     KernelUnitTest_Object = RiemannDistanceKernelCreationUnitTest()
-#     assert KernelUnitTest_Object.TestRiemannDistanceKernelCreation() == mp.MPEnums.NODE
-#     del KernelUnitTest_Object
+#         return outTensor.data
 
 
 # def test_execute():
-#     KernelExecutionUnitTest_Object = RiemannDistanceKernelExecutionUnitTest()
-#     res = KernelExecutionUnitTest_Object.TestRiemannDistanceKernelExecution()
-#     assert (res[2] == distance_riemann(res[0],res[1])).all()
+#     np.random.seed(44)
+#     raw_data1 = np.random.randn(10,10,10)
+#     raw_data1 = pyriemann.utils.covariance.covariances(raw_data1)
+#     raw_data2 = np.random.randn(10,10,10)
+#     raw_data2 = pyriemann.utils.covariance.covariances(raw_data2)
+#     r = 0.001
+#     raw_data1 = (1-r)*raw_data1 + r*np.diag(np.ones(raw_data1.shape[-1]))
+#     raw_data2 = (1-r)*raw_data2 + r*np.diag(np.ones(raw_data2.shape[-1]))
+#     KernelExecutionUnitTest_Object = RiemannDistanceKernelUnitTest()
+#     res = KernelExecutionUnitTest_Object.TestRiemannDistanceKernelExecution(raw_data1, raw_data2)
+    
+#     expected_output = np.empty((10,10,10))
+#     for i in range(10):
+#             # extract the ith element from inA
+#             x = raw_data1[i,:,:]
+#             for j in range(10):
+#                 # extract the jth element from inB
+#                 y = raw_data2[j,:,:]
+#                 expected_output[i][j] == pyriemann.utils.distance.distance_riemann(x,y)
+    
+#     assert (res == expected_output).all()
 #     del KernelExecutionUnitTest_Object
+    
+# test_execute()
