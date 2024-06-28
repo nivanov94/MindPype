@@ -887,7 +887,7 @@ class InputLSLStream(MPBase):
 
         if not stream_info:
             # resolve the stream on the LSL network
-            available_streams = pylsl.resolve_bypred(pred)
+            available_streams = pylsl.resolve_bypred(pred, timeout=2.0)
         else:
             available_streams = [stream_info]
 
@@ -917,7 +917,7 @@ class InputLSLStream(MPBase):
         if marker_coupled:
             if not marker_stream_info:
                 # resolve the stream on the LSL network
-                marker_streams = pylsl.resolve_bypred(marker_pred)
+                marker_streams = pylsl.resolve_bypred(marker_pred, timeout=2.0)
             else:
                 marker_streams = [marker_stream_info]
 
