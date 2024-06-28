@@ -165,7 +165,7 @@ class RiemannPotatoKernel(Kernel):
                 raise ValueError("Riemannian potato kernel: Input and output tensor must have equal first dimension")
 
             # output tensor should be one dimensional
-            if len(np.squeeze(d_out.shape)) > 1:
+            if len(np.squeeze(d_out.data).shape) > 1:
                 raise ValueError("Riemannian potato kernel: Output tensor must be one dimensional")
 
     def _process_data(self, inputs, outputs):

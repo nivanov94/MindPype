@@ -80,10 +80,10 @@ def test_execute():
     np.random.seed(7)
     raw_data = np.random.randn(2,2,2)
     
-    # KernelExecutionUnitTest_Object = LogicalKernelUnitTest()
-    # res = KernelExecutionUnitTest_Object.TestNotKernelExecution(raw_data)
-    # assert (res[1] == np.logical_not(res[0])).all()
-    # del KernelExecutionUnitTest_Object
+    KernelExecutionUnitTest_Object = LogicalKernelUnitTest()
+    res = KernelExecutionUnitTest_Object.TestNotKernelExecution(raw_data)
+    assert (res[1] == np.logical_not(raw_data)).all()
+    del KernelExecutionUnitTest_Object
 
     KernelExecutionUnitTest_Object = LogicalKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestAndKernelExecution(raw_data)
