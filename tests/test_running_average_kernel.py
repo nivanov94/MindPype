@@ -6,10 +6,11 @@
 #         self.__session = mp.Session.create()
 #         self.__graph = mp.Graph.create(self.__session)
 
-#     def TestRunningAverageKernelExecution(self, raw_data, running_average):
+#     def TestRunningAverageKernelExecution(self, raw_data, init_data, running_average):
 #         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
 #         outTensor = mp.Tensor.create(self.__session, (2,2))
-#         tensor_test_node = mp.kernels.RunningAverageKernel.add_to_graph(self.__graph,inTensor,outTensor,running_average)
+#         init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
+#         tensor_test_node = mp.kernels.RunningAverageKernel.add_to_graph(self.__graph,inTensor,outTensor,running_average, init_input=init_tensor)
 
 #         self.__graph.verify()
 #         self.__graph.initialize()
@@ -19,14 +20,13 @@
 
 # def test_execute():
 #     np.random.seed(44)
+#     init_data = np.random.randint(-10,10, size=(2,2,2))
 #     raw_data = np.random.randint(-10,10, size=(2,2))
 #     KernelExecutionUnitTest_Object = RunningAverageKernelUnitTest()
-#     res1 = KernelExecutionUnitTest_Object.TestRunningAverageKernelExecution(raw_data, running_average=1)
-#     res2 = KernelExecutionUnitTest_Object.TestRunningAverageKernelExecution(raw_data, running_average=2)
+#     res = KernelExecutionUnitTest_Object.TestRunningAverageKernelExecution(raw_data, init_data, running_average=10)
 
-#     running_average = np.mean([raw_data, raw_data], axis=0)
+#     running_average = np.mean([raw_data, init_data], axis=0)
     
-#     assert (res2 == running_average).all()
+#     assert (res == running_average).all()
 #     del KernelExecutionUnitTest_Object
     
-# test_execute()
