@@ -106,6 +106,7 @@ class InputXDFFile(MPBase):
                     {"time_series": np.array([Ns]),
                      "time_stamps": np.array([Ns])},
             }
+    TODO: attributes description
     """
 
     def __init__(self, sess, files, channels, tasks=None, relative_start=0, Ns=1, stype='EEG', mode="epoched"):
@@ -117,15 +118,15 @@ class InputXDFFile(MPBase):
         if type(files) == str:
             files = [files]
 
-        self._files = files
-        self._relative_start = relative_start
-        self._Ns = int(Ns)
-        self._tasks = tasks
+        self.files = files
+        self.relative_start = relative_start
+        self.Ns = int(Ns)
+        self.tasks = tasks
         self._inferred_tasks = tasks is None
-        self._channels = channels
+        self.channels = channels
         self._label_counter = None
-        self._mode = mode
-        self._stype = stype
+        self.mode = mode
+        self.stream_type = stype
 
         # Epoched mode will store trial data in a 3D array, with the first dimension corresponding to the trial number
         # and the second and third dimensions corresponding to the channel and sample number, respectively
@@ -146,7 +147,7 @@ class InputXDFFile(MPBase):
                         if marker_stream is None or stream["time_stamps"].shape[0] > marker_stream["time_stamps"].shape[0]:
                             marker_stream = stream
 
-                    elif stream["info"]["type"][0] == self._stype:
+                    elif stream["info"]["type"][0] == self.stream_type:
                         data_stream = stream
 
                 if marker_stream is None or data_stream is None:
@@ -166,7 +167,7 @@ class InputXDFFile(MPBase):
                     # find the index of the first sample after the marker
                     sample_indices = np.array(data_stream["time_stamps"] >= data_window_start)
                     first_sample_ix = np.argwhere(sample_indices)[0][0]
-                    sample_indices[first_sample_ix + self._Ns:] = False  # remove the samples after the end of the trial
+                    sample_indices[first_sample_ix + self.Ns:] = False  # remove the samples after the end of the trial
 
                     # extract the data and append to the data dictionary
                     sample_data = data_stream["time_series"][np.ix_(sample_indices, channels)].T  # Nc X Ns
@@ -178,7 +179,7 @@ class InputXDFFile(MPBase):
             self._data["Markers"] = tuple(self._data["Markers"])
 
             # create a corresponding numerical task label for each task
-            self._data["numerical_labels"] = np.array([self._tasks.index(task) for task in self._data["Markers"]])
+            self._data["numerical_labels"] = np.array([self.tasks.index(task) for task in self._data["Markers"]])
 
 
         # Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples
@@ -215,7 +216,7 @@ class InputXDFFile(MPBase):
                         marker_stream = stream
 
                     # If the data stream already exists, concatenate the new data to the existing data
-                    elif stream["info"]["type"][0] == self.stype:
+                    elif stream["info"]["type"][0] == self.stream_type:
                         data_stream = stream
 
                 if marker_stream is None or data_stream is None:
@@ -244,7 +245,7 @@ class InputXDFFile(MPBase):
             self._data["numerical_labels"] = np.array([self._tasks.index(task) for task in self._data["Markers"]["time_series"]])
 
         # create a counter to keep track of the number of trials extracted when polling
-        self._task_counter = {task: 0 for task in self._tasks}
+        self._task_counter = {task: 0 for task in self.tasks}
 
     def _filter_marker_stream(self, marker_stream):
         """
@@ -265,7 +266,7 @@ class InputXDFFile(MPBase):
         """
         if not self._inferred_tasks and self._tasks:
             # filter for markers that are tasks
-            task_marker_mask = np.array([marker[0] in self._tasks for marker in marker_stream["time_series"]])
+            task_marker_mask = np.array([marker[0] in self.tasks for marker in marker_stream["time_series"]])
             marker_stream["time_series"] = [marker[0] for marker, mask in zip(marker_stream["time_series"], task_marker_mask) if mask]
             marker_stream["time_stamps"] = marker_stream["time_stamps"][task_marker_mask]
         else:
@@ -315,10 +316,10 @@ class InputXDFFile(MPBase):
         sample_data: dictionary
         """
 
-        if label is not None and label not in self._tasks:
+        if label is not None and label not in self.tasks:
             # check if the coorresponding numerical label has been provided
             if label in self._data["numerical_labels"]:
-                label = self._tasks[np.argwhere(self._data["numerical_labels"]==label)[0][0]]
+                label = self.tasks[np.argwhere(self._data["numerical_labels"]==label)[0][0]]
             else:
                 raise ValueError(f"Label {label} is not in the list of tasks")
 
@@ -332,7 +333,7 @@ class InputXDFFile(MPBase):
         if label is None:
             num_prev_polled = sum(self._task_counter.values())
             poll_index = num_prev_polled  # default, assumes that the trials have been polled in order
-            for task in self._tasks:
+            for task in self.tasks:
                 # find the first trial for the specified task that has not been polled
                 task_min = markers.index(task, self._task_counter[task])
                 if task_min < poll_index:
@@ -355,7 +356,7 @@ class InputXDFFile(MPBase):
             # Construct the boolean array for samples that fall after the marker timestamp
             sample_indices = self._data["Data"]["time_stamps"] >= data_window_start
             first_sample_ix = np.argwhere(sample_indices)[0][0]
-            sample_indices[first_sample_ix + self._Ns:] = False  # remove the samples after the end of the trial
+            sample_indices[first_sample_ix + self.Ns:] = False  # remove the samples after the end of the trial
             sample_data = self._data["Data"]["time_series"][:, sample_indices]
 
         # increment the task counter
@@ -451,7 +452,7 @@ class InputXDFFile(MPBase):
         """
 
         src = cls(sess, files, channels, tasks, relative_start, Ns, mode="continuous")
-        sess.add_ext_src(src)
+        sess._add_ext_src(src)
 
         return src
 
@@ -496,7 +497,7 @@ class InputXDFFile(MPBase):
 
         """
         src = cls(sess, files, channels, tasks, relative_start, Ns, stype=stype, mode="epoched")
-        sess.add_ext_src(src)
+        sess._add_ext_src(src)
 
         return src
 
@@ -523,6 +524,7 @@ class InputLSLStream(MPBase):
     channels : tuple of ints
         Index value of channels to poll from the stream, if None all channels will be polled.
 
+    TODO: update attributes docstring 
     """
 
     MAX_NULL_READS = 1000
@@ -591,18 +593,18 @@ class InputLSLStream(MPBase):
             not available when the session is created. In that case, the stream can be updated later by calling the update_input_stream() method.
         """
         super().__init__(MPEnums.SRC, sess)
-        self._marker_coupled = marker_coupled
+        self.marker_coupled = marker_coupled
 
         self._marker_inlet = None
-        self._marker_pattern = None
-        self._relative_start = relative_start
+        self.marker_pattern = None
+        self.relative_start = relative_start
         self._already_peeked = False
         self._peeked_marker = None
         self._marker_buffer = {"time_series": None, "time_stamps": None} # only keeps most recent value, can expand in future if needed
         self._time_correction = None
         self._interval = interval
-        self._channels = channels
-        self._Ns = Ns
+        self.channels = channels
+        self.Ns = Ns
         self._data_buffer = {"time_series": None, "time_stamps": None}
 
         if active:
@@ -636,7 +638,7 @@ class InputLSLStream(MPBase):
                     null_reads = 0  # reset the null reads counter
                     marker = marker[0]  # extract the string portion of the marker
 
-                    if (self._marker_pattern is None) or self._marker_pattern.match(marker):
+                    if (self.marker_pattern is None) or self.marker_pattern.match(marker):
                         t_begin = t
                         self._marker_buffer["time_stamps"] = t_begin
                         self._marker_buffer["time_series"] = marker
@@ -662,7 +664,7 @@ class InputLSLStream(MPBase):
             else:
                 t_begin = 0  # i.e. all data is valid
 
-        t_begin += self._relative_start
+        t_begin += self.relative_start
 
         # pull the data in chunks until we get the total number of samples
         samples_polled = 0
@@ -681,20 +683,20 @@ class InputLSLStream(MPBase):
             self._data_buffer["time_stamps"] = self._data_buffer["time_stamps"][valid_indices]
 
             # If the number of samples in the buffer is greater than the number of samples required, extract the required data
-            if samples_polled >= self._Ns:
+            if samples_polled >= self.Ns:
                 # Buffer contains a backlog of data, warn that execution may be too slow for target polling rate
                 warnings.warn("Buffer contains a backlog of data. Execution may be too slow for target polling rate.", RuntimeWarning, stacklevel=2)
 
-                if self._marker_coupled:
+                if self.marker_coupled:
                     # if this is a marker-coupled stream, use the oldest valid data in the buffer
                     # to ensure that the data is aligned with the marker
-                    self._trial_data = self._data_buffer["time_series"][:, :self._Ns]
-                    self._trial_timestamps = self._data_buffer["time_stamps"][:self._Ns]
+                    self._trial_data = self._data_buffer["time_series"][:, :self.Ns]
+                    self._trial_timestamps = self._data_buffer["time_stamps"][:self.Ns]
                 else:
                     # if this is a marker-uncoupled stream, use the newest valid data in the buffer
                     # to ensure that the data is as recent as possible
-                    self._trial_data = self._data_buffer["time_series"][:, -self._Ns:]
-                    self._trial_timestamps = self._data_buffer["time_stamps"][-self._Ns:]
+                    self._trial_data = self._data_buffer["time_series"][:, -self.Ns:]
+                    self._trial_timestamps = self._data_buffer["time_stamps"][-self.Ns:]
 
             # If the number of valid samples in the buffer is less than the number of samples required, extract all the data in the buffer
             else:
@@ -703,7 +705,7 @@ class InputLSLStream(MPBase):
 
         # If the buffer does not contain enough data, pull data from the inlet
         null_reads = 0
-        while samples_polled < self._Ns:
+        while samples_polled < self.Ns:
             data, timestamps = self._data_inlet.pull_chunk(timeout=0.0)
 
             if len(timestamps) > 0:
@@ -721,17 +723,17 @@ class InputLSLStream(MPBase):
                     valid_timestamps = timestamps >= t_begin
 
                     # discard extra channels and old data
-                    data = data[np.ix_(self._channels, valid_timestamps)]
+                    data = data[np.ix_(self.channels, valid_timestamps)]
                     timestamps = timestamps[valid_timestamps]
 
                     # append the latest chunk to the trial_data array
                     # start by indentifying the start and end indices
                     # of the source and destination arrays
                     chunk_sz = data.shape[1]
-                    if samples_polled + chunk_sz > self._Ns:
+                    if samples_polled + chunk_sz > self.Ns:
                         # more data in the chunk than required
-                        dst_end_ix = self._Ns
-                        src_end_ix = self._Ns - samples_polled
+                        dst_end_ix = self.Ns
+                        src_end_ix = self.Ns - samples_polled
                     else:
                         # less data in the chunk than required
                         dst_end_ix = samples_polled + chunk_sz
@@ -740,7 +742,7 @@ class InputLSLStream(MPBase):
                     self._trial_data[:, samples_polled:dst_end_ix] = data[:, :src_end_ix]
                     self._trial_timestamps[samples_polled:dst_end_ix] = timestamps[:src_end_ix]
 
-                    if dst_end_ix == self._Ns:
+                    if dst_end_ix == self.Ns:
                         # we have polled enough data, update the buffer
                         # with the latest data plus any extra data
                         # that we did not use in this trial
@@ -760,7 +762,7 @@ class InputLSLStream(MPBase):
                     )
                 time.sleep(0.001)
 
-        if self._marker_coupled:
+        if self.marker_coupled:
             # reset the maker peeked flag since we have polled new data
             self._already_peeked = False
 
@@ -877,9 +879,9 @@ class InputLSLStream(MPBase):
                 raise ValueError(
                     "The number of channels in the stream does not match the channel indices specified in the channels parameter. Please check the channels parameter and try again."
                 )
-            self._channels = channels
+            self.channels = channels
         else:
-            self._channels = tuple([_ for _ in range(self._data_inlet.channel_count)])
+            self.channels = tuple([_ for _ in range(self._data_inlet.channel_count)])
 
         if marker_coupled:
             if not marker_stream_info:
@@ -902,13 +904,13 @@ class InputLSLStream(MPBase):
             self._peek_marker_inlet.open_stream()
 
             if marker_fmt:
-                self._marker_pattern = re.compile(marker_fmt)
+                self.marker_pattern = re.compile(marker_fmt)
 
-        self._Ns = Ns
+        self.Ns = Ns
 
         # allocate array for trial data and timestamps
-        self._trial_data = np.zeros((len(self._channels), self._Ns))
-        self._trial_timestamps = np.zeros((self._Ns,))
+        self._trial_data = np.zeros((len(self.channels), self.Ns))
+        self._trial_timestamps = np.zeros((self.Ns,))
 
         self._active = True
 
@@ -962,7 +964,7 @@ class InputLSLStream(MPBase):
             active,
             Ns=Ns
         )
-        sess.add_ext_src(src)
+        sess._add_ext_src(src)
 
         return src
 
@@ -994,7 +996,7 @@ class InputLSLStream(MPBase):
             Number of samples to be extracted per poll.
         """
         src = cls(sess, pred, channels, relative_start, marker_coupled=False, active=active, interval=interval, Ns=Ns)
-        sess.add_ext_src(src)
+        sess._add_ext_src(src)
 
         return src
 
@@ -1030,19 +1032,19 @@ class OutputLSLStream(MPBase):
         """
         super().__init__(MPEnums.SRC, sess)
         self._sess = sess
-        self._stream_info = stream_info
+        self.stream_info = stream_info
         # resolve the stream on the LSL network
-        self.lsl_marker_outlet = pylsl.StreamOutlet(stream_info, chunk_size, max_buffer)
-        self.liesl_session = None
+        self._lsl_marker_outlet = pylsl.StreamOutlet(stream_info, chunk_size, max_buffer)
+        self._liesl_session = None
         # Start LieSL recording if the user has specified a filesave
 
         warnings.filterwarnings(
             action="ignore", category=RuntimeWarning, module="subprocess"
         )
-        output_save_thread = threading.Thread(target=self._check_status, args=(filesave,))
+        output_save_thread = threading.Thread(target=self.check_status, args=(filesave,))
         output_save_thread.start()
 
-    def _check_status(self, filesave):
+    def check_status(self, filesave):
         """
         TODO: add description
         Parameters
@@ -1052,27 +1054,27 @@ class OutputLSLStream(MPBase):
         if filesave is not None:
             streamargs = [
                 {
-                    "name": self._stream_info.name(),
-                    "type": self._stream_info.type(),
-                    "channel_count": self._stream_info.channel_count(),
-                    "nominal_srate": self._stream_info.nominal_srate(),
-                    "channel_format": self._stream_info.channel_format(),
-                    "source_id": self._stream_info.source_id(),
+                    "name": self.stream_info.name(),
+                    "type": self.stream_info.type(),
+                    "channel_count": self.stream_info.channel_count(),
+                    "nominal_srate": self.stream_info.nominal_srate(),
+                    "channel_format": self.stream_info.channel_format(),
+                    "source_id": self.stream_info.source_id(),
                 }
             ]
-            self.liesl_session = liesl.Session(
+            self._liesl_session = liesl.Session(
                 mainfolder=f"{os.path.dirname(os.path.realpath(__file__))}\labrecordings",
                 streamargs=streamargs,
             )
 
-            with self.liesl_session(filesave):
+            with self._liesl_session(filesave):
                 while True:
                     time.sleep(0.1)
                     if not threading.main_thread().is_alive():
                         # Suppress output from pyLiesl
                         sys.stdout = open(os.devnull, "w")
                         sys.stderr = open(os.devnull, "w")
-                        self.liesl_session.stop_recording()
+                        self._liesl_session.stop_recording()
                         sys.stdout = sys.__stdout__
                         sys.stderr = sys.__stderr__
                         return
@@ -1091,17 +1093,17 @@ class OutputLSLStream(MPBase):
         """
 
         try:
-            self.lsl_marker_outlet.push_sample(data, pylsl.local_clock())
+            self._lsl_marker_outlet.push_sample(data, pylsl.local_clock())
 
         except (ValueError, TypeError) as ve:
             try:
-                self.lsl_marker_outlet.push_sample(data[0], pylsl.local_clock())
+                self._lsl_marker_outlet.push_sample(data[0], pylsl.local_clock())
 
             except Exception as e:
                 raise type(e)(f"{str(e)}\nPush data - Irreparable Error in LSL Output. No data pushed to output stream").with_traceback(sys.exc_info()[2])
 
     @classmethod
-    def create_outlet_from_streaminfo(cls, sess, stream_info, filesave=None):
+    def _create_outlet_from_streaminfo(cls, sess, stream_info, filesave=None):
         """
         Factory method to create a OutletLSLStream mindpype object from a pylsl.StreamInfo object.
 
@@ -1119,7 +1121,7 @@ class OutputLSLStream(MPBase):
             Output LSL Stream
         """
         src = cls(sess, stream_info, filesave)
-        sess.add_ext_out(src)
+        sess._add_ext_out(src)
 
         return src
 
@@ -1184,6 +1186,6 @@ class OutputLSLStream(MPBase):
             source_id="1007988689",
         )
         src = cls(sess, stream_info, filesave)
-        sess.add_ext_out(src)
+        sess._add_ext_out(src)
 
         return src

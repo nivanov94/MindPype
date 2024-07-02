@@ -31,17 +31,17 @@ class Scalar(MPBase):
 
     Attributes
     ----------
-    _data_type : one of [int, float, complex, str, bool]
+    data_type : one of [int, float, complex, str, bool]
         Indicates the type of data represented by the Scalar
     data : value of type int, float, complex, str, or bool
         Data value represented by the Scalar object
     is_virtual : bool
         If true, the Scalar object is virtual, non-virtual otherwise
-    _ext_src : LSL data source input object, MAT data source, or None
+    ext_src : LSL data source input object, MAT data source, or None
         External data source represented by the scalar; this data will
         be polled/updated when trials are executed. If the data does
         not represent an external data source, set ext_src to None
-    _volatile : bool
+    volatile : bool
         True if source is volatile (needs to be updated/polled between
         trials), false otherwise
 
@@ -59,9 +59,9 @@ class Scalar(MPBase):
         Constructor for Scalar object
         """
         super().__init__(MPEnums.SCALAR, sess)
-        self._data_type = value_type
+        self.data_type = value_type
 
-        self._ext_src = ext_src
+        self.ext_src = ext_src
 
         if val is None:
             if value_type == int:
@@ -78,11 +78,11 @@ class Scalar(MPBase):
         self._ext_out = ext_out
         self.data = val
 
-        self._virtual = is_virtual
+        self.virtual = is_virtual
         if ext_src is None:
-            self._volatile = False
+            self.volatile = False
         else:
-            self._volatile = True
+            self.volatile = True
 
         if ext_out is None:
             self._volatile_out = False
@@ -338,13 +338,13 @@ class Scalar(MPBase):
         if self.volatile:
             self.data = self.ext_src.poll_data(label)
 
-    def push_volatile_outputs(self, label=None):
+    def _push_volatile_outputs(self, label=None):
 
         if self.volatile_out:
             self.ext_out.push_data(self.data, label)
 
     @classmethod
-    def valid_numeric_types(cls):
+    def _valid_numeric_types(cls):
         """
         Valid numeric types for a MindPype Scalar object
 
@@ -469,7 +469,7 @@ class Scalar(MPBase):
         return s
 
     @classmethod
-    def create_from_handle(cls, sess, data_type, src):
+    def create_from_source(cls, sess, data_type, src):
 
         """
         Initialize a non-virtual, volatile Scalar object with an empty data
@@ -491,7 +491,7 @@ class Scalar(MPBase):
 
         Examples
         --------
-        >>> new_scalar = Scalar.create_from_handle(sess, int, src)
+        >>> new_scalar = Scalar.create_from_source(sess, int, src)
         """
 
         if not (data_type in Scalar._valid_types):
@@ -540,8 +540,8 @@ class Tensor(MPBase):
         Constructor for Tensor class
         """
         super().__init__(MPEnums.TENSOR, sess)
-        self._shape = tuple(shape)
-        self._virtual = is_virtual
+        self.shape = tuple(shape)
+        self.virtual = is_virtual
         self._ext_src = ext_src
         self._ext_out = ext_out
 
@@ -551,9 +551,9 @@ class Tensor(MPBase):
             self.data = np.zeros(shape)
 
         if ext_src is None:
-            self._volatile = False
+            self.volatile = False
         else:
-            self._volatile = True
+            self.volatile = True
 
         if ext_out is None:
             self._volatile_out = False
@@ -574,19 +574,19 @@ class Tensor(MPBase):
         --------
         >>> print(tensor.data)
         """
-        return self._data
+        return self.data
 
     @property
     def shape(self):
-        return self._shape
+        return self.shape
 
     @property
     def virtual(self):
-        return self._virtual
+        return self.virtual
 
     @property
     def volatile(self):
-        return self._volatile
+        return self.volatile
 
     @property
     def volatile_out(self):
@@ -639,7 +639,7 @@ class Tensor(MPBase):
             self.shape = data.shape
 
         if self.shape == data.shape:
-            self._data = data
+            self.data = data
         else:
             raise ValueError("Mismatched shape")
 
@@ -670,9 +670,9 @@ class Tensor(MPBase):
         """
 
         if self.virtual:
-            self._shape = shape
+            self.shape = shape
             # when changing the shape write a zero tensor to data
-            self._data = np.zeros(shape)
+            self.data = np.zeros(shape)
         else:
             raise ValueError("Cannot change shape of non-virtual tensor")
 
@@ -763,7 +763,7 @@ class Tensor(MPBase):
             # add regularization
             self.data += 0.001 * np.eye(self.shape[-1])
 
-    def poll_volatile_data(self, label=None):
+    def _poll_volatile_data(self, label=None):
         """
         Pull data from external sources or MindPype input data sources.
 
@@ -783,7 +783,7 @@ class Tensor(MPBase):
             data = np.squeeze(data, axis=0)
         self.data = data
 
-    def push_volatile_outputs(self, label=None):
+    def _push_volatile_outputs(self, label=None):
         """
         Push data to external sources.
         """
@@ -886,7 +886,7 @@ class Tensor(MPBase):
         return t
 
     @classmethod
-    def create_for_volatile_output(cls, sess, shape, out):
+    def _create_for_volatile_output(cls, sess, shape, out):
         """
         Create data source for volatile output
 
@@ -912,7 +912,7 @@ class Tensor(MPBase):
 
     # utility static methods
     @staticmethod
-    def validate_data(shape, data):
+    def _validate_data(shape, data):
         """
         Method that returns True if  the data within the tensor is the right
         shape and is a numpy ndarray. False otherwise.
@@ -975,11 +975,11 @@ class Array(MPBase):
         """ Init """
         super().__init__(MPEnums.ARRAY, sess)
 
-        self._virtual = False  # no virtual arrays for now
+        self.virtual = False  # no virtual arrays for now
         self._volatile = False  # no volatile arrays for now...
         self._volatile_out = False  # no volatile arrays for now...
 
-        self._capacity = capacity
+        self.capacity = capacity
 
         self._elements = [None] * capacity
 
@@ -1047,7 +1047,7 @@ class Array(MPBase):
     # User Facing Getters
     @property
     def capacity(self):
-        return self._capacity
+        return self.capacity
 
     @property
     def num_elements(self):
@@ -1057,11 +1057,11 @@ class Array(MPBase):
 
     @property
     def virtual(self):
-        return self._virtual
+        return self.virtual
 
     @property
     def volatile(self):
-        return self._volatile
+        return self.volatile
 
     @property
     def volatile_out(self):
@@ -1070,7 +1070,7 @@ class Array(MPBase):
     @capacity.setter
     def capacity(self, capacity):
         if self.virtual:
-            self._capacity = capacity
+            self.capacity = capacity
             self._elements = [None] * capacity
 
     def make_copy(self):
@@ -1203,6 +1203,8 @@ class CircleBuffer(Array):
     element_template : any
         The template MindPype element to populate the array
         (see Array examples)
+        
+    TODO: add attributes descriptions
 
     """
 

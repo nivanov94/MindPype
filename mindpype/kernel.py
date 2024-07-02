@@ -7,7 +7,7 @@ import numpy as np
 
 class Kernel(MPBase, ABC):
     """
-    An abstract base class for kernels
+    An abstract base class for kernels. Only used by developers loooking to extend the library.
 
     Parameters
     ----------
@@ -18,9 +18,9 @@ class Kernel(MPBase, ABC):
 
     Attributes
     ----------
-    _name : str
+    name : str
         Name of the kernel
-    _init_style : MPEnums Object
+    init_style : MPEnums Object
         Kernel initialization style, according to BcipEnum class
     """
 
@@ -30,17 +30,17 @@ class Kernel(MPBase, ABC):
         """
         session = graph.session
         super().__init__(MPEnums.KERNEL, session)
-        self._name = name
-        self._init_style = init_style
+        self.name = name
+        self.init_style = init_style
         self._num_classes = None
 
-        self._inputs = []
-        self._outputs = []
+        self.inputs = []
+        self.outputs = []
 
-        self._init_inputs = []
-        self._init_outputs = []
-        self._init_input_labels = None
-        self._init_output_labels = None
+        self.init_inputs = []
+        self.init_outputs = []
+        self.init_input_labels = None
+        self.init_output_labels = None
 
         # phony inputs and outputs for verification
         self._phony_inputs = {}
@@ -66,7 +66,7 @@ class Kernel(MPBase, ABC):
 
         """
 
-        return self._name
+        return self.name
 
     @property
     def init_style(self):
@@ -79,7 +79,7 @@ class Kernel(MPBase, ABC):
             The initialization style of the kernel
         """
 
-        return self._init_style
+        return self.init_style
 
     @property
     def init_input_labels(self):
@@ -92,7 +92,7 @@ class Kernel(MPBase, ABC):
             The labels for the initialization inputs
         """
 
-        return self._init_input_labels
+        return self.init_input_labels
 
     @property
     def init_output_labels(self):
@@ -105,7 +105,7 @@ class Kernel(MPBase, ABC):
             The labels for the initialization outputs
         """
 
-        return self._init_output_labels
+        return self.init_output_labels
 
     @property
     def phony_init_input_labels(self):
@@ -144,7 +144,7 @@ class Kernel(MPBase, ABC):
             The inputs of the kernel
         """
 
-        return self._inputs
+        return self.inputs
 
     @property
     def outputs(self):
@@ -157,7 +157,7 @@ class Kernel(MPBase, ABC):
             The outputs of the kernel
         """
 
-        return self._outputs
+        return self.outputs
 
     @property
     def init_inputs(self):
@@ -170,7 +170,7 @@ class Kernel(MPBase, ABC):
             The inputs of the kernel
         """
 
-        return self._init_inputs
+        return self.init_inputs
 
     @property
     def init_outputs(self):
@@ -183,7 +183,7 @@ class Kernel(MPBase, ABC):
             The outputs of the kernel
         """
 
-        return self._init_outputs
+        return self.init_outputs
 
     @property
     def phony_inputs(self):
@@ -247,7 +247,7 @@ class Kernel(MPBase, ABC):
         labels : list
             The list of labels to be set
         """
-        self._init_input_labels = labels
+        self.init_input_labels = labels
 
     @init_output_labels.setter
     def init_output_labels(self, labels):
@@ -259,7 +259,7 @@ class Kernel(MPBase, ABC):
         labels : list
             The list of labels to be set
         """
-        self._init_output_labels = labels
+        self.init_output_labels = labels
 
     @inputs.setter
     def inputs(self, inputs):
@@ -271,15 +271,15 @@ class Kernel(MPBase, ABC):
         inputs : list
             The list of inputs to be set
         """
-        self._inputs = inputs
+        self.inputs = inputs
 
         # update init_inputs so the length matches inputs
-        if len(self._init_inputs) != len(self._inputs):
-            if len(self._init_inputs) == 0:
-                self._init_inputs = [None] * len(self._inputs)
+        if len(self.init_inputs) != len(self._inputs):
+            if len(self.init_inputs) == 0:
+                self.init_inputs = [None] * len(self._inputs)
             else:
-                self._init_inputs.extend(
-                    [None] * (len(self._inputs) - len(self._init_inputs)))
+                self.init_inputs.extend(
+                    [None] * (len(self._inputs) - len(self.init_inputs)))
 
     @outputs.setter
     def outputs(self, outputs):
@@ -291,15 +291,15 @@ class Kernel(MPBase, ABC):
         outputs : list
             The list of outputs to be set
         """
-        self._outputs = outputs
+        self.outputs = outputs
 
         # update init_outputs so the length matches outputs
-        if len(self._init_outputs) != len(self._outputs):
-            if len(self._init_outputs) == 0:
-                self._init_outputs = [None] * len(self._outputs)
+        if len(self.init_outputs) != len(self.outputs):
+            if len(self.init_outputs) == 0:
+                self.init_outputs = [None] * len(self.outputs)
             else:
-                self._init_outputs.extend(
-                    [None] * (len(self._outputs) - len(self._init_outputs)))
+                self.init_outputs.extend(
+                    [None] * (len(self.outputs) - len(self.init_outputs)))
 
     @init_inputs.setter
     def init_inputs(self, inputs):
@@ -311,7 +311,7 @@ class Kernel(MPBase, ABC):
         inputs : list
             The list of inputs to be set
         """
-        self._init_inputs = inputs
+        self.init_inputs = inputs
 
     @init_outputs.setter
     def init_outputs(self, outputs):
@@ -323,7 +323,7 @@ class Kernel(MPBase, ABC):
         outputs : list
             The list of outputs to be set
         """
-        self._init_outputs = outputs
+        self.init_outputs = outputs
 
     @phony_init_input_labels.setter
     def phony_init_input_labels(self, labels):
@@ -349,10 +349,10 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        _inputs[index] : Object
+        inputs[index] : Object
             The input at the specified index
         """
-        return self._inputs[index]
+        return self.inputs[index]
 
     def get_output(self, index):
         """
@@ -365,10 +365,10 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        _outputs[index] : Object
+        outputs[index] : Object
             The output at the specified index
         """
-        return self._outputs[index]
+        return self.outputs[index]
 
     def get_init_input(self, index):
         """
@@ -381,10 +381,10 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        _init_inputs[index] : Object
+        init_inputs[index] : Object
             The input at the specified index
         """
-        return self._init_inputs[index]
+        return self.init_inputs[index]
 
     def get_init_output(self, index):
         """
@@ -397,10 +397,10 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        _init_outputs[index] : Object
+        init_outputs[index] : Object
             The output at the specified index
         """
-        return self._init_outputs[index]
+        return self.init_outputs[index]
 
     def add_phony_input(self, ph_input, index):
         """
@@ -454,7 +454,7 @@ class Kernel(MPBase, ABC):
         """
         self._phony_init_outputs[index] = ph_output
 
-    def copy_init_labels_to_output(self, verification=False):
+    def __copy_init_labels_to_output(self, verification=False):
         """
         Copies the input labels from initialization to the output
 
@@ -567,7 +567,7 @@ class Kernel(MPBase, ABC):
                 self._initialize(verif_init_inputs,
                                  verif_init_outputs,
                                  verif_init_labels)
-                self.copy_init_labels_to_output(verification=True)
+                self._copy_init_labels_to_output(verification=True)
             except Exception as e:
                 raise type(e)((f"{str(e)}\nTest initialization of " +
                                f"node {self.name} failed " +
@@ -612,7 +612,7 @@ class Kernel(MPBase, ABC):
                              self.init_outputs,
                              self.init_input_labels)
             self._initialized = True
-            self.copy_init_labels_to_output()
+            self._copy_init_labels_to_output()
 
 
     def update(self):
@@ -625,7 +625,7 @@ class Kernel(MPBase, ABC):
                          self.init_outputs,
                          self.init_input_labels)
             self._initialized = True
-            self.copy_init_labels_to_output()
+            self._copy_init_labels_to_output()
             
 
     def execute(self):

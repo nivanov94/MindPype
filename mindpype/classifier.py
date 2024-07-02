@@ -34,10 +34,10 @@ class Classifier(MPBase):
 
     Attributes
     ----------
-    _ctype : str
+    ctype : str
        One of ['lda', 'svm', 'logistic regression', 'custom'], corresponding
        to the type of classifier
-    _classifier : Classifier
+    classifier : Classifier
        The Classifier object (ie. Scipy classifier object) that will dictate
        this node's function
 
@@ -73,8 +73,8 @@ class Classifier(MPBase):
         """
         Constructor to create a new filter object
         """
-        self._ctype = ctype
-        self._classifier = classifier
+        self.ctype = ctype
+        self.classifier = classifier
 
         super().__init__(MPEnums.CLASSIFIER, sess)
 
@@ -163,7 +163,7 @@ class Classifier(MPBase):
             random_state,
         )
         f = cls(sess, "svm", svm_object)
-        sess.add_misc_mp_obj(f)
+        sess._add_misc_mp_obj(f)
         return f
 
     @classmethod
@@ -216,7 +216,7 @@ class Classifier(MPBase):
         # clf = classification.TSclassifier(clf=lda_object)
         f = cls(sess, "lda", lda_object)
 
-        sess.add_misc_mp_obj(f)
+        sess._add_misc_mp_obj(f)
 
         return f
 
@@ -286,7 +286,7 @@ class Classifier(MPBase):
             l1_ratio=l1_ratio,
         )
         f = cls(sess, "logistic regression", log_reg_object)
-        sess.add_misc_mp_obj(f)
+        sess._add_misc_mp_obj(f)
 
         return f
 
@@ -321,6 +321,6 @@ class Classifier(MPBase):
                                                                     'svm')
         """
         f = cls(sess, classifier_type, classifier_object)
-        sess.add_misc_mp_obj(f)
+        sess._add_misc_mp_obj(f)
 
         return f

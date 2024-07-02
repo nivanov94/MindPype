@@ -78,7 +78,7 @@ class Graph(MPBase):
         self._initialized = False
         self._nodes.append(node)
 
-    def set_default_init_data(self, data, labels):
+    def _set_default_init_data(self, data, labels):
         """
         Add default initialization data to the graph. If a node requires
         initialization data and it is not explicitly provided, this data
@@ -133,7 +133,7 @@ class Graph(MPBase):
         self._verified = True
 
         # cleanup any data used within verification that are no longer needed
-        self.session.free_unreferenced_data()
+        self.session._free_unreferenced_data()
 
     def _schedule_nodes(self):
         """
@@ -354,9 +354,9 @@ class Graph(MPBase):
                                                             sys.exc_info()[2])
 
         self._initialized = True
-        self.session.free_unreferenced_data()
+        self.session._free_unreferenced_data()
 
-    def update(self):
+    def _update(self):
         """
         Update each node within the graph for trial execution
 
@@ -381,7 +381,7 @@ class Graph(MPBase):
                 raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
                                "failed update")).with_traceback(sys.exc_info()[2])
 
-        self.session.free_unreferenced_data()
+        self.session._free_unreferenced_data()
 
     def execute(self, label=None):
         """
@@ -425,7 +425,7 @@ class Graph(MPBase):
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
-    def poll_volatile_sources(self, label=None):
+    def _poll_volatile_sources(self, label=None):
         """
         Poll data (update input data) from volatile sources within the graph.
 
@@ -446,7 +446,7 @@ class Graph(MPBase):
         for datum in self._volatile_sources:
             datum.poll_volatile_data(label)
 
-    def push_volatile_outputs(self, label=None):
+    def _push_volatile_outputs(self, label=None):
         """
         Push data (update output data) to volatile outputs within the graph.
 
@@ -631,7 +631,7 @@ class Graph(MPBase):
 
         # cleanup data objects
         del train_data, train_labels, test_data, test_labels
-        self.session.free_unreferenced_data()
+        self.session._free_unreferenced_data()
 
         return mean_stat
 
@@ -671,7 +671,7 @@ class Node(MPBase):
 
     Attributes
     ----------
-    _kernel : Kernel Object
+    kernel : Kernel Object
         Kernel object to be used for processing within the Node
     _params : dict
         Dictionary of parameters outputted by kernel
@@ -685,7 +685,7 @@ class Node(MPBase):
         sess = graph.session
         super().__init__(MPEnums.NODE, sess)
 
-        self._kernel = kernel
+        self.kernel = kernel
         self._params = params
 
         self._graph = graph
@@ -693,7 +693,7 @@ class Node(MPBase):
     # API getters
     @property
     def kernel(self):
-        return self._kernel
+        return self.kernel
 
     def extract_inputs(self):
         """
@@ -762,7 +762,7 @@ class Node(MPBase):
         """
         return self.kernel.initialize()
     
-    def update(self):
+    def _update(self):
         """
         Update the kernel function for execution
         """
@@ -792,7 +792,7 @@ class Node(MPBase):
         self.kernel.add_initialization_data(init_data, init_labels)
         self._graph.verified = False
 
-    def update_initialization_data(self, init_data, init_labels=None):
+    def _update_initialization_data(self, init_data, init_labels=None):
         """
         Update the initialization data of the node
 
@@ -807,7 +807,7 @@ class Node(MPBase):
         """
         self.kernel.remove_initialization_data()
         self.add_initialization_data(init_data, init_labels)
-        self._session.free_unreferenced_data()
+        self.session._free_unreferenced_data()
 
 
 class Edge:

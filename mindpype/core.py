@@ -29,9 +29,9 @@ class MPBase(object):
         """
         Constructor for MPBase base class
         """
-        self._mp_type = mp_type
-        self._id = id(self)
-        self._session = session
+        self.mp_type = mp_type
+        self.id = id(self)
+        self.session = session
 
     # API getters
     @property
@@ -45,7 +45,7 @@ class MPBase(object):
             Indicates what type of object the reference object is
         """
 
-        return self._mp_type
+        return self.mp_type
 
     @property
     def session_id(self):
@@ -57,7 +57,7 @@ class MPBase(object):
         session_id : int
             ID of the session where the object exists
         """
-        return self._id
+        return self.id
 
     @property
     def session(self):
@@ -71,7 +71,7 @@ class MPBase(object):
 
         """
 
-        return self._session
+        return self.session
 
 
 class MPEnums(IntEnum):
@@ -245,7 +245,7 @@ class Session(MPBase):
         self._initialized = True
         self.free_temp_data()
 
-    def poll_volatile_channels(self, label=None):
+    def _poll_volatile_channels(self, label=None):
         """
         Update the contents of all volatile data streams
 
@@ -267,7 +267,7 @@ class Session(MPBase):
             if self._datum[d].volatile:
                 self._datum[d].poll_volatile_data(label)
 
-    def push_volatile_outputs(self, label=None):
+    def _push_volatile_outputs(self, label=None):
         """
         Push outputs to volatile sources
 
@@ -305,7 +305,7 @@ class Session(MPBase):
         self.push_volatile_outputs(label)
         # logging.info("Trial executed successfully")
 
-    def add_graph(self, graph):
+    def _add_graph(self, graph):
         """
         Add a graph to the session
 
@@ -322,7 +322,7 @@ class Session(MPBase):
         self.graphs[graph.session_id] = graph
         # logging.info("Graph added to session")
 
-    def add_data(self, data):
+    def _add_data(self, data):
         """
         Add a data object to the session
 
@@ -337,7 +337,7 @@ class Session(MPBase):
         """
         self._datum[data.session_id] = data
 
-    def add_misc_mp_obj(self, obj):
+    def _add_misc_mp_obj(self, obj):
         """
         Add a misc MindPype object to the session
 
@@ -348,11 +348,11 @@ class Session(MPBase):
 
         Examples
         --------
-        >>> session.add_misc_mp_obj(obj)
+        >>> session._add_misc_mp_obj(obj)
         """
         self._misc_objs[obj.session_id] = obj
 
-    def add_ext_src(self, src):
+    def _add_ext_src(self, src):
         """
         Add an external source to the session
 
@@ -363,7 +363,7 @@ class Session(MPBase):
         """
         self._ext_srcs[src.session_id] = src
 
-    def add_ext_out(self, src):
+    def _add_ext_out(self, src):
         """
         Add an external outlet to the session
 
@@ -410,7 +410,7 @@ class Session(MPBase):
         # not found, return None type
         return None
 
-    def save_session(self: object, file: str, additional_params=None) -> None:
+    def _save_session(self: object, file: str, additional_params=None) -> None:
         """
         Save the session object and all of its contents to a file
 
@@ -438,7 +438,7 @@ class Session(MPBase):
 
         return output
 
-    def free_unreferenced_data(self):
+    def _free_unreferenced_data(self):
         """
         Free all data objects that are no longer in use
         """
