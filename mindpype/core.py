@@ -286,25 +286,6 @@ class Session(MPBase):
             if self._datum[d].volatile_out:
                 self._datum[d].push_volatile_outputs(label)
 
-    def execute_trial(self, label, graph):
-        """
-        Execute a trial
-        First updates all volatile input channels
-        Then executes current block
-
-        Parameters
-        ----------
-        label : str
-            Label for the current trial.
-        graph : Graph
-            Graph to execute for the current trial.
-        """
-        print("Executing trial with label: {}".format(label))
-        self.poll_volatile_channels(label)
-        graph.execute(label)
-        self.push_volatile_outputs(label)
-        # logging.info("Trial executed successfully")
-
     def _add_graph(self, graph):
         """
         Add a graph to the session

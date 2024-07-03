@@ -690,12 +690,6 @@ class Kernel(MPBase, ABC):
 
         return (param_index in self._covariance_inputs)
 
-    def _initialize(self, init_inputs, init_outputs, labels):
-        """
-        Default method for kernels without initialization procedures
-        """
-        pass
-
     def add_initialization_data(self, init_data, init_labels=None):
         """
         Add initialization data to the kernel
