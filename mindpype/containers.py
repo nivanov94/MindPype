@@ -59,7 +59,7 @@ class Scalar(MPBase):
         Constructor for Scalar object
         """
         super().__init__(MPEnums.SCALAR, sess)
-        self.data_type = value_type
+        self._data_type = value_type
 
         self.ext_src = ext_src
 
