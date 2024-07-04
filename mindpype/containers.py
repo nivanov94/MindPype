@@ -670,7 +670,7 @@ class Tensor(MPBase):
         """
 
         if self.virtual:
-            self.shape = shape
+            self._shape = shape
             # when changing the shape write a zero tensor to data
             self._data = np.zeros(shape)
         else:
