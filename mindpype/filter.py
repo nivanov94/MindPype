@@ -121,7 +121,7 @@ class Filter(MPBase):
         str
 
         """
-        return self.implementation
+        return self._implementation
 
     @property
     def fs(self):
