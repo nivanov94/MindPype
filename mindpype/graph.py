@@ -807,7 +807,7 @@ class Node(MPBase):
         """
         self.kernel.remove_initialization_data()
         self.add_initialization_data(init_data, init_labels)
-        self.session._free_unreferenced_data()
+        self._session._free_unreferenced_data()
 
 
 class Edge:
