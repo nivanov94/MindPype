@@ -582,7 +582,7 @@ class Tensor(MPBase):
 
     @property
     def virtual(self):
-        return self.virtual
+        return self._virtual
 
     @property
     def volatile(self):
