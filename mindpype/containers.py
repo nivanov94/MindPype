@@ -80,7 +80,7 @@ class Scalar(MPBase):
 
         self._virtual = is_virtual
         if ext_src is None:
-            self.volatile = False
+            self._volatile = False
         else:
             self.volatile = True
 
