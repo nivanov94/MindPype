@@ -540,7 +540,7 @@ class Tensor(MPBase):
         Constructor for Tensor class
         """
         super().__init__(MPEnums.TENSOR, sess)
-        self.shape = tuple(shape)
+        self._shape = tuple(shape)
         self.virtual = is_virtual
         self._ext_src = ext_src
         self._ext_out = ext_out
