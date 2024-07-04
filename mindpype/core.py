@@ -31,7 +31,7 @@ class MPBase(object):
         """
         self._mp_type = mp_type
         self.id = id(self)
-        self.session = session
+        self._session = session
 
     # API getters
     @property
