@@ -136,7 +136,7 @@ class Filter(MPBase):
         -----------
         float
         """
-        return self.fs
+        return self._fs
 
     @property
     def crit_frqs(self):
