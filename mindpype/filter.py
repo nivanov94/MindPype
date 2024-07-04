@@ -166,7 +166,7 @@ class Filter(MPBase):
         -----------
         array_like of floats
         """
-        return self.coeffs
+        return self._coeffs
 
     @classmethod
     def create_butter(cls, sess, N, Wn, btype='lowpass',
