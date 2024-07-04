@@ -34,7 +34,7 @@ class Classifier(MPBase):
 
     Attributes
     ----------
-    ctype : str
+    _ctype : str
        One of ['lda', 'svm', 'logistic regression', 'custom'], corresponding
        to the type of classifier
     classifier : Classifier
