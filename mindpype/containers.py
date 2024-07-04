@@ -979,7 +979,7 @@ class Array(MPBase):
         self._volatile = False  # no volatile arrays for now...
         self._volatile_out = False  # no volatile arrays for now...
 
-        self.capacity = capacity
+        self._capacity = capacity
 
         self._elements = [None] * capacity
 
