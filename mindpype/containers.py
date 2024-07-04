@@ -1061,7 +1061,7 @@ class Array(MPBase):
 
     @property
     def volatile(self):
-        return self.volatile
+        return self._volatile
 
     @property
     def volatile_out(self):
