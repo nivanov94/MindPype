@@ -66,7 +66,7 @@ class Kernel(MPBase, ABC):
 
         """
 
-        return self.name
+        return self._name
 
     @property
     def init_style(self):
