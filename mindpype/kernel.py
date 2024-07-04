@@ -30,7 +30,7 @@ class Kernel(MPBase, ABC):
         """
         session = graph.session
         super().__init__(MPEnums.KERNEL, session)
-        self.name = name
+        self._name = name
         self.init_style = init_style
         self._num_classes = None
 
