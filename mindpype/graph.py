@@ -685,7 +685,7 @@ class Node(MPBase):
         sess = graph.session
         super().__init__(MPEnums.NODE, sess)
 
-        self.kernel = kernel
+        self._kernel = kernel
         self._params = params
 
         self._graph = graph
