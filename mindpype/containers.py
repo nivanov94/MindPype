@@ -1047,7 +1047,7 @@ class Array(MPBase):
     # User Facing Getters
     @property
     def capacity(self):
-        return self.capacity
+        return self._capacity
 
     @property
     def num_elements(self):
