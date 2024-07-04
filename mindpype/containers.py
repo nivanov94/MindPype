@@ -61,7 +61,7 @@ class Scalar(MPBase):
         super().__init__(MPEnums.SCALAR, sess)
         self._data_type = value_type
 
-        self.ext_src = ext_src
+        self._ext_src = ext_src
 
         if val is None:
             if value_type == int:
