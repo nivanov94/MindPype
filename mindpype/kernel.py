@@ -105,7 +105,7 @@ class Kernel(MPBase, ABC):
             The labels for the initialization outputs
         """
 
-        return self.init_output_labels
+        return self._init_output_labels
 
     @property
     def phony_init_input_labels(self):
