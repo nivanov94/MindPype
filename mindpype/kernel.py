@@ -454,7 +454,7 @@ class Kernel(MPBase, ABC):
         """
         self._phony_init_outputs[index] = ph_output
 
-    def __copy_init_labels_to_output(self, verification=False):
+    def _copy_init_labels_to_output(self, verification=False):
         """
         Copies the input labels from initialization to the output
 
