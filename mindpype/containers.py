@@ -553,7 +553,7 @@ class Tensor(MPBase):
         if ext_src is None:
             self._volatile = False
         else:
-            self.volatile = True
+            self._volatile = True
 
         if ext_out is None:
             self._volatile_out = False
