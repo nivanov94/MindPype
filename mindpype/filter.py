@@ -151,7 +151,7 @@ class Filter(MPBase):
         -----------
         array_like of floats
         """
-        return self.crit_frqs
+        return self._crit_frqs
 
     @property
     def coeffs(self):
