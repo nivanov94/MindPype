@@ -34,8 +34,8 @@ class Kernel(MPBase, ABC):
         self._init_style = init_style
         self._num_classes = None
 
-        self.inputs = []
-        self.outputs = []
+        self._inputs = []
+        self._outputs = []
 
         self.init_inputs = []
         self.init_outputs = []
