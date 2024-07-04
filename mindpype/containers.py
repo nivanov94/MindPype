@@ -541,7 +541,7 @@ class Tensor(MPBase):
         """
         super().__init__(MPEnums.TENSOR, sess)
         self._shape = tuple(shape)
-        self.virtual = is_virtual
+        self._virtual = is_virtual
         self._ext_src = ext_src
         self._ext_out = ext_out
 
