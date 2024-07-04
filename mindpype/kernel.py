@@ -92,7 +92,7 @@ class Kernel(MPBase, ABC):
             The labels for the initialization inputs
         """
 
-        return self.init_input_labels
+        return self._init_input_labels
 
     @property
     def init_output_labels(self):
