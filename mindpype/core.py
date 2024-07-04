@@ -71,7 +71,7 @@ class MPBase(object):
 
         """
 
-        return self.session
+        return self._session
 
 
 class MPEnums(IntEnum):
