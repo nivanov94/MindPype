@@ -45,7 +45,7 @@ class MPBase(object):
             Indicates what type of object the reference object is
         """
 
-        return self.mp_type
+        return self._mp_type
 
     @property
     def session_id(self):
