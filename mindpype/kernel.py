@@ -37,10 +37,10 @@ class Kernel(MPBase, ABC):
         self._inputs = []
         self._outputs = []
 
-        self.init_inputs = []
-        self.init_outputs = []
-        self.init_input_labels = None
-        self.init_output_labels = None
+        self._init_inputs = []
+        self._init_outputs = []
+        self._init_input_labels = None
+        self._init_output_labels = None
 
         # phony inputs and outputs for verification
         self._phony_inputs = {}
