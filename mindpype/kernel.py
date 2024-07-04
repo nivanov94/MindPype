@@ -144,7 +144,7 @@ class Kernel(MPBase, ABC):
             The inputs of the kernel
         """
 
-        return self.inputs
+        return self._inputs
 
     @property
     def outputs(self):
@@ -157,7 +157,7 @@ class Kernel(MPBase, ABC):
             The outputs of the kernel
         """
 
-        return self.outputs
+        return self._outputs
 
     @property
     def init_inputs(self):
@@ -170,7 +170,7 @@ class Kernel(MPBase, ABC):
             The inputs of the kernel
         """
 
-        return self.init_inputs
+        return self._init_inputs
 
     @property
     def init_outputs(self):
@@ -183,7 +183,7 @@ class Kernel(MPBase, ABC):
             The outputs of the kernel
         """
 
-        return self.init_outputs
+        return self._init_outputs
 
     @property
     def phony_inputs(self):
@@ -247,7 +247,7 @@ class Kernel(MPBase, ABC):
         labels : list
             The list of labels to be set
         """
-        self.init_input_labels = labels
+        self._init_input_labels = labels
 
     @init_output_labels.setter
     def init_output_labels(self, labels):
@@ -259,7 +259,7 @@ class Kernel(MPBase, ABC):
         labels : list
             The list of labels to be set
         """
-        self.init_output_labels = labels
+        self._init_output_labels = labels
 
     @inputs.setter
     def inputs(self, inputs):
@@ -271,15 +271,15 @@ class Kernel(MPBase, ABC):
         inputs : list
             The list of inputs to be set
         """
-        self.inputs = inputs
+        self._inputs = inputs
 
         # update init_inputs so the length matches inputs
-        if len(self.init_inputs) != len(self._inputs):
-            if len(self.init_inputs) == 0:
-                self.init_inputs = [None] * len(self._inputs)
+        if len(self._init_inputs) != len(self._inputs):
+            if len(self._init_inputs) == 0:
+                self._init_inputs = [None] * len(self._inputs)
             else:
-                self.init_inputs.extend(
-                    [None] * (len(self._inputs) - len(self.init_inputs)))
+                self._init_inputs.extend(
+                    [None] * (len(self._inputs) - len(self._init_inputs)))
 
     @outputs.setter
     def outputs(self, outputs):
@@ -291,15 +291,15 @@ class Kernel(MPBase, ABC):
         outputs : list
             The list of outputs to be set
         """
-        self.outputs = outputs
+        self._outputs = outputs
 
         # update init_outputs so the length matches outputs
-        if len(self.init_outputs) != len(self.outputs):
-            if len(self.init_outputs) == 0:
-                self.init_outputs = [None] * len(self.outputs)
+        if len(self._init_outputs) != len(self._outputs):
+            if len(self._init_outputs) == 0:
+                self._init_outputs = [None] * len(self._outputs)
             else:
-                self.init_outputs.extend(
-                    [None] * (len(self.outputs) - len(self.init_outputs)))
+                self._init_outputs.extend(
+                    [None] * (len(self._outputs) - len(self._init_outputs)))
 
     @init_inputs.setter
     def init_inputs(self, inputs):
@@ -311,7 +311,7 @@ class Kernel(MPBase, ABC):
         inputs : list
             The list of inputs to be set
         """
-        self.init_inputs = inputs
+        self._init_inputs = inputs
 
     @init_outputs.setter
     def init_outputs(self, outputs):
@@ -323,7 +323,7 @@ class Kernel(MPBase, ABC):
         outputs : list
             The list of outputs to be set
         """
-        self.init_outputs = outputs
+        self._init_outputs = outputs
 
     @phony_init_input_labels.setter
     def phony_init_input_labels(self, labels):
@@ -349,10 +349,10 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        inputs[index] : Object
+        _inputs[index] : Object
             The input at the specified index
         """
-        return self.inputs[index]
+        return self._inputs[index]
 
     def get_output(self, index):
         """
@@ -365,10 +365,10 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        outputs[index] : Object
+        _outputs[index] : Object
             The output at the specified index
         """
-        return self.outputs[index]
+        return self._outputs[index]
 
     def get_init_input(self, index):
         """
