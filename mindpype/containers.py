@@ -59,9 +59,9 @@ class Scalar(MPBase):
         Constructor for Scalar object
         """
         super().__init__(MPEnums.SCALAR, sess)
-        self.data_type = value_type
+        self._data_type = value_type
 
-        self.ext_src = ext_src
+        self._ext_src = ext_src
 
         if val is None:
             if value_type == int:
@@ -76,13 +76,13 @@ class Scalar(MPBase):
                 val = False
 
         self._ext_out = ext_out
-        self.data = val
+        self._data = val
 
-        self.virtual = is_virtual
+        self._virtual = is_virtual
         if ext_src is None:
-            self.volatile = False
+            self._volatile = False
         else:
-            self.volatile = True
+            self._volatile = True
 
         if ext_out is None:
             self._volatile_out = False
