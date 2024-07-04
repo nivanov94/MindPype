@@ -397,7 +397,7 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        init_outputs[index] : Object
+        _init_outputs[index] : Object
             The output at the specified index
         """
         return self.init_outputs[index]
