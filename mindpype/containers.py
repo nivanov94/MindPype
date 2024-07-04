@@ -975,7 +975,7 @@ class Array(MPBase):
         """ Init """
         super().__init__(MPEnums.ARRAY, sess)
 
-        self.virtual = False  # no virtual arrays for now
+        self._virtual = False  # no virtual arrays for now
         self._volatile = False  # no volatile arrays for now...
         self._volatile_out = False  # no volatile arrays for now...
 
