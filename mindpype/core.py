@@ -29,7 +29,7 @@ class MPBase(object):
         """
         Constructor for MPBase base class
         """
-        self.mp_type = mp_type
+        self._mp_type = mp_type
         self.id = id(self)
         self.session = session
 
