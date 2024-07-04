@@ -381,7 +381,7 @@ class Kernel(MPBase, ABC):
 
         Returns
         -------
-        init_inputs[index] : Object
+        _init_inputs[index] : Object
             The input at the specified index
         """
         return self.init_inputs[index]
