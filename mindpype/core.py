@@ -57,7 +57,7 @@ class MPBase(object):
         session_id : int
             ID of the session where the object exists
         """
-        return self.id
+        return self._id
 
     @property
     def session(self):
