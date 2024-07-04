@@ -639,7 +639,7 @@ class Tensor(MPBase):
             self.shape = data.shape
 
         if self.shape == data.shape:
-            self.data = data
+            self._data = data
         else:
             raise ValueError("Mismatched shape")
 
