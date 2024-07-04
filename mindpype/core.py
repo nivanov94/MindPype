@@ -30,7 +30,7 @@ class MPBase(object):
         Constructor for MPBase base class
         """
         self._mp_type = mp_type
-        self.id = id(self)
+        self._id = id(self)
         self._session = session
 
     # API getters
