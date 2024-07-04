@@ -1070,7 +1070,7 @@ class Array(MPBase):
     @capacity.setter
     def capacity(self, capacity):
         if self.virtual:
-            self.capacity = capacity
+            self._capacity = capacity
             self._elements = [None] * capacity
 
     def make_copy(self):
