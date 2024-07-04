@@ -73,7 +73,7 @@ class Classifier(MPBase):
         """
         Constructor to create a new filter object
         """
-        self.ctype = ctype
+        self._ctype = ctype
         self.classifier = classifier
 
         super().__init__(MPEnums.CLASSIFIER, sess)
