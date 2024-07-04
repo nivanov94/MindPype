@@ -79,7 +79,7 @@ class Kernel(MPBase, ABC):
             The initialization style of the kernel
         """
 
-        return self.init_style
+        return self._init_style
 
     @property
     def init_input_labels(self):
