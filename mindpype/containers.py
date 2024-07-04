@@ -551,7 +551,7 @@ class Tensor(MPBase):
             self.data = np.zeros(shape)
 
         if ext_src is None:
-            self.volatile = False
+            self._volatile = False
         else:
             self.volatile = True
 
