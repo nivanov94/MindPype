@@ -693,7 +693,7 @@ class Node(MPBase):
     # API getters
     @property
     def kernel(self):
-        return self.kernel
+        return self._kernel
 
     def extract_inputs(self):
         """
