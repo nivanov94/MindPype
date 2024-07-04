@@ -400,7 +400,7 @@ class Kernel(MPBase, ABC):
         _init_outputs[index] : Object
             The output at the specified index
         """
-        return self.init_outputs[index]
+        return self._init_outputs[index]
 
     def add_phony_input(self, ph_input, index):
         """
