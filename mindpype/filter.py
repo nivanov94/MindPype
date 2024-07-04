@@ -52,10 +52,10 @@ class Filter(MPBase):
         super().__init__(MPEnums.FILTER, sess)
 
         self._ftype = ftype
-        self.btype = btype
-        self.implementation = implementation
-        self.fs = fs
-        self.crit_frqs = crit_frqs
+        self._btype = btype
+        self._implementation = implementation
+        self._fs = fs
+        self._crit_frqs = crit_frqs
 
         self.coeffs = coeffs
 
