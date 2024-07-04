@@ -574,7 +574,7 @@ class Tensor(MPBase):
         --------
         >>> print(tensor.data)
         """
-        return self.data
+        return self._data
 
     @property
     def shape(self):
