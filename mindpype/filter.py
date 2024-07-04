@@ -89,7 +89,7 @@ class Filter(MPBase):
         -----------
         str
         """
-        return self.ftype
+        return self._ftype
 
     @property
     def btype(self):
