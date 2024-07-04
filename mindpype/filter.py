@@ -105,7 +105,7 @@ class Filter(MPBase):
         str
         """
 
-        return self.btype
+        return self._btype
 
     @property
     def implementation(self):
