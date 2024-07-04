@@ -297,7 +297,7 @@ class Session(MPBase):
 
         Examples
         --------
-        >>> session.add_graph(graph)
+        >>> session._add_graph(graph)
         """
         self._verified = False
         self.graphs[graph.session_id] = graph
@@ -314,7 +314,7 @@ class Session(MPBase):
 
         Examples
         --------
-        >>> session.add_data(data)
+        >>> session._add_data(data)
         """
         self._datum[data.session_id] = data
 

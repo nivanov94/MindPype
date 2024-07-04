@@ -59,9 +59,9 @@ class Scalar(MPBase):
         Constructor for Scalar object
         """
         super().__init__(MPEnums.SCALAR, sess)
-        self._data_type = value_type
+        self.data_type = value_type
 
-        self._ext_src = ext_src
+        self.ext_src = ext_src
 
         if val is None:
             if value_type == int:
@@ -78,11 +78,11 @@ class Scalar(MPBase):
         self._ext_out = ext_out
         self.data = val
 
-        self._virtual = is_virtual
+        self.virtual = is_virtual
         if ext_src is None:
-            self._volatile = False
+            self.volatile = False
         else:
-            self._volatile = True
+            self.volatile = True
 
         if ext_out is None:
             self._volatile_out = False
@@ -270,7 +270,7 @@ class Scalar(MPBase):
 
         # add the copy to the session
         sess = self.session
-        sess.add_data(cpy)
+        sess._add_data(cpy)
 
         return cpy
 
@@ -311,8 +311,8 @@ class Scalar(MPBase):
             If True, assigns random covariance matrix
 
         """
-        if self.data_type == int or whole_numbers:
-            self.data = np.random.randint(vmin, vmax+1)
+        if self._data_type == int or whole_numbers:
+            self._data = np.random.randint(vmin, vmax+1)
         elif self.data_type == float:
             vrange = vmax - vmin
             self.data = vrange * np.random.rand() + vmin
@@ -388,7 +388,7 @@ class Scalar(MPBase):
             return
         s = cls(sess, data_type, None, False, None)
 
-        sess.add_data(s)
+        sess._add_data(s)
         return s
 
     @classmethod
@@ -429,7 +429,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, None, True, None)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess._add_data(s)
         return s
 
     @classmethod
@@ -465,7 +465,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, value, False, None)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess._add_data(s)
         return s
 
     @classmethod
@@ -499,7 +499,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, None, False, src)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess._add_data(s)
         return s
 
 
@@ -546,9 +546,9 @@ class Tensor(MPBase):
         self._ext_out = ext_out
 
         if not (data is None):
-            self.data = data
+            self._data = data
         else:
-            self.data = np.zeros(shape)
+            self._data = np.zeros(shape)
 
         if ext_src is None:
             self._volatile = False
@@ -639,7 +639,7 @@ class Tensor(MPBase):
             self.shape = data.shape
 
         if self.shape == data.shape:
-            self._data = data
+            self.data = data
         else:
             raise ValueError("Mismatched shape")
 
@@ -670,9 +670,9 @@ class Tensor(MPBase):
         """
 
         if self.virtual:
-            self._shape = shape
+            self.shape = shape
             # when changing the shape write a zero tensor to data
-            self._data = np.zeros(shape)
+            self.data = np.zeros(shape)
         else:
             raise ValueError("Cannot change shape of non-virtual tensor")
 
@@ -699,7 +699,7 @@ class Tensor(MPBase):
 
         # add the copy to the session
         sess = self.session
-        sess.add_data(cpy)
+        sess._add_data(cpy)
 
         return cpy
 
@@ -811,7 +811,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, False, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess._add_data(t)
         return t
 
     @classmethod
@@ -832,7 +832,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, True, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess._add_data(t)
         return t
 
     @classmethod
@@ -857,7 +857,7 @@ class Tensor(MPBase):
         t = cls(sess, data.shape, data, False, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess._add_data(t)
         return t
 
     @classmethod
@@ -882,7 +882,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, False, src)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess._add_data(t)
         return t
 
     @classmethod
@@ -907,7 +907,7 @@ class Tensor(MPBase):
         # addressed
 
         t = cls(sess, shape, None, True, None, out)
-        sess.add_data(t)
+        sess._add_data(t)
         return t
 
     # utility static methods
@@ -975,11 +975,11 @@ class Array(MPBase):
         """ Init """
         super().__init__(MPEnums.ARRAY, sess)
 
-        self._virtual = False  # no virtual arrays for now
+        self.virtual = False  # no virtual arrays for now
         self._volatile = False  # no volatile arrays for now...
         self._volatile_out = False  # no volatile arrays for now...
 
-        self._capacity = capacity
+        self.capacity = capacity
 
         self._elements = [None] * capacity
 
@@ -1039,7 +1039,7 @@ class Array(MPBase):
         element must be the same type as the other elements within the array.
         """
 
-        if index >= self.capacity or index < 0:
+        if index >= self._capacity or index < 0:
             raise ValueError("Index out of bounds")
 
         element.copy_to(self._elements[index])
@@ -1053,7 +1053,7 @@ class Array(MPBase):
     def num_elements(self):
         # this property is included to allow for seamless abstraction with
         # circle buffer property
-        return self.capacity
+        return self._capacity
 
     @property
     def virtual(self):
@@ -1069,7 +1069,7 @@ class Array(MPBase):
 
     @capacity.setter
     def capacity(self, capacity):
-        if self.virtual:
+        if self._virtual:
             self._capacity = capacity
             self._elements = [None] * capacity
 
@@ -1096,7 +1096,7 @@ class Array(MPBase):
             cpy.set_element(e, self.get_element(e))
 
         # add the copy to the session
-        self.session.add_data(cpy)
+        self.session._add_data(cpy)
 
         return cpy
 
@@ -1185,7 +1185,7 @@ class Array(MPBase):
         a = cls(sess, capacity, element_template)
 
         # add the array to the session
-        sess.add_data(a)
+        sess._add_data(a)
         return a
 
 
@@ -1235,7 +1235,7 @@ class CircleBuffer(Array):
         if self.is_empty():
             return 0
         else:
-            return ((self._tail - self._head) % self.capacity) + 1
+            return ((self._tail - self._head) % self._capacity) + 1
 
     def is_empty(self):
         """
@@ -1281,7 +1281,7 @@ class CircleBuffer(Array):
             True
         """
 
-        if self._head == ((self._tail + 1) % self.capacity):
+        if self._head == ((self._tail + 1) % self._capacity):
             return True
         else:
             return False
@@ -1307,7 +1307,7 @@ class CircleBuffer(Array):
         if index > self.num_elements:
             return None
 
-        abs_index = (index + self._head) % self.capacity
+        abs_index = (index + self._head) % self._capacity
 
         return self.get_element(abs_index)
 
@@ -1419,7 +1419,7 @@ class CircleBuffer(Array):
         cpy._head = self._head
 
         # add the copy to the session
-        self.session.add_data(cpy)
+        self.session._add_data(cpy)
 
         return cpy
 
@@ -1498,6 +1498,6 @@ class CircleBuffer(Array):
         cb = cls(sess, capacity, element_template)
 
         # add to the session
-        sess.add_data(cb)
+        sess._add_data(cb)
 
         return cb
