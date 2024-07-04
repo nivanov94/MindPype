@@ -578,7 +578,7 @@ class Tensor(MPBase):
 
     @property
     def shape(self):
-        return self.shape
+        return self._shape
 
     @property
     def virtual(self):
