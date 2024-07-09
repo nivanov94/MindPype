@@ -154,7 +154,7 @@ class ZScoreKernelUnitTest:
 
     def TestZScoreKernelExecution(self, raw_data, init_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         initTensor = mp.Tensor.create_from_data(self.__session, init_data)
         tensor_test_node = mp.kernels.ZScoreKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor),
 

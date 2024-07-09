@@ -8,7 +8,7 @@ class BaselineCorrectionKernelUnitTest:
 
     def TestBaselineCorrectionKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session,(10,10))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         node = mp.kernels.BaselineCorrectionKernel.add_to_graph(self.__graph,inTensor,outTensor,baseline_period=[0,10])
         self.__graph.verify()
         self.__graph.initialize()

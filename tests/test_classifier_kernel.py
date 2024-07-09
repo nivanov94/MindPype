@@ -10,7 +10,7 @@ class ClassifierKernelUnitTest:
     def TestClassifierKernelExecution(self, raw_data, init_data, init_labels_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         mp_clsf = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
-        predictions = mp.Tensor.create(self.__session, (50,))
+        predictions = mp.Tensor.create(self.__session, init_labels_data.shape)
         init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
         init_labels = mp.Tensor.create_from_data(self.__session, init_labels_data)
         node = mp.kernels.ClassifierKernel.add_to_graph(self.__graph,inTensor,mp_clsf,predictions,num_classes=4,initialization_data=init_tensor,labels=init_labels)
