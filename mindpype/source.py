@@ -106,7 +106,33 @@ class InputXDFFile(MPBase):
                     {"time_series": np.array([Ns]),
                      "time_stamps": np.array([Ns])},
             }
-    TODO: attributes description
+    
+    Attributes
+    ----------
+    files : list of str
+        XDF file(s) where data should be extracted from.
+        
+    relative_start : float, default = 0
+        Value corresponding to the start of the trial relative to the marker onset.
+        
+    Ns : int, default = 1
+        Number of samples to be extracted per trial. For epoched data, this value determines the
+        size of each epoch, whereas this value is used in polling for continuous data.
+
+    tasks : list or tuple of strings
+        List or Tuple of strings corresponding to the tasks to be completed by the user.
+        For example, the tasks 'target' and 'non-target'/'flash' can be used for P300-type setups.
+
+    channels : list or tuple of int
+        Values corresponding to the stream channels used during the session
+
+    mode : 'continuous', 'class-separated' or 'epoched', default = 'epoched'
+        Mode indicates whether the inputted data will be epoched sequentially as individual trials,
+        epoched by class, or to leave the data in a continuous format
+        
+    stream_type: str
+        Type of stream (Data or Markers)
+
     """
 
     def __init__(self, sess, files, channels, tasks=None, relative_start=0, Ns=1, stype='EEG', mode="epoched"):
@@ -1004,10 +1030,6 @@ class InputLSLStream(MPBase):
 class OutputLSLStream(MPBase):
     """
     An object for maintaining an LSL outlet
-    TODO fill in attributes section
-    Attributes
-    ----------
-
     """
 
     def __init__(self, sess, stream_info, filesave=None, chunk_size=0, max_buffer=360):

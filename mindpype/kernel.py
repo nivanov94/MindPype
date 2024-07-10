@@ -461,7 +461,6 @@ class Kernel(MPBase, ABC):
         Parameters
         ----------
         verification: Bool
-            TODO: add description of parameter
         """
         if not verification or self.phony_init_input_labels is None:
             src = self.init_input_labels
@@ -654,7 +653,8 @@ class Kernel(MPBase, ABC):
 
         Parameters
         ----------
-        param: TODO - add type
+        param: data object
+            data object to be check if is a covariance matrix
 
         Returns
         -------

@@ -533,6 +533,25 @@ class Tensor(MPBase):
     ext_out : output Source
         Data source the tensor pushes data to (only applies to Tensors created
         from a handle)
+        
+    Attributes
+    ----------
+    shape : tuple
+        Shape of the data
+    virtual : bool
+        If true, the Scalar object is virtual, non-virtual otherwise
+    ext_src : LSL data source input object, MAT data source, or None
+        External data source represented by the scalar; this data will
+        be polled/updated when trials are executed. If the data does
+        not represent an external data source, set ext_src to None
+    ext_out : output Source
+        Data source the tensor pushes data to (only applies to Tensors created
+        from a handle)
+    data : value of type int, float, complex, str, or bool
+        Data value represented by the Scalar object
+    volatile : bool
+        True if source is volatile (needs to be updated/polled between
+        trials), false otherwise
     """
 
     def __init__(self, sess, shape, data, is_virtual, ext_src, ext_out=None):
@@ -953,7 +972,15 @@ class Array(MPBase):
 
     Attributes
     ----------
-    TODO
+    virtual : bool
+        If true, the Scalar object is virtual, non-virtual otherwise
+    volatile : bool
+        True if source is volatile (needs to be updated/polled between
+        trials), false otherwise
+    capacity: int
+        Max number of elements that can be stored in the array
+    _elements: array
+        Elements of the array
     
     Examples
     --------
@@ -1204,7 +1231,15 @@ class CircleBuffer(Array):
         The template MindPype element to populate the array
         (see Array examples)
         
-    TODO: add attributes descriptions
+    Attributes
+    ----------
+    mp_type : MP Enum
+        Data source the tensor pushes data to (only applies to Tensors created
+        from a handle)
+    head : data object
+        First element of the circle buffer
+    tail : data object
+        Last element of the circle buffer
 
     """
 
@@ -1489,7 +1524,9 @@ class CircleBuffer(Array):
             Session where graph will exist
         capacity: Int
             Capacity of buffer
-        element_template: TODO
+        element_template : any
+            The template MindPype element to populate the array
+            (see Array examples)
 
         Returns
         -------
