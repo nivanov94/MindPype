@@ -11,7 +11,9 @@ class RiemannMDMKernelUnitTest:
 
     def TestRiemannMDMKernelExecution(self, raw_data, init_data, init_label_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (10,))
+        # compute outTensor shape
+        output_shape = (inTensor.shape[0],)
+        outTensor = mp.Tensor.create(self.__session, output_shape)
         init_inputs = mp.Tensor.create_from_data(self.__session, init_data)
         labels = mp.Tensor.create_from_data(self.__session, init_label_data)
         node = mp.kernels.RiemannMDMClassifierKernel.add_to_graph(self.__graph,inTensor,outTensor,num_classes=2,initialization_data=init_inputs,labels=labels)

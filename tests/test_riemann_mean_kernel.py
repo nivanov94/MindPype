@@ -11,8 +11,9 @@ class RiemannMeanKernelUnitTest:
 
     def TestRiemannMeanKernelExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        
-        outTensor = mp.Tensor.create(self.__session, (3,3))
+        # compute outTensor shape
+        output_shape = inTensor.shape[-2:]
+        outTensor = mp.Tensor.create(self.__session, output_shape)
         tensor_test_node = mp.kernels.RiemannMeanKernel.add_to_graph(self.__graph,inTensor,outTensor)
 
         self.__graph.verify()

@@ -11,7 +11,11 @@ class TangentSpaceKernelUnitTest:
 
     def TangentSpaceKernelExecution(self, raw_data, initialization_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (2,3))
+        # compute outTensor shape
+        Nt, Nc, _ = inTensor.shape
+        output_shape = (Nt, Nc*(Nc+1)//2)
+        
+        outTensor = mp.Tensor.create(self.__session, output_shape)
         init_in = mp.Tensor.create_from_data(self.__session, initialization_data)
         tensor_test_node = mp.kernels.TangentSpaceKernel.add_to_graph(self.__graph,inTensor, outTensor, initialization_data=init_in)
 

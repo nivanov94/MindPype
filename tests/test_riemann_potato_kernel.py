@@ -12,7 +12,9 @@ class RiemannPotatoKernelUnitTest:
     def TestRiemannPotatoKernelExecution(self, raw_data, init_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         initTensor = mp.Tensor.create_from_data(self.__session, init_data)
-        outTensor = mp.Tensor.create(self.__session, (3,))
+        # calculate outTensor shape
+        output_shape = (inTensor.shape[0],)
+        outTensor = mp.Tensor.create(self.__session, output_shape)
         tensor_test_node = mp.kernels.RiemannPotatoKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor, regularization=0)
 
         self.__graph.verify()
@@ -43,4 +45,3 @@ def test_execute():
     assert(res == expected_output).all()
 
     del KernelExecutionUnitTest_Object
-test_execute()

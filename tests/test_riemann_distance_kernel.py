@@ -13,7 +13,23 @@ class RiemannDistanceKernelUnitTest:
     def TestRiemannDistanceKernelExecution(self, raw_data1, raw_data2):
         inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data1)
         inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data2)
-        outTensor = mp.Tensor.create(self.__session, (10,10))
+        
+        # compute outTensor shape
+        out_sz = []
+        mat_sz = None
+        for param in (inTensor1,inTensor2):
+            param_rank = len(param.shape)
+            if mat_sz == None:
+                mat_sz = param.shape[-2:]
+            elif param.shape[-2:] != mat_sz:
+                return ()
+
+            if param_rank == 3:
+                out_sz.append(param.shape[0])
+            else:
+                out_sz.append(1)
+
+        outTensor = mp.Tensor.create(self.__session, tuple(out_sz))
         tensor_test_node = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor)
 
         self.__graph.verify()
@@ -46,3 +62,5 @@ def test_execute():
     assert(res[0,0] == expected_output[0,0])
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
+
+test_execute()

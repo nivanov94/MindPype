@@ -7,10 +7,15 @@ class EpochKernelUnitTest:
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestEpochKernelExecution(self, raw_data):
+    def TestEpochKernelExecution(self, raw_data, epoch_length, epoch_stride, ax):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session,(2,2,1,2))
-        node = mp.kernels.EpochKernel.add_to_graph(self.__graph,inTensor,outTensor,epoch_len=2, epoch_stride=1)
+        # compute outTensor shape
+        output_shape = list(inTensor.shape)
+        output_shape[ax] = epoch_length
+        output_shape.insert(ax, int(inTensor.shape[ax] - epoch_length) // epoch_stride + 1)
+        
+        outTensor = mp.Tensor.create(self.__session,tuple(output_shape))
+        node = mp.kernels.EpochKernel.add_to_graph(self.__graph,inTensor,outTensor,epoch_len=epoch_length, epoch_stride=epoch_stride, axis=ax)
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
@@ -19,8 +24,11 @@ class EpochKernelUnitTest:
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(2,2,2)
+    epoch_length = 2
+    epoch_stride = 1
+    axis = -1
     KernelExecutionUnitTest_Object = EpochKernelUnitTest()
-    res = KernelExecutionUnitTest_Object.TestEpochKernelExecution(raw_data)
+    res = KernelExecutionUnitTest_Object.TestEpochKernelExecution(raw_data, epoch_length, epoch_stride, axis)
     
     # manually epoch data
     expected_output = np.zeros((2,2,1,2))
