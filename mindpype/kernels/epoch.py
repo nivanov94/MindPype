@@ -151,7 +151,7 @@ class EpochKernel(Kernel):
 
     @classmethod
     def add_to_graph(cls, graph, inA, outA, epoch_len, epoch_stride=None,
-                     axis=-1, init_inputs=None, labels=None):
+                     axis=-1, init_input=None, labels=None):
         """
         Factory method to create an epoch kernel and add it to a graph as a
         generic node object.
@@ -191,7 +191,7 @@ class EpochKernel(Kernel):
         # add the node to the graph
         graph.add_node(node)
 
-        if init_inputs is not None:
-            node.add_initialization_data(init_inputs, labels)
+        if init_input is not None:
+            node.add_initialization_data([init_input], labels)
 
         return node

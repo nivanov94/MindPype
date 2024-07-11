@@ -146,7 +146,7 @@ class SlopeKernel(Kernel):
 
     @classmethod
     def add_to_graph(cls, graph, inA, outA, Fs=1, axis=-1,
-                     init_inputs=None, init_labels=None):
+                     init_input=None, init_labels=None):
         """
         Factory method to create a slope estimation kernel
 
@@ -188,7 +188,7 @@ class SlopeKernel(Kernel):
         graph.add_node(node)
 
         # if initialization data is provided, add it to the graph
-        if init_inputs is not None:
-            node.add_initialization_data(init_inputs, init_labels)
+        if init_input is not None:
+            node.add_initialization_data([init_inputs], init_labels)
 
         return node

@@ -370,7 +370,7 @@ class PatternStateKernel(Kernel):
 
         # add initialization data if necessary
         if init_data is not None:
-            n.add_initialization_data(init_data, init_labels)
+            n.add_initialization_data([init_data], init_labels)
 
         return n
 
