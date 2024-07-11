@@ -620,7 +620,7 @@ class Kernel(MPBase, ABC):
         """
         if hasattr(self, '_update'):
             self._initialized = False
-            self._update(self.init_inputs,
+            self.update(self.init_inputs,
                          self.init_outputs,
                          self.init_input_labels)
             self._initialized = True

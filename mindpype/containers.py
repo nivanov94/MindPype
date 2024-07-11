@@ -76,7 +76,7 @@ class Scalar(MPBase):
                 val = False
 
         self._ext_out = ext_out
-        self._data = val
+        self.data = val
 
         self._virtual = is_virtual
         if ext_src is None:

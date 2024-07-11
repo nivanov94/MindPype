@@ -112,7 +112,7 @@ class Graph(MPBase):
         self._verified = True
 
         # cleanup any data used within verification that are no longer needed
-        self.session._free_unreferenced_data()
+        self.session.free_unreferenced_data()
 
     def _schedule_nodes(self):
         """
@@ -333,9 +333,9 @@ class Graph(MPBase):
                                                             sys.exc_info()[2])
 
         self._initialized = True
-        self.session._free_unreferenced_data()
+        self.session.free_unreferenced_data()
 
-    def _update(self):
+    def update(self):
         """
         Update each node within the graph for trial execution
 
@@ -360,7 +360,7 @@ class Graph(MPBase):
                 raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
                                "failed update")).with_traceback(sys.exc_info()[2])
 
-        self.session._free_unreferenced_data()
+        self.session.free_unreferenced_data()
 
     def execute(self, label=None):
         """
@@ -610,7 +610,7 @@ class Graph(MPBase):
 
         # cleanup data objects
         del train_data, train_labels, test_data, test_labels
-        self.session._free_unreferenced_data()
+        self.session.free_unreferenced_data()
 
         return mean_stat
 
@@ -630,7 +630,7 @@ class Graph(MPBase):
         graph: Graph
         """
         graph = cls(sess)
-        sess._add_graph(graph)
+        sess.add_graph(graph)
 
         return graph
 
@@ -786,7 +786,7 @@ class Node(MPBase):
         """
         self.kernel.remove_initialization_data()
         self.add_initialization_data(init_data, init_labels)
-        self._session._free_unreferenced_data()
+        self._session.free_unreferenced_data()
 
 
 class Edge:

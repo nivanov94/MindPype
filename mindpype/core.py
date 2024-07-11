@@ -286,7 +286,7 @@ class Session(MPBase):
             if self._datum[d].volatile_out:
                 self._datum[d].push_volatile_outputs(label)
 
-    def _add_graph(self, graph):
+    def add_graph(self, graph):
         """
         Add a graph to the session
 
@@ -297,7 +297,7 @@ class Session(MPBase):
 
         Examples
         --------
-        >>> session._add_graph(graph)
+        >>> session.add_graph(graph)
         """
         self._verified = False
         self.graphs[graph.session_id] = graph
@@ -419,7 +419,7 @@ class Session(MPBase):
 
         return output
 
-    def _free_unreferenced_data(self):
+    def free_unreferenced_data(self):
         """
         Free all data objects that are no longer in use
         """
