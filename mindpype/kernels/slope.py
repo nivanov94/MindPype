@@ -12,13 +12,6 @@ class SlopeKernel(Kernel):
     """
     Estimates the slope of a time series
 
-    .. note::
-        This kernel utilizes the numpy functions
-        :func:`mean <numpy:numpy.mean>`,
-        :func:`expand_dims <numpy:numpy.expand_dims>`,
-        :func:`moveaxis <numpy:numpy.moveaxis>`,
-        :func:`linspace <numpy:numpy.linspace>`.
-
     Parameters
     ----------
     graph : Graph
@@ -106,6 +99,12 @@ class SlopeKernel(Kernel):
 
         if self._Fs <= 0:
             raise ValueError("Sampling frequency must be greater than 0")
+        
+        if self._axis >= len(inA.shape) or self._axis < -len(inA.shape):
+            raise ValueError("Axis out of range")
+
+        if self._axis < 0:
+            self._axis += len(inA.shape)
 
         out_shape = [d for i_d, d in enumerate(inA.shape) if i_d != self._axis]
         out_shape.append(1)
