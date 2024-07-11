@@ -42,10 +42,6 @@ class Graph(MPBase):
         Data outputs within this array will push to external sources when
         the graph is executed.
 
-    Examples
-    --------
-
-
     """
 
     def __init__(self, sess):
@@ -91,10 +87,10 @@ class Graph(MPBase):
 
         Parameters
         ----------
-        data : MindPype Tensor or Array
+        data : Tensor or Array
             Tensor or array containing the default initialization data
 
-        labels : MindPype Tensor or Array
+        labels : Tensor or Array
             Tensor or array containing the default initialization labels
 
         """
@@ -360,6 +356,33 @@ class Graph(MPBase):
         self._initialized = True
         self.session.free_unreferenced_data()
 
+    def update(self):
+        """
+        Update each node within the graph for trial execution
+
+        Parameters
+        ----------
+        default_init_dataA : Tensor, default = None
+            If the graph has no initialization data, this
+            tensor will be used to initialize the graph
+        default_init_labels : Tensor, default = None
+            If the graph has no initialization labels,
+            this tensor will be used to initialize the graph
+
+        """
+        if not self._verified:
+            self.verify()
+
+        # execute initialization for each node in the graph
+        for n in self._nodes:
+            try:
+                n.update()
+            except Exception as e:
+                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
+                               "failed update")).with_traceback(sys.exc_info()[2])
+
+        self.session.free_unreferenced_data()
+
     def execute(self, label=None):
         """
         Execute the graph by iterating over all the nodes within the graph
@@ -452,7 +475,7 @@ class Graph(MPBase):
 
         Parameters
         ----------
-        target_validation_output : MindPype Container
+        target_validation_output : data container
             MindPype container (Tensor, Scalar, etc.) containing the target validation output.
             Likely, this will be the output of a classification node.
 
@@ -468,6 +491,11 @@ class Graph(MPBase):
         statistic : str, default = 'accuracy'
             Statistic to use for cross validation.
             Options include 'accuracy', 'f1', 'precision', 'recall', and 'cross_entropy'.
+
+        Returns
+        -------
+        mean_stat: float
+            Average score for the specified statistic (accuracy, f1, etc.)
         """
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
@@ -612,6 +640,15 @@ class Graph(MPBase):
     def create(cls, sess):
         """
         Generic factory method for a graph
+
+        Parameters
+        ----------
+        cls: Graph
+        sess: Session Object
+            Session where graph will exist
+        Returns
+        -------
+        graph: Graph
         """
         graph = cls(sess)
         sess.add_graph(graph)
@@ -724,6 +761,12 @@ class Node(MPBase):
         Initialize the kernel function for execution
         """
         return self.kernel.initialize()
+    
+    def update(self):
+        """
+        Update the kernel function for execution
+        """
+        return self.kernel.update()
 
     def update_parameters(self, parameter, value):
         """
@@ -731,7 +774,6 @@ class Node(MPBase):
         """
 
         self.kernel.update_parameters(parameter, value)
-
         self._graph._verified = False
 
     def add_initialization_data(self, init_data, init_labels=None):
@@ -740,15 +782,32 @@ class Node(MPBase):
 
         Parameters
         ----------
-        init_data : list or tuple of MindPype data objects
+        init_data : list or tuple of data objects
             MindPype container containing the initialization data
-        init_labels : MindPype data object containing initialization
+        init_labels : data object containing initialization
         labels, default = None
             MindPype container containing the initialization labels
 
         """
         self.kernel.add_initialization_data(init_data, init_labels)
         self._graph.verified = False
+
+    def update_initialization_data(self, init_data, init_labels=None):
+        """
+        Update the initialization data of the node
+
+        Parameters
+        ----------
+        init_data : list or tuple of data objects
+            MindPype container containing the initialization data
+        init_labels : data object containing initialization
+        labels, default = None
+            MindPype container containing the initialization labels
+
+        """
+        self.kernel.remove_initialization_data()
+        self.add_initialization_data(init_data, init_labels)
+        self._session.free_unreferenced_data()
 
 
 class Edge:
@@ -838,7 +897,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._data
@@ -854,7 +913,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._init_data
@@ -870,7 +929,7 @@ class Edge:
 
         Return Type
         -----------
-        MindPype Data object
+        Data object
         """
 
         return self._init_labels
@@ -1077,6 +1136,15 @@ class Edge:
         """
         Find and return the numerical index of the producer's output that
         corresponds to this edge
+
+        Parameters
+        ----------
+        producer: Node
+            Edge object
+        Returns
+        -------
+        output_index: int
+            Index of the data from the producer node
         """
         # find the index of the data from the producer node (output index)
         for index, producer_output in enumerate(producer.kernel.outputs):
@@ -1091,6 +1159,15 @@ class Edge:
         """
         Find and return the numerical index of the consumer's input that
         corresponds to this edge
+
+        Parameters
+        ----------
+        consumer: Node
+            Edge object
+        Returns
+        -------
+        input_index: int
+            index of the data from the consumer node
         """
         # find the index of the data from the consumer node (input index)
         for index, consumer_input in enumerate(consumer.kernel.inputs):
@@ -1152,7 +1229,7 @@ class Parameter:
 
         Return Type
         ------------
-        MindPype Data object
+        Data object
 
         """
 

@@ -10,6 +10,16 @@ class TangentSpaceKernel(Kernel):
     """
     Kernel to estimate Tangent Space. Applies Pyriemann.tangentspace method
 
+    .. note:: 
+        This kernel utilizes the 
+        :class:`TangentSpace <pyriemann:pyriemann.tangentspace.TangentSpace>` 
+        class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`eye <numpy:numpy.eye>`,
+        :func:`exapnd_dims <numpy:numpy.expand_dims>`.
+
     Parameters
     ----------
     graph : Graph
@@ -31,6 +41,7 @@ class TangentSpaceKernel(Kernel):
 
     def __init__(self, graph, inA, outA, initialization_data, regularization,
                  metric, tsupdate, sample_weight):
+        """ Init """
         super().__init__("TangentSpaceKernel", MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -47,6 +58,14 @@ class TangentSpaceKernel(Kernel):
         """
         Initialize internal state of the kernel and update initialization
         data if downstream nodes are missing data
+
+        Parameters
+        ----------
+        init_inputs: Tensor
+            Input data
+        init_outputs: Tensor
+            Output data
+        labels: None
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
@@ -76,7 +95,14 @@ class TangentSpaceKernel(Kernel):
 
     def _process_data(self, inputs, outputs):
         """
-        Process data according to outlined kernel function
+        Estimate tangent space.
+
+        Parameters
+        ----------
+        inputs: list of Tensors
+            Input data container, list of length 1
+        outputs: list of Tensors
+            Output data container, list of length 1
         """
         inA = inputs[0]
 

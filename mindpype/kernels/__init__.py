@@ -31,3 +31,5 @@ from .kernel_utils import extract_nested_data, extract_init_inputs
 from .epoch import EpochKernel
 from .feature_selection import FeatureSelectionKernel
 from .slope import SlopeKernel
+from .adaptive_rebias import AdaptiveRebiasKernel
+from .pattern_state import PatternStateKernel

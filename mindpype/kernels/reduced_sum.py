@@ -11,16 +11,20 @@ class ReducedSumKernel(Kernel):
     Kernel to compute the sum of the input tensor's
     element along the provided axis
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`sum <numpy:numpy.sum>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor
-        Input trial data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     axis : int or tuple of ints, default = None
         Axis or axes along which the sum is computed.
@@ -31,6 +35,7 @@ class ReducedSumKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,axis=None,keep_dims=False):
+        """ Init """
         super().__init__('ReducedSum',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -39,6 +44,15 @@ class ReducedSumKernel(Kernel):
 
 
     def _compute_output_sz(self, input_sz):
+        """ 
+        Determine the shape of the output
+
+        Parameters
+        ----------
+
+        input_sz: nd.array
+            Dimensions of the input data tensor
+        """
         if self._axis != None:
             axis = (self._axis,)
         else:
@@ -113,6 +127,18 @@ class ReducedSumKernel(Kernel):
             raise ValueError('ReducedSum kernel: Multidimensional output cannot be assigned to a Scalar')
 
     def _process_data(self, inputs, outputs):
+        """
+        Compute the sum of the tensor's element along given axis.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors 
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+        """
         outputs[0].data = np.sum(inputs[0].data,
                                  axis=self._axis,
                                  keepdims=self._keep_dims)
@@ -129,10 +155,10 @@ class ReducedSumKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor
-            Input trial data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         axis : int or tuple of ints, default = None
             Axis or axes along which the sum is computed.

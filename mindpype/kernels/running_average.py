@@ -14,7 +14,8 @@ import numpy as np
 
 class RunningAverageKernel(Kernel):
     """
-    Kernel to calculate running average across multiple trials in a session. Trials are automatically included into the next running average
+    Kernel to calculate running average across multiple trials in a session. 
+    Trials are automatically included into the next running average
     calculation.
 
     Parameters
@@ -23,19 +24,23 @@ class RunningAverageKernel(Kernel):
         Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
 
     outA : Tensor or Scalar
-        Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
+        Output Tensor to store output of mean trial calculation; should be the same size 
+        of the input tensor or a scalar.
 
     running_average_len : int
-        Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
+        Indicates the maximum number of trials that the running average kernel will be used to compute. 
+        Used to preallocate tensor to store previous trial data
 
     axis : None or 0:
-        Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
+        Axis by which to calculate running average. Currently only supports mean across trials when axis = 0
+        (ie. Average Tensor layer values), or single value mean, axis = None
 
     flush_on_init : bool, default = False
         If true, flushes the buffer on initialization.
 
     """
     def __init__(self, graph, inA, outA, running_average_len, axis = 0, flush_on_init = False):
+        """ Init """
         super().__init__('RunningAverage',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -47,6 +52,9 @@ class RunningAverageKernel(Kernel):
         self._data_buff = None
 
     def _verify(self):
+        """
+        Verify the inputs and outputs are appropriately sized
+        """
         # need to set the CB here to ensure that inA size is available TODO, kinda hacky, might need to require that size is defined by user
         self._data_buff = CircleBuffer.create(self.session, self._running_average_len,
                                               Tensor.create(self.session, self.inputs[0].shape))
@@ -55,7 +63,17 @@ class RunningAverageKernel(Kernel):
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
-        This kernel has no internal state to be initialized. Call initialization_execution if downstream nodes are missing training data.
+        This kernel has no internal state to be initialized. Call initialization_execution 
+        if downstream nodes are missing training data.
+        
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Scalar
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data
         """
 
         init_in = init_inputs[0]
@@ -87,6 +105,15 @@ class RunningAverageKernel(Kernel):
     def _process_data(self, inputs, outputs):
         """
         Add input data to data object storing previous trials and process the stacked data
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Scalars
+            Input data container, list of length 1
+
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
         """
         # enqueue the input data
         self._data_buff.enqueue(inputs[0])
@@ -110,13 +137,16 @@ class RunningAverageKernel(Kernel):
             Single Trial input data to the RunningAverageKernel; should be a 2D Tensor or Scalar object
 
         outA : Tensor or Scalar
-            Output Tensor to store output of mean trial calculation; should be the same size of the input tensor or a scalar.
+            Output Tensor to store output of mean trial calculation; should be the same size 
+            of the input tensor or a scalar.
 
         running_average_len : int
-            Indicates the maximum number of trials that the running average kernel will be used to compute. Used to preallocate tensor to store previous trial data
+            Indicates the maximum number of trials that the running average kernel will be used to compute. 
+            Used to preallocate tensor to store previous trial data
 
         axis : None or 0:
-            Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 (ie. Average Tensor layer values), or single value mean, axis = None
+            Axis by which to calculate running average. Currently only supports mean across trials when axis = 0 
+            (ie. Average Tensor layer values), or single value mean, axis = None
 
         flush_on_init : bool
             If true, flushes the buffer on initialization.
@@ -126,7 +156,7 @@ class RunningAverageKernel(Kernel):
         node : Node
             The node object that was added to the graph containing the running average kernel
 
-    """
+        """
         kernel = cls(graph, inA, outA, running_average_len, axis, flush_on_init)
 
         params = (Parameter(inA,MPEnums.INPUT),

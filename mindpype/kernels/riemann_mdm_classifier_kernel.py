@@ -12,16 +12,24 @@ class RiemannMDMClassifierKernel(Kernel):
     Riemannian Minimum Distance to the Mean Classifier. Kernel takes Tensor input and produces scalar label representing
     the predicted class. Review classmethods for specific input parameters
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`newaxis <numpy:numpy.newaxis>`.
+
+    .. note::
+        This kernel utilizes the pyriemann module
+        :mod:`classification <pyriemann:pyriemann.classification>`.
+
     Parameters
     ----------
     graph : Graph
         Graph that the kernel should be added to
 
     inA : Tensor or Array
-        First input data
+        Input data
 
     outA : Tensor or Scalar
-        Output trial data
+        Output data
 
     initialization_data : Tensor
         Initialization data to train the classifier (n_trials, n_channels, n_samples)
@@ -33,10 +41,7 @@ class RiemannMDMClassifierKernel(Kernel):
     """
 
     def __init__(self,graph,inA,outA,num_classes,initialization_data,labels):
-        """
-        Kernel takes Tensor input and produces scalar label representing
-        the predicted class
-        """
+        """ Init """
         super().__init__('RiemannMDM',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
@@ -54,6 +59,18 @@ class RiemannMDMClassifierKernel(Kernel):
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         Set the means for the classifier
+
+        Parameters
+        ----------
+
+        init_inputs: Tensor or Array
+            Input data
+
+        init_outputs: Tensor or Scalar
+            Output data
+        
+        labels: Tensor
+            Class labels for initialization data (n_trials,)
         """
         self._train_classifier(init_inputs[0], labels)
 
@@ -75,10 +92,17 @@ class RiemannMDMClassifierKernel(Kernel):
 
     def _train_classifier(self, init_in, labels):
         """
-        Train the classifier
-
-        The method will update the kernel's internal representation of the
+        Train the classifier. The method will update the kernel's internal representation of the
         classifier
+
+        Parameters
+        ----------
+
+        init_in: Tensor or Array
+            Input data
+
+        labels: Tensor
+            Class labels for initialization data (n_trials,)
         """
         # check that the input data is valid
         if ((init_in.mp_type != MPEnums.TENSOR and
@@ -154,6 +178,18 @@ class RiemannMDMClassifierKernel(Kernel):
                 raise ValueError('RiemannianMDM kernel: output tensor must be one dimensional')
 
     def _process_data(self, inputs, outputs):
+        """
+        Execute Riemann MDM classifier.
+
+        Parameters
+        ----------
+
+        inputs: list of Tensors or Arrays
+            Input data container, list of length 1
+        
+        outputs: list of Tensors or Scalars
+            Output data container, list of length 1
+        """
         input_data = inputs[0].data
         if len(inputs[0].shape) == 2:
             # pyriemann library requires input data to have 3 dimensions with the
@@ -179,10 +215,10 @@ class RiemannMDMClassifierKernel(Kernel):
             Graph that the kernel should be added to
 
         inA : Tensor or Array
-            First input data
+            Input data
 
         outA : Tensor or Scalar
-            Output trial data
+            Output data
 
         initialization_data : Tensor
             Initialization data to train the classifier with (n_trials, n_channels, n_samples)
