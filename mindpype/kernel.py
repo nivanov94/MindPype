@@ -712,11 +712,4 @@ class Kernel(MPBase, ABC):
         if init_labels is not None:
             self.init_input_labels = init_labels
 
-        self.init_inputs = list(init_data)
-
-    def remove_initialization_data(self):
-        """
-        Remove initialization data from the kernel
-        """
-        self.init_inputs = []
-        self.init_input_labels = None
+        self.init_inputs = [init_data]

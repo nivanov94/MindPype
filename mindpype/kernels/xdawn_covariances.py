@@ -62,7 +62,7 @@ class XDawnCovarianceKernel(Kernel):
 
         self._initialized = False
         self.n_filters = n_filters
-        self._xdawn_estimator = XdawnCovariances(n_filters, classes)
+        self._xdawn_estimator = XdawnCovariances(nfilter=n_filters, classes=classes)
 
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -125,6 +125,8 @@ class XDawnCovarianceKernel(Kernel):
 
         if len(inputs[0].shape) == 2:
             input_data = input_data[np.newaxis, :, :] # input must be 3D
+            print(input_data.shape)
+            print(self._xdawn_estimator.P_.shape)
 
         outputs[0].data = self._xdawn_estimator.transform(input_data.data)
 

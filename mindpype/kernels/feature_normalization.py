@@ -27,17 +27,18 @@ class FeatureNormalizationKernel(Kernel):
     outA : Tensor
         Output data
 
+    method : {'min-max', 'mean-norm', 'zscore-norm'}
+        Feature normalization method
+
+    axis : int, default = 0
+        Axis along which to apply the filter
+        
     initialization_data : Tensor
         Initialization data to train the classifier (n_trials, n_channels, n_samples)
 
     labels : Tensor
         Labels corresponding to initialization data class labels (n_trials, )
 
-    method : {'min-max', 'mean-norm', 'zscore-norm'}
-        Feature normalization method
-
-    axis : int, default = 0
-        Axis along which to apply the filter
     """
 
     def __init__(self,graph,inA,outA,method,axis=0,initialization_data=None,labels=None):
@@ -145,7 +146,7 @@ class FeatureNormalizationKernel(Kernel):
 
     @classmethod
     def add_to_graph(cls,graph,inA,outA,
-                     init_data=None,labels=None,method='zscore-norm', axis=0):
+                     method='zscore-norm', axis=0, init_data=None,labels=None):
         """
         Factory method to create a feature normalization kernel
 
@@ -160,17 +161,18 @@ class FeatureNormalizationKernel(Kernel):
         outA : Tensor
             Output data
 
+        method : {'min-max', 'mean-norm', 'zscore-norm'}
+            Feature normalization method
+
+        axis : int, default = 0
+            Axis along which to apply the filter
+            
         init_data : Tensor, default = None
             Initialization data
 
         labels : Tensor, default = None
             Initialization labels
 
-        method : {'min-max', 'mean-norm', 'zscore-norm'}
-            Feature normalization method
-
-        axis : int, default = 0
-            Axis along which to apply the filter
 
         Returns
         -------
@@ -179,7 +181,7 @@ class FeatureNormalizationKernel(Kernel):
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,method,axis)
+        k = cls(graph,inA,outA,method,axis,init_data,labels)
 
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
