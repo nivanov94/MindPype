@@ -140,7 +140,7 @@ class SlopeKernel(Kernel):
         Y = np.moveaxis(inA.data, self._axis, -1)
 
         X -= np.mean(X)
-        Y -= np.mean(Y, axis=-1, keepdims=True)
+        Y = Y - np.mean(Y, axis=-1, keepdims=True)
 
         outA.data = np.expand_dims(Y.dot(X) / X.dot(X), axis=-1)
 
