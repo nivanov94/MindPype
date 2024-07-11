@@ -187,7 +187,4 @@ class FeatureSelectionKernel(Kernel):
 
         graph.add_node(node)
 
-        if init_inputs is not None:
-            node.add_initialization_data(init_inputs, labels)
-
         return node

@@ -168,6 +168,6 @@ class RunningAverageKernel(Kernel):
 
         # if initialization data is provided, add it to the node
         if init_input is not None:
-            node.add_initialization_data(init_input, init_labels)
+            node.add_initialization_data([init_input], init_labels)
 
         return node
