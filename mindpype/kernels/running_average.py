@@ -84,7 +84,7 @@ class RunningAverageKernel(Kernel):
 
         if init_in is not None:
             # check that the input is a tensor or array
-            accepted_inputs = (MPEnums.ARRAY,MPEnums.CIRCLE_BUFFER)
+            accepted_inputs = (MPEnums.ARRAY,MPEnums.TENSOR,MPEnums.CIRCLE_BUFFER)
             if init_in.mp_type not in accepted_inputs:
                 raise TypeError("Running Average Kernel: Initialization input must be a Tensor or Circle Buffer")
 

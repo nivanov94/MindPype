@@ -12,13 +12,6 @@ class SlopeKernel(Kernel):
     """
     Estimates the slope of a time series
 
-    .. note::
-        This kernel utilizes the numpy functions
-        :func:`mean <numpy:numpy.mean>`,
-        :func:`expand_dims <numpy:numpy.expand_dims>`,
-        :func:`moveaxis <numpy:numpy.moveaxis>`,
-        :func:`linspace <numpy:numpy.linspace>`.
-
     Parameters
     ----------
     graph : Graph
@@ -106,6 +99,12 @@ class SlopeKernel(Kernel):
 
         if self._Fs <= 0:
             raise ValueError("Sampling frequency must be greater than 0")
+        
+        if self._axis >= len(inA.shape) or self._axis < -len(inA.shape):
+            raise ValueError("Axis out of range")
+
+        if self._axis < 0:
+            self._axis += len(inA.shape)
 
         out_shape = [d for i_d, d in enumerate(inA.shape) if i_d != self._axis]
         out_shape.append(1)
@@ -141,13 +140,13 @@ class SlopeKernel(Kernel):
         Y = np.moveaxis(inA.data, self._axis, -1)
 
         X -= np.mean(X)
-        Y -= np.mean(Y, axis=-1, keepdims=True)
+        Y = Y - np.mean(Y, axis=-1, keepdims=True)
 
         outA.data = np.expand_dims(Y.dot(X) / X.dot(X), axis=-1)
 
     @classmethod
     def add_to_graph(cls, graph, inA, outA, Fs=1, axis=-1,
-                     init_inputs=None, init_labels=None):
+                     init_input=None, init_labels=None):
         """
         Factory method to create a slope estimation kernel
 
@@ -189,7 +188,7 @@ class SlopeKernel(Kernel):
         graph.add_node(node)
 
         # if initialization data is provided, add it to the graph
-        if init_inputs is not None:
-            node.add_initialization_data(init_inputs, init_labels)
+        if init_input is not None:
+            node.add_initialization_data([init_input], init_labels)
 
         return node

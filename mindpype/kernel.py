@@ -569,11 +569,15 @@ class Kernel(MPBase, ABC):
                                  verif_init_labels)
                 self.copy_init_labels_to_output(verification=True)
             except Exception as e:
-                raise type(e)((f"{str(e)}\nTest initialization of " +
-                               f"node {self.name} failed " +
-                               "during verification. Please check" +
-                               "parameters.")).with_traceback(
-                                                    sys.exc_info()[2])
+                additional_msg = ("Test initialization of node " +
+                                  f"{self.name} failed during verification. " +
+                                  "See trace for further details.")
+                if sys.version_info[:2] >= (3, 11):
+                    e.add_note(additional_msg)
+                else:
+                    pretty_msg = f"{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}\n"
+                    print(pretty_msg)
+                raise
 
             # set init output shapes using phony init outputs as needed
             for init_output, verif_init_output in zip(self.init_outputs,
@@ -583,14 +587,24 @@ class Kernel(MPBase, ABC):
                     raise ValueError("Test initialization of node " +
                                      f"{self.name} failed during " +
                                      "verification. Please check parameters.")
+                
+        elif self.init_style == MPEnums.INIT_FROM_DATA:
+            raise ValueError(f"Node {self.name} requires initialization " +
+                             "data but none was provided")
 
         # attempt kernel execution
         try:
             self._process_data(verif_inputs, verif_outputs)
         except Exception as e:
-            raise type(e)((f"{str(e)}\nTest execution of node {self.name} " +
-                           "failed during verification. Please check " +
-                           "parameters.")).with_traceback(sys.exc_info()[2])
+            additional_msg = ("Test execution of node " +
+                              f"{self.name} failed during verification. " +
+                              "See trace for further details.")
+            if sys.version_info[:2] >= (3, 11):
+                e.add_note(additional_msg)
+            else:
+                pretty_msg = f"{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}\n"
+                print(pretty_msg)
+            raise
 
         # set output shapes using phony outputs as needed
         for output, verif_output in zip(self.outputs, verif_outputs):
@@ -690,13 +704,7 @@ class Kernel(MPBase, ABC):
 
         return (param_index in self._covariance_inputs)
 
-    def _initialize(self, init_inputs, init_outputs, labels):
-        """
-        Default method for kernels without initialization procedures
-        """
-        pass
-
-    def add_initialization_data(self, init_data, init_labels=None):
+    def add_initialization_data(self, init_inputs, init_labels=None):
         """
         Add initialization data to the kernel
 
@@ -712,11 +720,4 @@ class Kernel(MPBase, ABC):
         if init_labels is not None:
             self.init_input_labels = init_labels
 
-        self.init_inputs = list(init_data)
-
-    def remove_initialization_data(self):
-        """
-        Remove initialization data from the kernel
-        """
-        self.init_inputs = []
-        self.init_input_labels = None
+        self.init_inputs = init_inputs
