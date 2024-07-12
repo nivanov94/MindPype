@@ -171,8 +171,8 @@ class Graph(MPBase):
                     if len(self._edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
-                        raise Exception("Invalid graph, multiple " +
-                                        "nodes write to single data object")
+                        raise ValueError("Invalid graph, multiple " +
+                                         "nodes write to single data object")
                     else:
                         # add the producer to the edge
                         self._edges[n_o.session_id].add_producer(n)
@@ -224,8 +224,8 @@ class Graph(MPBase):
 
             if nodes_added == 0:
                 # invalid graph, cannot be scheduled
-                raise Exception("Invalid graph, nodes cannot be scheduled, " +
-                                "check connections between nodes.")
+                raise ValueError("Invalid graph, nodes cannot be scheduled, " +
+                                 "check connections between nodes.")
 
     def _insert_init_edges(self):
         """
@@ -264,9 +264,15 @@ class Graph(MPBase):
             try:
                 n.verify()
             except Exception as e:
-                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
-                               "failed verification")).with_traceback(
-                                                            sys.exc_info()[2])
+                additional_msg = f"Node: {n.kernel.name} failed verification. See traceback for details."
+                if sys.version_info[:2] >= (3,11):
+                    e.add_note(additional_msg)
+                else:
+                    # for older versions of Python, print a hint and raise the exception
+                    # TODO may be useful to encapsulate these errors into a MindPype specific exception
+                    pretty_msg = f"\n{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}\n"
+                    print(pretty_msg)
+                raise
 
     def _assign_default_init_data(self):
         """
@@ -349,9 +355,15 @@ class Graph(MPBase):
             try:
                 n.initialize()
             except Exception as e:
-                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
-                               "failed initialization")).with_traceback(
-                                                            sys.exc_info()[2])
+                additional_msg = f"Node: {n.kernel.name} failed initialization. See traceback for details."
+                if sys.version_info[:2] >= (3,11):
+                    e.add_note(additional_msg)
+                else:
+                    # for older versions of Python, print a hint and raise the exception
+                    # TODO may be useful to encapsulate these errors into a MindPype specific exception
+                    pretty_msg = f"\n{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}\n"
+                    print(pretty_msg)
+                raise
 
         self._initialized = True
         self.session.free_unreferenced_data()
@@ -378,8 +390,15 @@ class Graph(MPBase):
             try:
                 n.update()
             except Exception as e:
-                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
-                               "failed update")).with_traceback(sys.exc_info()[2])
+                additional_msg = f"Node: {n.kernel.name} failed update. See traceback for details."
+                if sys.version_info[:2] >= (3,11):
+                    e.add_note(additional_msg)
+                else:
+                    # for older versions of Python, print a hint and raise the exception
+                    # TODO may be useful to encapsulate these errors into a MindPype specific exception
+                    pretty_msg = f"\n{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}\n"
+                    print(pretty_msg)
+                raise
 
         self.session.free_unreferenced_data()
 
@@ -418,9 +437,15 @@ class Graph(MPBase):
             try:
                 n.kernel.execute()
             except Exception as e:
-                raise type(e)((f"{str(e)} - Node: {n.kernel.name} " +
-                               "failed execution")).with_traceback(
-                                                        sys.exc_info()[2])
+                additional_msg = f"Node: {n.kernel.name} failed execution. See traceback for details."
+                if sys.version_info[:2] >= (3,11):
+                    e.add_note(additional_msg)
+                else:
+                    # for older versions of Python, print a hint and raise the exception
+                    # TODO may be useful to encapsulate these errors into a MindPype specific exception
+                    pretty_msg = f"\n{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}\n"
+                    print(pretty_msg)
+                raise
 
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
@@ -541,11 +566,11 @@ class Graph(MPBase):
             # check that all these nodes are ingesting the same init data
             for n in init_data_nodes:
                 if n.kernel.init_inputs[0].session_id != init_data_nodes[0].kernel.init_inputs[0].session_id:
-                    raise Exception("Cross validation could not be performed. " +
-                                    "This may be because the target validation output " +
-                                    "is generated by a node that does not require " +
-                                    "initialization or because there are multiple " +
-                                    "nodes that require initialization data.")
+                    raise ValueError("Cross validation could not be performed. " +
+                                     "This may be because the target validation output " +
+                                     "is generated by a node that does not require " +
+                                     "initialization or because there are multiple " +
+                                     "nodes that require initialization data.")
 
         # check the execution order of the subset of nodes
         node_execution_position = np.zeros((len(cv_node_subset),))
@@ -561,7 +586,7 @@ class Graph(MPBase):
 
         # verify that the the node with initialization data is the first node
         if init_data_nodes[0].session_id != cv_node_subset[0].session_id:
-            raise Exception("Cross validation could not be performed. Invalid graph structure")
+            raise ValueError("Cross validation could not be performed. Invalid graph structure")
 
         # copy the initialization data object
         init_data = init_data_nodes[0].kernel.init_inputs[0]
