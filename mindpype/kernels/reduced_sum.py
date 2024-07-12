@@ -34,7 +34,8 @@ class ReducedSumKernel(Kernel):
 
     """
 
-    def __init__(self,graph,inA,outA,axis=None,keep_dims=False):
+    def __init__(self, graph, inA, outA,
+                 axis=None, keep_dims=False):
         """ Init """
         super().__init__('ReducedSum',MPEnums.INIT_FROM_NONE,graph)
         self.inputs = [inA]
@@ -53,22 +54,20 @@ class ReducedSumKernel(Kernel):
         input_sz: nd.array
             Dimensions of the input data tensor
         """
-        if self._axis != None:
-            axis = (self._axis,)
+        # determine the axes that will be reduced
+        if self._axis is not None:
+            reduced_axes = [a==self._axis for a in range(len(input_sz))]
         else:
-            axis = ()
+            reduced_axes = [True] * len(input_sz)
 
-        if self._keep_dims:
-            # all reduced dimensions will be '1'
-            out_shape = tuple([1 if i in axis else input_sz[i]
-                                          for i in range(len(input_sz))])
-        elif axis == ():
-            out_shape = (1,)
-        else:
-            out_shape = tuple([input_sz[i] for i in range(len(input_sz))
-                                                   if i not in axis])
-
-        return out_shape
+        output_sz = []
+        for i in range(len(input_sz)):
+            if reduced_axes[i] and self._keep_dims:
+                output_sz.append(1)
+            elif not reduced_axes[i]:
+                output_sz.append(input_sz[i])
+        
+        return tuple(output_sz)
 
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -144,7 +143,9 @@ class ReducedSumKernel(Kernel):
                                  keepdims=self._keep_dims)
 
     @classmethod
-    def add_to_graph(cls,graph,inA,outA,axis=None,keep_dims=False,init_input=None,init_labels=None):
+    def add_to_graph(cls, graph, inA, outA,
+                     axis=None, keep_dims=False,
+                     init_input=None, init_labels=None):
         """
         Factory method to create a reduced sum kernel
         and add it to a graph as a generic node object.
@@ -174,14 +175,14 @@ class ReducedSumKernel(Kernel):
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,axis,keep_dims)
+        k = cls(graph, inA, outA, axis, keep_dims)
 
         # create parameter objects for the input and output
-        params = (Parameter(inA,MPEnums.INPUT),
-                  Parameter(outA,MPEnums.OUTPUT))
+        params = (Parameter(inA, MPEnums.INPUT),
+                  Parameter(outA, MPEnums.OUTPUT))
 
         # add the kernel to a generic node object
-        node = Node(graph,k,params)
+        node = Node(graph, k, params)
 
         # add the node to the graph
         graph.add_node(node)

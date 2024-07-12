@@ -626,6 +626,14 @@ class Tensor(MPBase):
 
         """
 
+        # check that the value is a numpy array
+        if not isinstance(data, np.ndarray):
+            # if the value is a number, convert it to a numpy array
+            if isinstance(data, (int, float, complex)):
+                data = np.array(data)
+            else:
+                raise TypeError("Data assigned to Tensors must be a numpy array")
+
         # special case where every dimension is a singleton
         if (np.prod(np.asarray(data.shape)) == 1 and
                 np.prod(np.asarray(self.shape)) == 1):
