@@ -478,7 +478,7 @@ class InputXDFFile(MPBase):
         """
 
         src = cls(sess, files, channels, tasks, relative_start, Ns, mode="continuous")
-        sess._add_ext_src(src)
+        sess.add_ext_src(src)
 
         return src
 
@@ -523,7 +523,7 @@ class InputXDFFile(MPBase):
 
         """
         src = cls(sess, files, channels, tasks, relative_start, Ns, stype=stype, mode="epoched")
-        sess._add_ext_src(src)
+        sess.add_ext_src(src)
 
         return src
 
@@ -990,7 +990,7 @@ class InputLSLStream(MPBase):
             active,
             Ns=Ns
         )
-        sess._add_ext_src(src)
+        sess.add_ext_src(src)
 
         return src
 
@@ -1022,7 +1022,7 @@ class InputLSLStream(MPBase):
             Number of samples to be extracted per poll.
         """
         src = cls(sess, pred, channels, relative_start, marker_coupled=False, active=active, interval=interval, Ns=Ns)
-        sess._add_ext_src(src)
+        sess.add_ext_src(src)
 
         return src
 
@@ -1143,7 +1143,7 @@ class OutputLSLStream(MPBase):
             Output LSL Stream
         """
         src = cls(sess, stream_info, filesave)
-        sess._add_ext_out(src)
+        sess.add_ext_out(src)
 
         return src
 
@@ -1208,6 +1208,6 @@ class OutputLSLStream(MPBase):
             source_id="1007988689",
         )
         src = cls(sess, stream_info, filesave)
-        sess._add_ext_out(src)
+        sess.add_ext_out(src)
 
         return src

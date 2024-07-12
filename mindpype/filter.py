@@ -231,7 +231,7 @@ class Filter(MPBase):
         f = cls(sess, 'butter', btype, implementation, Wn, fs, coeffs)
 
         # add the filter to the session
-        sess._add_misc_mp_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f
 
@@ -296,7 +296,7 @@ class Filter(MPBase):
         f = cls(sess, 'cheby1', btype, implementation, Wn, fs, coeffs)
 
         # add the filter to the session
-        sess._add_misc_mp_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f
 
@@ -361,7 +361,7 @@ class Filter(MPBase):
         f = cls(sess, 'cheby2', btype, implementation, Wn, fs, coeffs)
 
         # add the filter to the session
-        sess._add_misc_mp_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f
 
@@ -429,7 +429,7 @@ class Filter(MPBase):
         f = cls(sess, 'ellip', btype, implementation, Wn, fs, coeffs)
 
         # add the filter to the session
-        sess._add_misc_mp_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f
 
@@ -507,7 +507,7 @@ class Filter(MPBase):
         f = cls(sess, 'bessel', btype, implementation, Wn, fs, coeffs)
 
         # add the filter to the session
-        sess._add_misc_mp_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f
 
@@ -580,6 +580,6 @@ class Filter(MPBase):
                 fs=fs, coeffs=coeffs)
 
         # add the filter to the session
-        sess._add_misc_mp_obj(f)
+        sess.add_misc_mp_obj(f)
 
         return f

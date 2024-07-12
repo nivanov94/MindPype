@@ -303,7 +303,7 @@ class Session(MPBase):
         self.graphs[graph.session_id] = graph
         # logging.info("Graph added to session")
 
-    def _add_data(self, data):
+    def add_data(self, data):
         """
         Add a data object to the session
 
@@ -314,11 +314,11 @@ class Session(MPBase):
 
         Examples
         --------
-        >>> session._add_data(data)
+        >>> session.add_data(data)
         """
         self._datum[data.session_id] = data
 
-    def _add_misc_mp_obj(self, obj):
+    def add_misc_mp_obj(self, obj):
         """
         Add a misc MindPype object to the session
 
@@ -329,11 +329,11 @@ class Session(MPBase):
 
         Examples
         --------
-        >>> session._add_misc_mp_obj(obj)
+        >>> session.add_misc_mp_obj(obj)
         """
         self._misc_objs[obj.session_id] = obj
 
-    def _add_ext_src(self, src):
+    def add_ext_src(self, src):
         """
         Add an external source to the session
 
@@ -344,7 +344,7 @@ class Session(MPBase):
         """
         self._ext_srcs[src.session_id] = src
 
-    def _add_ext_out(self, src):
+    def add_ext_out(self, src):
         """
         Add an external outlet to the session
 
