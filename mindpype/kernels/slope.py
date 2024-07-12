@@ -189,6 +189,6 @@ class SlopeKernel(Kernel):
 
         # if initialization data is provided, add it to the graph
         if init_input is not None:
-            node.add_initialization_data([init_inputs], init_labels)
+            node.add_initialization_data([init_input], init_labels)
 
         return node
