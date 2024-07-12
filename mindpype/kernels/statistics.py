@@ -1250,13 +1250,19 @@ class ZScoreKernel(Kernel):
     outA : Tensor or Scalar
         Output data
 
+    ddof : int
+        Degrees of freedom correction for calculating of the standard deviation. 
+        The divisor used in calculations is N - ddof, where N represents the 
+        number of elements. By default ddof is 1 (i.e., the sample standard 
+        deviation is used). For population standard deviation, set ddof=0.
+
     init_data: Tensor or Array
         Initialization data (n_trials, n_channels, n_samples)
     """
 
-    def __init__(self,graph,inA,outA,init_data):
+    def __init__(self, graph, inA, outA, ddof=1, init_data=None):
         """ Init """
-        super().__init__('Zscore',MPEnums.INIT_FROM_DATA,graph)
+        super().__init__('Zscore', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
@@ -1265,6 +1271,7 @@ class ZScoreKernel(Kernel):
 
         self._mu = 0
         self._sigma = 0
+        self._ddof = ddof
         self._initialized = False
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -1323,8 +1330,8 @@ class ZScoreKernel(Kernel):
 
         # calc mean and std
         N = d.shape[0]
-        self._mu = np.sum(d) / N
-        self._sigma = np.sqrt(np.sum((d - self._mu)**2) / (N-1))
+        self._mu = np.mean(d)
+        self._sigma = np.std(d, ddof=self._ddof)
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             # set output size, as needed
@@ -1350,7 +1357,7 @@ class ZScoreKernel(Kernel):
         outputs[0].data = (inputs[0].data - self._mu) / self._sigma
 
     @classmethod
-    def add_to_graph(cls,graph,inA,outA,init_data):
+    def add_to_graph(cls, graph, inA, outA, ddof=1, init_data=None):
         """
         Factory method to create a z-score value kernel
         and add it to a graph as a generic node object.
@@ -1364,19 +1371,26 @@ class ZScoreKernel(Kernel):
         outA : Tensor or Scalar
             Output data
 
+        ddof : int
+            Degrees of freedom correction for calculating of the standard 
+            deviation. The divisor used in calculations is N - ddof, where N
+            represents the number of elements. By default ddof is 1 (i.e., 
+            the sample standard deviation is used). For population standard
+            deviation, set ddof=0.
+
         init_data: Tensor or Array
             Initialization data (n_trials, n_channels, n_samples)
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,init_data)
+        k = cls(graph, inA, outA, ddof, init_data)
 
         # create parameter objects for the input and output
-        params = (Parameter(inA,MPEnums.INPUT),
-                  Parameter(outA,MPEnums.OUTPUT))
+        params = (Parameter(inA, MPEnums.INPUT),
+                  Parameter(outA, MPEnums.OUTPUT))
 
         # add the kernel to a generic node object
-        node = Node(graph,k,params)
+        node = Node(graph, k, params)
 
         # add the node to the graph
         graph.add_node(node)
