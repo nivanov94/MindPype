@@ -75,7 +75,7 @@ class AbsoluteKernel(Unary, Kernel):
 
     .. note::
         This kernel utilizes the numpy function
-        :numpy:func:`absolute <numpy:numpy.absolute>`.
+        :func:`absolute <numpy:numpy.fabs>`.
 
     Parameters
     ----------
