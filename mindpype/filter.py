@@ -51,13 +51,13 @@ class Filter(MPBase):
         """
         super().__init__(MPEnums.FILTER, sess)
 
-        self._ftype = ftype
-        self._btype = btype
-        self._implementation = implementation
-        self._fs = fs
-        self._crit_frqs = crit_frqs
+        self.ftype = ftype
+        self.btype = btype
+        self.implementation = implementation
+        self.fs = fs
+        self.crit_frqs = crit_frqs
 
-        self._coeffs = coeffs
+        self.coeffs = coeffs
 
     def __str__(self):
         """
@@ -74,99 +74,6 @@ class Filter(MPBase):
                  "Critical Frequencies: {}").format(self.ftype, self.btype,
                                                     self.implementation,
                                                     self.fs, self.crit_frqs))
-
-    # API Getters
-    @property
-    def ftype(self):
-        """
-        Getter for the filter type
-
-        Return
-        -------
-        The filter type, one of 'butter', 'cheby1', 'cheby2', 'ellip', 'bessel'
-
-        Return Type
-        -----------
-        str
-        """
-        return self._ftype
-
-    @property
-    def btype(self):
-        """
-        Getter method for the band type used by the filter
-
-        Return
-        ------
-        The band type, one of 'lowpass', 'highpass', 'bandpass', 'bandstop'
-
-        Return Type
-        -----------
-        str
-        """
-
-        return self._btype
-
-    @property
-    def implementation(self):
-        """
-        Getter method for the filter implementation
-
-        Returns
-        -------
-        The filter implementation, one of 'ba', 'zpk', 'sos'
-
-        Return Type
-        -----------
-        str
-
-        """
-        return self._implementation
-
-    @property
-    def fs(self):
-        """
-        Getter method for the sampling frequency
-
-        Returns
-        -------
-        The sampling frequency
-
-        Return Type
-        -----------
-        float
-        """
-        return self._fs
-
-    @property
-    def crit_frqs(self):
-        """
-        Getter method for the critical frequencies
-
-        Returns
-        -------
-        The critical frequencies
-
-        Return Type
-        -----------
-        array_like of floats
-        """
-        return self._crit_frqs
-
-    @property
-    def coeffs(self):
-        """
-        Getter method for the filter coefficients
-
-        Returns
-        -------
-        The filter coefficients
-
-        Return Type
-        -----------
-        array_like of floats
-        """
-        return self._coeffs
 
     @classmethod
     def create_butter(cls, sess, N, Wn, btype='lowpass',

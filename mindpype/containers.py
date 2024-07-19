@@ -59,9 +59,9 @@ class Scalar(MPBase):
         Constructor for Scalar object
         """
         super().__init__(MPEnums.SCALAR, sess)
-        self._data_type = value_type
+        self.data_type = value_type
 
-        self._ext_src = ext_src
+        self.ext_src = ext_src
 
         if val is None:
             if value_type == int:
@@ -75,59 +75,21 @@ class Scalar(MPBase):
             elif value_type == bool:
                 val = False
 
-        self._ext_out = ext_out
+        self.ext_out = ext_out
         self.data = val
 
-        self._virtual = is_virtual
+        self.virtual = is_virtual
         if ext_src is None:
-            self._volatile = False
+            self.volatile = False
         else:
-            self._volatile = True
+            self.volatile = True
 
         if ext_out is None:
-            self._volatile_out = False
+            self.volatile_out = False
         else:
-            self._volatile_out = True
+            self.volatile_out = True
 
     # API Getters
-    @property
-    def volatile(self):
-        """
-        Getter for volatile attribute
-
-        Return
-        ------
-        bool
-            True if source is volatile (needs to be updated/polled between
-            trials), false otherwise
-        """
-        return self._volatile
-
-    @property
-    def volatile_out(self):
-        """
-        Getter for volatile_out attribute
-
-        Return
-        ------
-        bool
-            True if output is volatile (needs to be updated/pushed between
-            trials), false otherwise
-        """
-        return self._volatile_out
-
-    @property
-    def virtual(self):
-        """
-        Getter for virtual attribute
-
-        Return
-        ------
-        bool
-            True if the Scalar object is virtual, non-virtual otherwise
-        """
-        return self._virtual
-
     @property
     def data(self):
         """
@@ -142,60 +104,6 @@ class Scalar(MPBase):
         int, float, complex, str, or bool
         """
         return self._data
-
-    @property
-    def data_type(self):
-        """
-        Getter for data_type attribute
-
-        Return
-        ------
-        one of [int, float, complex, str, bool]
-            Indicates the type of data represented by the Scalar
-
-        Return Type
-        -----------
-        type
-        """
-        return self._data_type
-
-    @property
-    def ext_src(self):
-        """
-        Getter for ext_src attribute
-
-        Return
-        ------
-        External data source represented by the scalar; this data will be
-        polled/updated when trials are executed. If the data does not
-        represent an external data source, ext_src is None
-
-        Return Type
-        -----------
-        LSL data source input object, XDF data source, MAT data source, or None
-
-        """
-
-        return self._ext_src
-
-    @property
-    def ext_out(self):
-        """
-        Getter for ext_out attribute
-
-        Return
-        ------
-        External data output represented by the scalar; this data will
-        be pushed when trials are executed. If the data does not represent
-        an external data source, ext_out is None
-
-        Return Type
-        -----------
-        LSL data source output object, XDF data source, MAT data source,
-        or None
-
-        """
-        return self._ext_out
 
     # API Setters
     @data.setter
@@ -560,9 +468,9 @@ class Tensor(MPBase):
         """
         super().__init__(MPEnums.TENSOR, sess)
         self._shape = tuple(shape)
-        self._virtual = is_virtual
-        self._ext_src = ext_src
-        self._ext_out = ext_out
+        self.virtual = is_virtual
+        self.ext_src = ext_src
+        self.ext_out = ext_out
 
         if not (data is None):
             self._data = data
@@ -570,14 +478,14 @@ class Tensor(MPBase):
             self._data = np.zeros(shape)
 
         if ext_src is None:
-            self._volatile = False
+            self.volatile = False
         else:
-            self._volatile = True
+            self.volatile = True
 
         if ext_out is None:
-            self._volatile_out = False
+            self.volatile_out = False
         else:
-            self._volatile_out = True
+            self.volatile_out = True
 
     # API Getters
     @property
@@ -599,25 +507,6 @@ class Tensor(MPBase):
     def shape(self):
         return self._shape
 
-    @property
-    def virtual(self):
-        return self._virtual
-
-    @property
-    def volatile(self):
-        return self._volatile
-
-    @property
-    def volatile_out(self):
-        return self._volatile_out
-
-    @property
-    def ext_src(self):
-        return self._ext_src
-
-    @property
-    def ext_out(self):
-        return self._ext_out
 
     # API setters
     @data.setter
@@ -1003,8 +892,8 @@ class Array(MPBase):
         super().__init__(MPEnums.ARRAY, sess)
 
         self.virtual = False  # no virtual arrays for now
-        self._volatile = False  # no volatile arrays for now...
-        self._volatile_out = False  # no volatile arrays for now...
+        self.volatile = False  # no volatile arrays for now...
+        self.volatile_out = False  # no volatile arrays for now...
 
         self.capacity = capacity
 
@@ -1081,18 +970,6 @@ class Array(MPBase):
         # this property is included to allow for seamless abstraction with
         # circle buffer property
         return self._capacity
-
-    @property
-    def virtual(self):
-        return self._virtual
-
-    @property
-    def volatile(self):
-        return self._volatile
-
-    @property
-    def volatile_out(self):
-        return self._volatile_out
 
     @capacity.setter
     def capacity(self, capacity):

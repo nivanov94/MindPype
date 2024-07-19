@@ -29,50 +29,9 @@ class MPBase(object):
         """
         Constructor for MPBase base class
         """
-        self._mp_type = mp_type
-        self._id = id(self)
-        self._session = session
-
-    # API getters
-    @property
-    def mp_type(self):
-        """
-        Returns the type of object
-
-        Return
-        ------
-        mp_type : MPEnums
-            Indicates what type of object the reference object is
-        """
-
-        return self._mp_type
-
-    @property
-    def session_id(self):
-        """
-        Returns the session id of the object
-
-        Return
-        ------
-        session_id : int
-            ID of the session where the object exists
-        """
-        return self._id
-
-    @property
-    def session(self):
-        """
-        Returns the session object of the object
-
-        Returns
-        -------
-        Current Session : Session
-            Session where the object exists
-
-        """
-
-        return self._session
-
+        self.mp_type = mp_type
+        self.id = id(self)
+        self.session = session
 
 class MPEnums(IntEnum):
     """

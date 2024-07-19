@@ -30,8 +30,8 @@ class Kernel(MPBase, ABC):
         """
         session = graph.session
         super().__init__(MPEnums.KERNEL, session)
-        self._name = name
-        self._init_style = init_style
+        self.name = name
+        self.init_style = init_style
         self._num_classes = None
 
         self._inputs = []
@@ -54,33 +54,6 @@ class Kernel(MPBase, ABC):
         self._covariance_inputs = None
 
     # API Getters
-    @property
-    def name(self):
-        """
-        Returns the name of the kernel
-
-        Returns
-        -------
-        _name : str
-            The name of the kernel
-
-        """
-
-        return self._name
-
-    @property
-    def init_style(self):
-        """
-        Returns the initialization style of the kernel
-
-        Returns
-        -------
-        _init_style : MPEnums
-            The initialization style of the kernel
-        """
-
-        return self._init_style
-
     @property
     def init_input_labels(self):
         """

@@ -664,15 +664,10 @@ class Node(MPBase):
         sess = graph.session
         super().__init__(MPEnums.NODE, sess)
 
-        self._kernel = kernel
+        self.kernel = kernel
         self._params = params
 
         self._graph = graph
-
-    # API getters
-    @property
-    def kernel(self):
-        return self._kernel
 
     def extract_inputs(self):
         """
@@ -817,101 +812,15 @@ class Edge:
         """
         Constructor for Edge object
         """
-        self._data = data
-        self._producers = []
-        self._consumers = []
+        self.data = data
+        self.producers = []
+        self.consumers = []
 
-        self._init_data = None
-        self._init_labels = None
+        self.init_data = None
+        self.init_labels = None
         self._phony_data = None
         self._phony_init_data = None
         self._phony_init_labels = None
-
-    @property
-    def producers(self):
-        """
-        Getter for producers property
-
-        Return
-        ------
-        _producers : List of Node
-            List of producers for the Edge object
-
-        Examples
-        --------
-        >>> example_edge.producers
-        """
-        return self._producers
-
-    @property
-    def consumers(self):
-        """
-        Getter for consumers property
-
-        Return
-        ------
-        List of consumers for the Edge object
-
-        Return Type
-        -----------
-        List of Node objects
-
-        Examples
-        --------
-        >>> print(example_edge.consumers)
-
-            [example_consumer_node]
-
-        """
-        return self._consumers
-
-    @property
-    def data(self):
-        """
-        Getter for data property
-
-        Return
-        ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
-        """
-
-        return self._data
-
-    @property
-    def init_data(self):
-        """
-        Getter for init_data property
-
-        Return
-        ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
-        """
-
-        return self._init_data
-
-    @property
-    def init_labels(self):
-        """
-        Getter for init_labels property
-
-        Return
-        ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
-        """
-
-        return self._init_labels
 
     def add_producer(self, producing_node):
         """
@@ -1177,39 +1086,7 @@ class Parameter:
         Constructor for Parameter object
         """
         # reference of the data object represented by parameter
-        self._data = data
+        self.data = data
 
         # enum indicating whether this is an input or output
-        self._direction = direction
-
-    @property
-    def direction(self):
-        """
-        Getter for direction property
-
-        Return
-        ------
-        Enum indicating whether this is an input-type or output-type parameter
-
-        Return Type
-        -----------
-        MPEnums.INPUT or MPEnums.OUTPUT
-        """
-        return self._direction
-
-    @property
-    def data(self):
-        """
-        Getter for data property
-
-        Return
-        ------
-        Data object stored within the Parameter object
-
-        Return Type
-        ------------
-        Data object
-
-        """
-
-        return self._data
+        self.direction = direction
