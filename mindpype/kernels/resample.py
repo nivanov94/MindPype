@@ -9,15 +9,6 @@ class ResampleKernel(Kernel):
     """
     Kernel to resample timeseries data
 
-    .. note::
-        This kernel utilizes the numpy function
-        :func:`ceil <numpy:numpy.ceil>`.
-    
-    .. note::
-        This kernel utilizes the sscipy module
-        :mod:`signal <scipy:scipy.signal>`.
-
-
     Parameters
     ----------
     graph : Graph

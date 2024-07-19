@@ -13,12 +13,8 @@ class RiemannMDMClassifierKernel(Kernel):
     the predicted class. Review classmethods for specific input parameters
 
     .. note::
-        This kernel utilizes the numpy function
-        :func:`newaxis <numpy:numpy.newaxis>`.
-
-    .. note::
-        This kernel utilizes the pyriemann module
-        :mod:`classification <pyriemann:pyriemann.classification>`.
+        This kernel utilizes the pyriemann class
+        :mod:`MDM <pyriemann:pyriemann.classification,MDM>`.
 
     Parameters
     ----------
@@ -122,8 +118,8 @@ class RiemannMDMClassifierKernel(Kernel):
         if X.shape[0] != y.shape[0]:
             raise ValueError('RiemannianMDM kernel: number of trials in initialization data and labels must match')
 
-        self._classifier = classification.MDM()
-        self._classifier.fit(X,y)
+        self.classifier = classification.MDM()
+        self.classifier.fit(X,y)
 
 
     def _verify(self):
@@ -196,7 +192,7 @@ class RiemannMDMClassifierKernel(Kernel):
             # first dimension being 1
             input_data = input_data[np.newaxis,:,:]
 
-        outputs[0].data = self._classifier.predict(input_data)
+        outputs[0].data = self.classifier.predict(input_data)
 
     @classmethod
     def add_to_graph(cls,graph,inA,outA,num_classes=2,

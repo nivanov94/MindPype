@@ -32,6 +32,18 @@ class MPBase(object):
         self.mp_type = mp_type
         self.id = id(self)
         self.session = session
+        
+    
+    @property
+    def session_id(self):
+        """
+        Returns the session id of the object
+        Return
+        ------
+        session_id : int
+            ID of the session where the object exists
+        """
+        return self.id
 
 class MPEnums(IntEnum):
     """

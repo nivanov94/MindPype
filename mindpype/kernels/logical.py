@@ -116,10 +116,6 @@ class Binary:
     """ 
     Base class for binary logical operator kernels.
 
-    .. note::
-        This kernel utilizes the numpy function
-        :func:`logical_and <numpy:numpy.logical_and>`.
-
     Parameters
     ----------
 

@@ -11,13 +11,6 @@ class ClassifierKernel(Kernel):
     """
     Kernel to classify input data using a MindPype Classifier object
 
-    .. note::
-        This kernel utilizes the numpy functions
-        :func:`reshape <numpy:numpy.reshape>`,
-        :func:`squeeze <numpy:numpy.squeeze>`,
-        :func:`unique <numpy:numpy.unique>`,
-        :func:`expand_dims <numpy:numpy.expand_dims>`.
-
     Parameters
     ----------
     graph : Graph
@@ -45,7 +38,7 @@ class ClassifierKernel(Kernel):
         """ Init """
         super().__init__('Classifier', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
-        self._classifier = classifier
+        self.classifier = classifier
         self.outputs = [prediction, output_probs]
 
         self._initialized = False
@@ -96,7 +89,7 @@ class ClassifierKernel(Kernel):
             raise ValueError('Number of classes in initialization data does not match num_classes parameter')
 
         # initialize the classifier
-        self._classifier._classifier.fit(X, y)
+        self.classifier.classifier.fit(X, y)
 
         # set the initialization output
         if init_outputs[0] is not None or init_outputs[1] is not None:
@@ -132,18 +125,18 @@ class ClassifierKernel(Kernel):
                 raise TypeError('Input data must be a tensor or array of tensors')
 
         # check that the classifier is valid
-        if (self._classifier.mp_type != MPEnums.CLASSIFIER):
+        if (self.classifier.mp_type != MPEnums.CLASSIFIER):
             raise TypeError('Classifier must be a MindPype Classifier object')
 
         # ensure the classifier has a predict method
-        if (not hasattr(self._classifier._classifier, 'predict') or
-            not callable(self._classifier._classifier.predict)):
+        if (not hasattr(self.classifier.classifier, 'predict') or
+            not callable(self.classifier.classifier.predict)):
             raise Exception('Classifier does not have a predict method')
 
         # if using probability output, ensure the classifier has a predict_proba method
         if (self.outputs[1] is not None and
-            (not hasattr(self._classifier._classifier, 'predict_proba') or
-             not callable(self._classifier._classifier.predict_proba))):
+            (not hasattr(self.classifier.classifier, 'predict_proba') or
+             not callable(self.classifier.classifier.predict_proba))):
             raise Exception('Classifier does not have a predict_proba method')
 
     def _process_data(self, inputs, outputs):
@@ -173,9 +166,9 @@ class ClassifierKernel(Kernel):
             input_data = inA.data
 
         if outB is not None:
-            outB.data = self._classifier._classifier.predict_proba(input_data)
+            outB.data = self.classifier.classifier.predict_proba(input_data)
 
-        output_data = self._classifier._classifier.predict(input_data)
+        output_data = self.classifier.classifier.predict(input_data)
         if outA.mp_type == MPEnums.SCALAR:
             outA.data = int(output_data)
         else:

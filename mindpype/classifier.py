@@ -84,7 +84,6 @@ class Classifier(MPBase):
             + f"attributes:\nClassifier Type: {self.ctype}\n"
         )
 
-
     @classmethod
     def create_SVM(
         cls,

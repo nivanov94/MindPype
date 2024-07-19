@@ -78,6 +78,25 @@ class Graph(MPBase):
         self._initialized = False
         self._nodes.append(node)
 
+    def set_default_init_data(self, data, labels):
+        """
+        Add default initialization data to the graph. If a node requires
+        initialization data and it is not explicitly provided, this data
+        will be used. It will be added as initialization data to any
+        root nodes that ingest data from outside of the graph.
+        Parameters
+        ----------
+        data : Tensor or Array
+            Tensor or array containing the default initialization data
+        labels : Tensor or Array
+            Tensor or array containing the default initialization labels
+        """
+        self._verified = False
+        self._initialized = False
+        self._default_init_data = data
+        self._default_init_labels = labels
+
+
     def verify(self):
         """
         Verify the processing graph is valid. This method orders the nodes

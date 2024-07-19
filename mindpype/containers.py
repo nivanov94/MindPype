@@ -219,7 +219,7 @@ class Scalar(MPBase):
             If True, assigns random covariance matrix
 
         """
-        if self._data_type == int or whole_numbers:
+        if self.data_type == int or whole_numbers:
             self._data = np.random.randint(vmin, vmax+1)
         elif self.data_type == float:
             vrange = vmax - vmin
@@ -544,7 +544,7 @@ class Tensor(MPBase):
                 data = np.squeeze(data, axis=0)
 
         if self.virtual and self.shape != data.shape:
-            self.shape = data.shape
+            self._shape = data.shape
 
         if self.shape == data.shape:
             self._data = data
@@ -578,7 +578,7 @@ class Tensor(MPBase):
         """
 
         if self.virtual:
-            self.shape = shape
+            self._shape = shape
             # when changing the shape write a zero tensor to data
             self.data = np.zeros(shape)
         else:
@@ -895,7 +895,7 @@ class Array(MPBase):
         self.volatile = False  # no volatile arrays for now...
         self.volatile_out = False  # no volatile arrays for now...
 
-        self.capacity = capacity
+        self._capacity = capacity
 
         self._elements = [None] * capacity
 
@@ -973,7 +973,7 @@ class Array(MPBase):
 
     @capacity.setter
     def capacity(self, capacity):
-        if self._virtual:
+        if self.virtual:
             self._capacity = capacity
             self._elements = [None] * capacity
 
@@ -1057,7 +1057,7 @@ class Array(MPBase):
 
         if not (element.mp_type == MPEnums.TENSOR or
                 (element.mp_type == MPEnums.SCALAR and
-                 element.data_type in Scalar.valid_numeric_types())):
+                 element.data_type in Scalar._valid_numeric_types())):
             return None
 
         # extract elements and stack into numpy array
@@ -1122,7 +1122,7 @@ class CircleBuffer(Array):
 
     def __init__(self, sess, capacity, element_template):
         super().__init__(sess, capacity, element_template)
-        self._mp_type = MPEnums.CIRCLE_BUFFER  # overwrite
+        self.mp_type = MPEnums.CIRCLE_BUFFER  # overwrite
 
         self._head = None
         self._tail = None

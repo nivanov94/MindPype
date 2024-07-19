@@ -11,10 +11,6 @@ class ReducedSumKernel(Kernel):
     Kernel to compute the sum of the input tensor's
     element along the provided axis
 
-    .. note::
-        This kernel utilizes the numpy function
-        :func:`sum <numpy:numpy.sum>`.
-
     Parameters
     ----------
     graph : Graph
@@ -108,7 +104,7 @@ class ReducedSumKernel(Kernel):
             raise TypeError('ReducedSum kernel requires Tensor or Scalar output')
 
         if (outA.mp_type == MPEnums.SCALAR and
-            (outA.data_type not in Scalar.valid_numeric_types())):
+            (outA.data_type not in Scalar._valid_numeric_types())):
             raise TypeError('ReducedSum kernel requires Scalar output to be numeric')
 
         inA_shape = inA.shape

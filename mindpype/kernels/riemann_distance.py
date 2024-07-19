@@ -13,11 +13,6 @@ class RiemannDistanceKernel(Kernel):
     Kernel computes pairwise distances between 2D tensors
 
     .. note::
-        This kernel utilizes the numpy functions
-        :func:`squeeze <numpy:numpy.squeeze>`,
-        :func:`asarray <numpy:numpy.asarray>`.
-
-    .. note::
         This kernel utilizes the pyriemann function
         :func:`distance_riemann <pyriemann:pyriemann.utils.distance.distance_riemann>`,
 
@@ -82,7 +77,7 @@ class RiemannDistanceKernel(Kernel):
         out_sz = []
         mat_sz = None
         for param in (inA,inB):
-            if param._mp_type == MPEnums.TENSOR:
+            if param.mp_type == MPEnums.TENSOR:
                 # ensure it is 3D or 2D
                 param_rank = len(param.shape)
                 if param_rank != 2 and param_rank != 3:
