@@ -94,7 +94,7 @@ class FeatureSelectionKernel(Kernel):
         self._model.fit(X, y)
 
         # set the initialization output
-        if init_outputs[0] is not None or init_outputs[1] is not None:
+        if init_outputs[0] is not None:
             init_tensor = Tensor.create_from_data(self.session, X)
 
             # adjust output shapes if necessary
@@ -186,8 +186,5 @@ class FeatureSelectionKernel(Kernel):
         node = Node(graph, c, params)
 
         graph.add_node(node)
-
-        if init_inputs is not None:
-            node.add_initialization_data(init_inputs, labels)
 
         return node

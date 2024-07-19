@@ -179,9 +179,15 @@ class Session(MPBase):
             try:
                 self.graphs[g_id].verify()
             except Exception as e:
-                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed " +
-                              "verification. Please check graph " +
-                              "definition").with_traceback(sys.exc_info()[2])
+                additional_msg = (f"Graph {i_g} failed verification. " +
+                                  "Please check graph definition. " +
+                                  "See traceback for more information.")
+                if sys.version_info[:2] >= (3, 11):
+                    e.add_note(additional_msg)
+                else:
+                    pretty_msg = f"{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}"
+                    print(pretty_msg)
+                raise
 
         self._verified = True
         self.free_temp_data()
@@ -197,9 +203,15 @@ class Session(MPBase):
             try:
                 self.graphs[g_id].initialize()
             except Exception as e:
-                raise type(e)(f"{str(e)}\n\tGraph {i_g} failed " +
-                              "initialization. Please check graph " +
-                              "definition").with_traceback(sys.exc_info()[2])
+                additional_msg = (f"Graph {i_g} failed initialization. " +
+                                    "Please check graph definition. " +
+                                    "See traceback for more information.")
+                if sys.version_info[:2] >= (3, 11):
+                    e.add_note(additional_msg)
+                else:
+                    pretty_msg = f"{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}"
+                    print(pretty_msg)
+                raise
 
         self._initialized = True
         self.free_temp_data()

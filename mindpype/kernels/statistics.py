@@ -768,11 +768,6 @@ class StdKernel(Descriptive, Kernel):
         self._keepdims = keepdims
 
     def _verify(self):
-        """
-        Verify the inputs and outputs are appropriately sized
-        """
-        super()._verify()
-
         d_in = self.inputs[0]
 
         # verify ddof is valid
@@ -1296,7 +1291,7 @@ class ZScoreKernel(Kernel):
             raise TypeError("ZScore Kernel: Initialization data must be an array or tensor")
 
         if init_in.mp_type == MPEnums.TENSOR:
-            if len(init_in.squeeze().shape) != 1:
+            if len(np.squeeze(init_in.data).shape) != 1:
                 raise ValueError("ZScore Kernel: Initialization data must be rank 1")
         else:
             e = init_in.get_element(0)

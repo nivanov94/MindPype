@@ -1122,7 +1122,13 @@ class OutputLSLStream(MPBase):
                 self._lsl_marker_outlet.push_sample(data[0], pylsl.local_clock())
 
             except Exception as e:
-                raise type(e)(f"{str(e)}\nPush data - Irreparable Error in LSL Output. No data pushed to output stream").with_traceback(sys.exc_info()[2])
+                additional_msg = "Push data - Irreparable Error in LSL Output. No data pushed to output stream"
+                if sys.version_info[:2] >= (3, 11):
+                    e.add_note(additional_msg)
+                else:
+                    pretty_msg = f"{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}"
+                    print(pretty_msg)
+                raise
 
     @classmethod
     def _create_outlet_from_streaminfo(cls, sess, stream_info, filesave=None):

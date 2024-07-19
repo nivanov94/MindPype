@@ -211,7 +211,8 @@ class ClassifierKernel(Kernel):
         """
 
         # create the kernel object
-        c = cls(graph, inA, classifier, outA, outB, num_classes)
+        c = cls(graph, inA, classifier, outA, outB, 
+                num_classes, initialization_data, labels)
 
         params = (Parameter(inA, MPEnums.INPUT),
                   Parameter(outA, MPEnums.OUTPUT))
@@ -222,8 +223,5 @@ class ClassifierKernel(Kernel):
         node = Node(graph, c, params)
 
         graph.add_node(node)
-
-        if initialization_data is not None:
-            node.add_initialization_data(initialization_data, labels)
 
         return node
