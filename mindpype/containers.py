@@ -951,6 +951,9 @@ class Array(MPBase):
     element_template : any
         The template MindPype element to populate the array (see examples)
 
+    .. note:: A single array object should only contain one MindPype/data
+              object type.
+
     Attributes
     ----------
     TODO
@@ -964,10 +967,6 @@ class Array(MPBase):
     Return
     ------
     array: Array Object
-
-    .. note:: A single array object should only contain one MindPype/data
-              object type.
-
 
     """
 
