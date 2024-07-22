@@ -962,7 +962,7 @@ class Array(MPBase):
     >>> example = Array.create(example_session, example_capacity, template)
 
     Return
-    ======
+    ------
     Array Object
 
     .. note:: A single array object should only contain one MindPype/data
