@@ -286,7 +286,7 @@ class Scalar(MPBase):
 
         Examples
         --------
-        example_scalar.copy_to(copy_of_example_scalar)
+        >>> example_scalar.copy_to(copy_of_example_scalar)
         """
         dest_scalar.data = self.data
 
@@ -1003,7 +1003,7 @@ class Array(MPBase):
 
         Examples
         --------
-        example_element = example_array.get_element(0)
+        >>> example_element = example_array.get_element(0)
 
 
         """
@@ -1086,7 +1086,7 @@ class Array(MPBase):
 
         Examples
         --------
-        new_array = old_array.make_copy()
+        >>> new_array = old_array.make_copy()
         """
         cpy = Array(self.session,
                     self.capacity,
@@ -1113,7 +1113,7 @@ class Array(MPBase):
 
         Examples
         --------
-        old_array.copy_to(copy_of_old_array)
+        >>> old_array.copy_to(copy_of_old_array)
 
         """
         dest_array.capacity = self.capacity
@@ -1228,7 +1228,7 @@ class CircleBuffer(Array):
 
         Examples
         --------
-        example_num_elements = example_buffer.num_elements()
+        >>> example_num_elements = example_buffer.num_elements()
         """
         if self.is_empty():
             return 0
@@ -1300,7 +1300,7 @@ class CircleBuffer(Array):
 
         Examples
         --------
-        example_element = example_circle_buffer.get_element(0)
+        >>> example_element = example_circle_buffer.get_element(0)
         """
         if index > self.num_elements:
             return None
