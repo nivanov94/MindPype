@@ -37,6 +37,7 @@ intersphinx_mapping = {
     'pyriemann' : ('https://pyriemann.readthedocs.io/en/latest/', None),
     'sklearn' : ('https://scikit-learn.org/stable/api/index.html', None),
     'scipy' : ('https://docs.scipy.org/doc/scipy/', None),
+    'mne' : ('https://mne.tools/stable/index.html', None),
 }
 
 templates_path = ['_templates']
