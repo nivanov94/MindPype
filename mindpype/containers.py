@@ -940,6 +940,9 @@ class Array(MPBase):
     """
     Array containing instances of other MindPype classes. Each array can only
     hold one type of MindPype class.
+    
+    .. note:: A single array object should only contain one MindPype/data
+            object type.
 
     Parameters
     ----------
@@ -951,8 +954,6 @@ class Array(MPBase):
     element_template : any
         The template MindPype element to populate the array (see examples)
 
-    .. note:: A single array object should only contain one MindPype/data
-              object type.
 
     Attributes
     ----------
