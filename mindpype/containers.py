@@ -963,7 +963,7 @@ class Array(MPBase):
 
     Return
     ------
-    Array Object
+    array: Array Object
 
     .. note:: A single array object should only contain one MindPype/data
               object type.
