@@ -12,7 +12,7 @@ class XDawnCovarianceKernel(Kernel):
     .. note:: 
         This kernel utilizes the 
         :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` 
-        class from the :ref:`pyriemann <pyriemann:index>` package.
+        class from the pyriemann package.
   
     .. note::
         This kernel utilizes the numpy functions

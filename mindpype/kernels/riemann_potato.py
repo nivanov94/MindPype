@@ -20,7 +20,7 @@ class RiemannPotatoKernel(Kernel):
     .. note:: 
         This kernel utilizes the 
         :class:`Potato <pyriemann:pyriemann.clustering.Potato>` 
-        class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
+        class from the pyriemann package.
 
 
     Parameters
