@@ -1355,7 +1355,7 @@ class CircleBuffer(Array):
 
     def enqueue_chunk(self, cb):
         """
-        enqueue a number of elements from another circle buffer into this
+        Enqueue a number of elements from another circle buffer into this
         circle buffer
         
         Parameters
