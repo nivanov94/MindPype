@@ -79,13 +79,9 @@ class Filter(MPBase):
         """
         Getter for the filter type
 
-        Return
-        ------
-        The filter type, one of 'butter', 'cheby1', 'cheby2', 'ellip', 'bessel'
-
-        Return Type
-        -----------
-        str
+        Returns
+        -------
+        The filter type, one of 'butter', 'cheby1', 'cheby2', 'ellip', 'bessel' : str
         """
         return self._ftype
 
@@ -94,13 +90,9 @@ class Filter(MPBase):
         """
         Getter method for the band type used by the filter
 
-        Return
-        ------
-        The band type, one of 'lowpass', 'highpass', 'bandpass', 'bandstop'
-
-        Return Type
-        -----------
-        str
+        Returns
+        -------
+        The band type, one of 'lowpass', 'highpass', 'bandpass', 'bandstop' : str
         """
 
         return self._btype
@@ -110,13 +102,9 @@ class Filter(MPBase):
         """
         Getter method for the filter implementation
 
-        Return
-        ------
-        The filter implementation, one of 'ba', 'zpk', 'sos'
-
-        Return Type
-        -----------
-        str
+        Returns
+        -------
+        The filter implementation, one of 'ba', 'zpk', 'sos' : str
 
         """
         return self._implementation
@@ -126,13 +114,9 @@ class Filter(MPBase):
         """
         Getter method for the sampling frequency
 
-        Return
-        ------
-        The sampling frequency
-
-        Return Type
-        -----------
-        float
+        Returns
+        -------
+        The sampling frequency : float
         """
         return self._fs
 
@@ -141,13 +125,9 @@ class Filter(MPBase):
         """
         Getter method for the critical frequencies
 
-        Return
-        ------
-        The critical frequencies
-
-        Return Type
-        -----------
-        array_like of floats
+        Returns
+        -------
+        The critical frequencies : array_like of floats
         """
         return self._crit_frqs
 
@@ -156,13 +136,9 @@ class Filter(MPBase):
         """
         Getter method for the filter coefficients
 
-        Return
-        ------
-        The filter coefficients
-
-        Return Type
-        -----------
-        array_like of floats
+        Returns
+        -------
+        The filter coefficients : array_like of floats
         """
         return self._coeffs
 
