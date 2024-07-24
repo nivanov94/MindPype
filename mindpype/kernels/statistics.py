@@ -13,8 +13,8 @@ class CDFKernel(Kernel):
 
     .. note::
         This kernel utilizes the scipy functions
-        :func:`norm <scipy:scipy.stats._continuous_distns.norm_gen>`,
-        :func:`chi2 <scipy:scipy.stats._continuous_distns.chi2_gen>`.
+        :func:`norm <scipy:scipy.stats.norm>`,
+        :func:`chi2 <scipy:scipy.stats.chi2>`.
 
     Parameters
     ----------
@@ -1123,7 +1123,7 @@ class SkewnessKernel(Descriptive, Kernel):
 
     .. note::
         This kernel utilizes the scipy function
-        :func:`skewness <scipy:scipy.stats.skewness>`.
+        :func:`skew <scipy:scipy.stats.skew>`.
 
     Parameters
     ----------
