@@ -110,8 +110,8 @@ class Filter(MPBase):
         """
         Getter method for the filter implementation
 
-        Returns
-        -------
+        Return
+        ------
         The filter implementation, one of 'ba', 'zpk', 'sos'
 
         Return Type
@@ -126,8 +126,8 @@ class Filter(MPBase):
         """
         Getter method for the sampling frequency
 
-        Returns
-        -------
+        Return
+        ------
         The sampling frequency
 
         Return Type
@@ -141,8 +141,8 @@ class Filter(MPBase):
         """
         Getter method for the critical frequencies
 
-        Returns
-        -------
+        Return
+        ------
         The critical frequencies
 
         Return Type
@@ -156,8 +156,8 @@ class Filter(MPBase):
         """
         Getter method for the filter coefficients
 
-        Returns
-        -------
+        Return
+        ------
         The filter coefficients
 
         Return Type
