@@ -1,8 +1,6 @@
 # -*coding: utf-8 -*-
 """
 Created on Thurs Aug 8 14:13:13 2022
-
-@author: aaronlio
 """
 
 from ..kernel import Kernel

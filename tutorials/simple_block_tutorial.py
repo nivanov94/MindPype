@@ -4,7 +4,6 @@ Created on Thu Dec  5 15:37:58 2019
 
 full block test
 
-@author: ivanovn
 """
 import mindpype as mp
 from random import shuffle

@@ -1,8 +1,6 @@
 """
 Defines data container classes for MindPype.
 These classes are used to represent data in the MindPype framework.
-
-@author: Nicolas Ivanov, Aaron Lio
 """
 
 from .core import MPBase, MPEnums
