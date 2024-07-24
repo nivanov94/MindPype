@@ -13,8 +13,8 @@ class CDFKernel(Kernel):
 
     .. note::
         This kernel utilizes the scipy functions
-        :func:`norm <scipy:scipy.stats.norm>`,
-        :func:`chi2 <scipy:scipy.stats.chi2>`.
+        :obj:`norm <scipy:scipy.stats.norm>`,
+        :obj:`chi2 <scipy:scipy.stats.chi2>`.
 
     Parameters
     ----------
