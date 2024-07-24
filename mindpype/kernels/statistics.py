@@ -1250,6 +1250,9 @@ class ZScoreKernel(Kernel):
     """
     Calculate a z-score for an tensor or scalar input
 
+    Parameters
+    ----------
+    
     graph : Graph
         Graph that the kernel should be added to
 
@@ -1364,6 +1367,9 @@ class ZScoreKernel(Kernel):
         Factory method to create a z-score value kernel
         and add it to a graph as a generic node object.
 
+        Parameters
+        ----------
+        
         graph : Graph
             Graph that the kernel should be added to
 
