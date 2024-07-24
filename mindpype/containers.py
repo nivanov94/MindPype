@@ -227,13 +227,9 @@ class Scalar(MPBase):
         """
         Produce and return a deep copy of the scalar
 
-        Return
-        ------
-        Deep copy of referenced parameter
-
-        Return Type
-        -----------
-        Scalar
+        Returns
+        -------
+        Deep copy of referenced parameter: Scalar
 
         Examples
         --------
