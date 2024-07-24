@@ -13,12 +13,6 @@ class XDawnCovarianceKernel(Kernel):
         This kernel utilizes the 
         :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` 
         class from the pyriemann package.
-  
-    .. note::
-        This kernel utilizes the numpy functions
-        :func:`newaxis <numpy:numpy.newaxis>`,
-        :func:`unique <numpy:numpy.unique>`,
-        :func:`squeeze <numpy:numpy.squeeze>`.
 
     Parameters
     ----------

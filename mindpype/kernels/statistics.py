@@ -12,28 +12,9 @@ class CDFKernel(Kernel):
     Calculates the CDF for a distribution given a RV as input. Currently supports normal and chi2 distributions
 
     .. note::
-        This kernel utilizes the numpy functions
-        :func:`cov <numpy:numpy.cov>`,
-        :func:`eye <numpy:numpy.eye>`,
-        :func:`zeros <numpy:numpy.zeros>`,
-        :func:`reshape <numpy:numpy.reshape>`,
-        :func:`transpose <numpy:numpy.transpose>`,
-        :func:`mean <numpy:numpy.mean>`,
-        :func:`amax <numpy:numpy.amax>`,
-        :func:`amin <numpy:numpy.amin>`,
-        :func:`std <numpy:numpy.std>`,
-        :func:`var <numpy:numpy.var>`,
-        :func:`squeeze <numpy:numpy.squeeze>`,
-        :func:`sum <numpy:numpy.sum>`,
-        :func:`asarray <numpy:numpy.reshape>`,
-        :func:`concatenate <numpy:numpy.concatenate>`.
-
-    .. note::
         This kernel utilizes the scipy functions
-        :func:`norm <scipy:scipy.stats.norm>`,
-        :func:`chi2 <scipy:scipy.stats.chi2>`,
-        :func:`kurtosis <scipy:scipy.stats.kurtosis>`,
-        :func:`skew <scipy:scipy.stats.skew>`.
+        :func:`norm <scipy:scipy.stats._continuous_distns.norm_gen>`,
+        :func:`chi2 <scipy:scipy.stats._continuous_distns.chi2_gen>`.
 
     Parameters
     ----------
@@ -448,6 +429,10 @@ class MaxKernel(Descriptive, Kernel):
     """
     Kernel to extract maximum value along a Tensor axis
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`max <numpy:numpy.max>`.
+
     Parameters
     ----------
     graph : Graph
@@ -543,7 +528,11 @@ class MaxKernel(Descriptive, Kernel):
 class MinKernel(Descriptive, Kernel):
     """
     Kernel to extract minimum value within a Tensor
-
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`min <numpy:numpy.min>`.
+        
     Parameters
     ----------
     graph : Graph
@@ -642,6 +631,10 @@ class MeanKernel(Descriptive, Kernel):
     """
     Calculates the mean of values in a tensor
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`mean <numpy:numpy.mean>`.
+
     Parameters
     ----------
     graph : Graph
@@ -733,6 +726,10 @@ class MeanKernel(Descriptive, Kernel):
 class StdKernel(Descriptive, Kernel):
     """
     Calculates the standard deviation of values in a tensor
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`std <numpy:numpy.std>`.
 
     Parameters
     ----------
@@ -856,6 +853,10 @@ class StdKernel(Descriptive, Kernel):
 class VarKernel(Descriptive, Kernel):
     """
     Calculates the variance of values in a tensor
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`var <numpy:numpy.var>`.
 
     graph : Graph
         Graph that the kernel should be added to
@@ -980,6 +981,10 @@ class VarKernel(Descriptive, Kernel):
 class KurtosisKernel(Descriptive, Kernel):
     """
     Calculates the kurtosis of values in a tensor
+
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`kurtosis <scipy:scipy.stats.kurtosis>`.
 
     Parameters
     ----------
@@ -1115,6 +1120,10 @@ class KurtosisKernel(Descriptive, Kernel):
 class SkewnessKernel(Descriptive, Kernel):
     """
     Calculates the Skewness of values in a tensor
+
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`skewness <scipy:scipy.stats.skewness>`.
 
     Parameters
     ----------

@@ -11,10 +11,6 @@ class ReducedSumKernel(Kernel):
     Kernel to compute the sum of the input tensor's
     element along the provided axis
 
-    .. note::
-        This kernel utilizes the numpy function
-        :func:`sum <numpy:numpy.sum>`.
-
     Parameters
     ----------
     graph : Graph

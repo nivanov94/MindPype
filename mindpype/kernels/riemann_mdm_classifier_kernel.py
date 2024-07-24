@@ -13,12 +13,8 @@ class RiemannMDMClassifierKernel(Kernel):
     the predicted class. Review classmethods for specific input parameters
 
     .. note::
-        This kernel utilizes the numpy function
-        :func:`newaxis <numpy:numpy.newaxis>`.
-
-    .. note::
-        This kernel utilizes the pyriemann module
-        :mod:`classification <pyriemann:pyriemann.classification>`.
+        This kernel utilizes the pyriemann class
+        :class:`MDM <pyriemann:pyriemann.classification.MDM>`.
 
     Parameters
     ----------

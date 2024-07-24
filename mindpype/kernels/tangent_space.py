@@ -15,11 +15,6 @@ class TangentSpaceKernel(Kernel):
         :class:`TangentSpace <pyriemann:pyriemann.tangentspace.TangentSpace>` 
         class from the pyriemann package.
 
-    .. note::
-        This kernel utilizes the numpy function
-        :func:`eye <numpy:numpy.eye>`,
-        :func:`exapnd_dims <numpy:numpy.expand_dims>`.
-
     Parameters
     ----------
     graph : Graph
