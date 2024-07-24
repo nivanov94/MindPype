@@ -918,11 +918,7 @@ class Edge:
 
         Return
         ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
+        Data object stored within the Edge object : Data object
         """
 
         return self._data
@@ -934,11 +930,7 @@ class Edge:
 
         Return
         ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
+        Data object stored within the Edge object : Data object
         """
 
         return self._init_data
@@ -950,11 +942,7 @@ class Edge:
 
         Return
         ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
+        Data object stored within the Edge object : Data object
         """
 
         return self._init_labels
@@ -1235,11 +1223,7 @@ class Parameter:
 
         Return
         ------
-        Enum indicating whether this is an input-type or output-type parameter
-
-        Return Type
-        -----------
-        MPEnums.INPUT or MPEnums.OUTPUT
+        Enum indicating whether this is an input-type or output-type parameter : MPEnums.INPUT or MPEnums.OUTPUT
         """
         return self._direction
 
@@ -1250,11 +1234,7 @@ class Parameter:
 
         Return
         ------
-        Data object stored within the Parameter object
-
-        Return Type
-        ------------
-        Data object
+        Data object stored within the Parameter object : Data object
 
         """
 
