@@ -133,11 +133,7 @@ class Scalar(MPBase):
 
         Return
         ------
-        Data value represented by the Scalar object
-
-        Return Type
-        -----------
-        int, float, complex, str, or bool
+        Data value represented by the Scalar object : int, float, complex, str, or bool
         """
         return self._data
 
@@ -148,12 +144,8 @@ class Scalar(MPBase):
 
         Return
         ------
-        one of [int, float, complex, str, bool]
+        one of [int, float, complex, str, bool] : type
             Indicates the type of data represented by the Scalar
-
-        Return Type
-        -----------
-        type
         """
         return self._data_type
 
@@ -164,13 +156,9 @@ class Scalar(MPBase):
 
         Return
         ------
-        External data source represented by the scalar; this data will be
-        polled/updated when trials are executed. If the data does not
-        represent an external data source, ext_src is None
-
-        Return Type
-        -----------
-        LSL data source input object, XDF data source, MAT data source, or None
+        External data source represented by the scalar : LSL data source input object, XDF data source, MAT data source, or None
+            This data will be polled/updated when trials are executed. If the data does not
+            represent an external data source, ext_src is None
 
         """
 
@@ -183,14 +171,9 @@ class Scalar(MPBase):
 
         Return
         ------
-        External data output represented by the scalar; this data will
-        be pushed when trials are executed. If the data does not represent
-        an external data source, ext_out is None
-
-        Return Type
-        -----------
-        LSL data source output object, XDF data source, MAT data source,
-        or None
+        External data output represented by the scalar : LSL data source output object, XDF data source, MAT data source, or None
+            This data will be pushed when trials are executed. If the data does not represent
+            an external data source, ext_out is None
 
         """
         return self._ext_out
