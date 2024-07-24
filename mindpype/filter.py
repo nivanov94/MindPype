@@ -80,7 +80,7 @@ class Filter(MPBase):
         Getter for the filter type
 
         Return
-        -------
+        ------
         The filter type, one of 'butter', 'cheby1', 'cheby2', 'ellip', 'bessel'
 
         Return Type
