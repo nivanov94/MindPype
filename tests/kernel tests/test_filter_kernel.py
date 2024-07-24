@@ -127,6 +127,33 @@ class SosFiltFiltKernelUnitTest:
         self.__graph.execute()
         return (f, outTensor.data)
 
+class Cheby1FilterUnitTest:
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestCheby1FilterExecution(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+
+        order = 4
+        rp = 3
+        Fs=250
+        bandpass = (8,35) # in Hz
+        filt1 = mp.Filter.create_cheby1(self.__session,order,rp,bandpass,btype='bandpass',implementation='ba',fs=Fs)
+        filt2 = mp.Filter.create_cheby1(self.__session,order,rp,bandpass,btype='bandpass',implementation='sos',fs=Fs)
+        
+        virt = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        tensor_test_node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,filt1,virt[0])
+        tensor_test_node2 = mp.kernels.FilterKernel.add_to_graph(self.__graph,virt[0],filt2,outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data
+
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randint(-10,10, size=(30,30))
@@ -164,5 +191,21 @@ def test_execute():
     res = KernelExecutionUnitTest_Object.TestSosFiltFiltKernelExecution(raw_data)
     expected_output = signal.sosfiltfilt(res[0].coeffs['sos'], raw_data,axis=0)
     assert (res[1] == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+    order = 4
+    Fs = 250
+    rp = 3
+    bandpass = (8,35)
+    
+    KernelExecutionUnitTest_Object = Cheby1FilterUnitTest()
+    res = KernelExecutionUnitTest_Object.TestCheby1FilterExecution(raw_data)
+    b, a = signal.cheby1(order,rp,bandpass,btype='bandpass',output='ba',fs=Fs)
+    filtered_data = signal.lfilter(b,a,raw_data,axis=1)
+    
+    sos = signal.cheby1(order,rp,bandpass,btype='bandpass',output='sos',fs=Fs)
+    filtered_data = signal.sosfilt(sos, filtered_data)
+    
+    assert (res == filtered_data).all()
     del KernelExecutionUnitTest_Object
    
