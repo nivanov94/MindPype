@@ -55,10 +55,10 @@ def test_execute():
     # manually perform operations
     filter = signal.butter(4,(8,35),btype='bandpass',output='sos',fs=250)
     filtered_data = signal.sosfilt(filter,input_data)
-    # cov_data = np.cov(filtered_data)
+    cov_data = np.cov(filtered_data)
     model = pyriemann.classification.MDM()
     model.fit(training_data, labels)
-    expected_output = model.predict(filtered_data)
+    expected_output = model.predict(cov_data)
     
     assert(res == expected_output).all()
     del KernelExecutionUnitTest_Object
