@@ -127,21 +127,23 @@ class SosFiltFiltKernelUnitTest:
         self.__graph.execute()
         return (f, outTensor.data)
 
-class ChebyFilterUnitTest:
-    def __init__(self):
+class OtherFilterUnitTest:
+    def __init__(self, order,Fs,rs,rp,bandpass):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
+        self.order = order
+        self.fs = Fs
+        self.rs = rs
+        self.rp = rp
+        self.bandpass = bandpass
 
     def TestCheby1FilterExecution(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         outTensor = mp.Tensor.create(self.__session, raw_data.shape)
 
-        order = 4
-        rp = 3
-        Fs=250
-        bandpass = (8,35) # in Hz
-        filt1 = mp.Filter.create_cheby1(self.__session,order,rp,bandpass,btype='bandpass',implementation='ba',fs=Fs)
-        filt2 = mp.Filter.create_cheby1(self.__session,order,rp,bandpass,btype='bandpass',implementation='sos',fs=Fs)
+
+        filt1 = mp.Filter.create_cheby1(self.__session,self.order,self.rp,self.bandpass,btype='bandpass',implementation='ba',fs=self.fs)
+        filt2 = mp.Filter.create_cheby1(self.__session,self.order,self.rp,self.bandpass,btype='bandpass',implementation='sos',fs=self.fs)
         
         virt = [
             mp.Tensor.create_virtual(self.__session)
@@ -158,13 +160,44 @@ class ChebyFilterUnitTest:
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         outTensor = mp.Tensor.create(self.__session, raw_data.shape)
 
-        order = 4
-        rp = 3
-        rs = 3
-        Fs=250
-        bandpass = (8,35) # in Hz
-        filt1 = mp.Filter.create_cheby2(self.__session,order,rp,bandpass,btype='bandpass',implementation='ba',fs=Fs)
-        filt2 = mp.Filter.create_cheby2(self.__session,order,rs,bandpass,btype='bandpass',implementation='sos',fs=Fs)
+        filt1 = mp.Filter.create_cheby2(self.__session,self.order,self.rs,self.bandpass,btype='bandpass',implementation='ba',fs=self.fs)
+        filt2 = mp.Filter.create_cheby2(self.__session,self.order,self.rs,self.bandpass,btype='bandpass',implementation='sos',fs=self.fs)
+        
+        virt = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        tensor_test_node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,filt1,virt[0])
+        tensor_test_node2 = mp.kernels.FilterKernel.add_to_graph(self.__graph,virt[0],filt2,outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data
+    
+    def TestEllipFilterExecution(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+
+        filt1 = mp.Filter.create_ellip(self.__session,self.order,self.rp,self.rs,self.bandpass,btype='bandpass',implementation='ba',fs=self.fs)
+        filt2 = mp.Filter.create_ellip(self.__session,self.order,self.rp,self.rs,self.bandpass,btype='bandpass',implementation='sos',fs=self.fs)
+        
+        virt = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        tensor_test_node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,filt1,virt[0])
+        tensor_test_node2 = mp.kernels.FilterKernel.add_to_graph(self.__graph,virt[0],filt2,outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data
+    
+    def TestBesselFilterExecution(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+
+        filt1 = mp.Filter.create_bessel(self.__session,self.order,self.bandpass,btype='bandpass',implementation='ba',fs=self.fs)
+        filt2 = mp.Filter.create_bessel(self.__session,self.order,self.bandpass,btype='bandpass',implementation='sos',fs=self.fs)
         
         virt = [
             mp.Tensor.create_virtual(self.__session)
@@ -222,11 +255,11 @@ def test_execute():
     rs=3
     bandpass = (8,35)
     
-    KernelExecutionUnitTest_Object = ChebyFilterUnitTest()
+    KernelExecutionUnitTest_Object = OtherFilterUnitTest(order,Fs,rs,rp,bandpass)
+    
     res = KernelExecutionUnitTest_Object.TestCheby1FilterExecution(raw_data)
     b, a = signal.cheby1(order,rp,bandpass,btype='bandpass',output='ba',fs=Fs)
     filtered_data = signal.lfilter(b,a,raw_data,axis=1)
-    
     sos = signal.cheby1(order,rp,bandpass,btype='bandpass',output='sos',fs=Fs)
     filtered_data = signal.sosfilt(sos, filtered_data)
     assert (res == filtered_data).all()
@@ -234,10 +267,22 @@ def test_execute():
     res = KernelExecutionUnitTest_Object.TestCheby2FilterExecution(raw_data)
     b, a = signal.cheby2(order,rs,bandpass,btype='bandpass',output='ba',fs=Fs)
     filtered_data = signal.lfilter(b,a,raw_data,axis=1)
-    
     sos = signal.cheby2(order,rs,bandpass,btype='bandpass',output='sos',fs=Fs)
     filtered_data = signal.sosfilt(sos, filtered_data)
+    assert (res == filtered_data).all()
     
+    res = KernelExecutionUnitTest_Object.TestEllipFilterExecution(raw_data)
+    b, a = signal.ellip(order,rp,rs,bandpass,btype='bandpass',output='ba',fs=Fs)
+    filtered_data = signal.lfilter(b,a,raw_data,axis=1)
+    sos = signal.ellip(order,rp,rs,bandpass,btype='bandpass',output='sos',fs=Fs)
+    filtered_data = signal.sosfilt(sos, filtered_data)
+    assert (res == filtered_data).all()
+    
+    res = KernelExecutionUnitTest_Object.TestBesselFilterExecution(raw_data)
+    b, a = signal.bessel(order,bandpass,btype='bandpass',output='ba',fs=Fs)
+    filtered_data = signal.lfilter(b,a,raw_data,axis=1)
+    sos = signal.bessel(order,bandpass,btype='bandpass',output='sos',fs=Fs)
+    filtered_data = signal.sosfilt(sos, filtered_data)
     assert (res == filtered_data).all()
     
     del KernelExecutionUnitTest_Object
