@@ -79,6 +79,16 @@ class EnqueueKernelUnitTest:
         self.__graph.execute()
         return queue
     
+    def TestInvalidCapacity(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        template = mp.Tensor.create(self.__session, inTensor.shape)
+        queue = mp.CircleBuffer.create(self.__session, 0, template)
+        tensor_test_node = mp.kernels.EnqueueKernel.add_to_graph(self.__graph,inTensor,queue)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return queue
+    
 class ExtractKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -186,6 +196,8 @@ def test_execute():
     KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestEnqueueKernelExecution(raw_data)
     assert np.all(res.peek().data == raw_data)
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestInvalidCapacity(raw_data)
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
@@ -212,3 +224,4 @@ def test_execute():
     expected_output = np.reshape(raw_data2, newshape=new_shape)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
+test_execute()
