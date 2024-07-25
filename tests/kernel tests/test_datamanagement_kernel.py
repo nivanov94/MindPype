@@ -160,6 +160,15 @@ class ExtractKernelUnitTest:
         self.__graph.execute()
         return outTensor.data
     
+    def TestExtractKernelExecution(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        indices = [0, slice(None)]       
+        outTensor = mp.Tensor.create(self.__session, (0,0))
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,inTensor,indices,outTensor,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data   
 class StackKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -226,10 +235,12 @@ def test_execute():
     
     with pytest.raises(TypeError) as e_info:
         res = KernelExecutionUnitTest_Object.TestConcatNonTensorError(raw_data)
-        
+    del KernelExecutionUnitTest_Object    
+    KernelExecutionUnitTest_Object = ConcatenationKernelUnitTest()    
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestWrongOutputSizeError(raw_data)
-        
+    del KernelExecutionUnitTest_Object    
+    KernelExecutionUnitTest_Object = ConcatenationKernelUnitTest()    
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestUnequalDimensionsError()
     del KernelExecutionUnitTest_Object
@@ -245,8 +256,14 @@ def test_execute():
     KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
     with pytest.raises(TypeError) as e_info:
         res = KernelExecutionUnitTest_Object.TestNonMatchingTypes(raw_data)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
     with pytest.raises(TypeError):
         res = KernelExecutionUnitTest_Object.TestNonScalarEnqueueFlag(raw_data)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
     with pytest.raises(TypeError):
         res = KernelExecutionUnitTest_Object.TestInvalidOutputType(raw_data)
     del KernelExecutionUnitTest_Object
