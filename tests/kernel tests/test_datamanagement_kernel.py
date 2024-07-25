@@ -1,5 +1,6 @@
 import mindpype as mp
 import numpy as np
+import pytest
 
 class ConcatenationKernelUnitTest:
     def __init__(self):
@@ -35,6 +36,33 @@ class ConcatenationKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         return outTensor.data
+
+    def TestWrongOutputSizeError(self, raw_data):
+        inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, (1,2,3))
+        tensor_test_node = mp.kernels.ConcatenationKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor,axis=1)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+    def TestConcatNonTensorError(self):
+        input1 = mp.Scalar.create_from_value(self.__session, 2)
+        input2 = mp.Scalar.create_from_value(self.__session, 2)
+        output = mp.Scalar.create(self.__session, int)
+        tensor_test_node = mp.kernels.ConcatenationKernel.add_to_graph(self.__graph,input1,input2,output,axis=1)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+    
+    def TestUnequalDimensionsError(self):
+        inTensor1 = mp.Tensor.create_from_data(self.__session, np.zeros((2,3)))
+        inTensor2 = mp.Tensor.create_from_data(self.__session, np.zeros((4,5)))
+        outTensor = mp.Tensor.create(self.__session, (2,2))
+        tensor_test_node = mp.kernels.ConcatenationKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor,axis=1)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
     
 class EnqueueKernelUnitTest:
     def __init__(self):
@@ -144,6 +172,15 @@ def test_execute():
     res = KernelExecutionUnitTest_Object.TestConcatenationKernelExecution(raw_data, axis)
     output = np.concatenate((raw_data, raw_data), axis = axis)
     assert (res == output).all()
+    
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestConcatNonTensorError(raw_data)
+        
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestWrongOutputSizeError(raw_data)
+        
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestUnequalDimensionsError()
     del KernelExecutionUnitTest_Object
 
     KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
