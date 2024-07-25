@@ -29,6 +29,16 @@ class ThresholdKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         
+    def TestThresholdTypeError(self, raw_data, thresh_val):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+        thresh = mp.Scalar.create_from_value(self.__session, "test")
+        tensor_test_node = mp.kernels.ThresholdKernel.add_to_graph(self.__graph,inTensor, outTensor, thresh)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
 
 def test_execute():
     np.random.seed(44)
@@ -40,7 +50,10 @@ def test_execute():
     output = raw_data > thresh_val
     assert (res == output).all()
     
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestThresholdTypeError(raw_data, thresh_val)
+    
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestThresholdValueError(raw_data, thresh_val)
-
+        
     del KernelExecutionUnitTest_Object
