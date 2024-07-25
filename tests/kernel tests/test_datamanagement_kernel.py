@@ -245,6 +245,28 @@ class ExtractKernelUnitTest:
         self.__graph.execute()
         return output
     
+    def TestCompatibleScalars(self, raw_data):
+        template = mp.Tensor.create_from_data(self.__session,raw_data)
+        input = mp.Array.create(self.__session,capacity=3,element_template=template)
+        indices = [1]
+        output = mp.Scalar.create(self.__session, float)
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,input,indices,output,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return output
+    
+    def TestMultipleIndexScalarError(self, raw_data):
+        template = mp.Scalar.create_from_value(self.__session, 1)
+        input = mp.Array.create(self.__session,capacity=3,element_template=template)
+        indices = [1,2]
+        output = mp.Scalar.create(self.__session, int)
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,input,indices,output,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return output
+    
 class StackKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -392,7 +414,17 @@ def test_execute():
     KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestUnsufficientOutputCapacity(raw_data)    
+    del KernelExecutionUnitTest_Object  
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestCompatibleScalars(raw_data)    
     del KernelExecutionUnitTest_Object    
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestMultipleIndexScalarError(raw_data)    
+    del KernelExecutionUnitTest_Object  
 
     # Stack kernel unit tests
     KernelExecutionUnitTest_Object = StackKernelUnitTest()
@@ -413,4 +445,3 @@ def test_execute():
     expected_output = np.reshape(raw_data2, newshape=new_shape)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
-test_execute()
