@@ -29,7 +29,7 @@ class ThresholdKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         
-    def TestThresholdTypeError(self, raw_data, thresh_val):
+    def TestThresholdTypeError(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         thresh = mp.Scalar.create_from_value(self.__session, "1")
@@ -39,6 +39,15 @@ class ThresholdKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         
+    def TestNonScalarThresh(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape)
+        thresh = mp.Tensor.create_from_data(self.__session, np.zeros(2,2))
+        tensor_test_node = mp.kernels.ThresholdKernel.add_to_graph(self.__graph,inTensor, outTensor, thresh)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
 
 def test_execute():
     np.random.seed(44)
@@ -51,12 +60,15 @@ def test_execute():
     assert (res == output).all()
     
     with pytest.raises(TypeError) as e_info:
-        res = KernelExecutionUnitTest_Object.TestThresholdTypeError(raw_data, thresh_val)
+        res = KernelExecutionUnitTest_Object.TestThresholdTypeError(raw_data)
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = ThresholdKernelUnitTest()
-    res = KernelExecutionUnitTest_Object.ThresholdKernelExecution(raw_data, thresh_val)
     with pytest.raises(ValueError) as e_info:
-        res = KernelExecutionUnitTest_Object.TestThresholdValueError(raw_data, thresh_val)
-        
+        res = KernelExecutionUnitTest_Object.TestThresholdValueError(raw_data, thresh_val)  
+    del KernelExecutionUnitTest_Object
+
+    KernelExecutionUnitTest_Object = ThresholdKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestNonScalarThresh(raw_data)  
     del KernelExecutionUnitTest_Object
