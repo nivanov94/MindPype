@@ -160,7 +160,17 @@ class ExtractKernelUnitTest:
         self.__graph.execute()
         return outTensor.data
     
-    def TestNonTensorExtract(self):
+    def TestNonTensorExtract(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        indices = [0, slice(None)]       
+        outTensor = mp.Scalar.create(self.__session, int)
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,inTensor,indices,outTensor,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data  
+     
+    def TestTensorInputNonTensorOutput(self):
         inTensor = mp.Scalar.create_from_value(self.__session, 1)
         indices = [0, slice(None)]       
         outTensor = mp.Tensor.create(self.__session, (0,0))
@@ -168,7 +178,73 @@ class ExtractKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
-        return outTensor.data   
+        return outTensor.data 
+    
+    def TestIncorrectOutputShape(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        indices = [0, slice(None)]       
+        outTensor = mp.Tensor.create(self.__session, (0,0))
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,inTensor,indices,outTensor,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data    
+    
+    def TestDimensionsExceedRank(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        indices = [1000]       
+        outTensor = mp.Tensor.create(self.__session, (0,0))
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,inTensor,indices,outTensor,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data  
+    
+    def TestIndicesOutOfBounds(self, raw_data):
+        template = mp.Tensor.create_from_data(self.__session,raw_data)
+        input = mp.Array.create(self.__session,capacity=3,element_template=template)
+        indices = [1000]       
+        output = mp.Tensor.create(self.__session, (0,0))
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,input,indices,output,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return output.data  
+    
+    def TestNonIntIndices(self, raw_data):
+        template = mp.Tensor.create_from_data(self.__session,raw_data)
+        input = mp.Array.create(self.__session,capacity=3,element_template=template)
+        indices = ["1"]       
+        output = mp.Tensor.create(self.__session, (0,0))
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,input,indices,output,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return output.data 
+    
+    def TestDifferentElementTemplateType(self, raw_data):
+        template = mp.Tensor.create_from_data(self.__session,raw_data)
+        template2 = mp.Scalar.create_from_value(self.__session, 1)
+        input = mp.Array.create(self.__session,capacity=3,element_template=template)
+        indices = [1]
+        output = mp.Array.create(self.__session, capacity=3, element_template=template2)
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,input,indices,output,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return output
+    
+    def TestUnsufficientOutputCapacity(self, raw_data):
+        template = mp.Tensor.create_from_data(self.__session,raw_data)
+        input = mp.Array.create(self.__session,capacity=3,element_template=template)
+        indices = [1,2]
+        output = mp.Array.create(self.__session, capacity=1, element_template=template)
+        tensor_test_node = mp.kernels.ExtractKernel.add_to_graph(self.__graph,input,indices,output,reduce_dims=False)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return output
+    
 class StackKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -280,10 +356,45 @@ def test_execute():
     assert np.all(res == extracted_data)
     
     with pytest.raises(TypeError) as e_info:
-        res = KernelExecutionUnitTest_Object.TestNonTensorExtract()  
-    
+        res = KernelExecutionUnitTest_Object.TestNonTensorExtract()    
     del KernelExecutionUnitTest_Object
     
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestTensorInputNonTensorOutput()    
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestIncorrectOutputShape(raw_data)    
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestDimensionsExceedRank(raw_data)    
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestIndicesOutOfBounds(raw_data)    
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestNonIntIndices(raw_data)    
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestDifferentElementTemplateType(raw_data)    
+    del KernelExecutionUnitTest_Object    
+
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestUnsufficientOutputCapacity(raw_data)    
+    del KernelExecutionUnitTest_Object    
+
+    # Stack kernel unit tests
     KernelExecutionUnitTest_Object = StackKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestStackKernelExecution(raw_data2, raw_data2, axis)
     expected_output = np.stack([raw_data2, raw_data2], axis = axis)
