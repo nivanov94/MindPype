@@ -97,6 +97,37 @@ class EnqueueKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         return queue.data
+    
+    def TestNonScalarEnqueueFlag(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        template = mp.Tensor.create(self.__session, inTensor.shape)
+        queue = mp.CircleBuffer.create(self.__session, 3, template)
+        enqueue_flag = mp.Tensor.create_from_data(self.__session,np.zeros((2,2)))
+        tensor_test_node = mp.kernels.EnqueueKernel.add_to_graph(self.__graph,inTensor,queue,enqueue_flag)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return queue
+    
+    def TestNonMatchingTypes(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        template = mp.Scalar.create(self.__session, int)
+        queue = mp.CircleBuffer.create(self.__session, 3, template)
+        tensor_test_node = mp.kernels.EnqueueKernel.add_to_graph(self.__graph,inTensor,queue)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return queue
+    
+    def TestNonMatchingElementShape(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        template = mp.Tensor.create(self.__session, (1,2,3))
+        queue = mp.CircleBuffer.create(self.__session, 3, template)
+        tensor_test_node = mp.kernels.EnqueueKernel.add_to_graph(self.__graph,inTensor,queue)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return queue
 class ExtractKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -185,6 +216,8 @@ def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(2,2,2)
     raw_data2 = np.random.randn(4,4)
+    
+    # Concatentation kernel unit tests
     KernelExecutionUnitTest_Object = ConcatenationKernelUnitTest()
     axis = 0
     res = KernelExecutionUnitTest_Object.TestConcatenationKernelExecution(raw_data, axis)
@@ -201,17 +234,29 @@ def test_execute():
         res = KernelExecutionUnitTest_Object.TestUnequalDimensionsError()
     del KernelExecutionUnitTest_Object
 
+    # Enqueue kernel unit tests
     KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestEnqueueKernelExecution(raw_data)
     assert np.all(res.peek().data == raw_data)
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestNonMatchingElementShape(raw_data)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestNonMatchingTypes(raw_data)
+    with pytest.raises(TypeError):
+        res = KernelExecutionUnitTest_Object.TestNonScalarEnqueueFlag(raw_data)
     with pytest.raises(TypeError):
         res = KernelExecutionUnitTest_Object.TestInvalidOutputType(raw_data)
     del KernelExecutionUnitTest_Object
+    
     KernelExecutionUnitTest_Object = EnqueueKernelUnitTest()
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestInvalidCapacity(raw_data)
     del KernelExecutionUnitTest_Object
     
+    # Extract Kernel unit tests
     KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestExtractKernelExecution(raw_data2)
     extracted_data = raw_data2[0,:]
