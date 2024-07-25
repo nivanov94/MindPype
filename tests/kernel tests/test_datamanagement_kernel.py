@@ -390,7 +390,7 @@ def test_execute():
     del KernelExecutionUnitTest_Object    
 
     KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
-    with pytest.raises(TypeError) as e_info:
+    with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestUnsufficientOutputCapacity(raw_data)    
     del KernelExecutionUnitTest_Object    
 
