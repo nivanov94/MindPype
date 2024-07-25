@@ -352,7 +352,7 @@ class Scalar(MPBase):
         -------
         [int, float, complex]
         """
-        return [int, float, complex, str, bool]
+        return [int, float, complex, bool]
 
     # Factory Methods
     @classmethod
