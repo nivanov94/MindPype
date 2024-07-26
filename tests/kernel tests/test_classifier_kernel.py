@@ -1,15 +1,22 @@
 import sklearn.discriminant_analysis
 import mindpype as mp
 import numpy as np
+import pytest
 
 class ClassifierKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestClassifierKernelExecution(self, raw_data, init_data, init_labels_data):
-        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        mp_clsf = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+    def TestClassifierKernelExecution(self, raw_data, init_data, init_labels_data, test_invalid_input=False, test_invalid_classifiers=False):
+        if test_invalid_input:
+            inTensor = mp.Scalar.create_from_value(self.__session, "test")
+        else:
+            inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        if test_invalid_classifiers:
+            mp_clsf = mp.Scalar.create_from_value(self.__session, "test")
+        else:
+            mp_clsf = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
         predictions = mp.Tensor.create(self.__session, init_labels_data.shape)
         init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
         init_labels = mp.Tensor.create_from_data(self.__session, init_labels_data)
@@ -31,5 +38,14 @@ def test_execute():
     classifier.fit(init_data, init_labels_data)
     expected_output = classifier.predict(raw_data)
     assert (res == expected_output).all()
+    
+    # test errors
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestClassifierKernelExecution(raw_data, init_data, init_labels_data, test_invalid_input=True)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ClassifierKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestClassifierKernelExecution(raw_data, init_data, init_labels_data, test_invalid_classifiers=True)
     del KernelExecutionUnitTest_Object
     
