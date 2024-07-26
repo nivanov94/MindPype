@@ -76,6 +76,6 @@ def test_execute():
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = RiemannMDMKernelUnitTest()
-    with pytest.raises(TypeError) as e_info:
+    with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestRiemannMDMKernelExecution(raw_data, init_data, init_label_data, test_single_covaraince_error=True)
     del KernelExecutionUnitTest_Object
