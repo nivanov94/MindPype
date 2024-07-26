@@ -43,7 +43,7 @@ class RiemannDistanceKernelUnitTest:
         template = mp.Tensor.create_from_data(self.__session, raw_data)
         input1 = mp.Array.create(self.__session, 3, template)
         input2 = mp.Array.create(self.__session, 3, template)
-        output = mp.Array.create(self.__session, 3, template)
+        output = mp.Array.create(self.__session, 9, template)
         tensor_test_node = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph,input1,input2,output)
 
         self.__graph.verify()
@@ -70,6 +70,19 @@ class RiemannDistanceKernelUnitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
+        
+    def TestIncorrectCapcity(self, raw_data):
+        template = mp.Tensor.create_from_data(self.__session, raw_data)
+        input1 = mp.Array.create(self.__session, 3, template)
+        input2 = mp.Array.create(self.__session, 3, template)
+        output = mp.Array.create(self.__session, 100, template)
+        tensor_test_node = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph,input1,input2,output)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return input1
+    
             
 def test_execute():
     np.random.seed(44)
@@ -107,5 +120,17 @@ def test_execute():
     with pytest.raises(TypeError) as e_info:
         res = KernelExecutionUnitTest_Object.TestArrayRiemannDistance(raw_data1)
     del KernelExecutionUnitTest_Object
+    
+    raw_2d_1 = np.random.randn(10,10)
+    KernelExecutionUnitTest_Object = RiemannDistanceKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestArrayRiemannDistance(raw_2d_1)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = RiemannDistanceKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestIncorrectCapcity(raw_2d_1)
+    del KernelExecutionUnitTest_Object
+
     
 test_execute()
