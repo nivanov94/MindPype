@@ -26,10 +26,10 @@ class RiemannDistanceKernel(Kernel):
     graph : Graph
         Graph that the kernel should be added to
 
-    inA : Tensor or Array
+    inA : Tensor
         Input 1 data
 
-    inB : Tensor or Array
+    inB : Tensor
         Input 2 data
 
     outA : Tensor or Scalar
@@ -73,10 +73,10 @@ class RiemannDistanceKernel(Kernel):
         Parameters
         ----------
 
-        inA : Tensor or Array
+        inA : Tensor 
             Input 1 data
 
-        inB : Tensor or Array
+        inB : Tensor
             Input 2 data
         """
         out_sz = []
@@ -99,19 +99,7 @@ class RiemannDistanceKernel(Kernel):
                 else:
                     out_sz.append(1)
             else:
-                #ensure it is an array of 2D tensors
-                param_rank = param.capacity
-                for i in range(param_rank):
-                    e = param.get_element(i)
-                    if not isinstance(e,Tensor) or len(e.shape) != 2:
-                        raise TypeError("RiemannianDistance kernel: All elements of input array must be 2D tensors")
-
-                    if mat_sz == None:
-                        mat_sz = e.shape
-                    elif mat_sz != e.shape:
-                        return ()
-
-                out_sz.append(param_rank)
+                raise TypeError("RiemannianDistance kernel: Input should be tensor")
 
         return tuple(out_sz)
 
@@ -125,9 +113,8 @@ class RiemannDistanceKernel(Kernel):
 
         # first ensure the input and output are tensors or Arrays of Tensors
         for param in (inA, inB, outA):
-            if (param.mp_type != MPEnums.TENSOR and
-                param.mp_type != MPEnums.ARRAY):
-                raise TypeError("RiemannianDistance kernel: All inputs and outputs must be Tensors or Arrays")
+            if (param.mp_type != MPEnums.TENSOR):
+                raise TypeError("RiemannianDistance kernel: All inputs and outputs must be Tensors")
 
         out_sz = self._compute_output_shape(inA, inB)
         num_combos = out_sz[0]*out_sz[1]
@@ -141,18 +128,7 @@ class RiemannDistanceKernel(Kernel):
         if (outA.mp_type == MPEnums.TENSOR and
             outA.shape != out_sz):
             raise ValueError("RiemannianDistance kernel: Output shape does not match expected shape")
-        elif outA.mp_type == MPEnums.ARRAY:
-            if outA.capacity != num_combos:
-                raise ValueError("RiemannianDistance kernel: Output array capacity does not match expected capacity")
-
-            for i in range(outA.capacity):
-                e = outA.get_element(i)
-                if ((e.mp_type != MPEnums.TENSOR and
-                     e.mp_type != MPEnums.SCALAR) or
-                    (e.mp_type == MPEnums.TENSOR and np.squeeze(e.shape) != ()) or
-                    (e.mp_type == MPEnums.SCALAR and e.data_type != float)):
-                    raise TypeError("RiemannianDistance kernel: All elements of output array must be single-valued Tensors or Scalars")
-
+    
     def _process_data(self, inputs, outputs):
         """
         Execute the kernel and calculate the mean
@@ -160,11 +136,11 @@ class RiemannDistanceKernel(Kernel):
         Parameters
         ----------
 
-        inputs: list of Tensors or Arrays
-            Input data container, list of length 2
+        inputs: Tensor
+            Input data container
 
-        outputs: list of Tensors or Scalars
-            Output data container, list of length 1
+        outputs: Tensor or Scalar
+            Output data container
         """
         def get_obj_data_at_index(obj,index,rank):
             """
@@ -173,7 +149,7 @@ class RiemannDistanceKernel(Kernel):
             Parameters
             ----------
 
-            obj: Tensor or Array
+            obj: Tensor 
                 Data container to extract data from
             
             index: Int
@@ -193,17 +169,15 @@ class RiemannDistanceKernel(Kernel):
                     return obj.data
                 else:
                     return obj.data[index,:,:]
-            else:
-                return obj.get_element(index).data
 
         def set_obj_data_at_index(obj,index,data):
             """
-            Set value at specified index from tensor or array
+            Set value at specified index from tensor 
 
             Parameters
             ----------
 
-            obj: Tensor or Array
+            obj: Tensor 
                 Data container to extract data from
             
             index: Int
@@ -216,12 +190,6 @@ class RiemannDistanceKernel(Kernel):
                 tensor_data = obj.data # need to extract and edit numpy array b/c tensor currently does not allow sliced modifications
                 tensor_data[index] = data
                 obj.data = tensor_data
-            else:
-                e = obj.get_element(index[0]*index[1])
-                if e.mp_type == MPEnums.TENSOR:
-                    e.data = np.asarray([[data]])
-                else:
-                    e.data = data
 
         out_sz = []
         for in_param in inputs:
@@ -230,8 +198,6 @@ class RiemannDistanceKernel(Kernel):
                     m = in_param.shape[0]
                 else:
                     m = 1
-            else:
-                m = in_param.capacity
 
             out_sz.append(m)
 
@@ -257,10 +223,10 @@ class RiemannDistanceKernel(Kernel):
         graph : Graph
             Graph that the kernel should be added to
 
-        inA : Tensor or Array
+        inA : Tensor
             Input 1 data
 
-        inB : Tensor or Array
+        inB : Tensor
             Input 2 data
 
         outA : Tensor or Scalar
