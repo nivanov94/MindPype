@@ -10,7 +10,7 @@ class RiemannMDMKernelUnitTest:
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestRiemannMDMKernelExecution(self, raw_data, init_data, init_label_data, test_invalid_input=False, test_invalid_output=False):
+    def TestRiemannMDMKernelExecution(self, raw_data, init_data, init_label_data, test_invalid_input=False, test_invalid_output=False, test_single_covaraince_error=False):
         if test_invalid_input:
             inTensor = mp.Scalar.create_from_value(self.__session, "test")
             output_shape=(10,)
@@ -21,6 +21,8 @@ class RiemannMDMKernelUnitTest:
             
         if test_invalid_output:
             outTensor = mp.Array.create(self.__session, 3, inTensor)
+        elif test_single_covaraince_error:
+            outTensor = mp.Scalar.create(self.__session, int)
         else:
             outTensor = mp.Tensor.create(self.__session, output_shape)
         init_inputs = mp.Tensor.create_from_data(self.__session, init_data)
@@ -71,4 +73,9 @@ def test_execute():
     KernelExecutionUnitTest_Object = RiemannMDMKernelUnitTest()
     with pytest.raises(TypeError) as e_info:
         res = KernelExecutionUnitTest_Object.TestRiemannMDMKernelExecution(raw_data, init_data, init_label_data, test_invalid_output=True)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = RiemannMDMKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestRiemannMDMKernelExecution(raw_data, init_data, init_label_data, test_single_covaraince_error=True)
     del KernelExecutionUnitTest_Object
