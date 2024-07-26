@@ -138,7 +138,7 @@ class RiemannDistanceKernel(Kernel):
             outA.shape = out_sz
 
 
-        if (outA.mp_type != MPEnums.TENSOR and
+        if (outA.mp_type == MPEnums.TENSOR and
             outA.shape != out_sz):
             raise ValueError("RiemannianDistance kernel: Output shape does not match expected shape")
         elif outA.mp_type == MPEnums.ARRAY:
