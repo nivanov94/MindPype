@@ -30,6 +30,14 @@ class SlopeKernelUnitTest:
 
         return (inTensor, outTensor.data)
     
+    def TestInvalidOutputSize(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, (100,100))
+        tensor_test_node = mp.kernels.SlopeKernel.add_to_graph(self.__graph,inTensor,outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
 def test_execute():
     
     KernelExecutionUnitTest_Object = SlopeKernelUnitTest()
@@ -59,7 +67,20 @@ def test_execute():
         res = KernelExecutionUnitTest_Object.TestSlopeKernelExecution(raw_data, axis, test_output_error=True)
     del KernelExecutionUnitTest_Object
     
+    # test invalid frequency
     KernelExecutionUnitTest_Object = SlopeKernelUnitTest()
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestSlopeKernelExecution(raw_data, axis, Fs=0)
     del KernelExecutionUnitTest_Object
+
+    # test invalid axis
+    KernelExecutionUnitTest_Object = SlopeKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestSlopeKernelExecution(raw_data, 5, Fs=Fs)
+    del KernelExecutionUnitTest_Object  
+    
+    KernelExecutionUnitTest_Object = SlopeKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestInvalidOutputSize(raw_data)
+    del KernelExecutionUnitTest_Object  
+    
