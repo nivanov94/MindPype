@@ -1,6 +1,7 @@
 import mindpype as mp
 import numpy as np
 from pyriemann.estimation import XdawnCovariances
+from scipy import signal
 
 class MiscPipelineUnitTest:
     def __init__(self):
@@ -19,7 +20,7 @@ class MiscPipelineUnitTest:
             mp.Tensor.create_virtual(self.__session),
             mp.Tensor.create_virtual(self.__session)
         ]
-        node1 = mp.kernels.PadKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], pad_width=1, init_input=init_data, init_labels=init_label_data)
+        node1 = mp.kernels.PadKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], pad_width=1, init_input=init_data, init_labels=init_labels)
         # node1 = mp.kernels.TransposeKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], axes=[0,1], init_input=init_data)
         node2 = mp.kernels.CommonSpatialPatternKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1])
 
@@ -51,6 +52,54 @@ class Misc2PipelineUnitTest():
         self.__graph.execute()
 
         return outTensor.data
+    
+class Misc3PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc3PipelineExecution(self, input_data, thresh, init_data, init_label_data):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, init_label_data)
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        thresh = mp.Scalar.create_from_value(self.__session, thresh)
+        outTensor = mp.Tensor.create(self.__session, (10,10,10))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session),
+        ]
+        node1 = mp.kernels.ThresholdKernel.add_to_graph(self.__graph,inTensor,virtual_tensors[0],thresh=thresh, init_input=init_data, init_labels=init_labels)
+        node2 = mp.kernels.XDawnCovarianceKernel.add_to_graph(self.__graph, virtual_tensors[0], outTensor)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data
+    
+class Misc4PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc4PipelineExecution(self, input_data, init_data, init_label_data, factor):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, init_label_data)
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (10,16,16))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session),
+        ]
+        node1 = mp.kernels.ResampleKernel.add_to_graph(self.__graph,inTensor, factor, virtual_tensors[0], init_input=init_data, init_labels=init_labels)
+        node2 = mp.kernels.XDawnCovarianceKernel.add_to_graph(self.__graph, virtual_tensors[0], outTensor)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data
+    
         
     
 def test_execute():
@@ -58,7 +107,7 @@ def test_execute():
     raw_data = np.random.randn(10,10,10)
     init_data = np.random.randn(10,10,10)
     init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
-
+    factor = 1
     # KernelExecutionUnitTest_Object = MiscPipelineUnitTest()
     # res = KernelExecutionUnitTest_Object.TestMiscPipelineExecution(raw_data, init_data, init_label_data)
     
@@ -82,4 +131,26 @@ def test_execute():
     expected_output = xdawn_estimator.transform(expected_output)
 
     assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+    # KernelExecutionUnitTest_Object = Misc3PipelineUnitTest()
+    # thresh_val=1
+    # res = KernelExecutionUnitTest_Object.TestMisc3PipelineExecution(raw_data, thresh_val, init_data, init_label_data)
+    # data_after_thresh = raw_data > thresh_val
+    # init_after_thresh = init_data > thresh_val
+    # xdawn_estimator = XdawnCovariances()
+    # xdawn_estimator.fit(init_after_thresh, init_label_data)
+    # expected_output = xdawn_estimator.transform(data_after_thresh)
+    # assert (res == expected_output).all()
+    # del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = Misc4PipelineUnitTest()
+    res = KernelExecutionUnitTest_Object.TestMisc4PipelineExecution(raw_data, init_data, init_label_data, factor)
+    output1 = signal.resample(raw_data, np.ceil(raw_data.shape[1] * factor).astype(int),axis=1)
+    resampled_init = signal.resample(init_data, np.ceil(init_data.shape[1] * factor).astype(int),axis=1)
+    xdawn_estimator = XdawnCovariances()
+    xdawn_estimator.fit(resampled_init, init_label_data)
+    expected_output = xdawn_estimator.transform(output1)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
 test_execute()
