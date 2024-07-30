@@ -288,6 +288,28 @@ class StackKernelUnitTest:
         self.__graph.execute()
         return outTensor.data
     
+    def TestNonArrayInputError(self, raw_data1):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data1)
+        outTensor = mp.Tensor.create(self.__session, inTensor.shape)
+        tensor_test_node = mp.kernels.StackKernel.add_to_graph(self.__graph,inTensor,outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data
+    
+    def TestInvalidOutputShape(self, raw_data1, raw_data2):
+        tensor1 = mp.Tensor.create_from_data(self.__session, raw_data1)
+        tensor2 = mp.Tensor.create_from_data(self.__session, raw_data2)
+        inArray = mp.Array.create(self.__session, 2, tensor1)
+        inArray.set_element(0,tensor1)
+        inArray.set_element(1,tensor2)
+        outTensor = mp.Tensor.create(self.__session, (1,1,1)) # invalid output shape
+        tensor_test_node = mp.kernels.StackKernel.add_to_graph(self.__graph,inArray,outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data
+        
 class TensorStackKernelUnitTest:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -300,6 +322,17 @@ class TensorStackKernelUnitTest:
         output_shape = inTensor1.shape[:ax] + (2,) + inTensor1.shape[ax:]
         outTensor = mp.Tensor.create(self.__session, output_shape)
         tensor_test_node = mp.kernels.TensorStackKernel.add_to_graph(self.__graph,inTensor1,inTensor2, outTensor,axis=ax)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data
+    
+    def TestNonTensorErrors(self, ax):
+        input1 = mp.Scalar.create_from_value(self.__session, "test")
+        input2 = mp.Scalar.create_from_value(self.__session, "test")
+        # compute outTensor shape
+        outTensor = mp.Tensor.create(self.__session, (1,1,1))
+        tensor_test_node = mp.kernels.TensorStackKernel.add_to_graph(self.__graph,input1,input2, outTensor,axis=ax)
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
@@ -318,7 +351,7 @@ class ReshapeKernelUnitTest:
         self.__graph.initialize()
         self.__graph.execute()
         return outTensor.data
-
+        
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(2,2,2)
@@ -433,15 +466,42 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+    # test non array input error
+    KernelExecutionUnitTest_Object = StackKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestNonArrayInputError(raw_data)    
+    del KernelExecutionUnitTest_Object  
+    
+    # test array with different shaped tensors
+    KernelExecutionUnitTest_Object = StackKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestStackKernelExecution(raw_data, raw_data2, axis)
+    del KernelExecutionUnitTest_Object
+    
+    # test invalid output shape for tensor stack kernel
+    KernelExecutionUnitTest_Object = StackKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestInvalidOutputShape(raw_data2, raw_data2)    
+    del KernelExecutionUnitTest_Object  
+    
+    # test tensor stack kernel execution
     KernelExecutionUnitTest_Object = TensorStackKernelUnitTest()
     res = KernelExecutionUnitTest_Object.TestTensorStackKernelExecution(raw_data2, raw_data2, axis)
     expected_output = np.stack([raw_data2, raw_data2], axis = 0)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+    # test error with non tensor input and output
+    KernelExecutionUnitTest_Object = TensorStackKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestNonTensorErrors(axis)
+    del KernelExecutionUnitTest_Object
+    
+    # test reshape kernel execution
     KernelExecutionUnitTest_Object = ReshapeKernelUnitTest()
     new_shape = (2,8)
     res = KernelExecutionUnitTest_Object.TestReshapeKernelExecution(raw_data2, new_shape)
     expected_output = np.reshape(raw_data2, newshape=new_shape)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
+    
