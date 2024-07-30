@@ -48,6 +48,30 @@ class RiemannPotatoKernelUnitTest:
         self.__graph.execute()
         
         return outTensor.data
+    
+    def TestScalarOutput(self, raw_data, init_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        initTensor = mp.Tensor.create_from_data(self.__session, init_data)
+        outTensor = mp.Scalar.create(self.__session, int)
+        tensor_test_node = mp.kernels.RiemannPotatoKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor, regularization=0)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+        return outTensor.data 
+    
+    def TestMultiDimensionalOutputError(self, raw_data, init_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        initTensor = mp.Tensor.create_from_data(self.__session, init_data)
+        outTensor = mp.Tensor.create(self.__session, inTensor.shape)
+        tensor_test_node = mp.kernels.RiemannPotatoKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor, regularization=0)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+        return outTensor.data    
 
 def test_execute():
     np.random.seed(44)
@@ -70,7 +94,7 @@ def test_execute():
     
     assert(res == expected_output).all()
     del KernelExecutionUnitTest_Object
-
+    
     # test max iter error
     KernelExecutionUnitTest_Object = RiemannPotatoKernelUnitTest()
     with pytest.raises(ValueError) as e_info:
@@ -100,4 +124,14 @@ def test_execute():
         res = KernelExecutionUnitTest_Object.TestNonTensorOutputError(raw_data, init_data, max_iter= 100, thresh=thresh)
     del KernelExecutionUnitTest_Object
     
+    # test scalar output single covariance error
+    KernelExecutionUnitTest_Object = RiemannPotatoKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestScalarOutput(raw_data, init_data)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = RiemannPotatoKernelUnitTest()
+    with pytest.raises(ValueError):
+        res = KernelExecutionUnitTest_Object.TestMultiDimensionalOutputError(raw_data, init_data)
+    del KernelExecutionUnitTest_Object
 test_execute()
