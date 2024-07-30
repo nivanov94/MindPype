@@ -181,7 +181,7 @@ def test_execute():
     KernelExecutionUnitTest_Object = Misc5PipelineUnitTest()
     raw_data = np.random.randn(50,26)
     init_data = np.random.randn(50,26)
-    init_labels_data = np.random.randint(0,4, (50,))
+    init_labels_data = np.random.randint(0,2, (50,))
     res = KernelExecutionUnitTest_Object.TestMisc5PipelineExecution(raw_data, init_data, init_labels_data)
     model = SelectKBest(k=10)
     model.fit(init_data, init_labels_data)
