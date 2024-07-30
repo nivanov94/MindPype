@@ -30,8 +30,8 @@ class CSPPipelinenitTest:
         # create classifier
         classifier = mp.Classifier.create_LDA(self.__session)
 
-        node1 = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor, filter, virtual_tensors[0])
-        node2 = mp.kernels.CommonSpatialPatternKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1], training_data, labels)
+        node1 = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor, filter, virtual_tensors[0], init_input=training_data, init_labels=labels)
+        node2 = mp.kernels.CommonSpatialPatternKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1])
         node3 = mp.kernels.VarKernel.add_to_graph(self.__graph, virtual_tensors[1], virtual_tensors[2], axis=1)
         node4 = mp.kernels.LogKernel.add_to_graph(self.__graph, virtual_tensors[2], virtual_tensors[3])
         node5 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[3], classifier, outTensor)
@@ -59,10 +59,11 @@ def test_execute():
     # manually perform operations
     filter = signal.butter(order,bandpass,btype='bandpass',output='sos',fs=fs)
     filtered_data = signal.sosfilt(filter,input_data, axis=1)
+    filtered_init_data = signal.sosfilt(filter, training_data, axis=1)
     csp = mne.decoding.CSP(cov_est='concat', transform_into='csp_space')
-    csp.fit(training_data, labels)
+    csp.fit(filtered_init_data, labels)
     
-    csp_training_data = csp_data = csp.transform(training_data)
+    csp_training_data = csp_data = csp.transform(filtered_init_data)
     var_training_data = np.var(csp_training_data, axis=1)
     log_training_data = np.log(var_training_data)
     
