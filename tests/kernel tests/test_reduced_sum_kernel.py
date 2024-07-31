@@ -54,7 +54,37 @@ class ReducedSumKernelUnitTest:
         
         return output
         
+    def TestNonNumericScalarOutputError(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        output = mp.Scalar.create(self.__session, str)
+        tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,  inTensor, output)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+        return output
     
+    def TestInvalidOutputShapeError(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        outTensor = mp.Tensor.create(self.__session, (1,1,1))
+        tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,  inTensor, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+        return outTensor.data
+    
+    def TestMultidimensionalScalarOutputError(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        output = mp.Scalar.create(self.__session, int)
+        tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,  inTensor, output)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+        return output
+    
+        
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(2,2,2)
@@ -72,4 +102,19 @@ def test_execute():
     KernelExecutionUnitTest_Object = ReducedSumKernelUnitTest()
     with pytest.raises(TypeError) as e_info:
         res= KernelExecutionUnitTest_Object.TestInvalidOutputType(raw_data)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ReducedSumKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res= KernelExecutionUnitTest_Object.TestNonNumericScalarOutputError(raw_data)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ReducedSumKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res= KernelExecutionUnitTest_Object.TestInvalidOutputShapeError(raw_data)
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ReducedSumKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res= KernelExecutionUnitTest_Object.TestMultidimensionalScalarOutputError(raw_data)
     del KernelExecutionUnitTest_Object
