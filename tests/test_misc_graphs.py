@@ -1,9 +1,12 @@
+import pyriemann.utils
+import pyriemann.utils.covariance
 import mindpype as mp
 import numpy as np
 from pyriemann.estimation import XdawnCovariances
 from scipy import signal
 from sklearn.feature_selection import SelectKBest
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+import pyriemann
 
 class MiscPipelineUnitTest:
     def __init__(self):
@@ -124,13 +127,63 @@ class Misc5PipelineUnitTest():
         self.__graph.initialize()
         self.__graph.execute()
 
-        return outTensor.data        
+        return outTensor.data   
+    
+class Misc6PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc6PipelineExecution(self, input_data, init_data):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (4,10))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session),
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        node1 = mp.kernels.PadKernel.add_to_graph(self.__graph,inTensor, virtual_tensors[0], pad_width=1, init_input=init_data)
+        node2 = mp.kernels.CovarianceKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1], regularization=0.001)
+        node3 = mp.kernels.TangentSpaceKernel.add_to_graph(self.__graph, virtual_tensors[1], outTensor)
+
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data  
+    
+class Misc7PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc7PipelineExecution(self, input_data, init_data, labels):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (inTensor.shape[0],))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        
+        node1 = mp.kernels.SlopeKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], init_input=init_data, init_labels=init_labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data      
     
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(10,10,10)
     init_data = np.random.randn(10,10,10)
-    init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    init_label_data = np.concatenate((np.zeros((6,)), np.ones((6,))))
     factor = 1
     # KernelExecutionUnitTest_Object = MiscPipelineUnitTest()
     # res = KernelExecutionUnitTest_Object.TestMiscPipelineExecution(raw_data, init_data, init_label_data)
@@ -140,6 +193,7 @@ def test_execute():
 
     # del KernelExecutionUnitTest_Object
     
+    init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,)))) 
     KernelExecutionUnitTest_Object = Misc2PipelineUnitTest()
     res = KernelExecutionUnitTest_Object.TestMisc2PipelineExecution(raw_data, init_data, init_label_data)
     baseline = np.mean(raw_data[..., 0:10],
@@ -178,18 +232,59 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    KernelExecutionUnitTest_Object = Misc5PipelineUnitTest()
     raw_data = np.random.randn(50,26)
     init_data = np.random.randn(50,26)
     init_labels_data = np.random.randint(0,2, (50,))
+    KernelExecutionUnitTest_Object = Misc5PipelineUnitTest()
     res = KernelExecutionUnitTest_Object.TestMisc5PipelineExecution(raw_data, init_data, init_labels_data)
     model = SelectKBest(k=10)
     model.fit(init_data, init_labels_data)
-    init_data = model.transform(init_data)
-    output1 = model.transform(raw_data)
+    init_data_after_feature_sel = model.transform(init_data)
+    rwa_data_after_feature_sel = model.transform(raw_data)
     classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
-    classifier.fit(init_data, init_labels_data)
-    expected_output = classifier.predict(output1)
+    classifier.fit(init_data_after_feature_sel, init_labels_data)
+    expected_output = classifier.predict(rwa_data_after_feature_sel)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = Misc7PipelineUnitTest()
+    res = KernelExecutionUnitTest_Object.TestMisc7PipelineExecution(raw_data, init_data, init_labels_data)
+    # manual calculation
+    axis = -1
+    Fs = 1
+    Ns = raw_data.shape[axis]
+    X = np.linspace(0, Ns/Fs, Ns)
+    Y = np.moveaxis(raw_data, axis, -1)
+    X -= np.mean(X)
+    Y -= np.mean(Y, axis=-1, keepdims=True)
+    raw_data_after_slope = np.expand_dims(Y.dot(X) / X.dot(X), axis=-1)
+    
+    Ns = init_data.shape[axis]
+    X = np.linspace(0, Ns/Fs, Ns)
+    Y = np.moveaxis(init_data, axis, -1)
+    X -= np.mean(X)
+    Y -= np.mean(Y, axis=-1, keepdims=True)
+    init_data_after_slope = np.expand_dims(Y.dot(X) / X.dot(X), axis=-1)
+    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    classifier.fit(init_data_after_slope, init_labels_data)
+    expected_output = classifier.predict(raw_data_after_slope)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+    # KernelExecutionUnitTest_Object = Misc6PipelineUnitTest()
+    # raw_data = np.random.randn(2,2,2)
+    # init_data = np.random.randn(2,2,2)
+    # r = 0.001
+    # res = KernelExecutionUnitTest_Object.TestMisc6PipelineExecution(raw_data, init_data)
+    # padded_data = np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)
+    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
+    # cov_data = pyriemann.utils.covariance.covariances(padded_data)
+    # cov_data = (1-r)*cov_data + r*np.diag(np.ones(cov_data.shape[-1]))
+    # cov_init = pyriemann.utils.covariance.covariances(padded_init)
+    # cov_init = (1-r)*cov_init + r*np.diag(np.ones(cov_init.shape[-1]))
+    # tangent_space = pyriemann.tangentspace.TangentSpace()
+    # tangent_space.fit(cov_init)
+    # output = tangent_space.transform(cov_data)
+    # assert (res == output).all()
+
 test_execute()
