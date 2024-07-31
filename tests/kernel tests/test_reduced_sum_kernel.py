@@ -1,5 +1,6 @@
 import mindpype as mp
 import numpy as np
+import pytest
 
 class ReducedSumKernelUnitTest:
     def __init__(self):
@@ -32,7 +33,28 @@ class ReducedSumKernelUnitTest:
         self.__graph.execute()
         
         return outTensor.data
-
+    
+    def TestNonTensorInputError(self):
+        input = mp.Scalar.create_from_value(self.__session, "test")
+        outTensor = mp.Tensor.create(self.__session, (1,1,1))
+        tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,input,outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+        return outTensor.data
+    
+    def TestInvalidOutputType(self, raw_data):
+        inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
+        output = mp.Array.create(self.__session, 3, inTensor)
+        tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,  inTensor, output)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        
+        return output
+        
+    
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(2,2,2)
@@ -42,5 +64,12 @@ def test_execute():
     res = KernelExecutionUnitTest_Object.TestReducedSumKernelExecution(raw_data, axis, keep_dims)
     expected_output = np.sum(raw_data, axis = None)
     assert (res == expected_output).all()
+    
+    with pytest.raises(TypeError) as e_info:
+        res= KernelExecutionUnitTest_Object.TestNonTensorInputError()
     del KernelExecutionUnitTest_Object
     
+    KernelExecutionUnitTest_Object = ReducedSumKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res= KernelExecutionUnitTest_Object.TestInvalidOutputType(raw_data)
+    del KernelExecutionUnitTest_Object
