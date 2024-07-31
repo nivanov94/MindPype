@@ -188,7 +188,7 @@ class Misc8PipelineUnitTest():
         init_data = mp.Tensor.create_from_data(self.__session, init_data)
         init_labels = mp.Tensor.create_from_data(self.__session, labels)
         inTensor = mp.Tensor.create_from_data(self.__session, input_data)
-        outTensor = mp.Tensor.create(self.__session, (inTensor.shape[0],))
+        outTensor = mp.Tensor.create(self.__session, (52,))
         
         virtual_tensors = [
             mp.Tensor.create_virtual(self.__session)
@@ -297,6 +297,7 @@ def test_execute():
     del KernelExecutionUnitTest_Object
     
     KernelExecutionUnitTest_Object = Misc8PipelineUnitTest()
+    init_labels_data = np.random.randint(0,2, (52,))
     res = KernelExecutionUnitTest_Object.TestMisc8PipelineExecution(raw_data, init_data, init_labels_data)
     padded_data = np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)
     padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
@@ -305,6 +306,7 @@ def test_execute():
     expected_output = classifier.predict(padded_data)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
+    
     # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
     # KernelExecutionUnitTest_Object = Misc6PipelineUnitTest()
     # raw_data = np.random.randn(2,2,2)
