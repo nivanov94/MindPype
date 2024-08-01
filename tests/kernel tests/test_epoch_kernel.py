@@ -40,7 +40,7 @@ class EpochKernelUnitTest:
         
     def TestWrongOutputShape(self, raw_data, epoch_length, epoch_stride, ax):
         input = mp.Tensor.create_from_data(self.__session, raw_data)
-        output = mp.Tensor.create(self.__session, shape=(100,100))
+        output = mp.Tensor.create(self.__session, raw_data.shape*100)
         node = mp.kernels.EpochKernel.add_to_graph(self.__graph,input,output,epoch_len=epoch_length, epoch_stride=epoch_stride, axis=ax)
         self.__graph.verify()
         self.__graph.initialize()

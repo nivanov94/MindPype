@@ -40,7 +40,7 @@ class ConcatenationKernelUnitTest:
     def TestWrongOutputSizeError(self, raw_data):
         inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data)
         inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (1,2,3))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape*100)
         tensor_test_node = mp.kernels.ConcatenationKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor,axis=1)
         self.__graph.verify()
         self.__graph.initialize()

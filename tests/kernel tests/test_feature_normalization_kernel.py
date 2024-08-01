@@ -13,7 +13,7 @@ class FeatureNormalizationKernelUnitTest:
         else:
             inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         if test_invalid_output_shape:
-            outTensor = mp.Tensor.create(self.__session, (100,100))
+            outTensor = mp.Tensor.create(self.__session, raw_data.shape*100)
         else:
             outTensor = mp.Tensor.create(self.__session,raw_data.shape)
         initialization_tensor = mp.Tensor.create_from_data(self.__session, init_data)

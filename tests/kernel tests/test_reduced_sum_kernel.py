@@ -66,7 +66,7 @@ class ReducedSumKernelUnitTest:
     
     def TestInvalidOutputShapeError(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
-        outTensor = mp.Tensor.create(self.__session, (1,1,1))
+        outTensor = mp.Tensor.create(self.__session, raw_data.shape*100)
         tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,  inTensor, outTensor)
         self.__graph.verify()
         self.__graph.initialize()
