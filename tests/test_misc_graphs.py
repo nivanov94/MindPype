@@ -256,7 +256,33 @@ class Misc10PipelineUnitTest():
         self.__graph.initialize()
         self.__graph.execute()
 
-        return outTensor.data     
+        return outTensor.data  
+    
+class Misc11PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc11PipelineExecution(self, input_data1, input_data2, init_data1, init_data2, labels):    
+        init_data1 = mp.Tensor.create_from_data(self.__session, init_data1)
+        init_data2 = mp.Tensor.create_from_data(self.__session, init_data2)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor1 = mp.Tensor.create_from_data(self.__session, input_data1)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, input_data2)
+        outTensor = mp.Tensor.create(self.__session, (4,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session),
+        ]
+        
+        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        
+        node1 = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph, inTensor1, inTensor2, virtual_tensors[0], init_inputs=[init_data1, init_data2], init_labels=init_labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data       
 
 def test_execute():
     np.random.seed(44)
@@ -394,6 +420,7 @@ def test_execute():
     raw_data = np.random.randn(16,10,10)
     init_data = np.random.randn(16,10,10)
     r = 0.001
+    raw_data = pyriemann.utils.covariance.covariances(raw_data)
     raw_data = (1-r)*raw_data + r*np.diag(np.ones(raw_data.shape[-1]))
     init_data = pyriemann.utils.covariance.covariances(init_data)
     init_data = (1-r)*init_data + r*np.diag(np.ones(init_data.shape[-1]))  
@@ -425,6 +452,40 @@ def test_execute():
     classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
     classifier.fit(concatenated_init, init_labels_data)
     expected_output = classifier.predict(concatenated_data)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = Misc11PipelineUnitTest()
+    raw_data1 = np.random.randn(4,4,4)
+    raw_data2 = np.random.randn(4,4,4)
+    init_data1 = np.random.randn(4,4,4)
+    init_data2 = np.random.randn(4,4,4)
+    raw_data1 = pyriemann.utils.covariance.covariances(raw_data1)
+    raw_data2 = pyriemann.utils.covariance.covariances(raw_data2)
+    init_data1 = pyriemann.utils.covariance.covariances(init_data1)
+    init_data2 = pyriemann.utils.covariance.covariances(init_data2)
+    r = 0.001
+    raw_data1 = (1-r)*raw_data1 + r*np.diag(np.ones(raw_data1.shape[-1]))
+    raw_data2 = (1-r)*raw_data2 + r*np.diag(np.ones(raw_data2.shape[-1]))
+    init_data1 = (1-r)*init_data1 + r*np.diag(np.ones(init_data1.shape[-1]))
+    init_data2 = (1-r)*init_data2 + r*np.diag(np.ones(init_data2.shape[-1]))
+    init_labels_data = np.concatenate((np.zeros((2,)), np.ones((2,))))
+    res = KernelExecutionUnitTest_Object.TestMisc11PipelineExecution(raw_data1, raw_data2, init_data1, init_data2, init_labels_data)
+    data_after_riem_dist = np.empty((4,4))
+    init_after_riem_dist = np.empty((4,4))
+    for i in range(4):
+        # extract the ith element from inA
+        x = raw_data1[i,:,:]
+        x_i = init_data1[i,:,:]
+        for j in range(4):
+            # extract the jth element from inB
+            y = raw_data2[j,:,:]
+            y_i = init_data2[j,:,:]
+            data_after_riem_dist[i,j] = pyriemann.utils.distance.distance_riemann(x,y)
+            init_after_riem_dist[i,j] = pyriemann.utils.distance.distance_riemann(x_i,y_i)
+    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    classifier.fit(init_after_riem_dist, init_labels_data)
+    expected_output = classifier.predict(data_after_riem_dist)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
