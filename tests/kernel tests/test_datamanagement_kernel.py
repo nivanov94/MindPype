@@ -7,9 +7,9 @@ class ConcatenationKernelUnitTest:
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestConcatenationKernelExecution(self, raw_data, ax):
-        inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data)
-        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data)
+    def TestConcatenationKernelExecution(self, raw_data1, raw_data2, ax):
+        inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data1)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data2)
         # compute outTensor size
         if len(inTensor1.shape) == len(inTensor2.shape):
             noncat_sz_A = [d for i,d in enumerate(inTensor1.shape) if i!=ax]
@@ -383,17 +383,26 @@ class ReshapeKernelUnitTest:
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(2,2,2)
+    raw_data1 = np.random.randn(2,2)
     raw_data2 = np.random.randn(4,4)
     
     # Concatentation kernel unit tests
     KernelExecutionUnitTest_Object = ConcatenationKernelUnitTest()
     axis = 0
-    res = KernelExecutionUnitTest_Object.TestConcatenationKernelExecution(raw_data, axis)
+    res = KernelExecutionUnitTest_Object.TestConcatenationKernelExecution(raw_data, raw_data, axis)
     output = np.concatenate((raw_data, raw_data), axis = axis)
     assert (res == output).all()
     
+    res = KernelExecutionUnitTest_Object.TestConcatenationKernelExecution(raw_data, raw_data1, axis)
+    output = np.concatenate((raw_data, np.reshape(raw_data1, (1,2,2))), axis = axis)
+    assert (res == output).all()
+    
+    res = KernelExecutionUnitTest_Object.TestConcatenationKernelExecution(raw_data1, raw_data, axis)
+    output = np.concatenate((np.reshape(raw_data1, (1,2,2)), raw_data), axis = axis)
+    assert (res == output).all()
+    
     with pytest.raises(TypeError) as e_info:
-        res = KernelExecutionUnitTest_Object.TestConcatNonTensorError(raw_data)
+        res = KernelExecutionUnitTest_Object.TestConcatNonTensorError()
     del KernelExecutionUnitTest_Object    
     KernelExecutionUnitTest_Object = ConcatenationKernelUnitTest()    
     with pytest.raises(ValueError) as e_info:
@@ -550,4 +559,4 @@ def test_execute():
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestInvalidOutputShapeError(raw_data)
     del KernelExecutionUnitTest_Object
-    
+test_execute()
