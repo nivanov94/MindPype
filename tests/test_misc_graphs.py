@@ -282,7 +282,32 @@ class Misc11PipelineUnitTest():
         self.__graph.initialize()
         self.__graph.execute()
 
-        return outTensor.data       
+        return outTensor.data    
+
+class Misc12PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc12PipelineExecution(self, input_data, init_data, labels):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (inTensor.shape[0],))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        
+        node1 = mp.kernels.RiemannMeanKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], init_input=init_data, init_labels=init_labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data      
 
 def test_execute():
     np.random.seed(44)
@@ -455,6 +480,7 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+    # test pipeline with riemann distance and classifier pipeline
     KernelExecutionUnitTest_Object = Misc11PipelineUnitTest()
     raw_data1 = np.random.randn(4,4,4)
     raw_data2 = np.random.randn(4,4,4)
@@ -486,6 +512,23 @@ def test_execute():
     classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
     classifier.fit(init_after_riem_dist, init_labels_data)
     expected_output = classifier.predict(data_after_riem_dist)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = Misc12PipelineUnitTest()
+    raw_data = np.random.randn(10,10,10)
+    raw_data = pyriemann.utils.covariance.covariances(raw_data)
+    init_data = pyriemann.utils.covariance.covariances(init_data)
+    r = 0.001
+    raw_data = (1-r)*raw_data + r*np.diag(np.ones(raw_data.shape[-1]))
+    init_data = (1-r)*init_data + r*np.diag(np.ones(init_data.shape[-1]))
+    init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    res = KernelExecutionUnitTest_Object.TestMisc12PipelineExecution(raw_data, init_data, init_labels_data)
+    data_after_riem_mean = pyriemann.utils.mean.mean_riemann(raw_data)
+    init_after_riem_mean = pyriemann.utils.mean.mean_riemann(init_data)
+    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    classifier.fit(init_after_riem_mean, init_labels_data)
+    expected_output = classifier.predict(data_after_riem_mean)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
