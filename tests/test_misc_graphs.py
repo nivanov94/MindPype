@@ -25,7 +25,6 @@ class MiscPipelineUnitTest:
             mp.Tensor.create_virtual(self.__session),
             mp.Tensor.create_virtual(self.__session)
         ]
-        node1 = mp.kernels.PadKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], pad_width=1, init_input=init_data, init_labels=init_labels)
         # node1 = mp.kernels.TransposeKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], axes=[0,1], init_input=init_data)
         node2 = mp.kernels.CommonSpatialPatternKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1])
 
@@ -202,7 +201,35 @@ class Misc8PipelineUnitTest():
         self.__graph.initialize()
         self.__graph.execute()
 
-        return outTensor.data     
+        return outTensor.data   
+    
+class Misc9PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc9PipelineExecution(self, input_data, init_data, labels):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (4,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session),
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        
+        node1 = mp.kernels.RiemannPotatoKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0]) #, initialization_data=init_data, labels=init_labels)
+        node1.add_initialization_data([init_data], init_labels)
+        node2 = mp.kernels.ReshapeKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1], shape=(4,4))
+        node3 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[1], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data    
     
 def test_execute():
     np.random.seed(44)
@@ -323,5 +350,27 @@ def test_execute():
     # tangent_space.fit(cov_init)
     # output = tangent_space.transform(cov_data)
     # assert (res == output).all()
+    
+    KernelExecutionUnitTest_Object = Misc9PipelineUnitTest()
+    raw_data = np.random.randn(16,10,10)
+    init_data = np.random.randn(16,10,10)
+    r = 0.001
+    raw_data = (1-r)*raw_data + r*np.diag(np.ones(raw_data.shape[-1]))
+    init_data = pyriemann.utils.covariance.covariances(init_data)
+    init_data = (1-r)*init_data + r*np.diag(np.ones(init_data.shape[-1]))  
+    init_labels_data = np.concatenate((np.zeros((2,)), np.ones((2,))))
+    res = KernelExecutionUnitTest_Object.TestMisc9PipelineExecution(raw_data, init_data, init_labels_data)
+    potato_filter = pyriemann.clustering.Potato()
+    potato_filter.fit(init_data)
+    init_after_potato = potato_filter.predict(init_data)
+    data_after_potato = potato_filter.predict(raw_data)
+    reshaped_init = np.reshape(init_after_potato, (4,4))
+    reshaped_data = np.reshape(data_after_potato, (4,4))
+    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    classifier.fit(reshaped_init, init_labels_data)
+    expected_output = classifier.predict(reshaped_data)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
 
 test_execute()
