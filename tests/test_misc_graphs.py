@@ -231,22 +231,50 @@ class Misc9PipelineUnitTest():
 
         return outTensor.data    
     
+class Misc10PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc10PipelineExecution(self, input_data_A, input_data_B, init_data_A, init_data_B, labels, axis):    
+        initA = mp.Tensor.create_from_data(self.__session, init_data_A)
+        initB = mp.Tensor.create_from_data(self.__session, init_data_B)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor1 = mp.Tensor.create_from_data(self.__session, input_data_A)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, input_data_B)
+        outTensor = mp.Tensor.create(self.__session, (4,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        
+        node1 = mp.kernels.ConcatenationKernel.add_to_graph(self.__graph, inTensor1, inTensor2, virtual_tensors[0], axis=axis, init_inputs=[initA, initB], init_labels=init_labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data     
+
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(10,10,10)
     init_data = np.random.randn(10,10,10)
-    init_label_data = np.concatenate((np.zeros((6,)), np.ones((6,))))
-    factor = 1
+    # init_label_data = np.concatenate((np.zeros((6,)), np.ones((6,))))
+    # factor = 1
     # KernelExecutionUnitTest_Object = MiscPipelineUnitTest()
     # res = KernelExecutionUnitTest_Object.TestMiscPipelineExecution(raw_data, init_data, init_label_data)
-    
     # expected_output = 1
     # assert(res == expected_output).all()
-
     # del KernelExecutionUnitTest_Object
     
-    init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,)))) 
+    # test pipeline with baseline and xDawn nodes
     KernelExecutionUnitTest_Object = Misc2PipelineUnitTest()
+    raw_data = np.random.randn(10,10,10)
+    init_data = np.random.randn(10,10,10)
+    init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,)))) 
     res = KernelExecutionUnitTest_Object.TestMisc2PipelineExecution(raw_data, init_data, init_label_data)
     baseline = np.mean(raw_data[..., 0:10],
                         axis=-1,
@@ -259,7 +287,6 @@ def test_execute():
     xdawn_estimator = XdawnCovariances()
     xdawn_estimator.fit(init_after_baseline, init_label_data)
     expected_output = xdawn_estimator.transform(expected_output)
-
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
@@ -274,20 +301,26 @@ def test_execute():
     # assert (res == expected_output).all()
     # del KernelExecutionUnitTest_Object
     
+    # test pipeline with resample and xDawn nodes
     KernelExecutionUnitTest_Object = Misc4PipelineUnitTest()
+    factor = 1
+    raw_data = np.random.randn(10,10,10)
+    init_data = np.random.randn(10,10,10)
+    init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,)))) 
     res = KernelExecutionUnitTest_Object.TestMisc4PipelineExecution(raw_data, init_data, init_label_data, factor)
-    output1 = signal.resample(raw_data, np.ceil(raw_data.shape[1] * factor).astype(int),axis=1)
+    resampled_data = signal.resample(raw_data, np.ceil(raw_data.shape[1] * factor).astype(int),axis=1)
     resampled_init = signal.resample(init_data, np.ceil(init_data.shape[1] * factor).astype(int),axis=1)
     xdawn_estimator = XdawnCovariances()
     xdawn_estimator.fit(resampled_init, init_label_data)
-    expected_output = xdawn_estimator.transform(output1)
+    expected_output = xdawn_estimator.transform(resampled_data)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+    # test pipeline with feature selection and classifier nodes
+    KernelExecutionUnitTest_Object = Misc5PipelineUnitTest()
     raw_data = np.random.randn(50,26)
     init_data = np.random.randn(50,26)
     init_labels_data = np.random.randint(0,2, (50,))
-    KernelExecutionUnitTest_Object = Misc5PipelineUnitTest()
     res = KernelExecutionUnitTest_Object.TestMisc5PipelineExecution(raw_data, init_data, init_labels_data)
     model = SelectKBest(k=10)
     model.fit(init_data, init_labels_data)
@@ -299,9 +332,12 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+    # test pipeline with slope and classifier nodes
     KernelExecutionUnitTest_Object = Misc7PipelineUnitTest()
+    raw_data = np.random.randn(50,26)
+    init_data = np.random.randn(50,26)
+    init_labels_data = np.random.randint(0,2, (50,))
     res = KernelExecutionUnitTest_Object.TestMisc7PipelineExecution(raw_data, init_data, init_labels_data)
-    # manual calculation
     axis = -1
     Fs = 1
     Ns = raw_data.shape[axis]
@@ -310,7 +346,6 @@ def test_execute():
     X -= np.mean(X)
     Y -= np.mean(Y, axis=-1, keepdims=True)
     raw_data_after_slope = np.expand_dims(Y.dot(X) / X.dot(X), axis=-1)
-    
     Ns = init_data.shape[axis]
     X = np.linspace(0, Ns/Fs, Ns)
     Y = np.moveaxis(init_data, axis, -1)
@@ -323,7 +358,10 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+    # test pipeline with pad and classifier nodes
     KernelExecutionUnitTest_Object = Misc8PipelineUnitTest()
+    raw_data = np.random.randn(50,26)
+    init_data = np.random.randn(50,26)
     init_labels_data = np.random.randint(0,2, (52,))
     res = KernelExecutionUnitTest_Object.TestMisc8PipelineExecution(raw_data, init_data, init_labels_data)
     padded_data = np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)
@@ -351,6 +389,7 @@ def test_execute():
     # output = tangent_space.transform(cov_data)
     # assert (res == output).all()
     
+    # test pipeline with riemann potato, reshape, and classifier nodes
     KernelExecutionUnitTest_Object = Misc9PipelineUnitTest()
     raw_data = np.random.randn(16,10,10)
     init_data = np.random.randn(16,10,10)
@@ -372,5 +411,21 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-
+    # test pipeline with concatenation and classifier nodes
+    KernelExecutionUnitTest_Object = Misc10PipelineUnitTest()
+    raw_data1 = np.random.randn(4,2)
+    raw_data2 = np.random.randn(4,2)
+    init_data1 = np.random.randn(4,2)
+    init_data2 = np.random.randn(4,2)
+    axis = 1
+    init_labels_data = np.concatenate((np.zeros((2,)), np.ones((2,))))
+    res = KernelExecutionUnitTest_Object.TestMisc10PipelineExecution(raw_data1, raw_data2, init_data1, init_data2, init_labels_data, axis)
+    concatenated_data = np.concatenate([raw_data1, raw_data2], axis=1)
+    concatenated_init = np.concatenate([init_data1, init_data2], axis=1)
+    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    classifier.fit(concatenated_init, init_labels_data)
+    expected_output = classifier.predict(concatenated_data)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
 test_execute()
