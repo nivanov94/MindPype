@@ -676,7 +676,7 @@ class Graph(MPBase):
         graph: Graph
         """
         graph = cls(sess)
-        sess.add_graph(graph)
+        sess.add_to_session(graph)
 
         return graph
 

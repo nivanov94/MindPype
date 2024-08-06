@@ -1,10 +1,3 @@
-"""
-Defines data container classes for MindPype.
-These classes are used to represent data in the MindPype framework.
-
-@author: Nicolas Ivanov, Aaron Lio
-"""
-
 from .core import MPBase, MPEnums
 import numpy as np
 
@@ -270,7 +263,7 @@ class Scalar(MPBase):
 
         # add the copy to the session
         sess = self.session
-        sess.add_data(cpy)
+        sess.add_to_session(cpy)
 
         return cpy
 
@@ -388,7 +381,7 @@ class Scalar(MPBase):
             return
         s = cls(sess, data_type, None, False, None)
 
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
     @classmethod
@@ -429,7 +422,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, None, True, None)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
     @classmethod
@@ -465,7 +458,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, value, False, None)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
     @classmethod
@@ -499,7 +492,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, None, False, src)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
 
@@ -707,7 +700,7 @@ class Tensor(MPBase):
 
         # add the copy to the session
         sess = self.session
-        sess.add_data(cpy)
+        sess.add_to_session(cpy)
 
         return cpy
 
@@ -819,7 +812,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, False, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -840,7 +833,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, True, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -865,7 +858,7 @@ class Tensor(MPBase):
         t = cls(sess, data.shape, data, False, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -890,7 +883,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, False, src)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -915,7 +908,7 @@ class Tensor(MPBase):
         # addressed
 
         t = cls(sess, shape, None, True, None, out)
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     # utility static methods
@@ -1104,7 +1097,7 @@ class Array(MPBase):
             cpy.set_element(e, self.get_element(e))
 
         # add the copy to the session
-        self.session.add_data(cpy)
+        self.session.add_to_session(cpy)
 
         return cpy
 
@@ -1193,7 +1186,7 @@ class Array(MPBase):
         a = cls(sess, capacity, element_template)
 
         # add the array to the session
-        sess.add_data(a)
+        sess.add_to_session(a)
         return a
 
 
@@ -1425,7 +1418,7 @@ class CircleBuffer(Array):
         cpy._head = self._head
 
         # add the copy to the session
-        self.session.add_data(cpy)
+        self.session.add_to_session(cpy)
 
         return cpy
 
@@ -1504,6 +1497,6 @@ class CircleBuffer(Array):
         cb = cls(sess, capacity, element_template)
 
         # add to the session
-        sess.add_data(cb)
+        sess.add_to_session(cb)
 
         return cb
