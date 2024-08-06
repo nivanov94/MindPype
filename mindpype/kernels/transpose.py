@@ -60,7 +60,7 @@ class TransposeKernel(Kernel):
         if axes == None:
             output_shape = reversed(input_shape)
         else:
-            output_shape = input_shape[self._axes]
+            output_shape = [input_shape[a] for a in axes]
 
         return tuple(output_shape)
 
