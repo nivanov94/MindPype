@@ -7,6 +7,7 @@ from scipy import signal
 from sklearn.feature_selection import SelectKBest
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import pyriemann
+import mne
 
 class MiscPipelineUnitTest:
     def __init__(self):
@@ -17,16 +18,13 @@ class MiscPipelineUnitTest:
         init_data = mp.Tensor.create_from_data(self.__session, init_data)
         init_labels = mp.Tensor.create_from_data(self.__session, init_label_data)
         inTensor = mp.Tensor.create_from_data(self.__session, input_data)
-        outTensor = mp.Tensor.create(self.__session, shape=(inTensor.shape))
+        outTensor = mp.Tensor.create(self.__session, shape=(10,4,10))
         
         virtual_tensors = [
             mp.Tensor.create_virtual(self.__session),
-            mp.Tensor.create_virtual(self.__session),
-            mp.Tensor.create_virtual(self.__session),
-            mp.Tensor.create_virtual(self.__session)
         ]
-        # node1 = mp.kernels.TransposeKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], axes=[0,1], init_input=init_data)
-        node2 = mp.kernels.CommonSpatialPatternKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1])
+        node1 = mp.kernels.TransposeKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], axes=[0,1,2], init_input=init_data, init_labels=init_labels)
+        node2 = mp.kernels.CommonSpatialPatternKernel.add_to_graph(self.__graph, virtual_tensors[0], outTensor)
 
         self.__graph.verify()
         self.__graph.initialize()
@@ -313,13 +311,17 @@ def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(10,10,10)
     init_data = np.random.randn(10,10,10)
-    # init_label_data = np.concatenate((np.zeros((6,)), np.ones((6,))))
-    # factor = 1
-    # KernelExecutionUnitTest_Object = MiscPipelineUnitTest()
-    # res = KernelExecutionUnitTest_Object.TestMiscPipelineExecution(raw_data, init_data, init_label_data)
-    # expected_output = 1
-    # assert(res == expected_output).all()
-    # del KernelExecutionUnitTest_Object
+    init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    factor = 1
+    KernelExecutionUnitTest_Object = MiscPipelineUnitTest()
+    res = KernelExecutionUnitTest_Object.TestMiscPipelineExecution(raw_data, init_data, init_label_data)
+    transposed_data = np.transpose(raw_data, [0,1,2])
+    transposed_init = np.transpose(init_data, [0,1,2])
+    csp = mne.decoding.CSP(transform_into='csp_space')
+    csp.fit(transposed_init, init_label_data)
+    expected_output = csp.transform(transposed_data)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
     
     # test pipeline with baseline and xDawn nodes
     KernelExecutionUnitTest_Object = Misc2PipelineUnitTest()
