@@ -248,7 +248,8 @@ class Misc10PipelineUnitTest():
             mp.Tensor.create_virtual(self.__session)
         ]
         
-        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        lda_object = LinearDiscriminantAnalysis(solver='lsqr', shrinkage='auto')
+        classifier = mp.Classifier.create_custom_classifier(self.__session, lda_object, 'lda')
         
         node1 = mp.kernels.ConcatenationKernel.add_to_graph(self.__graph, inTensor1, inTensor2, virtual_tensors[0], axis=axis, init_inputs=[initA, initB], init_labels=init_labels)
         node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
