@@ -299,7 +299,7 @@ class Misc12PipelineUnitTest():
             mp.Tensor.create_virtual(self.__session)
         ]
         
-        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        classifier = mp.Classifier.create_SVM(self.__session)
         
         node1 = mp.kernels.RiemannMeanKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], init_input=init_data, init_labels=init_labels)
         node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
@@ -556,7 +556,7 @@ def test_riemann_mean_classifier_graph():
     res = KernelExecutionUnitTest_Object.TestMisc12PipelineExecution(raw_data, init_data, init_labels_data)
     data_after_riem_mean = pyriemann.utils.mean.mean_riemann(raw_data)
     init_after_riem_mean = pyriemann.utils.mean.mean_riemann(init_data)
-    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    classifier = SVC()
     classifier.fit(init_after_riem_mean, init_labels_data)
     expected_output = classifier.predict(data_after_riem_mean)
     assert (res == expected_output).all()
