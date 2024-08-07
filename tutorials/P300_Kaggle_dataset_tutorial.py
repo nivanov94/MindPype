@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tues July 26 16:12:30 2022
-@author: aaronlio
 
 This is a test script for the P300 dataset from Kaggle. The goal is to test the initialization accuracy of the classifier
 on a large scale dataset.

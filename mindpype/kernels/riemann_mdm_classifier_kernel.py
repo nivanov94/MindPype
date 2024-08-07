@@ -14,7 +14,7 @@ class RiemannMDMClassifierKernel(Kernel):
 
     .. note::
         This kernel utilizes the pyriemann class
-        :mod:`MDM <pyriemann:pyriemann.classification,MDM>`.
+        :class:`MDM <pyriemann:pyriemann.classification.MDM>`.
 
     Parameters
     ----------

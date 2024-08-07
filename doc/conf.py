@@ -35,8 +35,9 @@ extensions = [
 intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
     'pyriemann' : ('https://pyriemann.readthedocs.io/en/latest/', None),
-    'sklearn' : ('https://scikit-learn.org/stable/index.html', None),
+    'sklearn' : ('https://scikit-learn.org/stable/', None),
     'scipy' : ('https://docs.scipy.org/doc/scipy/', None),
+    'mne' : ('https://mne.tools/stable/', None),
 }
 
 templates_path = ['_templates']

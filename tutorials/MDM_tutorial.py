@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Nov 22 16:12:30 2019
-
-@author: ivanovn
 """
 
 # Create a simple graph for testing

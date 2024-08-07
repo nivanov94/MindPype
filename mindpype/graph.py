@@ -866,6 +866,7 @@ class Edge:
         self._phony_init_data = None
         self._phony_init_labels = None
 
+
     def add_producer(self, producing_node):
         """
         Add a specified node as a producer to an Edge object
@@ -879,7 +880,7 @@ class Edge:
 
         Examples
         --------
-        example_edge.add_producer(example_producing_edge)
+        >>> example_edge.add_producer(example_producing_edge)
 
         """
         self.producers.append(producing_node)
@@ -897,7 +898,7 @@ class Edge:
 
         Examples
         --------
-        example_edge.add_consumer(example_consumer_edge)
+        >>> example_edge.add_consumer(example_consumer_edge)
 
         """
         self.consumers.append(consuming_node)
@@ -915,7 +916,7 @@ class Edge:
 
         Examples
         --------
-        example_edge.add_data(example_data)
+        >>> example_edge.add_data(example_data)
 
         """
         self._data = data
@@ -1133,4 +1134,5 @@ class Parameter:
         self.data = data
 
         # enum indicating whether this is an input or output
+        
         self.direction = direction

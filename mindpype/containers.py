@@ -1,8 +1,6 @@
 """
 Defines data container classes for MindPype.
 These classes are used to represent data in the MindPype framework.
-
-@author: Nicolas Ivanov, Aaron Lio
 """
 
 from .core import MPBase, MPEnums
@@ -97,11 +95,7 @@ class Scalar(MPBase):
 
         Return
         ------
-        Data value represented by the Scalar object
-
-        Return Type
-        -----------
-        int, float, complex, str, or bool
+        Data value represented by the Scalar object : int, float, complex, str, or bool
         """
         return self._data
 
@@ -154,13 +148,9 @@ class Scalar(MPBase):
         """
         Produce and return a deep copy of the scalar
 
-        Return
-        ------
-        Deep copy of referenced parameter
-
-        Return Type
-        -----------
-        Scalar
+        Returns
+        -------
+        Deep copy of referenced parameter: Scalar
 
         Examples
         --------
@@ -194,7 +184,7 @@ class Scalar(MPBase):
 
         Examples
         --------
-        example_scalar.copy_to(copy_of_example_scalar)
+        >>> example_scalar.copy_to(copy_of_example_scalar)
         """
         dest_scalar.data = self.data
 
@@ -848,6 +838,9 @@ class Array(MPBase):
     """
     Array containing instances of other MindPype classes. Each array can only
     hold one type of MindPype class.
+    
+    .. note:: A single array object should only contain one MindPype/data
+            object type.
 
     Parameters
     ----------
@@ -858,6 +851,7 @@ class Array(MPBase):
         allocation purposes)
     element_template : any
         The template MindPype element to populate the array (see examples)
+
 
     Attributes
     ----------
@@ -878,12 +872,8 @@ class Array(MPBase):
     >>> example = Array.create(example_session, example_capacity, template)
 
     Return
-    ======
-    Array Object
-
-    .. note:: A single array object should only contain one MindPype/data
-              object type.
-
+    ------
+    array: Array Object
 
     """
 
@@ -919,7 +909,7 @@ class Array(MPBase):
 
         Examples
         --------
-        example_element = example_array.get_element(0)
+        >>> example_element = example_array.get_element(0)
 
 
         """
@@ -990,7 +980,7 @@ class Array(MPBase):
 
         Examples
         --------
-        new_array = old_array.make_copy()
+        >>> new_array = old_array.make_copy()
         """
         cpy = Array(self.session,
                     self.capacity,
@@ -1017,7 +1007,7 @@ class Array(MPBase):
 
         Examples
         --------
-        old_array.copy_to(copy_of_old_array)
+        >>> old_array.copy_to(copy_of_old_array)
 
         """
         dest_array.capacity = self.capacity
@@ -1142,7 +1132,7 @@ class CircleBuffer(Array):
 
         Examples
         --------
-        example_num_elements = example_buffer.num_elements()
+        >>> example_num_elements = example_buffer.num_elements()
         """
         if self.is_empty():
             return 0
@@ -1214,7 +1204,7 @@ class CircleBuffer(Array):
 
         Examples
         --------
-        example_element = example_circle_buffer.get_element(0)
+        >>> example_element = example_circle_buffer.get_element(0)
         """
         if index > self.num_elements:
             return None
@@ -1271,7 +1261,7 @@ class CircleBuffer(Array):
 
     def enqueue_chunk(self, cb):
         """
-        enqueue a number of elements from another circle buffer into this
+        Enqueue a number of elements from another circle buffer into this
         circle buffer
         
         Parameters

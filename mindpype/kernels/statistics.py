@@ -13,8 +13,9 @@ class CDFKernel(Kernel):
 
     .. note::
         This kernel utilizes the scipy functions
-        :func:`norm <scipy:scipy.stats._continuous_distns.norm_gen>`,
-        :func:`chi2 <scipy:scipy.stats._continuous_distns.chi2_gen>`.
+        :obj:`norm <scipy:scipy.stats.norm>`,
+        :obj:`chi2 <scipy:scipy.stats.chi2>`.
+
 
     Parameters
     ----------
@@ -433,6 +434,10 @@ class MaxKernel(Descriptive, Kernel):
         This kernel utilizes the numpy function
         :func:`max <numpy:numpy.max>`.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`max <numpy:numpy.max>`.
+
     Parameters
     ----------
     graph : Graph
@@ -635,6 +640,10 @@ class MeanKernel(Descriptive, Kernel):
         This kernel utilizes the numpy function
         :func:`mean <numpy:numpy.mean>`.
 
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`mean <numpy:numpy.mean>`.
+
     Parameters
     ----------
     graph : Graph
@@ -727,6 +736,10 @@ class StdKernel(Descriptive, Kernel):
     """
     Calculates the standard deviation of values in a tensor
     
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`std <numpy:numpy.std>`.
+
     .. note::
         This kernel utilizes the numpy function
         :func:`std <numpy:numpy.std>`.
@@ -986,6 +999,10 @@ class KurtosisKernel(Descriptive, Kernel):
         This kernel utilizes the scipy function
         :func:`kurtosis <scipy:scipy.stats.kurtosis>`.
 
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`kurtosis <scipy:scipy.stats.kurtosis>`.
+
     Parameters
     ----------
     graph : Graph
@@ -1125,6 +1142,10 @@ class SkewnessKernel(Descriptive, Kernel):
         This kernel utilizes the scipy function
         :func:`skewness <scipy:scipy.stats.skewness>`.
 
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`skew <scipy:scipy.stats.skew>`.
+
     Parameters
     ----------
     graph : Graph
@@ -1250,6 +1271,9 @@ class ZScoreKernel(Kernel):
     """
     Calculate a z-score for an tensor or scalar input
 
+    Parameters
+    ----------
+    
     graph : Graph
         Graph that the kernel should be added to
 
@@ -1364,6 +1388,9 @@ class ZScoreKernel(Kernel):
         Factory method to create a z-score value kernel
         and add it to a graph as a generic node object.
 
+        Parameters
+        ----------
+        
         graph : Graph
             Graph that the kernel should be added to
 

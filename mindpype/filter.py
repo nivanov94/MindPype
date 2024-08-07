@@ -3,8 +3,6 @@
 Created on Thu Nov 21 10:51:07 2019
 
 filter.py - Defines the filter Class for MindPype
-
-@author: ivanovn
 """
 
 from .core import MPBase, MPEnums
