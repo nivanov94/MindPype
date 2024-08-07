@@ -6,6 +6,8 @@ from pyriemann.estimation import XdawnCovariances
 from scipy import signal
 from sklearn.feature_selection import SelectKBest
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
 import pyriemann
 import mne
 
@@ -273,7 +275,7 @@ class Misc11PipelineUnitTest():
             mp.Tensor.create_virtual(self.__session),
         ]
         
-        classifier = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
+        classifier = mp.Classifier.create_logistic_regression(self.__session)
         
         node1 = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph, inTensor1, inTensor2, virtual_tensors[0], init_inputs=[init_data1, init_data2], init_labels=init_labels)
         node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
@@ -534,7 +536,7 @@ def test_riemann_distance_classifier_graph():
             y_i = init_data2[j,:,:]
             data_after_riem_dist[i,j] = pyriemann.utils.distance.distance_riemann(x,y)
             init_after_riem_dist[i,j] = pyriemann.utils.distance.distance_riemann(x_i,y_i)
-    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    classifier = LogisticRegression()
     classifier.fit(init_after_riem_dist, init_labels_data)
     expected_output = classifier.predict(data_after_riem_dist)
     assert (res == expected_output).all()
@@ -559,3 +561,5 @@ def test_riemann_mean_classifier_graph():
     expected_output = classifier.predict(data_after_riem_mean)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
+    
+test_execute()
