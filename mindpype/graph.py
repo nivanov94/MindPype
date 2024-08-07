@@ -448,7 +448,7 @@ class Graph(MPBase):
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
-    def _poll_volatile_sources(self, label=None):
+    def poll_volatile_sources(self, label=None):
         """
         Poll data (update input data) from volatile sources within the graph.
 
@@ -469,7 +469,7 @@ class Graph(MPBase):
         for datum in self._volatile_sources:
             datum.poll_volatile_data(label)
 
-    def _push_volatile_outputs(self, label=None):
+    def push_volatile_outputs(self, label=None):
         """
         Push data (update output data) to volatile outputs within the graph.
 

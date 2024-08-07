@@ -246,7 +246,7 @@ class Scalar(MPBase):
         if self.volatile:
             self.data = self.ext_src.poll_data(label)
 
-    def _push_volatile_outputs(self, label=None):
+    def push_volatile_outputs(self, label=None):
 
         if self.volatile_out:
             self.ext_out.push_data(self.data, label)
@@ -671,7 +671,7 @@ class Tensor(MPBase):
             # add regularization
             self.data += 0.001 * np.eye(self.shape[-1])
 
-    def _poll_volatile_data(self, label=None):
+    def poll_volatile_data(self, label=None):
         """
         Pull data from external sources or MindPype input data sources.
 
@@ -691,7 +691,7 @@ class Tensor(MPBase):
             data = np.squeeze(data, axis=0)
         self.data = data
 
-    def _push_volatile_outputs(self, label=None):
+    def push_volatile_outputs(self, label=None):
         """
         Push data to external sources.
         """

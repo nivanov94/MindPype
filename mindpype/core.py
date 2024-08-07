@@ -228,7 +228,7 @@ class Session(MPBase):
         self._initialized = True
         self.free_temp_data()
 
-    def _poll_volatile_channels(self, label=None):
+    def poll_volatile_channels(self, label=None):
         """
         Update the contents of all volatile data streams
 
@@ -250,7 +250,7 @@ class Session(MPBase):
             if self._datum[d].volatile:
                 self._datum[d].poll_volatile_data(label)
 
-    def _push_volatile_outputs(self, label=None):
+    def push_volatile_outputs(self, label=None):
         """
         Push outputs to volatile sources
 
