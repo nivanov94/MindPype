@@ -309,10 +309,53 @@ class Misc12PipelineUnitTest():
 
 def test_execute():
     np.random.seed(44)
+    
+    test_transpose_csp_graph()
+    test_baseline_xdawn_graph()
+    
+    # KernelExecutionUnitTest_Object = Misc3PipelineUnitTest()
+    # thresh_val=1
+    # res = KernelExecutionUnitTest_Object.TestMisc3PipelineExecution(raw_data, thresh_val, init_data, init_label_data)
+    # data_after_thresh = raw_data > thresh_val
+    # init_after_thresh = init_data > thresh_val
+    # xdawn_estimator = XdawnCovariances()
+    # xdawn_estimator.fit(init_after_thresh, init_label_data)
+    # expected_output = xdawn_estimator.transform(data_after_thresh)
+    # assert (res == expected_output).all()
+    # del KernelExecutionUnitTest_Object
+    
+    test_resample_xdawn_graph()
+    test_feature_selection_classifier_graph()
+    test_slope_classifier_graph()
+    test_pad_classifier_graph()
+    
+    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
+    # KernelExecutionUnitTest_Object = Misc6PipelineUnitTest()
+    # raw_data = np.random.randn(2,2,2)
+    # init_data = np.random.randn(2,2,2)
+    # r = 0.001
+    # res = KernelExecutionUnitTest_Object.TestMisc6PipelineExecution(raw_data, init_data)
+    # padded_data = np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)
+    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
+    # cov_data = pyriemann.utils.covariance.covariances(padded_data)
+    # cov_data = (1-r)*cov_data + r*np.diag(np.ones(cov_data.shape[-1]))
+    # cov_init = pyriemann.utils.covariance.covariances(padded_init)
+    # cov_init = (1-r)*cov_init + r*np.diag(np.ones(cov_init.shape[-1]))
+    # tangent_space = pyriemann.tangentspace.TangentSpace()
+    # tangent_space.fit(cov_init)
+    # output = tangent_space.transform(cov_data)
+    # assert (res == output).all()
+    
+    test_riemann_potato_classifier_graph()
+    test_concatenation_classifier_graph()
+    test_riemann_distance_classifier_graph()
+    test_riemann_mean_classifier_graph()
+
+def test_transpose_csp_graph():
+    """ Test passing init data to transpose kernel that will be passed downstream to csp kernel """
     raw_data = np.random.randn(10,10,10)
     init_data = np.random.randn(10,10,10)
     init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
-    factor = 1
     KernelExecutionUnitTest_Object = MiscPipelineUnitTest()
     res = KernelExecutionUnitTest_Object.TestMiscPipelineExecution(raw_data, init_data, init_label_data)
     transposed_data = np.transpose(raw_data, [0,1,2])
@@ -323,7 +366,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # test pipeline with baseline and xDawn nodes
+def test_baseline_xdawn_graph():
+    """ Test passing init data to baseline kernel that will be passed downstream to xdawn kernel """
     KernelExecutionUnitTest_Object = Misc2PipelineUnitTest()
     raw_data = np.random.randn(10,10,10)
     init_data = np.random.randn(10,10,10)
@@ -343,18 +387,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # KernelExecutionUnitTest_Object = Misc3PipelineUnitTest()
-    # thresh_val=1
-    # res = KernelExecutionUnitTest_Object.TestMisc3PipelineExecution(raw_data, thresh_val, init_data, init_label_data)
-    # data_after_thresh = raw_data > thresh_val
-    # init_after_thresh = init_data > thresh_val
-    # xdawn_estimator = XdawnCovariances()
-    # xdawn_estimator.fit(init_after_thresh, init_label_data)
-    # expected_output = xdawn_estimator.transform(data_after_thresh)
-    # assert (res == expected_output).all()
-    # del KernelExecutionUnitTest_Object
-    
-    # test pipeline with resample and xDawn nodes
+def test_resample_xdawn_graph():
+    """ Test passing init data to resample kernel that will be passed downstream to xdawn kernel """
     KernelExecutionUnitTest_Object = Misc4PipelineUnitTest()
     factor = 1
     raw_data = np.random.randn(10,10,10)
@@ -369,7 +403,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # test pipeline with feature selection and classifier nodes
+def test_feature_selection_classifier_graph():
+    """ Test passing init data to feature selection kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc5PipelineUnitTest()
     raw_data = np.random.randn(50,26)
     init_data = np.random.randn(50,26)
@@ -385,7 +420,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # test pipeline with slope and classifier nodes
+def test_slope_classifier_graph():
+    """ Test passing init data to slope kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc7PipelineUnitTest()
     raw_data = np.random.randn(50,26)
     init_data = np.random.randn(50,26)
@@ -411,7 +447,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # test pipeline with pad and classifier nodes
+def test_pad_classifier_graph():
+    """ Test passing init data to pad kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc8PipelineUnitTest()
     raw_data = np.random.randn(50,26)
     init_data = np.random.randn(50,26)
@@ -425,24 +462,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
-    # KernelExecutionUnitTest_Object = Misc6PipelineUnitTest()
-    # raw_data = np.random.randn(2,2,2)
-    # init_data = np.random.randn(2,2,2)
-    # r = 0.001
-    # res = KernelExecutionUnitTest_Object.TestMisc6PipelineExecution(raw_data, init_data)
-    # padded_data = np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)
-    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
-    # cov_data = pyriemann.utils.covariance.covariances(padded_data)
-    # cov_data = (1-r)*cov_data + r*np.diag(np.ones(cov_data.shape[-1]))
-    # cov_init = pyriemann.utils.covariance.covariances(padded_init)
-    # cov_init = (1-r)*cov_init + r*np.diag(np.ones(cov_init.shape[-1]))
-    # tangent_space = pyriemann.tangentspace.TangentSpace()
-    # tangent_space.fit(cov_init)
-    # output = tangent_space.transform(cov_data)
-    # assert (res == output).all()
-    
-    # test pipeline with riemann potato, reshape, and classifier nodes
+def test_riemann_potato_classifier_graph():
+    """ Test passing init data to riemann potato kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc9PipelineUnitTest()
     raw_data = np.random.randn(16,10,10)
     init_data = np.random.randn(16,10,10)
@@ -465,7 +486,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # test pipeline with concatenation and classifier nodes
+def test_concatenation_classifier_graph():
+    """ Test passing init data to concatenation kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc10PipelineUnitTest()
     raw_data1 = np.random.randn(4,2)
     raw_data2 = np.random.randn(4,2)
@@ -482,7 +504,8 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # test pipeline with riemann distance and classifier pipeline
+def test_riemann_distance_classifier_graph():
+    """ Test passing init data to riemann distance kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc11PipelineUnitTest()
     raw_data1 = np.random.randn(4,4,4)
     raw_data2 = np.random.randn(4,4,4)
@@ -517,7 +540,10 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+def test_riemann_mean_classifier_graph():
+    """ Test passing init data to riemann mean kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc12PipelineUnitTest()
+    init_data = np.random.randn(10,10,10)
     raw_data = np.random.randn(10,10,10)
     raw_data = pyriemann.utils.covariance.covariances(raw_data)
     init_data = pyriemann.utils.covariance.covariances(init_data)
@@ -533,5 +559,3 @@ def test_execute():
     expected_output = classifier.predict(data_after_riem_mean)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
-    
-test_execute()
