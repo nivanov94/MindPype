@@ -426,7 +426,7 @@ class Graph(MPBase):
         # Check whether first node has volatile input
         # if so, poll the volatile data
         if len(self._volatile_sources) > 0:
-            self.poll_volatile_sources(label)
+            self._poll_volatile_sources(label)
 
         print("Executing trial with label: {}".format(label))
 
@@ -448,7 +448,7 @@ class Graph(MPBase):
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
-    def poll_volatile_sources(self, label=None):
+    def _poll_volatile_sources(self, label=None):
         """
         Poll data (update input data) from volatile sources within the graph.
 
@@ -464,12 +464,12 @@ class Graph(MPBase):
 
         Example
         -------
-        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data
+        >>> example_graph._poll_volatile_data(0) # Polls next class 0 trial data
         """
         for datum in self._volatile_sources:
             datum.poll_volatile_data(label)
 
-    def push_volatile_outputs(self, label=None):
+    def _push_volatile_outputs(self, label=None):
         """
         Push data (update output data) to volatile outputs within the graph.
 
@@ -482,10 +482,6 @@ class Graph(MPBase):
         Return
         ------
         None
-
-        Example
-        -------
-        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data
         """
         for datum in self._volatile_outputs:
             datum.push_volatile_outputs(label=label)
