@@ -37,16 +37,20 @@ class ThresholdKernel(Kernel):
         """
         init_in = init_inputs[0]
         init_out = init_outputs[0]
+        init_thresh = init_inputs[1]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
             if init_in.mp_type != MPEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
+            if init_thresh.mp_type in (MPEnums.ARRAY, MPEnums.CIRCLE_BUFFER):
+                init_thresh = init_thresh.to_tensor()
+
             # set the output size, as needed
             if init_out.virtual:
                 init_out.shape = init_in.shape
 
-            self._process_data([init_in], init_outputs)
+            self._process_data([init_in, init_thresh], init_outputs)
 
     def _verify(self):
         """
@@ -103,7 +107,7 @@ class ThresholdKernel(Kernel):
         outputs[0].data = inputs[0].data > thresh.data
 
     @classmethod
-    def add_to_graph(cls,graph,inA,outA,thresh,init_input=None,init_labels=None):
+    def add_to_graph(cls,graph,inA,outA,thresh,init_inputs=None,init_labels=None):
         """
         Factory method to create a threshold value kernel
         and add it to a graph as a generic node object.
@@ -122,6 +126,15 @@ class ThresholdKernel(Kernel):
 
         thresh : float
             Threshold value
+
+        init_inputs : Tuple of Tensors or None
+            Initialization data for the input and threshold
+            Initialization data will be transformed by the kernel
+            and passed to any downstream nodes within the graph during
+            initialization.
+
+        init_labels : Tensor or None
+            Labels for the initialization to be passed to downstream nodes.            
 
         Returns
         -------
@@ -144,7 +157,7 @@ class ThresholdKernel(Kernel):
         graph.add_node(node)
 
         # if initialization data is provided, add it to the node
-        if init_input is not None:
-            node.add_initialization_data([init_input], init_labels)
+        if init_inputs is not None:
+            node.add_initialization_data(init_inputs, init_labels)
 
         return node
