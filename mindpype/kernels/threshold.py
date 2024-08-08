@@ -70,7 +70,7 @@ class ThresholdKernel(Kernel):
         if thresh.mp_type != MPEnums.SCALAR:
             raise TypeError("Threshold Kernel: Threshold value must be a scalar")
 
-        if not thresh.data_type in Scalar.valid_numeric_types():
+        if not thresh.data_type in Scalar._valid_numeric_types():
             raise TypeError("Threshold Kernel: Threshold value must be numeric")
 
         if d_out.mp_type == MPEnums.TENSOR:
@@ -81,7 +81,7 @@ class ThresholdKernel(Kernel):
                 raise ValueError("Threshold Kernel: Input and output tensors must have the same shape")
 
         else:
-            if not (d_in.data_type in Scalar.valid_numeric_types()):
+            if not (d_in.data_type in Scalar._valid_numeric_types()):
                 raise TypeError("Threshold Kernel: Input and output scalars must be numeric")
 
             if d_out.data_type != d_in.data_type:

@@ -104,7 +104,7 @@ class ReducedSumKernel(Kernel):
             raise TypeError('ReducedSum kernel requires Tensor or Scalar output')
 
         if (outA.mp_type == MPEnums.SCALAR and
-            (outA.data_type not in Scalar.valid_numeric_types())):
+            (outA.data_type not in Scalar._valid_numeric_types())):
             raise TypeError('ReducedSum kernel requires Scalar output to be numeric')
 
         inA_shape = inA.shape

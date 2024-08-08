@@ -29,50 +29,21 @@ class MPBase(object):
         """
         Constructor for MPBase base class
         """
-        self._mp_type = mp_type
-        self._id = id(self)
-        self._session = session
-
-    # API getters
-    @property
-    def mp_type(self):
-        """
-        Returns the type of object
-
-        Return
-        ------
-        mp_type : MPEnums
-            Indicates what type of object the reference object is
-        """
-
-        return self._mp_type
-
+        self.mp_type = mp_type
+        self.id = id(self)
+        self.session = session
+        
+    
     @property
     def session_id(self):
         """
         Returns the session id of the object
-
         Return
         ------
         session_id : int
             ID of the session where the object exists
         """
-        return self._id
-
-    @property
-    def session(self):
-        """
-        Returns the session object of the object
-
-        Returns
-        -------
-        Current Session : Session
-            Session where the object exists
-
-        """
-
-        return self._session
-
+        return self.id
 
 class MPEnums(IntEnum):
     """
@@ -298,25 +269,6 @@ class Session(MPBase):
             if self._datum[d].volatile_out:
                 self._datum[d].push_volatile_outputs(label)
 
-    def execute_trial(self, label, graph):
-        """
-        Execute a trial
-        First updates all volatile input channels
-        Then executes current block
-
-        Parameters
-        ----------
-        label : str
-            Label for the current trial.
-        graph : Graph
-            Graph to execute for the current trial.
-        """
-        print("Executing trial with label: {}".format(label))
-        self.poll_volatile_channels(label)
-        graph.execute(label)
-        self.push_volatile_outputs(label)
-        # logging.info("Trial executed successfully")
-
     def add_graph(self, graph):
         """
         Add a graph to the session
@@ -422,7 +374,7 @@ class Session(MPBase):
         # not found, return None type
         return None
 
-    def save_session(self: object, file: str, additional_params=None) -> None:
+    def _save_session(self: object, file: str, additional_params=None) -> None:
         """
         Save the session object and all of its contents to a file
 

@@ -7,7 +7,7 @@ import numpy as np
 
 class Kernel(MPBase, ABC):
     """
-    An abstract base class for kernels
+    An abstract base class for kernels. Only used by developers loooking to extend the library.
 
     Parameters
     ----------
@@ -18,9 +18,9 @@ class Kernel(MPBase, ABC):
 
     Attributes
     ----------
-    _name : str
+    name : str
         Name of the kernel
-    _init_style : MPEnums Object
+    init_style : MPEnums Object
         Kernel initialization style, according to BcipEnum class
     """
 
@@ -30,8 +30,8 @@ class Kernel(MPBase, ABC):
         """
         session = graph.session
         super().__init__(MPEnums.KERNEL, session)
-        self._name = name
-        self._init_style = init_style
+        self.name = name
+        self.init_style = init_style
         self._num_classes = None
 
         self._inputs = []
@@ -54,33 +54,6 @@ class Kernel(MPBase, ABC):
         self._covariance_inputs = None
 
     # API Getters
-    @property
-    def name(self):
-        """
-        Returns the name of the kernel
-
-        Returns
-        -------
-        _name : str
-            The name of the kernel
-
-        """
-
-        return self._name
-
-    @property
-    def init_style(self):
-        """
-        Returns the initialization style of the kernel
-
-        Returns
-        -------
-        _init_style : MPEnums
-            The initialization style of the kernel
-        """
-
-        return self._init_style
-
     @property
     def init_input_labels(self):
         """
@@ -454,14 +427,13 @@ class Kernel(MPBase, ABC):
         """
         self._phony_init_outputs[index] = ph_output
 
-    def copy_init_labels_to_output(self, verification=False):
+    def _copy_init_labels_to_output(self, verification=False):
         """
         Copies the input labels from initialization to the output
 
         Parameters
         ----------
         verification: Bool
-            TODO: add description of parameter
         """
         if not verification or self.phony_init_input_labels is None:
             src = self.init_input_labels
@@ -567,7 +539,7 @@ class Kernel(MPBase, ABC):
                 self._initialize(verif_init_inputs,
                                  verif_init_outputs,
                                  verif_init_labels)
-                self.copy_init_labels_to_output(verification=True)
+                self._copy_init_labels_to_output(verification=True)
             except Exception as e:
                 additional_msg = ("Test initialization of node " +
                                   f"{self.name} failed during verification. " +
@@ -626,7 +598,7 @@ class Kernel(MPBase, ABC):
                              self.init_outputs,
                              self.init_input_labels)
             self._initialized = True
-            self.copy_init_labels_to_output()
+            self._copy_init_labels_to_output()
 
 
     def update(self):
@@ -635,11 +607,11 @@ class Kernel(MPBase, ABC):
         """
         if hasattr(self, '_update'):
             self._initialized = False
-            self._update(self.init_inputs,
+            self.update(self.init_inputs,
                          self.init_outputs,
                          self.init_input_labels)
             self._initialized = True
-            self.copy_init_labels_to_output()
+            self._copy_init_labels_to_output()
             
 
     def execute(self):
@@ -668,7 +640,8 @@ class Kernel(MPBase, ABC):
 
         Parameters
         ----------
-        param: TODO - add type
+        param: data object
+            data object to be check if is a covariance matrix
 
         Returns
         -------

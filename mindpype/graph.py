@@ -84,20 +84,18 @@ class Graph(MPBase):
         initialization data and it is not explicitly provided, this data
         will be used. It will be added as initialization data to any
         root nodes that ingest data from outside of the graph.
-
         Parameters
         ----------
         data : Tensor or Array
             Tensor or array containing the default initialization data
-
         labels : Tensor or Array
             Tensor or array containing the default initialization labels
-
         """
         self._verified = False
         self._initialized = False
         self._default_init_data = data
         self._default_init_labels = labels
+
 
     def verify(self):
         """
@@ -428,7 +426,7 @@ class Graph(MPBase):
         # Check whether first node has volatile input
         # if so, poll the volatile data
         if len(self._volatile_sources) > 0:
-            self.poll_volatile_sources(label)
+            self._poll_volatile_sources(label)
 
         print("Executing trial with label: {}".format(label))
 
@@ -450,7 +448,7 @@ class Graph(MPBase):
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
-    def poll_volatile_sources(self, label=None):
+    def _poll_volatile_sources(self, label=None):
         """
         Poll data (update input data) from volatile sources within the graph.
 
@@ -466,12 +464,12 @@ class Graph(MPBase):
 
         Example
         -------
-        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data
+        >>> example_graph._poll_volatile_data(0) # Polls next class 0 trial data
         """
         for datum in self._volatile_sources:
             datum.poll_volatile_data(label)
 
-    def push_volatile_outputs(self, label=None):
+    def _push_volatile_outputs(self, label=None):
         """
         Push data (update output data) to volatile outputs within the graph.
 
@@ -484,10 +482,6 @@ class Graph(MPBase):
         Return
         ------
         None
-
-        Example
-        -------
-        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data
         """
         for datum in self._volatile_outputs:
             datum.push_volatile_outputs(label=label)
@@ -696,7 +690,7 @@ class Node(MPBase):
 
     Attributes
     ----------
-    _kernel : Kernel Object
+    kernel : Kernel Object
         Kernel object to be used for processing within the Node
     _params : dict
         Dictionary of parameters outputted by kernel
@@ -710,15 +704,10 @@ class Node(MPBase):
         sess = graph.session
         super().__init__(MPEnums.NODE, sess)
 
-        self._kernel = kernel
+        self.kernel = kernel
         self._params = params
 
         self._graph = graph
-
-    # API getters
-    @property
-    def kernel(self):
-        return self._kernel
 
     def extract_inputs(self):
         """
@@ -787,7 +776,7 @@ class Node(MPBase):
         """
         return self.kernel.initialize()
     
-    def update(self):
+    def _update(self):
         """
         Update the kernel function for execution
         """
@@ -817,7 +806,7 @@ class Node(MPBase):
         self.kernel.add_initialization_data(init_data, init_labels)
         self._graph.verified = False
 
-    def update_initialization_data(self, init_data, init_labels=None):
+    def _update_initialization_data(self, init_data, init_labels=None):
         """
         Update the initialization data of the node
 
@@ -863,89 +852,16 @@ class Edge:
         """
         Constructor for Edge object
         """
-        self._data = data
-        self._producers = []
-        self._consumers = []
+        self.data = data
+        self.producers = []
+        self.consumers = []
 
-        self._init_data = None
-        self._init_labels = None
+        self.init_data = None
+        self.init_labels = None
         self._phony_data = None
         self._phony_init_data = None
         self._phony_init_labels = None
 
-    @property
-    def producers(self):
-        """
-        Getter for producers property
-
-        Return
-        ------
-        _producers : List of Node
-            List of producers for the Edge object
-
-        Examples
-        --------
-        >>> example_edge.producers
-        """
-        return self._producers
-
-    @property
-    def consumers(self):
-        """
-        Getter for consumers property
-
-        Return
-        ------
-        List of consumers for the Edge object
-
-        Return Type
-        -----------
-        List of Node objects
-
-        Examples
-        --------
-        >>> print(example_edge.consumers)
-
-            [example_consumer_node]
-
-        """
-        return self._consumers
-
-    @property
-    def data(self):
-        """
-        Getter for data property
-
-        Return
-        ------
-        Data object stored within the Edge object : Data object
-        """
-
-        return self._data
-
-    @property
-    def init_data(self):
-        """
-        Getter for init_data property
-
-        Return
-        ------
-        Data object stored within the Edge object : Data object
-        """
-
-        return self._init_data
-
-    @property
-    def init_labels(self):
-        """
-        Getter for init_labels property
-
-        Return
-        ------
-        Data object stored within the Edge object : Data object
-        """
-
-        return self._init_labels
 
     def add_producer(self, producing_node):
         """
@@ -1211,31 +1127,8 @@ class Parameter:
         Constructor for Parameter object
         """
         # reference of the data object represented by parameter
-        self._data = data
+        self.data = data
 
         # enum indicating whether this is an input or output
-        self._direction = direction
-
-    @property
-    def direction(self):
-        """
-        Getter for direction property
-
-        Return
-        ------
-        Enum indicating whether this is an input-type or output-type parameter : MPEnums.INPUT or MPEnums.OUTPUT
-        """
-        return self._direction
-
-    @property
-    def data(self):
-        """
-        Getter for data property
-
-        Return
-        ------
-        Data object stored within the Parameter object : Data object
-
-        """
-
-        return self._data
+        
+        self.direction = direction

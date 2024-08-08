@@ -16,6 +16,7 @@ class CDFKernel(Kernel):
         :obj:`norm <scipy:scipy.stats.norm>`,
         :obj:`chi2 <scipy:scipy.stats.chi2>`.
 
+
     Parameters
     ----------
     graph : Graph
@@ -428,6 +429,10 @@ class Descriptive:
 class MaxKernel(Descriptive, Kernel):
     """
     Kernel to extract maximum value along a Tensor axis
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`max <numpy:numpy.max>`.
 
     .. note::
         This kernel utilizes the numpy function
@@ -532,7 +537,7 @@ class MinKernel(Descriptive, Kernel):
     .. note::
         This kernel utilizes the numpy function
         :func:`min <numpy:numpy.min>`.
-        
+
     Parameters
     ----------
     graph : Graph
@@ -630,6 +635,10 @@ class MinKernel(Descriptive, Kernel):
 class MeanKernel(Descriptive, Kernel):
     """
     Calculates the mean of values in a tensor
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`mean <numpy:numpy.mean>`.
 
     .. note::
         This kernel utilizes the numpy function
@@ -726,6 +735,10 @@ class MeanKernel(Descriptive, Kernel):
 class StdKernel(Descriptive, Kernel):
     """
     Calculates the standard deviation of values in a tensor
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`std <numpy:numpy.std>`.
 
     .. note::
         This kernel utilizes the numpy function
@@ -981,6 +994,10 @@ class VarKernel(Descriptive, Kernel):
 class KurtosisKernel(Descriptive, Kernel):
     """
     Calculates the kurtosis of values in a tensor
+    
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`kurtosis <scipy:scipy.stats.kurtosis>`.
 
     .. note::
         This kernel utilizes the scipy function
@@ -1120,6 +1137,10 @@ class KurtosisKernel(Descriptive, Kernel):
 class SkewnessKernel(Descriptive, Kernel):
     """
     Calculates the Skewness of values in a tensor
+    
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`skewness <scipy:scipy.stats.skewness>`.
 
     .. note::
         This kernel utilizes the scipy function
@@ -1311,7 +1332,7 @@ class ZScoreKernel(Kernel):
                 if (np.squeeze(e.shape != ())):
                     raise ValueError("ZScore Kernel: Initialization data must be rank 1")
             elif e.mp_type == MPEnums.SCALAR:
-                if not e.data_type in Scalar.valid_numeric_types():
+                if not e.data_type in Scalar._valid_numeric_types():
                     raise ValueError("ZScore Kernel: Initialization data must be numeric")
             else:
                 raise ValueError("ZScore Kernel: Initialization data Arrays must contain tensors or scalars")

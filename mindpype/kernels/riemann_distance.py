@@ -77,7 +77,7 @@ class RiemannDistanceKernel(Kernel):
         out_sz = []
         mat_sz = None
         for param in (inA,inB):
-            if param._mp_type == MPEnums.TENSOR:
+            if param.mp_type == MPEnums.TENSOR:
                 # ensure it is 3D or 2D
                 param_rank = len(param.shape)
                 if param_rank != 2 and param_rank != 3:
