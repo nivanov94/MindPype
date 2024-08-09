@@ -62,19 +62,17 @@ class Misc3PipelineUnitTest():
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestMisc3PipelineExecution(self, input_data, thresh, init_data, init_label_data):    
-        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+    def TestMisc3PipelineExecution(self, input_data, thresh, init_data, init_label_data, Nfeats):    
+        init_in = mp.Tensor.create_from_data(self.__session, init_data[0])
+        init_thresholds = mp.Tensor.create_from_data(self.__session, init_data[1])
         init_labels = mp.Tensor.create_from_data(self.__session, init_label_data)
         inTensor = mp.Tensor.create_from_data(self.__session, input_data)
         thresh = mp.Scalar.create_from_value(self.__session, thresh)
-        outTensor = mp.Tensor.create(self.__session, (10,10,10))
+        v_tensor = mp.Tensor.create_virtual(self.__session)
+        outTensor = mp.Tensor.create(self.__session, (10,2))
         
-        virtual_tensors = [
-            mp.Tensor.create_virtual(self.__session),
-        ]
-        node1 = mp.kernels.ThresholdKernel.add_to_graph(self.__graph,inTensor,virtual_tensors[0],thresh=thresh, init_input=init_data, init_labels=init_labels)
-        node2 = mp.kernels.XDawnCovarianceKernel.add_to_graph(self.__graph, virtual_tensors[0], outTensor)
-
+        mp.kernels.ThresholdKernel.add_to_graph(self.__graph,inTensor,v_tensor,thresh=thresh, init_inputs=(init_in, init_thresholds), init_labels=init_labels)
+        mp.kernels.FeatureSelectionKernel.add_to_graph(self.__graph,v_tensor,outTensor,k=Nfeats)
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
@@ -315,18 +313,7 @@ def test_execute():
     
     test_transpose_csp_graph()
     test_baseline_xdawn_graph()
-    
-    # KernelExecutionUnitTest_Object = Misc3PipelineUnitTest()
-    # thresh_val=1
-    # res = KernelExecutionUnitTest_Object.TestMisc3PipelineExecution(raw_data, thresh_val, init_data, init_label_data)
-    # data_after_thresh = raw_data > thresh_val
-    # init_after_thresh = init_data > thresh_val
-    # xdawn_estimator = XdawnCovariances()
-    # xdawn_estimator.fit(init_after_thresh, init_label_data)
-    # expected_output = xdawn_estimator.transform(data_after_thresh)
-    # assert (res == expected_output).all()
-    # del KernelExecutionUnitTest_Object
-    
+    test_threshold_feature_selection_kernel_graph() 
     test_resample_xdawn_graph()
     test_feature_selection_classifier_graph()
     test_slope_classifier_graph()
@@ -387,6 +374,23 @@ def test_baseline_xdawn_graph():
     xdawn_estimator = XdawnCovariances()
     xdawn_estimator.fit(init_after_baseline, init_label_data)
     expected_output = xdawn_estimator.transform(expected_output)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+
+def test_threshold_feature_selection_kernel_graph():
+    """ Test passing init data to threshold kernel"""
+    KernelExecutionUnitTest_Object = Misc3PipelineUnitTest()
+    thresh_val=0.5
+    raw_data = np.random.randn(10,10)
+    init_data = np.random.randn(10,10)
+    init_thresholds = np.random.randn(10,1)
+    init_label_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    Nfeats = 2
+    res = KernelExecutionUnitTest_Object.TestMisc3PipelineExecution(raw_data, thresh_val, (init_data, init_thresholds), init_label_data, Nfeats)
+    data_after_thresh = raw_data > thresh_val
+    init_data_after_thresh = init_data > init_thresholds
+    feat_selector = SelectKBest(k=Nfeats).fit(init_data_after_thresh, init_label_data)
+    expected_output = feat_selector.transform(data_after_thresh)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
@@ -563,4 +567,3 @@ def test_riemann_mean_classifier_graph():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-test_execute()
