@@ -1,6 +1,7 @@
 import mindpype as mp
 import numpy as np
 import pickle
+import pytest
 
 class CoreUnitTest():
     def __init__(self):
@@ -18,6 +19,10 @@ class CoreUnitTest():
         output = self.__session.save_session(file='test.pickle')
         return output
     
+    def TestAddToSessionError(self):
+        test_string = 'test'
+        self.__session.add_to_session(test_string)
+    
 def test_execute():
     Test = CoreUnitTest()
     res = Test.TestSaveSessionFunc()
@@ -29,5 +34,8 @@ def test_execute():
     raw_data = np.zeros((3,3,3))
     res = Test.TestFindObjFunc(raw_data)
     assert (res.data == raw_data).all()
+    
+    with pytest.raises(ValueError) as e_info:
+        res = Test.TestAddToSessionError()
     
 test_execute()
