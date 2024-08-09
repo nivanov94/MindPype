@@ -39,6 +39,7 @@ class CSPPipelinenitTest:
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
+        self.__graph.update()
 
         return outTensor.data
 
@@ -77,3 +78,5 @@ def test_execute():
     
     assert(res == expected_output).all()
     del KernelExecutionUnitTest_Object
+    
+test_execute()
