@@ -619,17 +619,77 @@ class Graph(MPBase):
                 n.initialize()
 
             predictions = np.zeros((test_labels.shape[0],))
-            for i_t in range(test_labels.shape[0]):
-                # set the test data input for the ingestion nodes
-                for n in init_data_nodes:
-                    n.kernel.inputs[0].data = test_data.data[i_t]
 
-                # execute the subset of nodes
-                for n in cv_node_subset:
-                    n.kernel.execute()
+            # determine if the inputs are batched or individual samples
+            if len(init_data_nodes[0].kernel.inputs[0].shape) == len(test_data.shape):
+                batched = True
+                if target_validation_output.mp_type == MPEnums.TENSOR:
+                    Ngph_samples = target_validation_output.shape[0]
+                elif target_validation_output.mp_type == MPEnums.SCALAR:
+                    Ngph_samples = 1
+                else:
+                    Ngph_samples = target_validation_output.num_elements
+                Ntest_samples = test_data.shape[0]
+            else:
+                batched = False
 
-                # get the output of the target validation node
-                predictions[i_t] = target_validation_output.data
+            if not batched:
+                for i_t in range(test_labels.shape[0]):
+                    predictions[i_t] = self._cv_execute_batch(init_data_nodes, 
+                                                              cv_node_subset, 
+                                                              test_data.data[i_t],
+                                                              target_validation_output)
+            else:
+                if Ngph_samples == Ntest_samples:
+                    # number of samples in the test data is the same as 
+                    # the graph, so we can execute the graph in batch mode
+                    predictions = self._cv_execute_batch(init_data_nodes,
+                                                         cv_node_subset,
+                                                         test_data.data,
+                                                         target_validation_output)
+                
+                elif Ngph_samples < Ntest_samples:
+                    # there are more samples in the test data than the
+                    # graph can accomodate, so we need to execute the 
+                    # graph multiple times
+                    batches = Ntest_samples // Ngph_samples
+                    offset_final_batch = False
+                    if Ntest_samples % Ngph_samples == 0:
+                        batches += 1
+                        offset_final_batch = True
+
+                    overlap_offset = 0
+                    for i_b in range(batches):
+                        if offset_final_batch and i_b == (batches - 1):
+                            # in the final batch, reuse some samples from the
+                            # previous batch
+                            overlap_offset = Ntest_samples - i_b * Ngph_samples
+
+                        start = i_b * Ngph_samples - overlap_offset
+                        end = (i_b + 1) * Ngph_samples - overlap_offset
+
+                        predictions[start:end] = self._cv_execute_batch(init_data_nodes,
+                                                                        cv_node_subset,
+                                                                        test_data.data[start:end],
+                                                                        target_validation_output)
+
+                else:
+                    # there are more samples in the graph than the test data
+                    # so we need over-sample the test data to fill the graph
+                    # input requirements
+                    Noversamples = Ngph_samples // Ntest_samples
+                    oversampled_data = np.zeros((Ngph_samples,) + test_data.shape[1:])
+                    oversampled_data[:Noversamples*Ntest_samples] = np.tile(test_data.data, (Noversamples,) + (1,) * (len(test_data.shape)-1))
+
+                    if Ngph_samples % Ntest_samples != 0:
+                        oversampled_data[Noversamples*Ntest_samples:] = test_data.data[:Ngph_samples - Noversamples*Ntest_samples]
+
+                    oversampled_pred = self._cv_execute_batch(init_data_nodes,
+                                                              cv_node_subset,
+                                                              oversampled_data,
+                                                              target_validation_output)
+
+                    predictions = oversampled_pred[:Ntest_samples]
 
             # calculate the statistic
             target = test_labels.data
@@ -660,6 +720,24 @@ class Graph(MPBase):
 
         return mean_stat
 
+    def _cv_execute_batch(self, init_data_nodes, cv_node_subset, 
+                          test_data, target_validation_output):
+        """
+        Execute the subset of nodes in the
+        graph in batch mode for cross validation
+        """
+        # set the test data input for the ingestion nodes
+        for n in init_data_nodes:
+            n.kernel.inputs[0].data = test_data
+
+        # execute the subset of nodes
+        for n in cv_node_subset:
+            n.kernel.execute()
+
+        # get the output of the target validation node
+        predictions = target_validation_output.data
+
+        return predictions
 
     @classmethod
     def create(cls, sess):
@@ -696,9 +774,9 @@ class Node(MPBase):
 
     Attributes
     ----------
-    _kernel : Kernel Object
+    kernel : Kernel Object
         Kernel object to be used for processing within the Node
-    _params : dict
+    params : dict
         Dictionary of parameters outputted by kernel
 
     Examples
@@ -710,15 +788,11 @@ class Node(MPBase):
         sess = graph.session
         super().__init__(MPEnums.NODE, sess)
 
-        self._kernel = kernel
-        self._params = params
+        self.kernel = kernel
+        self.params = params
 
         self._graph = graph
 
-    # API getters
-    @property
-    def kernel(self):
-        return self._kernel
 
     def extract_inputs(self):
         """
@@ -742,7 +816,7 @@ class Node(MPBase):
 
         """
         inputs = []
-        for p in self._params:
+        for p in self.params:
             if p.direction != MPEnums.OUTPUT:
                 inputs.append(p.data)
 
@@ -769,7 +843,7 @@ class Node(MPBase):
             None
         """
         outputs = []
-        for p in self._params:
+        for p in self.params:
             if p.direction == MPEnums.OUTPUT:
                 outputs.append(p.data)
 
@@ -863,9 +937,9 @@ class Edge:
         """
         Constructor for Edge object
         """
-        self._data = data
-        self._producers = []
-        self._consumers = []
+        self.data = data
+        self.producers = []
+        self.consumers = []
 
         self._init_data = None
         self._init_labels = None
@@ -873,59 +947,6 @@ class Edge:
         self._phony_init_data = None
         self._phony_init_labels = None
 
-    @property
-    def producers(self):
-        """
-        Getter for producers property
-
-        Return
-        ------
-        _producers : List of Node
-            List of producers for the Edge object
-
-        Examples
-        --------
-        >>> example_edge.producers
-        """
-        return self._producers
-
-    @property
-    def consumers(self):
-        """
-        Getter for consumers property
-
-        Return
-        ------
-        List of consumers for the Edge object
-
-        Return Type
-        -----------
-        List of Node objects
-
-        Examples
-        --------
-        >>> print(example_edge.consumers)
-
-            [example_consumer_node]
-
-        """
-        return self._consumers
-
-    @property
-    def data(self):
-        """
-        Getter for data property
-
-        Return
-        ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
-        """
-
-        return self._data
 
     @property
     def init_data(self):
@@ -1011,7 +1032,7 @@ class Edge:
         example_edge.add_data(example_data)
 
         """
-        self._data = data
+        self.data = data
 
     def insert_init_data(self):
         """
