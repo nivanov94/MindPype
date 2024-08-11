@@ -448,7 +448,7 @@ class ExtractKernel(Kernel):
                     raise TypeError("ExtractKernel requires integer extraction indicies if input is an Array")
 
                 # check that the index to extract do not exceed the capacity
-                if index >= self._in.capacity or index < -self._in.capacity:
+                if index >= d_in.capacity or index < -d_in.capacity:
                     raise ValueError("ExtractKernel requires extraction indicies to be within the capacity of the input Array")
 
             # if the output is another array, validate that the types match

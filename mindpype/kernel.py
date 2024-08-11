@@ -587,6 +587,12 @@ class Kernel(MPBase, ABC):
                                  "failed during verification. Output " +
                                  "shape does not match expected value." +
                                  "Please check parameters.")
+            
+
+        # if the kernel has an internal state, reset it so it is not impacted
+        # by the test execution and initialization during verification
+        if hasattr(self, '_reset_internal_state') and callable(self._reset_internal_state):
+            self._reset_internal_state()
 
     def initialize(self):
         """

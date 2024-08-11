@@ -1,8 +1,3 @@
-"""
-Defines data container classes for MindPype.
-These classes are used to represent data in the MindPype framework.
-"""
-
 from .core import MPBase, MPEnums
 import numpy as np
 
@@ -152,12 +147,6 @@ class Scalar(MPBase):
         -------
         Deep copy of referenced parameter: Scalar
 
-        Examples
-        --------
-        >>> new_scalar = example_scalar.make_copy()
-        >>> print(new_scalar.data)
-
-            12
         """
         cpy = Scalar(self.session,
                      self.data_type,
@@ -168,7 +157,7 @@ class Scalar(MPBase):
 
         # add the copy to the session
         sess = self.session
-        sess.add_data(cpy)
+        sess.add_to_session(cpy)
 
         return cpy
 
@@ -181,10 +170,6 @@ class Scalar(MPBase):
         dest_scalar : Scalar Object
             Scalar object which will represent the copy of the referenced
             Scalar's elements
-
-        Examples
-        --------
-        >>> example_scalar.copy_to(copy_of_example_scalar)
         """
         dest_scalar.data = self.data
 
@@ -250,7 +235,7 @@ class Scalar(MPBase):
         -------
         [int, float, complex]
         """
-        return [int, float, complex, str, bool]
+        return [int, float, complex, bool]
 
     # Factory Methods
     @classmethod
@@ -286,7 +271,7 @@ class Scalar(MPBase):
             return
         s = cls(sess, data_type, None, False, None)
 
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
     @classmethod
@@ -327,7 +312,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, None, True, None)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
     @classmethod
@@ -363,7 +348,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, value, False, None)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
     @classmethod
@@ -397,7 +382,7 @@ class Scalar(MPBase):
         s = cls(sess, data_type, None, False, src)
 
         # add the scalar to the session
-        sess.add_data(s)
+        sess.add_to_session(s)
         return s
 
 
@@ -524,6 +509,14 @@ class Tensor(MPBase):
 
         """
 
+        # check that the value is a numpy array
+        if not isinstance(data, np.ndarray):
+            # if the value is a number, convert it to a numpy array
+            if isinstance(data, (int, float, complex)):
+                data = np.array(data)
+            else:
+                raise TypeError("Data assigned to Tensors must be a numpy array")
+
         # special case where every dimension is a singleton
         if (np.prod(np.asarray(data.shape)) == 1 and
                 np.prod(np.asarray(self.shape)) == 1):
@@ -597,7 +590,7 @@ class Tensor(MPBase):
 
         # add the copy to the session
         sess = self.session
-        sess.add_data(cpy)
+        sess.add_to_session(cpy)
 
         return cpy
 
@@ -709,7 +702,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, False, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -730,7 +723,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, True, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -755,7 +748,7 @@ class Tensor(MPBase):
         t = cls(sess, data.shape, data, False, None)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -780,7 +773,7 @@ class Tensor(MPBase):
         t = cls(sess, shape, None, False, src)
 
         # add the tensor to the session
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     @classmethod
@@ -805,7 +798,7 @@ class Tensor(MPBase):
         # addressed
 
         t = cls(sess, shape, None, True, None, out)
-        sess.add_data(t)
+        sess.add_to_session(t)
         return t
 
     # utility static methods
@@ -990,7 +983,7 @@ class Array(MPBase):
             cpy.set_element(e, self.get_element(e))
 
         # add the copy to the session
-        self.session.add_data(cpy)
+        self.session.add_to_session(cpy)
 
         return cpy
 
@@ -1079,7 +1072,7 @@ class Array(MPBase):
         a = cls(sess, capacity, element_template)
 
         # add the array to the session
-        sess.add_data(a)
+        sess.add_to_session(a)
         return a
 
 
@@ -1321,7 +1314,7 @@ class CircleBuffer(Array):
         cpy._head = self._head
 
         # add the copy to the session
-        self.session.add_data(cpy)
+        self.session.add_to_session(cpy)
 
         return cpy
 
@@ -1402,6 +1395,6 @@ class CircleBuffer(Array):
         cb = cls(sess, capacity, element_template)
 
         # add to the session
-        sess.add_data(cb)
+        sess.add_to_session(cb)
 
         return cb

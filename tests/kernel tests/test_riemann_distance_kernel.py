@@ -4,6 +4,7 @@ import pyriemann.utils.distance
 import mindpype as mp
 import numpy as np
 import pyriemann
+import pytest
 
 class RiemannDistanceKernelUnitTest:
     def __init__(self):
@@ -37,8 +38,28 @@ class RiemannDistanceKernelUnitTest:
         self.__graph.execute()
 
         return outTensor.data
+        
+    def TestNonTensorInput(self):
+        input1 = mp.Scalar.create_from_value(self.__session, 1)
+        input2 = mp.Scalar.create_from_value(self.__session, 1)
+        output = mp.Scalar.create(self.__session, int)
+        tensor_test_node = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph,input1,input2,output)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return input1
+    
+    def TestWrongOutputShape(self, raw_data1, raw_data2):
+        inTensor1 = mp.Tensor.create_from_data(self.__session, raw_data1)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, raw_data2)
+        outTensor = mp.Tensor.create(self.__session, (1,2))
+        tensor_test_node = mp.kernels.RiemannDistanceKernel.add_to_graph(self.__graph,inTensor1,inTensor2,outTensor)
 
-
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+    
+            
 def test_execute():
     np.random.seed(44)
     raw_data1 = np.random.randn(10,10,10)
@@ -61,6 +82,12 @@ def test_execute():
                 expected_output[i,j] = pyriemann.utils.distance.distance_riemann(x,y)
     assert(res[0,0] == expected_output[0,0])
     assert (res == expected_output).all()
+    
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestWrongOutputShape(raw_data1,raw_data2)
     del KernelExecutionUnitTest_Object
-
-test_execute()
+    
+    KernelExecutionUnitTest_Object = RiemannDistanceKernelUnitTest()
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestNonTensorInput()
+    del KernelExecutionUnitTest_Object
