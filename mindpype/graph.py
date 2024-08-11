@@ -654,7 +654,7 @@ class Graph(MPBase):
                     # graph multiple times
                     batches = Ntest_samples // Ngph_samples
                     offset_final_batch = False
-                    if Ntest_samples % Ngph_samples == 0:
+                    if Ntest_samples % Ngph_samples != 0:
                         batches += 1
                         offset_final_batch = True
 
