@@ -7,7 +7,7 @@ import numpy as np
 
 class Kernel(MPBase, ABC):
     """
-    An abstract base class for kernels. Only used by developers loooking to extend the library.
+    An abstract base class for kernels.
 
     Parameters
     ----------

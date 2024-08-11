@@ -10,7 +10,7 @@ class CoreUnitTest():
     def TestFindObjFunc(self, raw_data):
         obj1 = mp.Tensor.create_from_data(self.__session, raw_data)
         obj2 = mp.Scalar.create_from_value(self.__session, 'test')
-        obj = self.__session.find_obj(obj1._id)
+        obj = self.__session.find_obj(obj1.id)
         return obj
     
     def TestSaveSessionFunc(self):   

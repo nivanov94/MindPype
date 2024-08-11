@@ -849,7 +849,7 @@ class Node(MPBase):
         """
         return self.kernel.initialize()
     
-    def _update(self):
+    def update(self):
         """
         Update the kernel function for execution
         """
@@ -996,8 +996,8 @@ class Edge:
         connections contained within the Edge object
         """
         # create a virtual tensor that will contain the initialization data
-        self._init_data = Tensor.create_virtual(self.data.session)
-        self._init_labels = Tensor.create_virtual(self.data.session)
+        self.init_data = Tensor.create_virtual(self.data.session)
+        self.init_labels = Tensor.create_virtual(self.data.session)
 
         for p in self.producers:
             output_index = self._find_output_index(p)
