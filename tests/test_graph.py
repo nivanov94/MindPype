@@ -15,8 +15,10 @@ class GraphUnitTest():
         predictions = mp.Tensor.create(self.__session, (50,))
         init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
         init_labels = mp.Tensor.create_from_data(self.__session, init_labels_data)
-        node = mp.kernels.ClassifierKernel.add_to_graph(self.__graph,inTensor,mp_clsf,predictions,
-                                                        num_classes=num_classes,initialization_data=init_tensor,labels=init_labels)
+        virtual_tensor = mp.Tensor.create_virtual(self.__session)
+        node1  = mp.kernels.TransposeKernel.add_to_graph(self.__graph, inTensor, virtual_tensor, init_input=init_tensor, init_labels=init_labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph,inTensor,mp_clsf,predictions,
+                                                        num_classes=num_classes)
         mean_stat = self.__graph.cross_validate(predictions, folds=num_folds, statistic=stat)
         # self.__graph.verify()
         # self.__graph.initialize()
@@ -34,13 +36,14 @@ def test_execute():
     classifier = sklearn.discriminant_analysis.LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
     stats = ['accuracy', 'f1', 'precision', 'recall', 'cross_entropy']
     
+    init_after_transpose = np.transpose(init_data)
     for s in stats:
-        res = KernelExecutionUnitTest_Object.TestCrossValidationFunction(raw_data, init_data, init_labels_data, num_classes=2, num_folds=num_folds, stat=s)
+        res = KernelExecutionUnitTest_Object.TestCrossValidationFunction(raw_data, init_after_transpose, init_labels_data, num_classes=2, num_folds=num_folds, stat=s)
         skf = StratifiedKFold(n_splits=num_folds)
         mean_stat = 0
-        for train_index, test_index in skf.split(init_data, init_labels_data):
-            classifier.fit(init_data[train_index], init_labels_data[train_index])
-            expected_predicitions = classifier.predict(init_data[test_index])
+        for train_index, test_index in skf.split(init_after_transpose, init_labels_data):
+            classifier.fit(init_after_transpose[train_index], init_labels_data[train_index])
+            expected_predicitions = classifier.predict(init_after_transpose[test_index])
             if s == 'accuracy':
                 stat = accuracy_score(init_labels_data[test_index], expected_predicitions)
             elif s == 'f1':
