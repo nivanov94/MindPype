@@ -477,7 +477,7 @@ class ExtractKernel(Kernel):
             # if the output is a scalar, check that the input is an array of compatible scalars
             elif (d_out.mp_type == MPEnums.SCALAR):
                 if (in_element.mp_type != MPEnums.SCALAR or
-                    in_element.data_type != d_out.data_type):
+                    in_element.data.data_type != d_out.data_type):
                     raise TypeError("ExtractKernel requires Scalar output to have the same type as the input Array")
 
                 # also verify that only one index is being extracted
