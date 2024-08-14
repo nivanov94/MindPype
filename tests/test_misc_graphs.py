@@ -361,6 +361,56 @@ class Misc14PipelineUnitTest():
 
         return outTensor.data      
 
+class Misc15PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc15PipelineExecution(self, input_data, init_data, labels):    
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
+        labels = mp.Tensor.create_from_data(self.__session, labels)
+        outTensor = mp.Tensor.create(self.__session, (input_data.shape[0],))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], init_input=init_tensor, init_labels=labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data 
+    
+class Misc16PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc16PipelineExecution(self, input_data, init_data, labels, indices):    
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
+        labels = mp.Tensor.create_from_data(self.__session, labels)
+        outTensor = mp.Tensor.create(self.__session, (4,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.ExtractKernel.add_to_graph(self.__graph, inTensor, indices, virtual_tensors[0], init_input=init_tensor, init_labels=labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data 
+
 def test_execute():
     np.random.seed(44)
     
@@ -394,6 +444,9 @@ def test_execute():
     test_riemann_distance_classifier_graph()
     test_riemann_mean_classifier_graph()
     test_epoch_classifier_graph()
+    test_addition_classifier_graph()
+    # test_reduced_sum_classifier_graph()
+    test_extract_classifier_graph()
 
 def test_transpose_csp_graph():
     """ Test passing init data to transpose kernel that will be passed downstream to csp kernel """
@@ -681,3 +734,37 @@ def test_addition_classifier_graph():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+# def test_reduced_sum_classifier_graph():
+#     """ Test passing init data to resample kernel that will be passed downstream to classifier kernel """
+#     KernelExecutionUnitTest_Object = Misc15PipelineUnitTest()
+#     init_data = np.random.randn(10,10)
+#     raw_data = np.random.randn(10,10)
+#     init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    
+#     res = KernelExecutionUnitTest_Object.TestMisc15PipelineExecution(raw_data, init_data, init_labels_data)
+#     init_after_reduced_sum = np.sum(init_data, axis = None)
+#     data_after_reduced_sum = np.sum(raw_data, axis = None)
+#     classifier = SVC()
+#     classifier.fit(init_after_reduced_sum, init_labels_data)
+#     expected_output = classifier.predict(data_after_reduced_sum)
+#     assert (res == expected_output).all()
+#     del KernelExecutionUnitTest_Object
+
+def test_extract_classifier_graph():
+    """ Test passing init data to addition kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc16PipelineUnitTest()
+    init_data = np.random.randn(10,10)
+    raw_data = np.random.randn(10,10)
+    init_labels_data = np.concatenate((np.zeros((2,)), np.ones((2,))))
+    indices = [slice(4), slice(None)] 
+    
+    res = KernelExecutionUnitTest_Object.TestMisc16PipelineExecution(raw_data, init_data, init_labels_data, indices)
+    data_after_extract =  raw_data[0:4:]
+    init_after_extract = init_data[0:4,:]
+    classifier = SVC()
+    classifier.fit(init_after_extract, init_labels_data)
+    expected_output = classifier.predict(data_after_extract)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+test_execute()
