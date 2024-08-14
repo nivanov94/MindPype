@@ -160,11 +160,11 @@ class ExtractKernelUnitTest:
         self.__graph.execute()
         return outTensor.data
     
-    def TestExtractKernelArrayInput(self, raw_data):
-        template = mp.Tensor.create_from_data(self.__session, raw_data)
+    def TestExtractKernelArrayInput(self):
+        template = mp.Scalar.create_from_value(self.__session, 'test')
         input = mp.Array.create(self.__session, 3, template)
         indices = [0]
-        output = mp.Scalar.create(self.__session, float)
+        output = mp.Scalar.create(self.__session, str)
         node = mp.kernels.ExtractKernel.add_to_graph(self.__graph, input, indices, output)
         self.__graph.verify()
         self.__graph.initialize()
@@ -469,8 +469,8 @@ def test_execute():
     extracted_data = raw_data2[0,:]
     assert np.all(res == extracted_data)
     
-    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInput(raw_data2)
-    expected_output = raw_data2
+    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInput()
+    expected_output = 'test'
     assert np.all(res == expected_output)
     
     with pytest.raises(TypeError) as e_info:
