@@ -410,6 +410,33 @@ class Misc16PipelineUnitTest():
         self.__graph.execute()
 
         return outTensor.data 
+    
+class Misc17PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc17PipelineExecution(self, input_data, init_data, labels):    
+        inTensor1 = mp.Tensor.create_from_data(self.__session, input_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, input_data)
+        init_tensor1 = mp.Tensor.create_from_data(self.__session, init_data)
+        init_tensor2 = mp.Tensor.create_from_data(self.__session, init_data)
+        labels = mp.Tensor.create_from_data(self.__session, labels)
+        outTensor = mp.Tensor.create(self.__session, (10,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.TensorStackKernel.add_to_graph(self.__graph, inTensor1, inTensor2, virtual_tensors[0], init_inputs=[init_tensor1, init_tensor2], init_labels=labels, axis=1)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data 
 
 def test_execute():
     np.random.seed(44)
@@ -447,6 +474,7 @@ def test_execute():
     test_addition_classifier_graph()
     # test_reduced_sum_classifier_graph()
     test_extract_classifier_graph()
+    test_tensor_stack_classifier_graph()
 
 def test_transpose_csp_graph():
     """ Test passing init data to transpose kernel that will be passed downstream to csp kernel """
@@ -751,7 +779,7 @@ def test_addition_classifier_graph():
 #     del KernelExecutionUnitTest_Object
 
 def test_extract_classifier_graph():
-    """ Test passing init data to addition kernel that will be passed downstream to classifier kernel """
+    """ Test passing init data to extract kernel that will be passed downstream to classifier kernel """
     KernelExecutionUnitTest_Object = Misc16PipelineUnitTest()
     init_data = np.random.randn(10,10)
     raw_data = np.random.randn(10,10)
@@ -764,6 +792,22 @@ def test_extract_classifier_graph():
     classifier = SVC()
     classifier.fit(init_after_extract, init_labels_data)
     expected_output = classifier.predict(data_after_extract)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+def test_tensor_stack_classifier_graph():
+    """ Test passing init data to tensor stack kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc17PipelineUnitTest()
+    init_data = np.random.randn(10,)
+    raw_data = np.random.randn(10,)
+    init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    
+    res = KernelExecutionUnitTest_Object.TestMisc17PipelineExecution(raw_data, init_data, init_labels_data)
+    data_after_tensor_stack = np.stack([raw_data, raw_data], axis=1)
+    init_after_tensor_stack = np.stack([init_data, init_data], axis=1)
+    classifier = SVC()
+    classifier.fit(init_after_tensor_stack, init_labels_data)
+    expected_output = classifier.predict(data_after_tensor_stack)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
