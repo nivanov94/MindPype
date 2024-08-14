@@ -326,7 +326,6 @@ class Misc13PipelineUnitTest():
         
         classifier = mp.Classifier.create_SVM(self.__session)
         
-        
         node1 = mp.kernels.EpochKernel.add_to_graph(self.__graph,inTensor,virtual_tensors[0],epoch_len=epoch_length, epoch_stride=epoch_stride, axis=ax, init_input=init_data, labels=init_labels)
         node2 = mp.kernels.ReshapeKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1], (4,2))
         node3 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[1], classifier, outTensor)
@@ -334,7 +333,33 @@ class Misc13PipelineUnitTest():
         self.__graph.initialize()
         self.__graph.execute()
 
-        return outTensor.data    
+        return outTensor.data  
+    
+class Misc14PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc14PipelineExecution(self, input_data, init_data, labels):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor1 = mp.Tensor.create_from_data(self.__session, input_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (input_data.shape[0],))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.AdditionKernel.add_to_graph(self.__graph,inTensor1, inTensor2, virtual_tensors[0], init_inputs=[init_data, init_data], init_labels=init_labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data      
 
 def test_execute():
     np.random.seed(44)
@@ -640,4 +665,19 @@ def test_epoch_classifier_graph():
     assert (res == expected_output).all()
     del KernelExecutionUnitTestObject
     
+def test_addition_classifier_graph():
+    """ Test passing init data to addition kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc14PipelineUnitTest()
+    init_data = np.random.randn(10,10)
+    raw_data = np.random.randn(10,10)
+    init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    
+    res = KernelExecutionUnitTest_Object.TestMisc14PipelineExecution(raw_data, init_data, init_labels_data)
+    data_after_addition = raw_data + raw_data
+    init_after_addition = init_data + init_data
+    classifier = SVC()
+    classifier.fit(init_after_addition, init_labels_data)
+    expected_output = classifier.predict(data_after_addition)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
     
