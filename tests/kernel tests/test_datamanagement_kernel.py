@@ -171,10 +171,19 @@ class ExtractKernelUnitTest:
         self.__graph.execute()
         return output.data
     
-    def TestExtractKernelArrayInputTensorOutput(self, raw_data):
-        template = mp.Tensor.create_from_data(self.__session, raw_data)
+    def TestExtractKernelArrayInputTensorOutput(self, raw_data, tensor_or_scalar):
+        outshape = 0
+        if tensor_or_scalar == 'tensor':
+            template = mp.Tensor.create_from_data(self.__session, raw_data)
+            outshape = np.concatenate(((1,),raw_data.shape))
+        elif tensor_or_scalar == 'scalar':
+            template = mp.Scalar.create_from_value(self.__session, 0)
+            outshape = (1,1)
+        else:
+            template = mp.Array.create(self.__session, 3, mp.Tensor.create_from_data(self.__session, raw_data))
+            outshape = (1,1)
         input = mp.Array.create(self.__session, 3, template)
-        outTensor = mp.Tensor.create(self.__session, np.concatenate(((1,),raw_data.shape)))
+        outTensor = mp.Tensor.create(self.__session, outshape)
         indices = [0]
         node = mp.kernels.ExtractKernel.add_to_graph(self.__graph, input, indices, outTensor)
         self.__graph.verify()
@@ -486,10 +495,17 @@ def test_execute():
     assert np.all(res == expected_output)
     
     # test array input with tensor output
-    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInputTensorOutput(raw_data)
+    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInputTensorOutput(raw_data, tensor_or_scalar='tensor')
     expected_output = raw_data
     assert np.all(res ==  expected_output)
+    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInputTensorOutput(raw_data, tensor_or_scalar='scalar')
+    expected_output = 0
+    assert np.all(res ==  expected_output)
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInputTensorOutput(raw_data, tensor_or_scalar='other')
+    del KernelExecutionUnitTest_Object
     
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
     with pytest.raises(TypeError) as e_info:
         res = KernelExecutionUnitTest_Object.TestNonTensorExtract()    
     del KernelExecutionUnitTest_Object
