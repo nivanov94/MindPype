@@ -9,7 +9,9 @@ import mne
 
 class CommonSpatialPatternKernel(Kernel):
     """
-    Kernel to apply common spatial pattern (CSP) filters to trial data.
+    Kernel to apply common spatial pattern (CSP) filters to trial data. CSP works by 
+    finding spatial filters that maximize the variance for one condition while minimizing 
+    it for the other, to distinguishing between different mental states.
 
     .. note::
         This kernel utilizes the mne class :class:`CSP <mne:mne.decoding.CSP>`
