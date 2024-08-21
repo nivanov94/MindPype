@@ -13,8 +13,10 @@ import numpy as np
 
 class RiemannPotatoKernel(Kernel):
     """
-    Riemannian potato artifact detection detector.
-    Kernel takes Tensor input and produces scalar label representing
+    Kernel performs Riemannian potato artifact detection. The Riemann Potato method 
+    leverages Riemannian geometry to identify and remove artifacts by comparing covariance
+    matrices of EEG signals to a reference matrix of clean signals.
+    Kernel takes Tensor input (which should be covariance matrices) and produces scalar label representing
     the predicted class
 
     .. note:: 
