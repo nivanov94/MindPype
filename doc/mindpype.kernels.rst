@@ -155,6 +155,14 @@ Running Average
    :undoc-members:
    :show-inheritance:
 
+Slope
+-----
+
+.. automodule:: mindpype.kernels.slope
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Statistical Operations
 -----------------------
 
