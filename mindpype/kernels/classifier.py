@@ -9,7 +9,7 @@ import numpy as np
 
 class ClassifierKernel(Kernel):
     """
-    Kernel to classify input data using a MindPype Classifier object
+    Kernel to classify/predict labels for input data using a MindPype Classifier object
 
     Parameters
     ----------

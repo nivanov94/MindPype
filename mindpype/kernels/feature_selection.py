@@ -10,7 +10,8 @@ import numpy as np
 class FeatureSelectionKernel(Kernel):
     """
     Performs feature selection using f_classif method from sklearn.feature_selection
-
+    to determine the most relevent features from the data.
+    
     .. note:: 
         This kernel utilizes the 
         :class:`SelectKBest <sklearn:sklearn.feature_selection.SelectKBest>` 

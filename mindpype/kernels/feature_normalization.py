@@ -7,7 +7,8 @@ import numpy as np
 
 class FeatureNormalizationKernel(Kernel):
     """
-    Normalizes the values within a feature vector
+    Kernel normalizes the values within a feature vector using the method provided
+    through the method parameter.
 
     Parameters
     ----------
