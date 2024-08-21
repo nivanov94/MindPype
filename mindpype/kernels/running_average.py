@@ -1,7 +1,4 @@
 # -*coding: utf-8 -*-
-"""
-Created on Thurs Aug 8 14:13:13 2022
-"""
 
 from ..kernel import Kernel
 from ..graph import Node, Parameter

@@ -8,7 +8,7 @@ import numpy as np
 
 class TangentSpaceKernel(Kernel):
     """
-    Kernel to estimate Tangent Space. Applies Pyriemann.tangentspace method
+    Kernel to estimate Tangent Space. Applies Pyriemann.tangentspace method. 
     Kernel expects SPD matrix input.
 
     .. note:: 
