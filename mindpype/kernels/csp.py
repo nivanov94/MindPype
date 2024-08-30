@@ -12,7 +12,7 @@ class CommonSpatialPatternKernel(Kernel):
     Kernel to apply common spatial pattern (CSP) filters to trial data.
 
     .. note::
-        This kernel utilizes the mne class :class:`CSP <mne:mne.decoding.CSP>`.
+        This kernel utilizes the mne class :class:`CSP <mne:mne.decoding.CSP>`
 
     Parameters
     ----------
@@ -50,10 +50,7 @@ class CommonSpatialPatternKernel(Kernel):
         self.outputs = [outA]
 
         if init_data is not None:
-            self.init_inputs = [init_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+            self.add_initialization_data([init_data], labels)
 
         self._n_components = n_components
         self._mdl = mne.decoding.CSP(n_components=n_components, cov_est=cov_est, 

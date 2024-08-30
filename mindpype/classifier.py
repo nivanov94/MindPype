@@ -34,10 +34,10 @@ class Classifier(MPBase):
 
     Attributes
     ----------
-    _ctype : str
+    ctype : str
        One of ['lda', 'svm', 'logistic regression', 'custom'], corresponding
        to the type of classifier
-    _classifier : Classifier
+    classifier : Classifier
        The Classifier object (ie. Scipy classifier object) that will dictate
        this node's function
 
@@ -73,8 +73,8 @@ class Classifier(MPBase):
         """
         Constructor to create a new filter object
         """
-        self._ctype = ctype
-        self._classifier = classifier
+        self.ctype = ctype
+        self.classifier = classifier
 
         super().__init__(MPEnums.CLASSIFIER, sess)
 
@@ -83,19 +83,6 @@ class Classifier(MPBase):
             "MindPype {} Classifier with following"
             + f"attributes:\nClassifier Type: {self.ctype}\n"
         )
-
-    # API Getters
-    @property
-    def ctype(self):
-        """
-        Getter for the classifier type
-
-        Returns
-        -------
-        The classifier type : str
-
-        """
-        return self.ctype
 
     @classmethod
     def create_SVM(

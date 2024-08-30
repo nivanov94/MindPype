@@ -20,7 +20,7 @@ class RiemannPotatoKernel(Kernel):
     .. note:: 
         This kernel utilizes the 
         :class:`Potato <pyriemann:pyriemann.clustering.Potato>` 
-        class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
+        class from the pyriemann package.
 
 
     Parameters
@@ -52,7 +52,7 @@ class RiemannPotatoKernel(Kernel):
         self._r = regulization
 
         if initialization_data is not None:
-            self.init_inputs = [initialization_data]
+            self.add_initialization_data([initialization_data])
 
         # model will be trained using data in tensor object at later time
         self._initialized = False

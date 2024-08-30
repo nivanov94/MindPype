@@ -75,7 +75,7 @@ class AbsoluteKernel(Unary, Kernel):
 
     .. note::
         This kernel utilizes the numpy function
-        :func:`absolute <numpy:numpy.absolute>`.
+        :data:`absolute <numpy:numpy.absolute>`.
 
     Parameters
     ----------
@@ -164,7 +164,7 @@ class LogKernel(Unary, Kernel):
 
     .. note::
         This kernel utilizes the numpy function
-        :func:`log <numpy:numpy.log>`.
+        :data:`log <numpy:numpy.log>`.
 
     Parameters
     ----------

@@ -12,28 +12,10 @@ class CDFKernel(Kernel):
     Calculates the CDF for a distribution given a RV as input. Currently supports normal and chi2 distributions
 
     .. note::
-        This kernel utilizes the numpy functions
-        :func:`cov <numpy:numpy.cov>`,
-        :func:`eye <numpy:numpy.eye>`,
-        :func:`zeros <numpy:numpy.zeros>`,
-        :func:`reshape <numpy:numpy.reshape>`,
-        :func:`transpose <numpy:numpy.transpose>`,
-        :func:`mean <numpy:numpy.mean>`,
-        :func:`amax <numpy:numpy.amax>`,
-        :func:`amin <numpy:numpy.amin>`,
-        :func:`std <numpy:numpy.std>`,
-        :func:`var <numpy:numpy.var>`,
-        :func:`squeeze <numpy:numpy.squeeze>`,
-        :func:`sum <numpy:numpy.sum>`,
-        :func:`asarray <numpy:numpy.reshape>`,
-        :func:`concatenate <numpy:numpy.concatenate>`.
-
-    .. note::
         This kernel utilizes the scipy functions
-        :func:`norm <scipy:scipy.stats.norm>`,
-        :func:`chi2 <scipy:scipy.stats.chi2>`,
-        :func:`kurtosis <scipy:scipy.stats.kurtosis>`,
-        :func:`skew <scipy:scipy.stats.skew>`.
+        :obj:`norm <scipy:scipy.stats.norm>`,
+        :obj:`chi2 <scipy:scipy.stats.chi2>`.
+
 
     Parameters
     ----------
@@ -447,6 +429,14 @@ class Descriptive:
 class MaxKernel(Descriptive, Kernel):
     """
     Kernel to extract maximum value along a Tensor axis
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`max <numpy:numpy.max>`.
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`max <numpy:numpy.max>`.
 
     Parameters
     ----------
@@ -543,6 +533,10 @@ class MaxKernel(Descriptive, Kernel):
 class MinKernel(Descriptive, Kernel):
     """
     Kernel to extract minimum value within a Tensor
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`min <numpy:numpy.min>`.
 
     Parameters
     ----------
@@ -641,6 +635,14 @@ class MinKernel(Descriptive, Kernel):
 class MeanKernel(Descriptive, Kernel):
     """
     Calculates the mean of values in a tensor
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`mean <numpy:numpy.mean>`.
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`mean <numpy:numpy.mean>`.
 
     Parameters
     ----------
@@ -733,6 +735,14 @@ class MeanKernel(Descriptive, Kernel):
 class StdKernel(Descriptive, Kernel):
     """
     Calculates the standard deviation of values in a tensor
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`std <numpy:numpy.std>`.
+
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`std <numpy:numpy.std>`.
 
     Parameters
     ----------
@@ -856,6 +866,10 @@ class StdKernel(Descriptive, Kernel):
 class VarKernel(Descriptive, Kernel):
     """
     Calculates the variance of values in a tensor
+    
+    .. note::
+        This kernel utilizes the numpy function
+        :func:`var <numpy:numpy.var>`.
 
     graph : Graph
         Graph that the kernel should be added to
@@ -980,6 +994,14 @@ class VarKernel(Descriptive, Kernel):
 class KurtosisKernel(Descriptive, Kernel):
     """
     Calculates the kurtosis of values in a tensor
+    
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`kurtosis <scipy:scipy.stats.kurtosis>`.
+
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`kurtosis <scipy:scipy.stats.kurtosis>`.
 
     Parameters
     ----------
@@ -1115,6 +1137,14 @@ class KurtosisKernel(Descriptive, Kernel):
 class SkewnessKernel(Descriptive, Kernel):
     """
     Calculates the Skewness of values in a tensor
+    
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`skewness <scipy:scipy.stats.skewness>`.
+
+    .. note::
+        This kernel utilizes the scipy function
+        :func:`skew <scipy:scipy.stats.skew>`.
 
     Parameters
     ----------
@@ -1241,6 +1271,9 @@ class ZScoreKernel(Kernel):
     """
     Calculate a z-score for an tensor or scalar input
 
+    Parameters
+    ----------
+    
     graph : Graph
         Graph that the kernel should be added to
 
@@ -1267,7 +1300,7 @@ class ZScoreKernel(Kernel):
         self.outputs = [outA]
 
         if init_data is not None:
-            self.init_inputs = [init_data]
+            self.add_initialization_data([init_data])
 
         self._mu = 0
         self._sigma = 0
@@ -1306,7 +1339,7 @@ class ZScoreKernel(Kernel):
                 if (np.squeeze(e.shape != ())):
                     raise ValueError("ZScore Kernel: Initialization data must be rank 1")
             elif e.mp_type == MPEnums.SCALAR:
-                if not e.data_type in Scalar.valid_numeric_types():
+                if not e.data_type in Scalar._valid_numeric_types():
                     raise ValueError("ZScore Kernel: Initialization data must be numeric")
             else:
                 raise ValueError("ZScore Kernel: Initialization data Arrays must contain tensors or scalars")
@@ -1362,6 +1395,9 @@ class ZScoreKernel(Kernel):
         Factory method to create a z-score value kernel
         and add it to a graph as a generic node object.
 
+        Parameters
+        ----------
+        
         graph : Graph
             Graph that the kernel should be added to
 

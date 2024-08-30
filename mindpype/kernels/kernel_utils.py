@@ -5,13 +5,6 @@ def extract_nested_data(mp_obj):
     """
     Recursively extract Tensor data within a MindPype array or array-of-arrays
 
-    .. note::
-        This method utilizes the numpy functions
-        :func:`array <numpy:numpy.array>`,
-        :func:`asarray <numpy:numpy.asarray>`,
-        :func:`append <numpy:numpy.append>`,
-        :func:`exapnd_dims <numpy:numpy.expand_dims>`.
-
     Parameters
     ----------
     mp_obj : Array or array-of-arrays
@@ -22,12 +15,12 @@ def extract_nested_data(mp_obj):
     X : np array
         The extracted data as a numpy array
     """
-    if (mp_obj._mp_type != MPEnums.ARRAY and 
-        mp_obj._mp_type != MPEnums.CIRCLE_BUFFER):
+    if (mp_obj.mp_type != MPEnums.ARRAY and 
+        mp_obj.mp_type != MPEnums.CIRCLE_BUFFER):
         return np.array(())
     
     X = np.array(())
-    if mp_obj._mp_type == MPEnums.ARRAY:    
+    if mp_obj.mp_type == MPEnums.ARRAY:    
         num_elements = mp_obj.capacity
     else:
         num_elements = mp_obj.num_elements
@@ -35,14 +28,14 @@ def extract_nested_data(mp_obj):
     
     for i in range(num_elements):
         
-        if mp_obj._mp_type == MPEnums.ARRAY:
+        if mp_obj.mp_type == MPEnums.ARRAY:
             e = mp_obj.get_element(i)
         else:
             e = mp_obj.get_queued_element(i)
             
             
-        if e._mp_type == MPEnums.TENSOR or e._mp_type == MPEnums.SCALAR:
-            if e._mp_type == MPEnums.SCALAR:
+        if e.mp_type == MPEnums.TENSOR or e.mp_type == MPEnums.SCALAR:
+            if e.mp_type == MPEnums.SCALAR:
                 elem_data = np.asarray((e.data,))
             else:
                 elem_data = e.data

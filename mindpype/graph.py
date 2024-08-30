@@ -1,16 +1,12 @@
-"""
-Created on Mon Dec  2 12:00:43 2019
-
-graph.py - Defines the graph object
-"""
-
 from .core import MPBase, MPEnums
 from .containers import Tensor
 import sys
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
-import time
+from sklearn.metrics import (accuracy_score, f1_score, 
+                             precision_score, recall_score,
+                             log_loss)
+
 
 class Graph(MPBase):
     """
@@ -84,20 +80,18 @@ class Graph(MPBase):
         initialization data and it is not explicitly provided, this data
         will be used. It will be added as initialization data to any
         root nodes that ingest data from outside of the graph.
-
         Parameters
         ----------
         data : Tensor or Array
             Tensor or array containing the default initialization data
-
         labels : Tensor or Array
             Tensor or array containing the default initialization labels
-
         """
         self._verified = False
         self._initialized = False
         self._default_init_data = data
         self._default_init_labels = labels
+
 
     def verify(self):
         """
@@ -109,9 +103,6 @@ class Graph(MPBase):
 
         # begin by scheduling the nodes in execution order
         self._schedule_nodes()
-
-        # assign default initialization data to nodes that require it
-        self._assign_default_init_data()
 
         # now all the nodes are in execution order create any
         # necessary initialization edges
@@ -240,7 +231,8 @@ class Graph(MPBase):
 
                 # check whether all init inputs have been provided by the user
                 init_provided = True
-                for n_ii in n.kernel.init_inputs:
+                for init_index in range(n.kernel.num_inputs):
+                    n_ii = n.kernel.get_parameter(init_index, 'init', MPEnums.INPUT)
                     if n_ii is None:
                         init_provided = False
 
@@ -273,31 +265,6 @@ class Graph(MPBase):
                     pretty_msg = f"\n{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}\n"
                     print(pretty_msg)
                 raise
-
-    def _assign_default_init_data(self):
-        """
-        If default init data exists, add it to any root nodes
-        that do not have any init data
-        """
-        if self._default_init_data is None:
-            return
-
-        for n in self._nodes:
-            n_inputs = n.extract_inputs()
-            root_data_node = False
-
-            # check whether this node ingests data from outside the graph
-            for index, n_i in enumerate(n_inputs):
-                if len(self._edges[n_i.session_id].producers) == 0:
-                    root_data_node = True
-                    init_data_index = index
-                    break
-
-            if root_data_node:
-                # copy the default init data to the node's init input
-                n.kernel.init_inputs[init_data_index] = self._default_init_data
-                if self._default_init_labels is not None:
-                    n.kernel.init_input_labels = self._default_init_labels
 
     def _insert_phony_edges(self):
         """
@@ -428,7 +395,7 @@ class Graph(MPBase):
         # Check whether first node has volatile input
         # if so, poll the volatile data
         if len(self._volatile_sources) > 0:
-            self.poll_volatile_sources(label)
+            self._poll_volatile_sources(label)
 
         print("Executing trial with label: {}".format(label))
 
@@ -450,7 +417,7 @@ class Graph(MPBase):
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
-    def poll_volatile_sources(self, label=None):
+    def _poll_volatile_sources(self, label=None):
         """
         Poll data (update input data) from volatile sources within the graph.
 
@@ -466,12 +433,12 @@ class Graph(MPBase):
 
         Example
         -------
-        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data
+        >>> example_graph._poll_volatile_data(0) # Polls next class 0 trial data
         """
         for datum in self._volatile_sources:
             datum.poll_volatile_data(label)
 
-    def push_volatile_outputs(self, label=None):
+    def _push_volatile_outputs(self, label=None):
         """
         Push data (update output data) to volatile outputs within the graph.
 
@@ -484,10 +451,6 @@ class Graph(MPBase):
         Return
         ------
         None
-
-        Example
-        -------
-        >>> example_graph.poll_volatile_data(0) # Polls next class 0 trial data
         """
         for datum in self._volatile_outputs:
             datum.push_volatile_outputs(label=label)
@@ -543,7 +506,8 @@ class Graph(MPBase):
 
             # check if this node has initialization data
             init_provided = True
-            for n_ii in n.kernel.init_inputs:
+            for init_index in range(n.kernel.num_inputs):
+                n_ii = n.kernel.get_parameter(init_index, 'init', MPEnums.INPUT)
                 if n_ii.virtual:
                     init_provided = False
 
@@ -564,8 +528,10 @@ class Graph(MPBase):
 
         if len(init_data_nodes) != 1:
             # check that all these nodes are ingesting the same init data
+            first_node_init_in = init_data_nodes[0].kernel.get_parameter(0, 'init', MPEnums.INPUT)
             for n in init_data_nodes:
-                if n.kernel.init_inputs[0].session_id != init_data_nodes[0].kernel.init_inputs[0].session_id:
+                current_node_init_in = n.kernel.get_parameter(0, 'init', MPEnums.INPUT)
+                if current_node_init_in.session_id != first_node_init_in.session_id:
                     raise ValueError("Cross validation could not be performed. " +
                                      "This may be because the target validation output " +
                                      "is generated by a node that does not require " +
@@ -589,8 +555,8 @@ class Graph(MPBase):
             raise ValueError("Cross validation could not be performed. Invalid graph structure")
 
         # copy the initialization data object
-        init_data = init_data_nodes[0].kernel.init_inputs[0]
-        init_labels = init_data_nodes[0].kernel.init_input_labels
+        init_data = init_data_nodes[0].kernel.get_parameter(0, 'init', MPEnums.INPUT)
+        init_labels = init_data_nodes[0].kernel.get_parameter(0, 'labels', MPEnums.INPUT)
 
         if init_data.mp_type != MPEnums.TENSOR:
             init_data = init_data.convert_to_tensor()
@@ -611,8 +577,8 @@ class Graph(MPBase):
 
             # set the initialization data for the nodes
             for n in init_data_nodes:
-                n.kernel.init_inputs[0] = train_data
-                n.kernel.init_input_labels = train_labels
+                n.kernel.set_parameter(train_data, 0, 'init', MPEnums.INPUT)
+                n.kernel.set_parameter(train_labels, 0, 'labels', MPEnums.INPUT)
 
             # initialize the subset of nodes
             for n in cv_node_subset:
@@ -622,7 +588,8 @@ class Graph(MPBase):
             for i_t in range(test_labels.shape[0]):
                 # set the test data input for the ingestion nodes
                 for n in init_data_nodes:
-                    n.kernel.inputs[0].data = test_data.data[i_t]
+                    k_input = n.kernel.get_parameter(0, 'main', MPEnums.INPUT)
+                    k_input.data = test_data.data[i_t]
 
                 # execute the subset of nodes
                 for n in cv_node_subset:
@@ -651,8 +618,8 @@ class Graph(MPBase):
 
         # reset the initialization data for the nodes
         for n in init_data_nodes:
-            n.kernel.init_inputs[0] = init_data
-            n.kernel.init_input_labels = init_labels
+            n.kernel.set_parameter(init_data, 0, 'init', MPEnums.INPUT)
+            n.kernel.set_parameter(init_labels, 0, 'labels', MPEnums.INPUT)
 
         # cleanup data objects
         del train_data, train_labels, test_data, test_labels
@@ -696,7 +663,7 @@ class Node(MPBase):
 
     Attributes
     ----------
-    _kernel : Kernel Object
+    kernel : Kernel Object
         Kernel object to be used for processing within the Node
     _params : dict
         Dictionary of parameters outputted by kernel
@@ -710,15 +677,9 @@ class Node(MPBase):
         sess = graph.session
         super().__init__(MPEnums.NODE, sess)
 
-        self._kernel = kernel
+        self.kernel = kernel
         self._params = params
-
         self._graph = graph
-
-    # API getters
-    @property
-    def kernel(self):
-        return self._kernel
 
     def extract_inputs(self):
         """
@@ -787,18 +748,18 @@ class Node(MPBase):
         """
         return self.kernel.initialize()
     
-    def update(self):
+    def _update(self):
         """
         Update the kernel function for execution
         """
         return self.kernel.update()
 
-    def update_parameters(self, parameter, value):
+    def update_attributes(self, attribute, value):
         """
         Update the parameters of the node
         """
 
-        self.kernel.update_parameters(parameter, value)
+        self.kernel.update_attribute(attribute, value)
         self._graph._verified = False
 
     def add_initialization_data(self, init_data, init_labels=None):
@@ -817,7 +778,7 @@ class Node(MPBase):
         self.kernel.add_initialization_data(init_data, init_labels)
         self._graph.verified = False
 
-    def update_initialization_data(self, init_data, init_labels=None):
+    def _update_initialization_data(self, init_data, init_labels=None):
         """
         Update the initialization data of the node
 
@@ -863,101 +824,16 @@ class Edge:
         """
         Constructor for Edge object
         """
-        self._data = data
-        self._producers = []
-        self._consumers = []
+        self.data = data
+        self.producers = []
+        self.consumers = []
 
-        self._init_data = None
-        self._init_labels = None
+        self.init_data = None
+        self.init_labels = None
         self._phony_data = None
         self._phony_init_data = None
         self._phony_init_labels = None
 
-    @property
-    def producers(self):
-        """
-        Getter for producers property
-
-        Return
-        ------
-        _producers : List of Node
-            List of producers for the Edge object
-
-        Examples
-        --------
-        >>> example_edge.producers
-        """
-        return self._producers
-
-    @property
-    def consumers(self):
-        """
-        Getter for consumers property
-
-        Return
-        ------
-        List of consumers for the Edge object
-
-        Return Type
-        -----------
-        List of Node objects
-
-        Examples
-        --------
-        >>> print(example_edge.consumers)
-
-            [example_consumer_node]
-
-        """
-        return self._consumers
-
-    @property
-    def data(self):
-        """
-        Getter for data property
-
-        Return
-        ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
-        """
-
-        return self._data
-
-    @property
-    def init_data(self):
-        """
-        Getter for init_data property
-
-        Return
-        ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
-        """
-
-        return self._init_data
-
-    @property
-    def init_labels(self):
-        """
-        Getter for init_labels property
-
-        Return
-        ------
-        Data object stored within the Edge object
-
-        Return Type
-        -----------
-        Data object
-        """
-
-        return self._init_labels
 
     def add_producer(self, producing_node):
         """
@@ -972,7 +848,7 @@ class Edge:
 
         Examples
         --------
-        example_edge.add_producer(example_producing_edge)
+        >>> example_edge.add_producer(example_producing_edge)
 
         """
         self.producers.append(producing_node)
@@ -990,28 +866,10 @@ class Edge:
 
         Examples
         --------
-        example_edge.add_consumer(example_consumer_edge)
+        >>> example_edge.add_consumer(example_consumer_edge)
 
         """
         self.consumers.append(consuming_node)
-
-    def add_data(self, data):
-        """
-        Add specified data to an Edge object
-
-        .. note:: Adds data object in place, does not return a new Edge object
-
-        Parameters
-        ----------
-        data : Tensor, Scalar, Array, Python Built-in Data Types
-            Data to be added to the referenced Edge object
-
-        Examples
-        --------
-        example_edge.add_data(example_data)
-
-        """
-        self._data = data
 
     def insert_init_data(self):
         """
@@ -1019,31 +877,37 @@ class Edge:
         connections contained within the Edge object
         """
         # create a virtual tensor that will contain the initialization data
-        self._init_data = Tensor.create_virtual(self.data.session)
-        self._init_labels = Tensor.create_virtual(self.data.session)
+        self.init_data = Tensor.create_virtual(self.data.session)
+        self.init_labels = Tensor.create_virtual(self.data.session)
 
         for p in self.producers:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.init_outputs[output_index] = self.init_data
-            p.kernel.init_output_labels = self.init_labels
+            p.kernel.set_parameter(self.init_data, output_index,
+                                   'init', MPEnums.OUTPUT)
+            p.kernel.set_parameter(self.init_labels, output_index,
+                                   'labels', MPEnums.OUTPUT)
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
             input_index = self._find_input_index(c)
 
             # check whether this input has not already been assigned init data
-            if c.kernel.init_inputs[input_index] is None:
+            if c.kernel.get_parameter(input_index, 'init', MPEnums.INPUT) is None:
                 # If so, assign the tensor to the consumer's corresponding
                 # init input
-                c.kernel.init_inputs[input_index] = self.init_data
-                c.kernel.init_input_labels = self.init_labels
+                c.kernel.set_parameter(self.init_data, input_index,
+                                       'init', MPEnums.INPUT)
+                c.kernel.set_parameter(self.init_labels, input_index,
+                                       'labels', MPEnums.INPUT)
             else:
                 # overwrite the edge's init data, we need this to create
                 # phony inputs later
-                self._init_data = c.kernel.init_inputs[input_index]
-                self._init_labels = c.kernel.init_input_labels
+                self.init_data = c.kernel.get_parameter(input_index, 
+                                                         'init', MPEnums.INPUT)
+                self.init_labels = c.kernel.get_parameter(input_index,
+                                                           'labels', MPEnums.INPUT)
 
     def add_phony_data(self):
         """
@@ -1058,14 +922,16 @@ class Edge:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.phony_outputs[output_index] = self._phony_data
+            p.kernel.set_parameter(self._phony_data, output_index, 'verif', 
+                                   MPEnums.OUTPUT, add_if_missing=True)
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
             input_index = self._find_input_index(c)
 
             #  assign the tensor to the consumer's corresponding init input
-            c.kernel.phony_inputs[input_index] = self._phony_data
+            c.kernel.set_parameter(self._phony_data, input_index, 'verif', 
+                                   MPEnums.INPUT, add_if_missing=True)
 
     def add_phony_init_data(self):
         """
@@ -1082,7 +948,8 @@ class Edge:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.phony_init_outputs[output_index] = self._phony_init_data
+            p.kernel.set_parameter(self._phony_init_data, output_index, 
+                                   'verif_init', MPEnums.OUTPUT, add_if_missing=True)
 
         # get the consuming node
         for c in self.consumers:
@@ -1090,9 +957,10 @@ class Edge:
             input_index = self._find_input_index(c)
 
             # assign the tensor to the consumer's corresponding init input
-            c.kernel.phony_init_inputs[input_index] = self._phony_init_data
-            if self._phony_init_labels is not None:
-                c.kernel.phony_init_input_labels = self._phony_init_labels
+            c.kernel.set_parameter(self._phony_init_data, input_index, 
+                                   'verif_init', MPEnums.INPUT, add_if_missing=True)
+            c.kernel.set_parameter(self._phony_init_labels, input_index, 
+                                   'verif_labels', MPEnums.INPUT, add_if_missing=True)
 
     def initialize_phony_data(self):
         """
@@ -1123,21 +991,16 @@ class Edge:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            if output_index in p.kernel.phony_outputs:
-                p.kernel.phony_outputs[output_index] = None
+            p.kernel.set_parameter(None, output_index, 'verif', MPEnums.OUTPUT)
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
             input_index = self._find_input_index(c)
 
             # assign the tensor to the consumer's corresponding init input
-            if input_index in c.kernel.phony_inputs:
-                c.kernel.phony_inputs[input_index] = None
-
-            if input_index in c.kernel.phony_init_inputs:
-                c.kernel.phony_init_inputs[input_index] = None
-
-            c.kernel.phony_init_input_labels = None
+            c.kernel.set_parameter(None, input_index, 'verif', MPEnums.INPUT)
+            c.kernel.set_parameter(None, input_index, 'verif_init', MPEnums.INPUT)
+            c.kernel.set_parameter(None, input_index, 'verif_labels', MPEnums.INPUT)
 
     def is_covariance_input(self):
         """
@@ -1172,13 +1035,7 @@ class Edge:
             Index of the data from the producer node
         """
         # find the index of the data from the producer node (output index)
-        for index, producer_output in enumerate(producer.kernel.outputs):
-            if (producer_output is not None and
-                    producer_output.session_id == self.data.session_id):
-                output_index = index
-                break
-
-        return output_index
+        return producer.kernel.find_param_index(self.data, MPEnums.OUTPUT)
 
     def _find_input_index(self, consumer):
         """
@@ -1195,13 +1052,7 @@ class Edge:
             index of the data from the consumer node
         """
         # find the index of the data from the consumer node (input index)
-        for index, consumer_input in enumerate(consumer.kernel.inputs):
-            if (consumer_input is not None and
-                    consumer_input.session_id == self.data.session_id):
-                input_index = index
-                break
-
-        return input_index
+        return consumer.kernel.find_param_index(self.data, MPEnums.INPUT)
 
 
 class Parameter:
@@ -1223,39 +1074,7 @@ class Parameter:
         Constructor for Parameter object
         """
         # reference of the data object represented by parameter
-        self._data = data
+        self.data = data
 
         # enum indicating whether this is an input or output
-        self._direction = direction
-
-    @property
-    def direction(self):
-        """
-        Getter for direction property
-
-        Return
-        ------
-        Enum indicating whether this is an input-type or output-type parameter
-
-        Return Type
-        -----------
-        MPEnums.INPUT or MPEnums.OUTPUT
-        """
-        return self._direction
-
-    @property
-    def data(self):
-        """
-        Getter for data property
-
-        Return
-        ------
-        Data object stored within the Parameter object
-
-        Return Type
-        ------------
-        Data object
-
-        """
-
-        return self._data
+        self.direction = direction

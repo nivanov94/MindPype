@@ -13,12 +13,8 @@ class RiemannMDMClassifierKernel(Kernel):
     the predicted class. Review classmethods for specific input parameters
 
     .. note::
-        This kernel utilizes the numpy function
-        :func:`newaxis <numpy:numpy.newaxis>`.
-
-    .. note::
-        This kernel utilizes the pyriemann module
-        :mod:`classification <pyriemann:pyriemann.classification>`.
+        This kernel utilizes the pyriemann class
+        :class:`MDM <pyriemann:pyriemann.classification.MDM>`.
 
     Parameters
     ----------
@@ -51,10 +47,7 @@ class RiemannMDMClassifierKernel(Kernel):
 
         self._num_classes = num_classes
         if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+            self.add_initialization_data([initialization_data], labels)
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
@@ -108,7 +101,7 @@ class RiemannMDMClassifierKernel(Kernel):
         if ((init_in.mp_type != MPEnums.TENSOR and
              init_in.mp_type != MPEnums.ARRAY)  or
             (labels.mp_type != MPEnums.TENSOR and
-             labels.mp_type != MPEnums. ARRAY)):
+             labels.mp_type != MPEnums.ARRAY)):
                 raise TypeError('RiemannianMDM kernel: invalid initialization data or labels')
 
         # extract the initialiation data
@@ -122,8 +115,8 @@ class RiemannMDMClassifierKernel(Kernel):
         if X.shape[0] != y.shape[0]:
             raise ValueError('RiemannianMDM kernel: number of trials in initialization data and labels must match')
 
-        self._classifier = classification.MDM()
-        self._classifier.fit(X,y)
+        self.classifier = classification.MDM()
+        self.classifier.fit(X,y)
 
 
     def _verify(self):
@@ -196,7 +189,7 @@ class RiemannMDMClassifierKernel(Kernel):
             # first dimension being 1
             input_data = input_data[np.newaxis,:,:]
 
-        outputs[0].data = self._classifier.predict(input_data)
+        outputs[0].data = self.classifier.predict(input_data)
 
     @classmethod
     def add_to_graph(cls,graph,inA,outA,num_classes=2,

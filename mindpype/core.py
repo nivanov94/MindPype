@@ -22,50 +22,21 @@ class MPBase(object):
         """
         Constructor for MPBase base class
         """
-        self._mp_type = mp_type
-        self._id = id(self)
-        self._session = session
-
-    # API getters
-    @property
-    def mp_type(self):
-        """
-        Returns the type of object
-
-        Return
-        ------
-        mp_type : MPEnums
-            Indicates what type of object the reference object is
-        """
-
-        return self._mp_type
-
+        self.mp_type = mp_type
+        self.id = id(self)
+        self.session = session
+        
+    
     @property
     def session_id(self):
         """
         Returns the session id of the object
-
         Return
         ------
         session_id : int
             ID of the session where the object exists
         """
-        return self._id
-
-    @property
-    def session(self):
-        """
-        Returns the session object of the object
-
-        Returns
-        -------
-        Current Session : Session
-            Session where the object exists
-
-        """
-
-        return self._session
-
+        return self.id
 
 class MPEnums(IntEnum):
     """
@@ -316,7 +287,7 @@ class Session(MPBase):
         # not found, return None type
         return None
 
-    def save_session(self: object, file: str, additional_params=None) -> None:
+    def _save_session(self: object, file: str, additional_params=None) -> None:
         """
         Save the session object and all of its contents to a file
 

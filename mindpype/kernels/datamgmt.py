@@ -9,17 +9,6 @@ class ConcatenationKernel(Kernel):
     """
     Kernel to concatenate multiple tensors into a single tensor
 
-    .. note::
-        This kernel utilizes the numpy functions
-        :func:`expand_dims <numpy:numpy.expand_dims>`,
-        :func:`concatenate <numpy:numpy.concatenate>`,
-        :func:`std <numpy:numpy.std>`,
-        :func:`squeeze <numpy:numpy.squeeze>`,
-        :func:`stack <numpy:numpy.stack>`,
-        :func:`zeros <numpy:numpy.zeros>`,
-        :func:`reshape <numpy:numpy.reshape>`,
-        :func:`ix_ <numpy:numpy.ix_>`.
-
     Parameters
     ----------
     graph : Graph
@@ -259,7 +248,7 @@ class EnqueueKernel(Kernel):
         Input data to enqueue into circle buffer
 
     queue : CircleBuffer
-        Circle buffer to have data enqueud to
+        Circle buffer to have data enqueued to
 
     """
 

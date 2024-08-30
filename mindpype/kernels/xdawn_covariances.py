@@ -12,13 +12,7 @@ class XDawnCovarianceKernel(Kernel):
     .. note:: 
         This kernel utilizes the 
         :class:`XdawnCovariances <pyriemann:pyriemann.estimation.XdawnCovariances>` 
-        class from the :mod:`pyriemann <pyriemann:pyriemann>` package.
-  
-    .. note::
-        This kernel utilizes the numpy functions
-        :func:`newaxis <numpy:numpy.newaxis>`,
-        :func:`unique <numpy:numpy.unique>`,
-        :func:`squeeze <numpy:numpy.squeeze>`.
+        class from the pyriemann package.
 
     Parameters
     ----------
@@ -54,11 +48,7 @@ class XDawnCovarianceKernel(Kernel):
         self.inputs = [inA]
         self.outputs = [outA]
 
-        if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+        self.add_initialization_data([initialization_data], labels)
 
         self._initialized = False
         self.n_filters = n_filters

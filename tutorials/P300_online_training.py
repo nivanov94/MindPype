@@ -2,7 +2,6 @@
 """
 Created on Tues July 26 16:12:30 2022
 
-@author: aaronlio
 """
 
 # Create a simple graph for testing
