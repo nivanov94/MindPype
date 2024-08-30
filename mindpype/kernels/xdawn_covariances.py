@@ -48,11 +48,7 @@ class XDawnCovarianceKernel(Kernel):
         self.inputs = [inA]
         self.outputs = [outA]
 
-        if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+        self.add_initialization_data([initialization_data], labels)
 
         self._initialized = False
         self.n_filters = n_filters

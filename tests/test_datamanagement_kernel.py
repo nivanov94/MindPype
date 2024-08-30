@@ -175,5 +175,3 @@ def test_execute():
     expected_output = np.reshape(raw_data2, newshape=new_shape)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
-
-test_execute()

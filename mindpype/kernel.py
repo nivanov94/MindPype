@@ -135,7 +135,7 @@ class Kernel(MPBase, ABC):
         self._outputs = outputs
 
         # update _init_outputs so the length matches outputs
-        if len(self.__init_outputs) != len(self._outputs):
+        if len(self._init_outputs) != len(self._outputs):
             if len(self._init_outputs) == 0:
                 self._init_outputs = [None] * len(self._outputs)
             else:
@@ -171,12 +171,23 @@ class Kernel(MPBase, ABC):
             already exist. If False, the parameter will not be added if it does
             not exist. Only applies to verification parameters.
         """
-        dest = self._get_param_container(ptype, direction)
+
 
         if 'labels' in ptype:
-            dest = param
-        elif 'verif' not in ptype or add_if_missing or index in dest:
-            dest[index] = param
+            if ptype == 'labels':
+                if direction == MPEnums.INPUT:
+                    self._init_input_labels = param
+                else:
+                    self._init_output_labels = param
+            else:
+                if direction == MPEnums.INPUT:
+                    self._phony_init_input_labels = param
+                else:
+                    self._phony_init_output_labels = param
+        else: 
+            dest = self._get_param_container(ptype, direction)
+            if 'verif' not in ptype or add_if_missing or index in dest:
+                dest[index] = param
 
     def get_parameter(self, index, ptype, direction):
         """
@@ -546,7 +557,7 @@ class Kernel(MPBase, ABC):
 
         """
         if init_labels is not None:
-            self.set_init_input_labels(init_labels)
+            self.set_parameter(init_labels, 0, 'labels', MPEnums.INPUT)
 
         for i, init_input in enumerate(init_inputs):
-            self.set_init_input(i, init_input)
+            self.set_parameter(init_input, i, 'init', MPEnums.INPUT)

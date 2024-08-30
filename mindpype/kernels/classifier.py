@@ -45,10 +45,7 @@ class ClassifierKernel(Kernel):
         self._num_classes = num_classes
 
         if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+            self.add_initialization_data([initialization_data], labels)
 
 
     def _initialize(self, init_inputs, init_outputs, labels):

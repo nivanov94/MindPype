@@ -902,8 +902,10 @@ class Edge:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.set_init_outputs(output_index, self.init_data)
-            p.kernel.set_init_output_labels(self.init_labels)
+            p.kernel.set_parameter(self.init_data, output_index,
+                                   'init', MPEnums.OUTPUT)
+            p.kernel.set_parameter(self.init_labels, output_index,
+                                   'labels', MPEnums.OUTPUT)
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
@@ -938,16 +940,16 @@ class Edge:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.set_parameter(self._phony_data, output_index, 'verif', 
-                            MPEnums.OUTPUT, add_if_missing=True)
+            p.kernel.set_parameter(self._phony_data, output_index, 'verif', 
+                                   MPEnums.OUTPUT, add_if_missing=True)
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
             input_index = self._find_input_index(c)
 
             #  assign the tensor to the consumer's corresponding init input
-            c.set_parameter(self._phony_data, input_index, 'verif', 
-                            MPEnums.INPUT, add_if_missing=True)
+            c.kernel.set_parameter(self._phony_data, input_index, 'verif', 
+                                   MPEnums.INPUT, add_if_missing=True)
 
     def add_phony_init_data(self):
         """
