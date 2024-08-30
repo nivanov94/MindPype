@@ -13,7 +13,7 @@ class FeatureNormalizationKernelUnitTest:
         else:
             inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         if test_invalid_output_shape:
-            outTensor = mp.Tensor.create(self.__session, raw_data.shape*100)
+            outTensor = mp.Tensor.create(self.__session, raw_data.shape*2)
         else:
             outTensor = mp.Tensor.create(self.__session,raw_data.shape)
         initialization_tensor = mp.Tensor.create_from_data(self.__session, init_data)
@@ -23,6 +23,7 @@ class FeatureNormalizationKernelUnitTest:
         self.__graph.initialize(initialization_tensor, labels)
         self.__graph.execute()
         return outTensor.data
+    
 
 def test_execute():
     np.random.seed(44)
@@ -42,11 +43,20 @@ def test_execute():
     expected_output = (raw_data - np.mean(init_data, axis=0)) / (np.max(init_data, axis=0) - np.min(init_data, axis=0))
     assert (res == expected_output).all()
     
+    # test invalid input
     with pytest.raises(TypeError) as e_info:
         res = KernelExecutionUnitTest_Object.TestFeatureNormalizationKernelExecution(raw_data, init_data, labels_data, 'mean-norm', test_invalid_input=True)
     del KernelExecutionUnitTest_Object
     
+    # test invalid output shape
     KernelExecutionUnitTest_Object = FeatureNormalizationKernelUnitTest()
     with pytest.raises(ValueError) as e_info:
         res = KernelExecutionUnitTest_Object.TestFeatureNormalizationKernelExecution(raw_data, init_data, labels_data, 'mean-norm', test_invalid_output_shape=True)
     del KernelExecutionUnitTest_Object
+    
+    # test invalid methods
+    KernelExecutionUnitTest_Object = FeatureNormalizationKernelUnitTest()
+    with pytest.raises(ValueError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestFeatureNormalizationKernelExecution(raw_data, init_data, labels_data, 'invalid-method')
+    del KernelExecutionUnitTest_Object
+    

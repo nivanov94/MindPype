@@ -287,7 +287,7 @@ class Session(MPBase):
         # not found, return None type
         return None
 
-    def _save_session(self: object, file: str, additional_params=None) -> None:
+    def save_session(self: object, file: str, additional_params=None) -> None:
         """
         Save the session object and all of its contents to a file
 

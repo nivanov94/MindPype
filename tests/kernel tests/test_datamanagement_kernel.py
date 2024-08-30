@@ -160,6 +160,37 @@ class ExtractKernelUnitTest:
         self.__graph.execute()
         return outTensor.data
     
+    def TestExtractKernelArrayInput(self):
+        template = mp.Scalar.create_from_value(self.__session, 'test')
+        input = mp.Array.create(self.__session, 3, template)
+        indices = [0]
+        output = mp.Scalar.create(self.__session, str)
+        node = mp.kernels.ExtractKernel.add_to_graph(self.__graph, input, indices, output)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return output.data
+    
+    def TestExtractKernelArrayInputTensorOutput(self, raw_data, tensor_or_scalar):
+        outshape = 0
+        if tensor_or_scalar == 'tensor':
+            template = mp.Tensor.create_from_data(self.__session, raw_data)
+            outshape = np.concatenate(((1,),raw_data.shape))
+        elif tensor_or_scalar == 'scalar':
+            template = mp.Scalar.create_from_value(self.__session, 0)
+            outshape = (1,1)
+        else:
+            template = mp.Array.create(self.__session, 3, mp.Tensor.create_from_data(self.__session, raw_data))
+            outshape = (1,1)
+        input = mp.Array.create(self.__session, 3, template)
+        outTensor = mp.Tensor.create(self.__session, outshape)
+        indices = [0]
+        node = mp.kernels.ExtractKernel.add_to_graph(self.__graph, input, indices, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+        return outTensor.data
+    
     def TestNonTensorExtract(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         indices = [0, slice(None)]       
@@ -458,6 +489,23 @@ def test_execute():
     extracted_data = raw_data2[0,:]
     assert np.all(res == extracted_data)
     
+    # test array input with scalar output
+    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInput()
+    expected_output = 'test'
+    assert np.all(res == expected_output)
+    
+    # test array input with tensor output
+    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInputTensorOutput(raw_data, tensor_or_scalar='tensor')
+    expected_output = raw_data
+    assert np.all(res ==  expected_output)
+    res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInputTensorOutput(raw_data, tensor_or_scalar='scalar')
+    expected_output = 0
+    assert np.all(res ==  expected_output)
+    with pytest.raises(TypeError) as e_info:
+        res = KernelExecutionUnitTest_Object.TestExtractKernelArrayInputTensorOutput(raw_data, tensor_or_scalar='other')
+    del KernelExecutionUnitTest_Object
+    
+    KernelExecutionUnitTest_Object = ExtractKernelUnitTest()
     with pytest.raises(TypeError) as e_info:
         res = KernelExecutionUnitTest_Object.TestNonTensorExtract()    
     del KernelExecutionUnitTest_Object
