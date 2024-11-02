@@ -370,7 +370,7 @@ class Misc15PipelineUnitTest():
         inTensor = mp.Tensor.create_from_data(self.__session, input_data)
         init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
         labels = mp.Tensor.create_from_data(self.__session, labels)
-        outTensor = mp.Tensor.create(self.__session, (input_data.shape[0],))
+        outTensor = mp.Tensor.create(self.__session, (1,))
         
         virtual_tensors = [
             mp.Tensor.create_virtual(self.__session)
@@ -472,7 +472,7 @@ def test_execute():
     test_riemann_mean_classifier_graph()
     test_epoch_classifier_graph()
     test_addition_classifier_graph()
-    # test_reduced_sum_classifier_graph()
+    test_reduced_sum_classifier_graph()
     test_extract_classifier_graph()
     test_tensor_stack_classifier_graph()
 
@@ -762,21 +762,21 @@ def test_addition_classifier_graph():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-# def test_reduced_sum_classifier_graph():
-#     """ Test passing init data to resample kernel that will be passed downstream to classifier kernel """
-#     KernelExecutionUnitTest_Object = Misc15PipelineUnitTest()
-#     init_data = np.random.randn(10,10)
-#     raw_data = np.random.randn(10,10)
-#     init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
-    
-#     res = KernelExecutionUnitTest_Object.TestMisc15PipelineExecution(raw_data, init_data, init_labels_data)
-#     init_after_reduced_sum = np.sum(init_data, axis = None)
-#     data_after_reduced_sum = np.sum(raw_data, axis = None)
-#     classifier = SVC()
-#     classifier.fit(init_after_reduced_sum, init_labels_data)
-#     expected_output = classifier.predict(data_after_reduced_sum)
-#     assert (res == expected_output).all()
-#     del KernelExecutionUnitTest_Object
+def test_reduced_sum_classifier_graph():
+    """ Test passing init data to resample kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc15PipelineUnitTest()
+    init_data = np.random.randn(10,10,10)
+    raw_data = np.random.randn(10,10)
+    init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+  
+    res = KernelExecutionUnitTest_Object.TestMisc15PipelineExecution(raw_data, init_data, init_labels_data)
+    init_after_reduced_sum = np.sum(np.reshape(init_data, (init_data.shape[0], -1)), axis = 1, keepdims=True)
+    data_after_reduced_sum = np.sum(raw_data, axis = None, keepdims=True)
+    classifier = SVC()
+    classifier.fit(init_after_reduced_sum, init_labels_data)
+    expected_output = classifier.predict(data_after_reduced_sum)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
 
 def test_extract_classifier_graph():
     """ Test passing init data to extract kernel that will be passed downstream to classifier kernel """
@@ -810,5 +810,5 @@ def test_tensor_stack_classifier_graph():
     expected_output = classifier.predict(data_after_tensor_stack)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
-    
-test_execute()
+
+#test_execute() 

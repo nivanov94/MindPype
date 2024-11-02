@@ -2,7 +2,7 @@ from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 
-from ..containers import Scalar
+from ..containers import Scalar, Tensor
 
 import numpy as np
 
@@ -63,30 +63,70 @@ class ReducedSumKernel(Kernel):
             elif not reduced_axes[i]:
                 output_sz.append(input_sz[i])
         
-        return tuple(output_sz)
+        if len(output_sz) == 0:
+            output_sz = (1,)
+        else:
+            output_sz = tuple(output_sz)
+
+        return output_sz
 
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
         This kernel has no internal state that must be initialized
         """
-
         init_in = init_inputs[0]
         init_out = init_outputs[0]
 
         if init_out is not None and (init_in is not None and init_in.shape != ()):
+            tmp_axis = self._axis  # Axis may be modified during initialization, so save it temporarily
+            tmp_keep_dims = self._keep_dims  # Keep dims may be modified during initialization, so save it temporarily
+            override_output_shape = False
+            
             if init_in.mp_type != MPEnums.TENSOR:
                 init_in = init_in.to_tensor()
 
+            if self._axis is not None:
+                # if init input is higher dimensional than input, increase axis
+                if len(init_in.shape) > len(self.inputs[0].shape):
+                    self._axis += 1
+
+            else:
+                # if the init input is higher dimensional than the input, then resize the input
+                if len(init_in.shape) > len(self.inputs[0].shape):
+                    self._axis = 1
+                    init_in_data = init_in.data
+                    init_in = Tensor.create_virtual(self.session)
+                    init_in.data = np.reshape(init_in_data, (init_in_data.shape[0], -1))
+
+                    if self._keep_dims:
+                        output_sz = (init_in_data.shape[0],) + (1,) * (len(init_in_data.shape) - 1)
+                        override_output_shape = True
+                    else:
+                        self._keep_dims = True
+
             # adjust the shape of init output tensor, as needed
             if init_out.virtual:
-                input_sz = list(init_in.shape)
-                output_sz = self._compute_output_sz(input_sz)
+                if override_output_shape:
+                    init_out.shape = output_sz
+                else:
+                    input_sz = list(init_in.shape)
+                    output_sz = self._compute_output_sz(input_sz)
                 init_out.shape = output_sz
 
             self._process_data([init_in], init_outputs)
 
-    def verify(self):
+            if override_output_shape:
+                # need to manually set the output shape here since the 
+                # output shape is not set correctly in the process_data method
+                output_data = init_outputs[0].data
+                init_outputs[0].shape = output_sz
+                init_outputs[0].data = np.reshape(output_data, output_sz)
+
+            self._axis = tmp_axis  # Restore the original axis value
+            self._keep_dims = tmp_keep_dims  # Restore the original keep_dims value
+
+    def _verify(self):
         """
         Verify the inputs and outputs are appropriately sized
         """
@@ -105,8 +145,17 @@ class ReducedSumKernel(Kernel):
         if (outA.mp_type == MPEnums.SCALAR and
             (outA.data_type not in Scalar._valid_numeric_types())):
             raise TypeError('ReducedSum kernel requires Scalar output to be numeric')
-
+        
         inA_shape = inA.shape
+
+        if self._axis is not None:
+            # if negative axis is provided, convert it to positive
+            if self._axis < 0:
+                self._axis = len(inA_shape) + self._axis
+
+            if self._axis < 0 or self._axis >= len(inA_shape):
+                raise ValueError('ReducedSum kernel: axis out of bounds')
+
         out_shape = self._compute_output_sz(inA_shape)
 
         # if the output is a virtual tensor and has no defined shape, set the shape now
