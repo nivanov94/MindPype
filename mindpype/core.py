@@ -1,10 +1,3 @@
-"""
-.. sectionauthor:: Aaron Lio <aaron.lio@mail.utoronto.ca>
-
-.. codeauthor:: Nicolas Ivanov <nicolas.ivanov@mail.utoronto.ca>
-.. codeauthor:: Aaron Lio <aaron.lio@mail.utoronto.ca>
-"""
-
 from enum import IntEnum
 import sys
 import pickle
@@ -51,98 +44,152 @@ class MPEnums(IntEnum):
 
     The following enums are defined and available for use:
 
-    .. list-table:: Object Type MPEnums - Leading '1'
+    .. list-table:: Base Object Type MPEnums - Leading '1'
         :widths: 50 50
         :header-rows: 1
 
         * - Enum
           - Value
         * - MPBase
-          - 100
+            - 10
         * - SESSION
-          - 101
+            - 11
+    
+    .. list-table:: Graph Object Type Enums - Leading '2'
+        :widths: 50 50
+        :header-rows: 1
+        * - Enum
+            - Value
+        * - GRAPH_ELEMENT
+            - 20
         * - GRAPH
-          - 102
+            - 21
         * - NODE
-          - 103
+            - 22
         * - KERNEL
-          - 104
+            - 23
         * - PARAMETER
-          - 105
+            - 24
+        
+    .. list-table:: Data container Object Type Enums - Leading '3'
+        :widths: 50 50
+        :header-rows: 1
+        * - Enum
+            - Value
+        * - CONTAINER
+            - 30
         * - TENSOR
-          - 106
+            - 31
         * - SCALAR
-          - 107
+            - 32
         * - ARRAY
-          - 108
+            - 33
         * - CIRCLE_BUFFER
-          - 109
+            - 34
+        
+    .. list-table:: MISCELLANEOUS Object Type Enums - Leading '4'
+        :widths: 50 50
+        :header-rows: 1
+        * - Enum
+            - Value
+        * - MISC
+            - 40
         * - FILTER
-          - 110
-        * - SRC
-          - 111
+            - 41
         * - CLASSIFIER
-          - 112
+            - 42
 
-    .. list-table:: Status Codes - Leading '2' -- DEPRECIATED
+    .. list-table:: External CONNECTIONS Object Type Enums - Leading '5'
         :widths: 50 50
         :header-rows: 1
-
-    .. list-table:: Parameter Directions - Leading '3'
+        * - Enum
+            - Value
+        * - EXTERNAL_CONNECTION
+            - 50
+        * - SRC
+            - 51
+    
+    .. list-table:: Parameter Directions - Leading '6'
         :widths: 50 50
         :header-rows: 1
 
         * - Enum
           - Value
+        * - PARAMETER_DIRECTION
+            - 60
         * - INPUT
-          - 300
+            - 61
         * - OUTPUT
-          - 301
+            - 62
         * - INOUT
-          - 302
+            - 63
 
-    .. list-table:: Kernel Initialization types - leading '4'
+    .. list-table:: Kernel Initialization types - leading '7'
         :widths: 50 50
         :header-rows: 1
 
         * - Enum
           - Value
+        * - INIT_TYPE
+            - 70
         * - INIT_FROM_NONE
-          - 400
+            - 71
         * - INIT_FROM_DATA
-          - 401
+            - 72
         * - INIT_FROM_COPY
-          - 402
+            - 73
 
     """
 
-    # Object Type Enums - Have a leading '1'
-    MPBase        = 100
-    SESSION       = 101
-    GRAPH         = 102
-    NODE          = 103
-    KERNEL        = 104
-    PARAMETER     = 105
-    TENSOR        = 106
-    SCALAR        = 107
-    ARRAY         = 108
-    CIRCLE_BUFFER = 109
-    FILTER        = 110
-    SRC           = 111
-    CLASSIFIER    = 112
+    # Base Object Type Enums - Have a leading '1'
+    MPBase        = 10
+    SESSION       = 11
 
-    # Parameter Directions - Leading '3'
-    INPUT  = 300
-    OUTPUT = 301
-    INOUT  = 302
+    # Graph Object Type Enums - Leading '2'
+    GRAPH_ELEMENT = 20
+    GRAPH         = 21
+    NODE          = 22
+    KERNEL        = 23
+    PARAMETER     = 24
 
-    # Kernel Initialization types - leading '4'
-    INIT_FROM_NONE = 400
-    INIT_FROM_DATA = 401
-    INIT_FROM_COPY = 402
+    # Data container Object Type Enums - Leading '3'
+    CONTAINER     = 30
+    TENSOR        = 31
+    SCALAR        = 32
+    ARRAY         = 33
+    CIRCLE_BUFFER = 34
+
+    # MISCELLANEOUS Object Type Enums - Leading '4'
+    MISC          = 40
+    FILTER        = 41
+    CLASSIFIER    = 42
+
+    # External CONNECTIONS Object Type Enums - Leading '5'
+    EXTERNAL_CONNECTION = 50
+    SRC                 = 51
+
+    # Parameter Directions - Leading '6'
+    PARAMETER_DIRECTION = 60
+    INPUT               = 61
+    OUTPUT              = 62
+    INOUT               = 63
+
+    # Kernel Initialization types - leading '7'
+    INIT_TYPE      = 70
+    INIT_FROM_NONE = 71
+    INIT_FROM_DATA = 72
+    INIT_FROM_COPY = 73
 
     def __str__(self):
         return self.name
+    
+    @property
+    def section_width(self):
+        """
+        Defines the width of the section of enums that
+        the current enum belongs to
+        """
+        return 10
 
 
 class Session(MPBase):
@@ -165,7 +212,7 @@ class Session(MPBase):
 
         # define some private attributes
         # self._blocks = [] # queue of blocks to execute
-        self._datum = {}
+        self._data = {}
         self._misc_objs = {}
         self._ext_srcs = {}
         self._verified = False
@@ -173,170 +220,36 @@ class Session(MPBase):
         self._ext_out = {}
         self.graphs = {}
 
-        # Configure logging for the session
-        # logging.basicConfig(filename='../mindpype/logs/log.log', filemode='a', format='%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s ', level=logging.INFO, encoding='utf-8')
-        # logging.info("Session created")
 
-    def verify(self):
+    def add_to_session(self, mp_obj):
         """
-        Ensure all graphs are valid.
-        Execute this method prior data collection to mitigate potential
-        crashes due to invalid processing graph construction.
-        """
-        print("Verifying session...")
-        self._verified = False
-
-        for i_g, g_id in enumerate(self.graphs):
-            print("\tVerifying graph {} of {}".format(i_g+1, len(self.graphs)))
-            try:
-                self.graphs[g_id].verify()
-            except Exception as e:
-                additional_msg = (f"Graph {i_g} failed verification. " +
-                                  "Please check graph definition. " +
-                                  "See traceback for more information.")
-                if sys.version_info[:2] >= (3, 11):
-                    e.add_note(additional_msg)
-                else:
-                    pretty_msg = f"{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}"
-                    print(pretty_msg)
-                raise
-
-        self._verified = True
-        self.free_temp_data()
-
-    def initialize(self):
-        """
-        Initialize all graphs in the session
-        """
-        print("Initializing graphs...")
-        for i_g, g_id in enumerate(self.graphs):
-            print("\tInitializing graph {} of {}".format(i_g+1,
-                                                         len(self.graphs)))
-            try:
-                self.graphs[g_id].initialize()
-            except Exception as e:
-                additional_msg = (f"Graph {i_g} failed initialization. " +
-                                    "Please check graph definition. " +
-                                    "See traceback for more information.")
-                if sys.version_info[:2] >= (3, 11):
-                    e.add_note(additional_msg)
-                else:
-                    pretty_msg = f"{'*'*len(additional_msg)}\n{additional_msg}\n{'*'*len(additional_msg)}"
-                    print(pretty_msg)
-                raise
-
-        self._initialized = True
-        self.free_temp_data()
-
-    def poll_volatile_channels(self, label=None):
-        """
-        Update the contents of all volatile data streams
-
+        Add a MindPype object to the session
 
         Parameters
         ----------
-        label : str, optional
-            Label for the current trial. The default is None.
-
-        Examples
-        --------
-        >>> session.poll_volatile_channels()
-
-.. warning::
-    For Developers: may need to add an input parameter with some timing
-    information to indicate how each data object should be synced
-        """
-        for d in self._datum:
-            if self._datum[d].volatile:
-                self._datum[d].poll_volatile_data(label)
-
-    def push_volatile_outputs(self, label=None):
-        """
-        Push outputs to volatile sources
-
-        Parameters
-        ----------
-        label : str, optional
-            Label for the current trial. The default is None.
-
-        Examples
-        --------
-        >>> session.push_volatile_outputs()
-
+        mp_obj : MPBase
+            MindPype object to add to the session
         """
 
-        for d in self._datum:
-            if self._datum[d].volatile_out:
-                self._datum[d].push_volatile_outputs(label)
+        if not issubclass(type(mp_obj), MPBase):
+            raise ValueError(f"Objects of type {type(mp_obj)} cannot be added to the session."
+                             "Only MindPype objects inheriting from MPBase can be added to the session.")
+        
+        if mp_obj.mp_type == MPEnums.GRAPH:
+            self.graphs[mp_obj.session_id] = mp_obj
 
-    def add_graph(self, graph):
-        """
-        Add a graph to the session
+        elif 0 < (mp_obj.mp_type - MPEnums.CONTAINER) < mp_obj.mp_type.section_width:
+            self._data[mp_obj.session_id] = mp_obj
 
-        Parameters
-        ----------
-        graph : Graph
-            Graph to add to the session
+        elif 0 < (mp_obj.mp_type - MPEnums.MISC) < mp_obj.mp_type.section_width:
+            self._misc_objs[mp_obj.session_id] = mp_obj
 
-        Examples
-        --------
-        >>> session.add_graph(graph)
-        """
-        self._verified = False
-        self.graphs[graph.session_id] = graph
-        # logging.info("Graph added to session")
+        elif 0 < (mp_obj.mp_type - MPEnums.EXTERNAL_CONNECTION) < mp_obj.mp_type.section_width:
+            self._ext_srcs[mp_obj.session_id] = mp_obj
 
-    def add_data(self, data):
-        """
-        Add a data object to the session
+        else:
+            raise ValueError(f"Objects of type {mp_obj.mp_type} cannot be directly added to the session.")
 
-        Parameters
-        ----------
-        data : Tensor or Scalar or Array or CircleBuffer
-            Data object to add
-
-        Examples
-        --------
-        >>> session.add_data(data)
-        """
-        self._datum[data.session_id] = data
-
-    def add_misc_mp_obj(self, obj):
-        """
-        Add a misc MindPype object to the session
-
-        Parameters
-        ----------
-        any MindPype object : MPBase
-            MindPype object to add
-
-        Examples
-        --------
-        >>> session.add_misc_mp_obj(obj)
-        """
-        self._misc_objs[obj.session_id] = obj
-
-    def add_ext_src(self, src):
-        """
-        Add an external source to the session
-
-        Parameters
-        ----------
-        src : LSLStream, CircleBuffer, or other external source
-            External source to add
-        """
-        self._ext_srcs[src.session_id] = src
-
-    def add_ext_out(self, src):
-        """
-        Add an external outlet to the session
-
-        Parameters
-        ----------
-        src : OutputLSLStream, CircleBuffer, or other external outlet
-            External outlet to add
-        """
-        self._ext_out[src.session_id] = src
 
     def find_obj(self, id_num):
         """
@@ -360,8 +273,8 @@ class Session(MPBase):
             return self
 
         # check if its a data obj
-        if id_num in self._datum:
-            return self._datum[id_num]
+        if id_num in self._data:
+            return self._data[id_num]
 
         # check if its a misc obj
         if id_num in self._misc_objs:
@@ -374,7 +287,7 @@ class Session(MPBase):
         # not found, return None type
         return None
 
-    def _save_session(self: object, file: str, additional_params=None) -> None:
+    def save_session(self: object, file: str, additional_params=None) -> None:
         """
         Save the session object and all of its contents to a file
 
@@ -407,12 +320,12 @@ class Session(MPBase):
         Free all data objects that are no longer in use
         """
         keys_to_remove = []
-        for d in self._datum:
-            if sys.getrefcount(self._datum[d]) == 2:
+        for d in self._data:
+            if sys.getrefcount(self._data[d]) == 2:
                 keys_to_remove.append(d)
 
         for d in keys_to_remove:
-            self._datum.pop(d)
+            self._data.pop(d)
 
     @classmethod
     def create(cls):

@@ -45,10 +45,7 @@ class ClassifierKernel(Kernel):
         self._num_classes = num_classes
 
         if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+            self.add_initialization_data([initialization_data], labels)
 
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -96,13 +93,13 @@ class ClassifierKernel(Kernel):
             init_tensor = Tensor.create_from_data(self.session, X)
 
             # adjust output shapes if necessary
-            if self.init_outputs[0] is not None and self.init_outputs[0].virtual:
-                self.init_outputs[0].shape = (X.shape[0],)
+            if init_outputs[0] is not None and init_outputs[0].virtual:
+                init_outputs[0].shape = (X.shape[0],)
 
-            if self.init_outputs[1] is not None and self.init_outputs[1].virtual:
-                self.init_outputs[1].shape = (X.shape[0], self._num_classes)
+            if init_outputs[1] is not None and init_outputs[1].virtual:
+                init_outputs[1].shape = (X.shape[0], self._num_classes)
 
-            self._process_data([init_tensor], self.init_outputs)
+            self._process_data([init_tensor], init_outputs)
 
     def _verify(self):
         """

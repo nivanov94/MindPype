@@ -133,24 +133,24 @@ class Classifier(MPBase):
         """
 
         svm_object = SVC(
-            C,
-            kernel,
-            degree,
-            gamma,
-            coef0,
-            shrinking,
-            probability,
-            tol,
-            cache_size,
-            class_weight,
-            verbose,
-            max_iter,
-            decision_function_shape,
-            break_ties,
-            random_state,
+            C=C,
+            kernel=kernel,
+            degree=degree,
+            gamma=gamma,
+            coef0=coef0,
+            shrinking=shrinking,
+            probability=probability,
+            tol=tol,
+            cache_size=cache_size,
+            class_weight=class_weight,
+            verbose=verbose,
+            max_iter=max_iter,
+            decision_function_shape=decision_function_shape,
+            break_ties=break_ties,
+            random_state=random_state,
         )
         f = cls(sess, "svm", svm_object)
-        sess.add_misc_mp_obj(f)
+        sess.add_to_session(f)
         return f
 
     @classmethod
@@ -203,7 +203,7 @@ class Classifier(MPBase):
         # clf = classification.TSclassifier(clf=lda_object)
         f = cls(sess, "lda", lda_object)
 
-        sess.add_misc_mp_obj(f)
+        sess.add_to_session(f)
 
         return f
 
@@ -273,7 +273,7 @@ class Classifier(MPBase):
             l1_ratio=l1_ratio,
         )
         f = cls(sess, "logistic regression", log_reg_object)
-        sess.add_misc_mp_obj(f)
+        sess.add_to_session(f)
 
         return f
 
@@ -308,6 +308,6 @@ class Classifier(MPBase):
                                                                     'svm')
         """
         f = cls(sess, classifier_type, classifier_object)
-        sess.add_misc_mp_obj(f)
+        sess.add_to_session(f)
 
         return f

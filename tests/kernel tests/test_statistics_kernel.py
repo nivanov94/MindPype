@@ -152,11 +152,11 @@ class ZScoreKernelUnitTest:
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestZScoreKernelExecution(self, raw_data, init_data):
+    def TestZScoreKernelExecution(self, raw_data, init_data, ddof):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         outTensor = mp.Tensor.create(self.__session, raw_data.shape)
         initTensor = mp.Tensor.create_from_data(self.__session, init_data)
-        tensor_test_node = mp.kernels.ZScoreKernel.add_to_graph(self.__graph,inTensor,outTensor,initTensor),
+        tensor_test_node = mp.kernels.ZScoreKernel.add_to_graph(self.__graph,inTensor,outTensor,ddof,initTensor),
 
         self.__graph.verify()
         self.__graph.initialize()
@@ -221,13 +221,13 @@ def test_execute():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
-    # KernelExecutionUnitTest_Object = ZScoreKernelUnitTest()
-    # np.random.seed(44)
-    # raw_data = np.random.randn(2,)
-    # init_data = data = np.random.randn(2,)
-    # res = KernelExecutionUnitTest_Object.TestZScoreKernelExecution(raw_data, init_data)
-    # expected_output = (raw_data - np.mean(init_data))/np.std(init_data)
-    # assert (res == expected_output).all()
-    # del KernelExecutionUnitTest_Object
+    KernelExecutionUnitTest_Object = ZScoreKernelUnitTest()
+    np.random.seed(44)
+    ddof = 1
+    raw_data = np.random.randn(2,)
+    init_data = np.random.randn(2,)
+    res = KernelExecutionUnitTest_Object.TestZScoreKernelExecution(raw_data, init_data, ddof)
+    expected_output = (raw_data - np.mean(init_data))/np.std(init_data, ddof=ddof)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
       
-    

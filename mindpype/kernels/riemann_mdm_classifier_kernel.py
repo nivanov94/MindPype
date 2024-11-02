@@ -47,10 +47,7 @@ class RiemannMDMClassifierKernel(Kernel):
 
         self._num_classes = num_classes
         if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+            self.add_initialization_data([initialization_data], labels)
 
     def _initialize(self, init_inputs, init_outputs, labels):
         """
@@ -104,7 +101,7 @@ class RiemannMDMClassifierKernel(Kernel):
         if ((init_in.mp_type != MPEnums.TENSOR and
              init_in.mp_type != MPEnums.ARRAY)  or
             (labels.mp_type != MPEnums.TENSOR and
-             labels.mp_type != MPEnums. ARRAY)):
+             labels.mp_type != MPEnums.ARRAY)):
                 raise TypeError('RiemannianMDM kernel: invalid initialization data or labels')
 
         # extract the initialiation data

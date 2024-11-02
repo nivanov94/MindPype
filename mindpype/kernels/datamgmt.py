@@ -448,7 +448,7 @@ class ExtractKernel(Kernel):
                     raise TypeError("ExtractKernel requires integer extraction indicies if input is an Array")
 
                 # check that the index to extract do not exceed the capacity
-                if index >= self._in.capacity or index < -self._in.capacity:
+                if index >= d_in.capacity or index < -d_in.capacity:
                     raise ValueError("ExtractKernel requires extraction indicies to be within the capacity of the input Array")
 
             # if the output is another array, validate that the types match
@@ -558,7 +558,7 @@ class ExtractKernel(Kernel):
                     outA.set_element(dest_index,elem) # set to output
 
             elif outA.mp_type == MPEnums.SCALAR:
-                outA.data = inA.get_element(self._indices[0])
+                outA.data = inA.get_element(self._indices[0]).data
 
             else:
                 # tensor output

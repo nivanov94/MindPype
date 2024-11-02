@@ -1149,7 +1149,7 @@ class OutputLSLStream(MPBase):
             Output LSL Stream
         """
         src = cls(sess, stream_info, filesave)
-        sess.add_ext_out(src)
+        sess.add_to_session(src)
 
         return src
 
@@ -1214,6 +1214,6 @@ class OutputLSLStream(MPBase):
             source_id="1007988689",
         )
         src = cls(sess, stream_info, filesave)
-        sess.add_ext_out(src)
+        sess.add_to_session(src)
 
         return src
