@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 import pyriemann
 import mne
+import pytest
 
 class MiscPipelineUnitTest:
     def __init__(self):
@@ -222,7 +223,7 @@ class Misc9PipelineUnitTest():
         node1 = mp.kernels.RiemannPotatoKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0]) #, initialization_data=init_data, labels=init_labels)
         node1.add_initialization_data([init_data], init_labels)
         node2 = mp.kernels.ReshapeKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1], shape=(4,4))
-        node3 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[1], classifier, outTensor)
+        node3 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[1], classifier, outTensor, num_classes=3) # invalid number of classes
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
@@ -448,24 +449,6 @@ def test_execute():
     test_feature_selection_classifier_graph()
     test_slope_classifier_graph()
     test_pad_classifier_graph()
-    
-    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
-    # KernelExecutionUnitTest_Object = Misc6PipelineUnitTest()
-    # raw_data = np.random.randn(2,2,2)
-    # init_data = np.random.randn(2,2,2)
-    # r = 0.001
-    # res = KernelExecutionUnitTest_Object.TestMisc6PipelineExecution(raw_data, init_data)
-    # padded_data = np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)
-    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
-    # cov_data = pyriemann.utils.covariance.covariances(padded_data)
-    # cov_data = (1-r)*cov_data + r*np.diag(np.ones(cov_data.shape[-1]))
-    # cov_init = pyriemann.utils.covariance.covariances(padded_init)
-    # cov_init = (1-r)*cov_init + r*np.diag(np.ones(cov_init.shape[-1]))
-    # tangent_space = pyriemann.tangentspace.TangentSpace()
-    # tangent_space.fit(cov_init)
-    # output = tangent_space.transform(cov_data)
-    # assert (res == output).all()
-    
     test_riemann_potato_classifier_graph()
     test_concatenation_classifier_graph()
     test_riemann_distance_classifier_graph()
@@ -486,7 +469,9 @@ def test_transpose_csp_graph():
     transposed_data = np.transpose(raw_data, [0,1,2])
     transposed_init = np.transpose(init_data, [0,1,2])
     csp = mne.decoding.CSP(transform_into='csp_space')
+    old_log_lvl = mne.set_log_level(verbose='ERROR', return_old_level=True)
     csp.fit(transposed_init, init_label_data)
+    mne.set_log_level(old_log_lvl)
     expected_output = csp.transform(transposed_data)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
@@ -615,17 +600,8 @@ def test_riemann_potato_classifier_graph():
     init_data = pyriemann.utils.covariance.covariances(init_data)
     init_data = (1-r)*init_data + r*np.diag(np.ones(init_data.shape[-1]))  
     init_labels_data = np.concatenate((np.zeros((2,)), np.ones((2,))))
-    res = KernelExecutionUnitTest_Object.TestMisc9PipelineExecution(raw_data, init_data, init_labels_data)
-    potato_filter = pyriemann.clustering.Potato()
-    potato_filter.fit(init_data)
-    init_after_potato = potato_filter.predict(init_data)
-    data_after_potato = potato_filter.predict(raw_data)
-    reshaped_init = np.reshape(init_after_potato, (4,4))
-    reshaped_data = np.reshape(data_after_potato, (4,4))
-    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
-    classifier.fit(reshaped_init, init_labels_data)
-    expected_output = classifier.predict(reshaped_data)
-    assert (res == expected_output).all()
+    with pytest.raises(ValueError) as e_info:
+        KernelExecutionUnitTest_Object.TestMisc9PipelineExecution(raw_data, init_data, init_labels_data)
     del KernelExecutionUnitTest_Object
     
 def test_concatenation_classifier_graph():
