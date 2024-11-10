@@ -88,7 +88,7 @@ class CommonSpatialPatternKernel(Kernel):
             X = extract_init_inputs(init_in)
             y = extract_init_inputs(labels)
             self._initialized = False
-            old_log_level = mne.set_log_level('WARNING', return_old_level=True)  # suppress CSP calculation output
+            old_log_level = mne.set_log_level('ERROR', return_old_level=True)  # suppress CSP calculation output
             self._mdl.fit(X, y)
             mne.set_log_level(old_log_level)
             self._initialized = True
@@ -122,8 +122,10 @@ class CommonSpatialPatternKernel(Kernel):
             d_in = np.expand_dims(inputs[0].data, axis=0)
         else:
             d_in = inputs[0].data
-        
+
+        old_log_level = mne.set_log_level('ERROR', return_old_level=True)  # suppress CSP calculation output
         outputs[0].data = self._mdl.transform(d_in)
+        mne.set_log_level(old_log_level)
     
     def _verify(self):
         """
