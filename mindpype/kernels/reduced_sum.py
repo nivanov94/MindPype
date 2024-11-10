@@ -2,8 +2,6 @@ from ..core import MPEnums
 from ..kernel import Kernel
 from ..graph import Node, Parameter
 
-from ..containers import Scalar
-
 import numpy as np
 
 class ReducedSumKernel(Kernel):
@@ -103,7 +101,7 @@ class ReducedSumKernel(Kernel):
             raise TypeError('ReducedSum kernel requires Tensor or Scalar output')
 
         if (outA.mp_type == MPEnums.SCALAR and
-            (outA.data_type not in Scalar._valid_numeric_types())):
+            (not outA.is_numeric)):
             raise TypeError('ReducedSum kernel requires Scalar output to be numeric')
 
         inA_shape = inA.shape

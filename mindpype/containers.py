@@ -38,19 +38,15 @@ class Scalar(MPBase):
         True if source is volatile (needs to be updated/polled between
         trials), false otherwise
 
-    Examples
-    --------
-    >>> example_scalar = Scalar.create_from_value(example_session, 5)
-
     """
 
-    _valid_types = [int, float, complex, str, bool]
+    valid_types = [int, float, complex, str, bool]
+    valid_numeric_types = [int, float, complex, bool]
 
-    def __init__(self, sess, value_type, val,
-                 is_virtual, ext_src, ext_out=None):
-        """
-        Constructor for Scalar object
-        """
+    def __init__(self, sess, value_type, val=None,
+                 is_virtual=False, ext_src=None, 
+                 ext_out=None):
+        """Init."""
         super().__init__(MPEnums.SCALAR, sess)
         self.data_type = value_type
 
@@ -94,6 +90,17 @@ class Scalar(MPBase):
         """
         return self._data
 
+    @property
+    def is_numeric(self):
+        """
+        Check if the data type of the scalar is numeric
+
+        Return
+        ------
+        True if the data type of the scalar is numeric, False otherwise
+        """
+        return self.data_type in self.valid_numeric_types
+
     # API Setters
     @data.setter
     def data(self, data):
@@ -105,14 +112,6 @@ class Scalar(MPBase):
         data : Python built-in data or numpy array
             Data to be represented by the Scalar object
             Data must be scalar (1x1 numerical, single string/bool, etc)
-
-        Return
-        ------
-        None
-
-        Examples
-        --------
-        >>> empty_scalar.data = 5
         """
 
         # if the data passed in is a numpy array, check if its a single value
@@ -163,7 +162,11 @@ class Scalar(MPBase):
 
     def copy_to(self, dest_scalar):
         """
-        Copy all the elements of the scalar to another scalar
+        Copy all the data elements of the scalar to another scalar.
+        
+        .. note:: This method will not copy the virtual and ext_src attributes 
+        because these should only be set during creation and modifying could 
+        cause unintended consequences.
 
         Parameters
         ----------
@@ -172,9 +175,6 @@ class Scalar(MPBase):
             Scalar's elements
         """
         dest_scalar.data = self.data
-
-        # for now, don't copy the type, virtual and ext_src attributes because
-        # these should really be set during creation not later
 
     def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
                            covariance=False):
@@ -226,17 +226,6 @@ class Scalar(MPBase):
         if self.volatile_out:
             self.ext_out.push_data(self.data, label)
 
-    @classmethod
-    def _valid_numeric_types(cls):
-        """
-        Valid numeric types for a MindPype Scalar object
-
-        Returns
-        -------
-        [int, float, complex]
-        """
-        return [int, float, complex, bool]
-
     # Factory Methods
     @classmethod
     def create(cls, sess, data_type):
@@ -254,12 +243,6 @@ class Scalar(MPBase):
         Return
         ------
         Scalar 
-
-        Examples
-        --------
-        >>> new_scalar = Scalar.create(sess, int)
-        >>> new_scalar.data = 5
-
         """
         if isinstance(data_type, str):
             dtypes = {'int': int, 'float': float, 'complex': complex,
@@ -267,7 +250,7 @@ class Scalar(MPBase):
             if data_type in dtypes:
                 data_type = dtypes[data_type]
 
-        if not (data_type in Scalar._valid_types):
+        if not (data_type in cls.valid_types):
             return
         s = cls(sess, data_type, None, False, None)
 
@@ -291,13 +274,7 @@ class Scalar(MPBase):
         Return
         ------
         Scalar 
-
-        Examples
-        --------
-        >>> new_scalar = Scalar.create_virtual(sess, int)
-        >>> new_scalar.data = 5
         """
-
         if isinstance(data_type, str):
             dtypes = {'int': int, 'float': float, 'complex': complex,
                       'str': str, 'bool': bool}
@@ -309,7 +286,7 @@ class Scalar(MPBase):
 
         if not (data_type in Scalar._valid_types):
             return
-        s = cls(sess, data_type, None, True, None)
+        s = cls(sess, data_type)
 
         # add the scalar to the session
         sess.add_to_session(s)
@@ -332,20 +309,13 @@ class Scalar(MPBase):
         Return
         ------
         Scalar
-
-        Examples
-        --------
-        >>> new_scalar = Scalar.create_from_value(sess, 5)
-        >>> print(new_scalar.data)
-            5
-
         """
 
         data_type = type(value)
-        if not (data_type in Scalar._valid_types):
+        if not (data_type in cls.valid_types):
             return
 
-        s = cls(sess, data_type, value, False, None)
+        s = cls(sess, data_type, value)
 
         # add the scalar to the session
         sess.add_to_session(s)
@@ -371,15 +341,10 @@ class Scalar(MPBase):
         Return
         ------
         Scalar
-
-        Examples
-        --------
-        >>> new_scalar = Scalar.create_from_source(sess, int, src)
         """
-
-        if not (data_type in Scalar._valid_types):
+        if not (data_type in cls.valid_types):
             return
-        s = cls(sess, data_type, None, False, src)
+        s = cls(sess, data_type, ext_src=src)
 
         # add the scalar to the session
         sess.add_to_session(s)
@@ -438,9 +403,7 @@ class Tensor(MPBase):
     """
 
     def __init__(self, sess, shape, data, is_virtual, ext_src, ext_out=None):
-        """
-        Constructor for Tensor class
-        """
+        """Init."""
         super().__init__(MPEnums.TENSOR, sess)
         self._shape = tuple(shape)
         self.virtual = is_virtual
@@ -471,17 +434,19 @@ class Tensor(MPBase):
         Returns
         -------
         Data stored in Tensor : ndarray
-
-        Examples
-        --------
-        >>> print(tensor.data)
         """
         return self._data
 
     @property
     def shape(self):
-        return self._shape
+        """
+        Getter for Tensor shape
 
+        Returns
+        -------
+        Shape of the Tensor : tuple
+        """
+        return self._shape
 
     # API setters
     @data.setter
@@ -501,14 +466,8 @@ class Tensor(MPBase):
         ------
         ValueError
             If the shape of the Tensor is different from the shape of the data
-            being inputted
-
-        Examples
-        --------
-        >>> tensor.data = np.array([1, 2, 3, 4, 5, 6])
-
+            being input
         """
-
         # check that the value is a numpy array
         if not isinstance(data, np.ndarray):
             # if the value is a number, convert it to a numpy array
@@ -552,12 +511,7 @@ class Tensor(MPBase):
             If the Tensor is non-virtual, the shape cannot be changed
 
         .. note:: This method is only applicable to virtual Tensors, and will
-                  throw an error if called on a non-virtual Tensor.
-
-        Examples
-        --------
-        >>> t = Tensor.create_virtual((1, 2, 3))
-        >>> t.shape = (3, 2, 1)
+                  raise a TypeError if called on a non-virtual Tensor.
         """
 
         if self.virtual:
@@ -565,7 +519,7 @@ class Tensor(MPBase):
             # when changing the shape write a zero tensor to data
             self.data = np.zeros(shape)
         else:
-            raise ValueError("Cannot change shape of non-virtual tensor")
+            raise TypeError("Cannot change shape of non-virtual tensor")
 
     def make_copy(self):
         """
@@ -575,13 +529,7 @@ class Tensor(MPBase):
         -------
         Tensor object
             Deep copy of the Tensor object
-
-        Examples
-        --------
-        >>> t = Tensor.create_virtual((1, 2, 3))
-        >>> t2 = t.make_copy()
         """
-        # TODO determine what to do when copying virtual
         cpy = Tensor(self.session,
                      self.shape,
                      self.data,
@@ -598,6 +546,10 @@ class Tensor(MPBase):
         """
         Copy the attributes of the tensor to another tensor object
 
+        .. note: This method will not copy the virtual and ext_src attributes
+                 because these should only be set during creation and modifying could
+                 cause unintended consequences.
+
         Parameters
         ----------
         dest_tensor : Tensor object
@@ -607,10 +559,6 @@ class Tensor(MPBase):
         if dest_tensor.virtual and dest_tensor.shape != self.shape:
             dest_tensor.shape = self.shape
         dest_tensor.data = self.data
-
-        # Not copying virtual and ext_src attributes because these should
-        # only be set during creation and modifying could cause unintended
-        # consequences
 
     def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
                            covariance=False):
@@ -663,7 +611,6 @@ class Tensor(MPBase):
         Label : int, default = None
             Class label corresponding to class data to poll.
         """
-
         # check if the data is actually volatile, if not just return
         if not self.volatile:
             return
@@ -698,7 +645,6 @@ class Tensor(MPBase):
             Shape of the Tensor
 
         """
-
         t = cls(sess, shape, None, False, None)
 
         # add the tensor to the session
@@ -719,7 +665,6 @@ class Tensor(MPBase):
         shape : shape_like, default = ()
             Shape of the Tensor, can be changed for virtual tensors
         """
-
         t = cls(sess, shape, None, True, None)
 
         # add the tensor to the session
@@ -741,7 +686,6 @@ class Tensor(MPBase):
             Data to be stored within the array
 
         """
-
         if type(data) is list:
             data = np.asarray(data)
 

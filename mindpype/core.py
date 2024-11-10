@@ -17,27 +17,23 @@ class MPBase(object):
     session : Session
         The session where the object will exist
 
+    Attributes
+    ----------
+    mp_type : MPEnums
+        Indicates the type of the object
+    session_id : int
+        ID of the object. Each object has a unique ID
+        within the session to which it belongs.
+    session : Session
+        The session to which the object belongs
     """
     def __init__(self, mp_type, session):
-        """
-        Constructor for MPBase base class
-        """
+        """Init"""
         self.mp_type = mp_type
-        self.id = id(self)
+        self.session_id = id(self)
         self.session = session
-        
-    
-    @property
-    def session_id(self):
-        """
-        Returns the session id of the object
-        Return
-        ------
-        session_id : int
-            ID of the session where the object exists
-        """
-        return self.id
 
+        
 class MPEnums(IntEnum):
     """
     Defines a class of enums used by MindPype
@@ -194,14 +190,8 @@ class MPEnums(IntEnum):
 
 class Session(MPBase):
     """
-    Session objects contain all other MindPype objects instances within a data
-    capture session.
-
-    Examples
-    --------
-    >>> from mindpype.classes import session as S
-    >>> S.session.create()
-
+    Session objects contain all other MindPype objects.
+    They are the top-level object in the MindPype API.
     """
 
     def __init__(self):
@@ -211,14 +201,13 @@ class Session(MPBase):
         super().__init__(MPEnums.SESSION, self)
 
         # define some private attributes
-        # self._blocks = [] # queue of blocks to execute
         self._data = {}
         self._misc_objs = {}
         self._ext_srcs = {}
         self._verified = False
         self._initialized = False
         self._ext_out = {}
-        self.graphs = {}
+        self._graphs = {}
 
 
     def add_to_session(self, mp_obj):
@@ -236,7 +225,7 @@ class Session(MPBase):
                              "Only MindPype objects inheriting from MPBase can be added to the session.")
         
         if mp_obj.mp_type == MPEnums.GRAPH:
-            self.graphs[mp_obj.session_id] = mp_obj
+            self._graphs[mp_obj.session_id] = mp_obj
 
         elif 0 < (mp_obj.mp_type - MPEnums.CONTAINER) < mp_obj.mp_type.section_width:
             self._data[mp_obj.session_id] = mp_obj
