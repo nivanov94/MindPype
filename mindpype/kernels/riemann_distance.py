@@ -9,8 +9,7 @@ from pyriemann.utils.distance import distance_riemann
 
 class RiemannDistanceKernel(Kernel):
     """
-    Calculates the Riemann mean of covariances contained in a tensor. 
-    Kernel computes pairwise distances between 2D tensors
+    Kernel computes pairwise distances between 2D tensors according to the riemann metric
 
     .. note::
         This kernel utilizes the pyriemann function

@@ -10,6 +10,14 @@ Arithmetic Operations
    :show-inheritance:
    :exclude-members: Unary, Binary
 
+Baseline Correction
+-------------------------------
+
+.. automodule:: mindpype.kernels.baseline_correction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Classifier
 -------------------------------
 
@@ -34,10 +42,26 @@ Data Management/Manipulation
    :undoc-members:
    :show-inheritance:
 
+Epoch
+-----------------------------
+
+.. automodule:: mindpype.kernels.epoch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Feature Normalization
 ---------------------
 
 .. automodule:: mindpype.kernels.feature_normalization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Feature Selection
+---------------------
+
+.. automodule:: mindpype.kernels.feature_selection
    :members:
    :undoc-members:
    :show-inheritance:
@@ -62,6 +86,14 @@ Logical Operations
 -------------------
 
 .. automodule:: mindpype.kernels.logical
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Pad
+---
+
+.. automodule:: mindpype.kernels.pad
    :members:
    :undoc-members:
    :show-inheritance:
@@ -119,6 +151,14 @@ Running Average
 ----------------
 
 .. automodule:: mindpype.kernels.running_average
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Slope
+-----
+
+.. automodule:: mindpype.kernels.slope
    :members:
    :undoc-members:
    :show-inheritance:

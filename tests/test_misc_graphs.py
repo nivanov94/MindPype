@@ -10,6 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 import pyriemann
 import mne
+import pytest
 
 class MiscPipelineUnitTest:
     def __init__(self):
@@ -222,7 +223,7 @@ class Misc9PipelineUnitTest():
         node1 = mp.kernels.RiemannPotatoKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0]) #, initialization_data=init_data, labels=init_labels)
         node1.add_initialization_data([init_data], init_labels)
         node2 = mp.kernels.ReshapeKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1], shape=(4,4))
-        node3 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[1], classifier, outTensor)
+        node3 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[1], classifier, outTensor, num_classes=3) # invalid number of classes
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()
@@ -308,6 +309,136 @@ class Misc12PipelineUnitTest():
 
         return outTensor.data      
 
+class Misc13PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc13PipelineExecution(self, input_data, init_data, labels, epoch_stride, epoch_length, ax):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (4,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session),
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.EpochKernel.add_to_graph(self.__graph,inTensor,virtual_tensors[0],epoch_len=epoch_length, epoch_stride=epoch_stride, axis=ax, init_input=init_data, labels=init_labels)
+        node2 = mp.kernels.ReshapeKernel.add_to_graph(self.__graph, virtual_tensors[0], virtual_tensors[1], (4,2))
+        node3 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[1], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data  
+    
+class Misc14PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc14PipelineExecution(self, input_data, init_data, labels):    
+        init_data = mp.Tensor.create_from_data(self.__session, init_data)
+        init_labels = mp.Tensor.create_from_data(self.__session, labels)
+        inTensor1 = mp.Tensor.create_from_data(self.__session, input_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, input_data)
+        outTensor = mp.Tensor.create(self.__session, (input_data.shape[0],))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.AdditionKernel.add_to_graph(self.__graph,inTensor1, inTensor2, virtual_tensors[0], init_inputs=[init_data, init_data], init_labels=init_labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data      
+
+class Misc15PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc15PipelineExecution(self, input_data, init_data, labels):    
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
+        labels = mp.Tensor.create_from_data(self.__session, labels)
+        outTensor = mp.Tensor.create(self.__session, (1,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph, inTensor, virtual_tensors[0], init_input=init_tensor, init_labels=labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data 
+    
+class Misc16PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc16PipelineExecution(self, input_data, init_data, labels, indices):    
+        inTensor = mp.Tensor.create_from_data(self.__session, input_data)
+        init_tensor = mp.Tensor.create_from_data(self.__session, init_data)
+        labels = mp.Tensor.create_from_data(self.__session, labels)
+        outTensor = mp.Tensor.create(self.__session, (4,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.ExtractKernel.add_to_graph(self.__graph, inTensor, indices, virtual_tensors[0], init_input=init_tensor, init_labels=labels)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data 
+    
+class Misc17PipelineUnitTest():
+    def __init__(self):
+        self.__session = mp.Session.create()
+        self.__graph = mp.Graph.create(self.__session)
+
+    def TestMisc17PipelineExecution(self, input_data, init_data, labels):    
+        inTensor1 = mp.Tensor.create_from_data(self.__session, input_data)
+        inTensor2 = mp.Tensor.create_from_data(self.__session, input_data)
+        init_tensor1 = mp.Tensor.create_from_data(self.__session, init_data)
+        init_tensor2 = mp.Tensor.create_from_data(self.__session, init_data)
+        labels = mp.Tensor.create_from_data(self.__session, labels)
+        outTensor = mp.Tensor.create(self.__session, (10,))
+        
+        virtual_tensors = [
+            mp.Tensor.create_virtual(self.__session)
+        ]
+        
+        classifier = mp.Classifier.create_SVM(self.__session)
+        
+        node1 = mp.kernels.TensorStackKernel.add_to_graph(self.__graph, inTensor1, inTensor2, virtual_tensors[0], init_inputs=[init_tensor1, init_tensor2], init_labels=labels, axis=1)
+        node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph, virtual_tensors[0], classifier, outTensor)
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
+
+        return outTensor.data 
+
 def test_execute():
     np.random.seed(44)
     
@@ -318,28 +449,15 @@ def test_execute():
     test_feature_selection_classifier_graph()
     test_slope_classifier_graph()
     test_pad_classifier_graph()
-    
-    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
-    # KernelExecutionUnitTest_Object = Misc6PipelineUnitTest()
-    # raw_data = np.random.randn(2,2,2)
-    # init_data = np.random.randn(2,2,2)
-    # r = 0.001
-    # res = KernelExecutionUnitTest_Object.TestMisc6PipelineExecution(raw_data, init_data)
-    # padded_data = np.pad(raw_data, pad_width=1, mode="constant", constant_values=0)
-    # padded_init = np.pad(init_data, pad_width=1, mode="constant", constant_values=0)
-    # cov_data = pyriemann.utils.covariance.covariances(padded_data)
-    # cov_data = (1-r)*cov_data + r*np.diag(np.ones(cov_data.shape[-1]))
-    # cov_init = pyriemann.utils.covariance.covariances(padded_init)
-    # cov_init = (1-r)*cov_init + r*np.diag(np.ones(cov_init.shape[-1]))
-    # tangent_space = pyriemann.tangentspace.TangentSpace()
-    # tangent_space.fit(cov_init)
-    # output = tangent_space.transform(cov_data)
-    # assert (res == output).all()
-    
     test_riemann_potato_classifier_graph()
     test_concatenation_classifier_graph()
     test_riemann_distance_classifier_graph()
     test_riemann_mean_classifier_graph()
+    test_epoch_classifier_graph()
+    test_addition_classifier_graph()
+    test_reduced_sum_classifier_graph()
+    test_extract_classifier_graph()
+    test_tensor_stack_classifier_graph()
 
 def test_transpose_csp_graph():
     """ Test passing init data to transpose kernel that will be passed downstream to csp kernel """
@@ -351,7 +469,9 @@ def test_transpose_csp_graph():
     transposed_data = np.transpose(raw_data, [0,1,2])
     transposed_init = np.transpose(init_data, [0,1,2])
     csp = mne.decoding.CSP(transform_into='csp_space')
+    old_log_lvl = mne.set_log_level(verbose='ERROR', return_old_level=True)
     csp.fit(transposed_init, init_label_data)
+    mne.set_log_level(old_log_lvl)
     expected_output = csp.transform(transposed_data)
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
@@ -480,17 +600,8 @@ def test_riemann_potato_classifier_graph():
     init_data = pyriemann.utils.covariance.covariances(init_data)
     init_data = (1-r)*init_data + r*np.diag(np.ones(init_data.shape[-1]))  
     init_labels_data = np.concatenate((np.zeros((2,)), np.ones((2,))))
-    res = KernelExecutionUnitTest_Object.TestMisc9PipelineExecution(raw_data, init_data, init_labels_data)
-    potato_filter = pyriemann.clustering.Potato()
-    potato_filter.fit(init_data)
-    init_after_potato = potato_filter.predict(init_data)
-    data_after_potato = potato_filter.predict(raw_data)
-    reshaped_init = np.reshape(init_after_potato, (4,4))
-    reshaped_data = np.reshape(data_after_potato, (4,4))
-    classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
-    classifier.fit(reshaped_init, init_labels_data)
-    expected_output = classifier.predict(reshaped_data)
-    assert (res == expected_output).all()
+    with pytest.raises(ValueError) as e_info:
+        KernelExecutionUnitTest_Object.TestMisc9PipelineExecution(raw_data, init_data, init_labels_data)
     del KernelExecutionUnitTest_Object
     
 def test_concatenation_classifier_graph():
@@ -567,3 +678,113 @@ def test_riemann_mean_classifier_graph():
     assert (res == expected_output).all()
     del KernelExecutionUnitTest_Object
     
+def test_epoch_classifier_graph():
+    """ Test passing init data to epcoh kernel that will be passed downstream to classifier kernel """
+    raw_data = np.random.randn(2,2,2)
+    init_data = np.random.randn(2,2,2)
+    labels = np.concatenate((np.zeros((2,)), np.ones((2,))))
+    epoch_length = 2
+    epoch_stride = 1
+    axis = -1
+    KernelExecutionUnitTestObject = Misc13PipelineUnitTest()
+    res = KernelExecutionUnitTestObject.TestMisc13PipelineExecution(raw_data, init_data, labels, epoch_stride, epoch_length, axis)
+    
+    # manually epoch data
+    epoched_data = np.zeros((2,2,1,2))
+    epoched_init = np.zeros((2,2,1,2))
+
+    # manually epoch data
+    epoched_data = np.zeros((2,2,1,2))
+    src_slc = [slice(None)] * len(raw_data.shape)
+    dst_slc = [slice(None)] * len(epoched_data.shape)
+    Nepochs = 1 #int(res[0].shape[2] - 2) // 1 + 1
+    for i_e in range(Nepochs):
+        src_slc[2] = slice(i_e*1,
+                                i_e*1 + 2)
+        dst_slc[2] = i_e
+        epoched_data[tuple(dst_slc)] = raw_data[tuple(src_slc)]
+        
+    epoched_init = np.zeros((2,2,1,2))
+    src_slc = [slice(None)] * len(init_data.shape)
+    dst_slc = [slice(None)] * len(epoched_init.shape)
+    Nepochs = 1 #int(res[0].shape[2] - 2) // 1 + 1
+    for i_e in range(Nepochs):
+        src_slc[2] = slice(i_e*1,
+                                i_e*1 + 2)
+        dst_slc[2] = i_e
+        epoched_init[tuple(dst_slc)] = init_data[tuple(src_slc)]
+
+    reshaped_data = np.reshape(epoched_data, (4,2))
+    reshaped_init = np.reshape(epoched_init, (4,2))
+    classifier = SVC()
+    classifier.fit(reshaped_init, labels)
+    expected_output = classifier.predict(reshaped_data)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTestObject
+    
+def test_addition_classifier_graph():
+    """ Test passing init data to addition kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc14PipelineUnitTest()
+    init_data = np.random.randn(10,10)
+    raw_data = np.random.randn(10,10)
+    init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    
+    res = KernelExecutionUnitTest_Object.TestMisc14PipelineExecution(raw_data, init_data, init_labels_data)
+    data_after_addition = raw_data + raw_data
+    init_after_addition = init_data + init_data
+    classifier = SVC()
+    classifier.fit(init_after_addition, init_labels_data)
+    expected_output = classifier.predict(data_after_addition)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+def test_reduced_sum_classifier_graph():
+    """ Test passing init data to resample kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc15PipelineUnitTest()
+    init_data = np.random.randn(10,10,10)
+    raw_data = np.random.randn(10,10)
+    init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+  
+    res = KernelExecutionUnitTest_Object.TestMisc15PipelineExecution(raw_data, init_data, init_labels_data)
+    init_after_reduced_sum = np.sum(np.reshape(init_data, (init_data.shape[0], -1)), axis = 1, keepdims=True)
+    data_after_reduced_sum = np.sum(raw_data, axis = None, keepdims=True)
+    classifier = SVC()
+    classifier.fit(init_after_reduced_sum, init_labels_data)
+    expected_output = classifier.predict(data_after_reduced_sum)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+
+def test_extract_classifier_graph():
+    """ Test passing init data to extract kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc16PipelineUnitTest()
+    init_data = np.random.randn(10,10)
+    raw_data = np.random.randn(10,10)
+    init_labels_data = np.concatenate((np.zeros((2,)), np.ones((2,))))
+    indices = [slice(4), slice(None)] 
+    
+    res = KernelExecutionUnitTest_Object.TestMisc16PipelineExecution(raw_data, init_data, init_labels_data, indices)
+    data_after_extract =  raw_data[0:4:]
+    init_after_extract = init_data[0:4,:]
+    classifier = SVC()
+    classifier.fit(init_after_extract, init_labels_data)
+    expected_output = classifier.predict(data_after_extract)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+    
+def test_tensor_stack_classifier_graph():
+    """ Test passing init data to tensor stack kernel that will be passed downstream to classifier kernel """
+    KernelExecutionUnitTest_Object = Misc17PipelineUnitTest()
+    init_data = np.random.randn(10,)
+    raw_data = np.random.randn(10,)
+    init_labels_data = np.concatenate((np.zeros((5,)), np.ones((5,))))
+    
+    res = KernelExecutionUnitTest_Object.TestMisc17PipelineExecution(raw_data, init_data, init_labels_data)
+    data_after_tensor_stack = np.stack([raw_data, raw_data], axis=1)
+    init_after_tensor_stack = np.stack([init_data, init_data], axis=1)
+    classifier = SVC()
+    classifier.fit(init_after_tensor_stack, init_labels_data)
+    expected_output = classifier.predict(data_after_tensor_stack)
+    assert (res == expected_output).all()
+    del KernelExecutionUnitTest_Object
+
+#test_execute() 

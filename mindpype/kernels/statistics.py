@@ -1300,7 +1300,7 @@ class ZScoreKernel(Kernel):
         self.outputs = [outA]
 
         if init_data is not None:
-            self.init_inputs = [init_data]
+            self.add_initialization_data([init_data])
 
         self._mu = 0
         self._sigma = 0

@@ -558,7 +558,7 @@ class ExtractKernel(Kernel):
                     outA.set_element(dest_index,elem) # set to output
 
             elif outA.mp_type == MPEnums.SCALAR:
-                outA.data = inA.get_element(self._indices[0])
+                outA.data = inA.get_element(self._indices[0]).data
 
             else:
                 # tensor output

@@ -9,7 +9,9 @@ import mne
 
 class CommonSpatialPatternKernel(Kernel):
     """
-    Kernel to apply common spatial pattern (CSP) filters to trial data.
+    Kernel to apply common spatial pattern (CSP) filters to trial data. CSP works by 
+    finding spatial filters that maximize the variance for one condition while minimizing 
+    it for the other, to distinguishing between different mental states.
 
     .. note::
         This kernel utilizes the mne class :class:`CSP <mne:mne.decoding.CSP>`
@@ -50,10 +52,7 @@ class CommonSpatialPatternKernel(Kernel):
         self.outputs = [outA]
 
         if init_data is not None:
-            self.init_inputs = [init_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+            self.add_initialization_data([init_data], labels)
 
         self._n_components = n_components
         self._mdl = mne.decoding.CSP(n_components=n_components, cov_est=cov_est, 
@@ -89,7 +88,7 @@ class CommonSpatialPatternKernel(Kernel):
             X = extract_init_inputs(init_in)
             y = extract_init_inputs(labels)
             self._initialized = False
-            old_log_level = mne.set_log_level('WARNING', return_old_level=True)  # suppress CSP calculation output
+            old_log_level = mne.set_log_level('ERROR', return_old_level=True)  # suppress CSP calculation output
             self._mdl.fit(X, y)
             mne.set_log_level(old_log_level)
             self._initialized = True
@@ -123,8 +122,10 @@ class CommonSpatialPatternKernel(Kernel):
             d_in = np.expand_dims(inputs[0].data, axis=0)
         else:
             d_in = inputs[0].data
-        
+
+        old_log_level = mne.set_log_level('ERROR', return_old_level=True)  # suppress CSP calculation output
         outputs[0].data = self._mdl.transform(d_in)
+        mne.set_log_level(old_log_level)
     
     def _verify(self):
         """

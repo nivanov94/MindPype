@@ -7,7 +7,8 @@ import numpy as np
 
 class FeatureNormalizationKernel(Kernel):
     """
-    Normalizes the values within a feature vector
+    Kernel normalizes the values within a feature vector using the method provided
+    through the method parameter.
 
     Parameters
     ----------
@@ -45,10 +46,7 @@ class FeatureNormalizationKernel(Kernel):
         self._scale = 1
 
         if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+            self.add_initialization_data([initialization_data], labels)
 
 
     def _initialize(self, init_inputs, init_outputs, labels):
@@ -109,7 +107,7 @@ class FeatureNormalizationKernel(Kernel):
         if self._method not in ('min-max','mean-norm','zscore-norm'):
             raise ValueError('FeatureNormalization kernel: Invalid method: {}'.format(self._method))
 
-        Nd = len(self.init_inputs[0].shape)
+        Nd = len(self._init_inputs[0].shape)
         if (self._axis < -Nd or self._axis >= Nd):
             raise ValueError('FeatureNormalization kernel: axis must be within rank of input tensor')
 

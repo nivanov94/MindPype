@@ -7,7 +7,11 @@ import numpy as np
 
 class XDawnCovarianceKernel(Kernel):
     """
-    Kernel to perform XDawn spatial filtering and covariance estimation.
+    Kernel to perform XDawn spatial filtering and covariance estimation. The XDawn method 
+    helps to enhance the signal to noise ratio of event related potentials (ERPs) in EEG data.
+    The algorithm works by calculating the covariance matrices of the EEG signals to improve the 
+    detection of specific brain responses (such as the P300), by emphasizing the target response 
+    and reducing the non-target response.
 
     .. note:: 
         This kernel utilizes the 
@@ -48,11 +52,7 @@ class XDawnCovarianceKernel(Kernel):
         self.inputs = [inA]
         self.outputs = [outA]
 
-        if initialization_data is not None:
-            self.init_inputs = [initialization_data]
-
-        if labels is not None:
-            self.init_input_labels = labels
+        self.add_initialization_data([initialization_data], labels)
 
         self._initialized = False
         self.n_filters = n_filters

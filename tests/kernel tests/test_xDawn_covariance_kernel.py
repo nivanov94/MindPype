@@ -46,5 +46,4 @@ def test_execute():
 
     del KernelExecutionUnitTest_Object
 
-test_execute()
     

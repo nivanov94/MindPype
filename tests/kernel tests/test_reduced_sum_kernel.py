@@ -77,7 +77,7 @@ class ReducedSumKernelUnitTest:
     def TestMultidimensionalScalarOutputError(self, raw_data):
         inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
         output = mp.Scalar.create(self.__session, int)
-        tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,  inTensor, output)
+        tensor_test_node = mp.kernels.ReducedSumKernel.add_to_graph(self.__graph,  inTensor, output, keep_dims=True)
         self.__graph.verify()
         self.__graph.initialize()
         self.__graph.execute()

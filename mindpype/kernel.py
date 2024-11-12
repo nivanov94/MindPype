@@ -55,58 +55,6 @@ class Kernel(MPBase, ABC):
 
     # API Getters
     @property
-    def init_input_labels(self):
-        """
-        Returns the labels for the initialization inputs
-
-        Returns
-        -------
-        _init_input_labels : list
-            The labels for the initialization inputs
-        """
-
-        return self._init_input_labels
-
-    @property
-    def init_output_labels(self):
-        """
-        Returns the labels for the initialization outputs
-
-        Returns
-        -------
-        _init_output_labels : list
-            The labels for the initialization outputs
-        """
-
-        return self._init_output_labels
-
-    @property
-    def phony_init_input_labels(self):
-        """
-        Returns the labels for the phony initialization inputs
-
-        Returns
-        -------
-        _phony_init_input_labels : list
-            The labels for the initialization inputs
-        """
-
-        return self._phony_init_input_labels
-
-    @property
-    def phony_init_output_labels(self):
-        """
-        Returns the labels for the phony initialization outputs
-
-        Returns
-        -------
-        _phony_init_output_labels : list
-            The labels for the initialization outputs
-        """
-
-        return self._phony_init_output_labels
-
-    @property
     def inputs(self):
         """
         Returns the inputs of the kernel
@@ -116,7 +64,6 @@ class Kernel(MPBase, ABC):
         _inputs : list
             The inputs of the kernel
         """
-
         return self._inputs
 
     @property
@@ -129,110 +76,31 @@ class Kernel(MPBase, ABC):
         _outputs : list
             The outputs of the kernel
         """
-
         return self._outputs
-
+    
     @property
-    def init_inputs(self):
+    def num_inputs(self):
         """
-        Returns the inputs of the kernel
+        Returns the number of inputs to the kernel
 
         Returns
         -------
-        _init_inputs : list
-            The inputs of the kernel
+        num_inputs : int
+            The number of inputs to the kernel
         """
-
-        return self._init_inputs
-
+        return len(self._inputs)
+    
     @property
-    def init_outputs(self):
+    def num_outputs(self):
         """
-        Returns the outputs of the kernel
+        Returns the number of outputs from the kernel
 
         Returns
         -------
-        _init_outputs : list
-            The outputs of the kernel
+        num_outputs : int
+            The number of outputs from the kernel
         """
-
-        return self._init_outputs
-
-    @property
-    def phony_inputs(self):
-        """
-        Returns the phony inputs of the kernel
-
-        Returns
-        -------
-        _phony_inputs : list
-            The phony inputs of the kernel
-        """
-
-        return self._phony_inputs
-
-    @property
-    def phony_outputs(self):
-        """
-        Returns the phony outputs of the kernel
-
-        Returns
-        -------
-        _phony_outputs : list
-            The phony outputs of the kernel
-        """
-
-        return self._phony_outputs
-
-    @property
-    def phony_init_inputs(self):
-        """
-        Returns the phony inputs of the kernel
-
-        Returns
-        -------
-        _phony_init_inputs : list
-            The phony inputs of the kernel
-        """
-
-        return self._phony_init_inputs
-
-    @property
-    def phony_init_outputs(self):
-        """
-        Returns the phony outputs of the kernel
-
-        Returns
-        -------
-        _phony_init_outputs : list
-            The phony outputs of the kernel
-        """
-
-        return self._phony_init_outputs
-
-    @init_input_labels.setter
-    def init_input_labels(self, labels):
-        """
-        Sets the labels for the initialization inputs
-
-        Parameters
-        ----------
-        labels : list
-            The list of labels to be set
-        """
-        self._init_input_labels = labels
-
-    @init_output_labels.setter
-    def init_output_labels(self, labels):
-        """
-        Sets the labels for the initialization outputs
-
-        Parameters
-        ----------
-        labels : list
-            The list of labels to be set
-        """
-        self._init_output_labels = labels
+        return len(self._outputs)
 
     @inputs.setter
     def inputs(self, inputs):
@@ -246,7 +114,7 @@ class Kernel(MPBase, ABC):
         """
         self._inputs = inputs
 
-        # update init_inputs so the length matches inputs
+        # update _init_inputs so the length matches inputs
         if len(self._init_inputs) != len(self._inputs):
             if len(self._init_inputs) == 0:
                 self._init_inputs = [None] * len(self._inputs)
@@ -266,7 +134,7 @@ class Kernel(MPBase, ABC):
         """
         self._outputs = outputs
 
-        # update init_outputs so the length matches outputs
+        # update _init_outputs so the length matches outputs
         if len(self._init_outputs) != len(self._outputs):
             if len(self._init_outputs) == 0:
                 self._init_outputs = [None] * len(self._outputs)
@@ -274,158 +142,128 @@ class Kernel(MPBase, ABC):
                 self._init_outputs.extend(
                     [None] * (len(self._outputs) - len(self._init_outputs)))
 
-    @init_inputs.setter
-    def init_inputs(self, inputs):
+    def set_parameter(self, param, index, ptype, direction, add_if_missing=False):
         """
-        Sets the initialization inputs of the kernel
+        Set a parameter to the kernel
 
         Parameters
         ----------
-        inputs : list
-            The list of inputs to be set
+        param : MindPype Container
+            MindPype container to be added as a kernel parameter
+        index : int
+            The index at which the parameter is to be added. This should
+            correspond to the index of the input or output to which the
+            parameter is associated.
+        ptype : str
+            The type of parameter, either 'main', 'init', 'verif', 
+            'verif_init', 'labels' or 'verif_labels',. This defines
+            when and how the parameter is used. 'main' parameters are 
+            used during
+            normal execution, 'init' parameters are used during 
+            initialization, 'verif' and 'verif_init' parameters 
+            are used during verification. 'labels' parameters are used
+            to store labels for initialization. 'verif_labels' are used
+            to store labels for verification.
+        direction : MPEnums Object
+            The direction of the parameter, according to the MPEnums class
+        add_if_missing : bool
+            If True, the parameter will be added to the kernel if it does not
+            already exist. If False, the parameter will not be added if it does
+            not exist. Only applies to verification parameters.
         """
-        self._init_inputs = inputs
 
-    @init_outputs.setter
-    def init_outputs(self, outputs):
-        """
-        Sets the initialization outputs of the kernel
 
-        Parameters
-        ----------
-        outputs : list
-            The list of outputs to be set
-        """
-        self._init_outputs = outputs
+        if 'labels' in ptype:
+            if ptype == 'labels':
+                if direction == MPEnums.INPUT:
+                    self._init_input_labels = param
+                else:
+                    self._init_output_labels = param
+            else:
+                if direction == MPEnums.INPUT:
+                    self._phony_init_input_labels = param
+                else:
+                    self._phony_init_output_labels = param
+        else: 
+            dest = self._get_param_container(ptype, direction)
+            if 'verif' not in ptype or add_if_missing or index in dest:
+                dest[index] = param
 
-    @phony_init_input_labels.setter
-    def phony_init_input_labels(self, labels):
+    def get_parameter(self, index, ptype, direction):
         """
-        Sets the labels for the phony initialization inputs
-
-        Parameters
-        ----------
-        labels : list
-            The list of labels to be set
-        """
-        self._phony_init_input_labels = labels
-
-    # INPUT and OUTPUT getter methods
-    def get_input(self, index):
-        """
-        Returns the input at the specified index
+        Get a parameter from the kernel
 
         Parameters
         ----------
         index : int
-            The index of the input to be returned
+            The index of the parameter to be returned
+        ptype : str
+            The type of parameter, either 'main', 'init', 'verif',
+            'verif_init', 'labels', or 'verif_labels'. This defines
+            when and how 
+            the parameter is used. 'main' parameters are used during 
+            normal execution, 'init' parameters are used during 
+            initialization, 'verif' and 'verif_init' parameters are 
+            used during verification. 'labels' parameters are used
+            to store labels for initialization. 'verif_labels' are used
+            to store labels for verification.
+        direction : MPEnums Object
+            The direction of the parameter, according to the MPEnums class
 
         Returns
         -------
-        _inputs[index] : Object
-            The input at the specified index
+        src[index] : MindPype Container
+            The parameter at the specified index
         """
-        return self._inputs[index]
-
-    def get_output(self, index):
+        src = self._get_param_container(ptype, direction)
+        
+        if 'labels' in ptype:
+            return src 
+        elif 'verif' in ptype and index not in src:
+            return None
+        else:
+            return src[index]
+        
+    def _get_param_container(self, ptype, direction):
         """
-        Returns the output at the specified index
-
-        Parameters
-        ----------
-        index : int
-            The index of the output to be returned
-
-        Returns
-        -------
-        _outputs[index] : Object
-            The output at the specified index
+        Find the appropriate container for the parameter
         """
-        return self._outputs[index]
-
-    def get_init_input(self, index):
-        """
-        Returns the input at the specified index
-
-        Parameters
-        ----------
-        index : int
-            The index of the input to be returned
-
-        Returns
-        -------
-        _init_inputs[index] : Object
-            The input at the specified index
-        """
-        return self._init_inputs[index]
-
-    def get_init_output(self, index):
-        """
-        Returns the output at the specified index
-
-        Parameters
-        ----------
-        index : int
-            The index of the output to be returned
-
-        Returns
-        -------
-        _init_outputs[index] : Object
-            The output at the specified index
-        """
-        return self._init_outputs[index]
-
-    def add_phony_input(self, ph_input, index):
-        """
-        Adds a phony input to the kernel
-
-        Parameters
-        ----------
-        ph_input : Object
-            The input to be added
-        index : int
-            The index at which the input is to be added
-        """
-        self._phony_inputs[index] = ph_input
-
-    def add_phony_output(self, ph_output, index):
-        """
-        Adds a phony output to the kernel
-
-        Parameters
-        ----------
-        ph_output : Object
-            The output to be added
-        index : int
-            The index at which the output is to be added
-        """
-        self._phony_outputs[index] = ph_output
-
-    def add_phony_init_input(self, ph_input, index):
-        """
-        Adds a phony initialization input to the kernel
-
-        Parameters
-        ----------
-        ph_input : Object
-            The input to be added
-        index : int
-            The index at which the input is to be added
-        """
-        self._phony_init_inputs[index] = ph_input
-
-    def add_phony_init_output(self, ph_output, index):
-        """
-        Adds a phony initialization output to the kernel
-
-        Parameters
-        ----------
-        ph_output : Object
-            The output to be added
-        index : int
-            The index at which the output is to be added
-        """
-        self._phony_init_outputs[index] = ph_output
+        if ptype == 'main':
+            if direction == MPEnums.INPUT:
+                c = self._inputs
+            else:
+                c = self._outputs
+        elif ptype == 'init':
+            if direction == MPEnums.INPUT:
+                c = self._init_inputs
+            else:
+                c = self._init_outputs
+        elif ptype == 'verif':
+            if direction == MPEnums.INPUT:
+                c = self._phony_inputs
+            else:
+                c = self._phony_outputs
+        elif ptype == 'verif_init':
+            if direction == MPEnums.INPUT:
+                c = self._phony_init_inputs
+            else:
+                c = self._phony_init_outputs
+        elif ptype == 'labels':
+            if direction == MPEnums.INPUT:
+                c = self._init_input_labels
+            else:
+                c = self._init_output_labels
+        elif ptype == 'verif_labels':
+            if direction == MPEnums.INPUT:
+                c = self._phony_init_input_labels
+            else:
+                c = self._phony_init_output_labels
+        else:
+            raise ValueError("Invalid parameter type. Must be 'main', " +
+                             "'init', 'verif', 'verif_init', 'labels'," +
+                             "or 'verif_labels'.")
+        
+        return c
 
     def _copy_init_labels_to_output(self, verification=False):
         """
@@ -435,15 +273,15 @@ class Kernel(MPBase, ABC):
         ----------
         verification: Bool
         """
-        if not verification or self.phony_init_input_labels is None:
-            src = self.init_input_labels
+        if not verification or self._phony_init_input_labels is None:
+            src = self.get_parameter(0, 'labels', MPEnums.INPUT)
         else:
-            src = self.phony_init_input_labels
+            src = self.get_parameter(0, 'verif_labels', MPEnums.INPUT)
 
-        if not verification or self.phony_init_output_labels is None:
-            dst = self.init_output_labels
+        if not verification or self._phony_init_output_labels is None:
+            dst = self.get_parameter(0, 'labels', MPEnums.OUTPUT)
         else:
-            dst = self.phony_init_output_labels
+            dst = self.get_parameter(0, 'verif_labels', MPEnums.OUTPUT)
 
         if src is None:  # nothing to copy
             return
@@ -456,9 +294,37 @@ class Kernel(MPBase, ABC):
 
         src.copy_to(dst)
 
-    def update_parameters(self, parameter, value):
+    def find_param_index(self, target_param, dir):
         """
-        Update the kernel parameters
+        Find the index of a main input or output parameter
+
+        Parameters
+        ----------
+        target_param : MindPype Container
+            The parameter to be found
+        dir : MPEnums Object
+            The direction of the parameter, according to the MPEnums class
+
+        Returns
+        -------
+        index : int
+            The index of the parameter
+        """
+        if dir == MPEnums.INPUT:
+            param_lst = self._inputs
+        else:
+            param_lst = self._outputs
+
+        for i, param in enumerate(param_lst):
+            if (param is not None and 
+                    param.session_id == target_param.session_id):
+                return i
+
+        return None
+
+    def update_attribute(self, parameter, value):
+        """
+        Update the kernel attribute
 
         Parameters
         ----------
@@ -488,7 +354,7 @@ class Kernel(MPBase, ABC):
         verif_outputs = []
         verif_io = (verif_inputs, verif_outputs)
         io = (self.inputs, self.outputs)
-        phony_io = (self.phony_inputs, self.phony_outputs)
+        phony_io = (self._phony_inputs, self._phony_outputs)
 
         for params, verif_params, phony_params in zip(io, verif_io, phony_io):
             for i_p, param in enumerate(params):
@@ -505,8 +371,8 @@ class Kernel(MPBase, ABC):
             verif_init_inputs = []
             verif_init_outputs = []
             verif_init_io = (verif_init_inputs, verif_init_outputs)
-            init_io = (self.init_inputs, self.init_outputs)
-            phony_init_io = (self.phony_init_inputs, self.phony_init_outputs)
+            init_io = (self._init_inputs, self._init_outputs)
+            phony_init_io = (self._phony_init_inputs, self._phony_init_outputs)
 
             for params, verif_params, phony_params in zip(init_io,
                                                           verif_init_io,
@@ -519,10 +385,10 @@ class Kernel(MPBase, ABC):
                         # otherwise use real virtual params
                         verif_params.append(param)
 
-            if self.phony_init_input_labels is not None:
-                verif_init_labels = self.phony_init_input_labels
+            if self._phony_init_input_labels is not None:
+                verif_init_labels = self._phony_init_input_labels
             else:
-                verif_init_labels = self.init_input_labels
+                verif_init_labels = self._init_input_labels
 
             # adjust labels if needed
             if self._num_classes is not None:
@@ -552,7 +418,7 @@ class Kernel(MPBase, ABC):
                 raise
 
             # set init output shapes using phony init outputs as needed
-            for init_output, verif_init_output in zip(self.init_outputs,
+            for init_output, verif_init_output in zip(self._init_outputs,
                                                       verif_init_outputs):
                 if (init_output is not None and
                         init_output.shape != verif_init_output.shape):
@@ -600,9 +466,9 @@ class Kernel(MPBase, ABC):
         """
         if hasattr(self, '_initialize'):
             self._initialized = False
-            self._initialize(self.init_inputs,
-                             self.init_outputs,
-                             self.init_input_labels)
+            self._initialize(self._init_inputs,
+                             self._init_outputs,
+                             self._init_input_labels)
             self._initialized = True
             self._copy_init_labels_to_output()
 
@@ -613,9 +479,9 @@ class Kernel(MPBase, ABC):
         """
         if hasattr(self, '_update'):
             self._initialized = False
-            self.update(self.init_inputs,
-                         self.init_outputs,
-                         self.init_input_labels)
+            self.update(self._init_inputs,
+                         self._init_outputs,
+                         self._init_input_labels)
             self._initialized = True
             self._copy_init_labels_to_output()
             
@@ -631,8 +497,8 @@ class Kernel(MPBase, ABC):
         Returns true if the kernel has initialization inputs for verification
         """
         exist = True
-        for i_i, init_input in enumerate(self.init_inputs):
-            if (i_i not in self.phony_init_inputs and
+        for i_i, init_input in enumerate(self._init_inputs):
+            if (i_i not in self._phony_init_inputs and
                 (init_input is None or
                  init_input.shape == ())):
                 exist = False
@@ -658,7 +524,7 @@ class Kernel(MPBase, ABC):
 
         # search for the parameter in the inputs and init_inputs
         param_index = None
-        input_groups = (self.inputs, self.init_inputs)
+        input_groups = (self.inputs, self._init_inputs)
         i_ig = 0
         while param_index is None and i_ig < len(input_groups):
             input_group = input_groups[i_ig]
@@ -671,7 +537,7 @@ class Kernel(MPBase, ABC):
         if param_index is None:
             # search for the parameter in the phony inputs and
             # phony init_inputs
-            input_groups = (self.phony_inputs, self.phony_init_inputs)
+            input_groups = (self._phony_inputs, self._phony_init_inputs)
             i_ig = 0
             while param_index is None and i_ig < len(input_groups):
                 input_group = input_groups[i_ig]
@@ -697,6 +563,7 @@ class Kernel(MPBase, ABC):
 
         """
         if init_labels is not None:
-            self.init_input_labels = init_labels
+            self.set_parameter(init_labels, 0, 'labels', MPEnums.INPUT)
 
-        self.init_inputs = init_inputs
+        for i, init_input in enumerate(init_inputs):
+            self.set_parameter(init_input, i, 'init', MPEnums.INPUT)
