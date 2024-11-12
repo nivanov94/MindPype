@@ -195,9 +195,7 @@ class Session(MPBase):
     """
 
     def __init__(self):
-        """
-        Constructor for Session class
-        """
+        """ Init. """
         super().__init__(MPEnums.SESSION, self)
 
         # define some private attributes
@@ -254,7 +252,6 @@ class Session(MPBase):
         -------
         MindPype object : MPBase
             MindPype object with the specified ID number
-
         """
 
         # check if the ID is the session itself
@@ -306,7 +303,8 @@ class Session(MPBase):
 
     def free_unreferenced_data(self):
         """
-        Free all data objects that are no longer in use
+        Free all data objects within the Session 
+        that are no longer in use
         """
         keys_to_remove = []
         for d in self._data:
@@ -324,6 +322,5 @@ class Session(MPBase):
         Returns
         -------
         New session object : Session
-
         """
         return cls()
