@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 21 10:51:07 2019
-
-filter.py - Defines the filter Class for MindPype
-"""
-
 from .core import MPBase, MPEnums
 from scipy import signal
 import mne
@@ -35,6 +28,11 @@ class Filter(MPBase):
         type and implementation. See scipy.signal documentation for
         more details.
 
+    .. note::
+        This class uses the scipy module :module:`signal <scipy:scipy.signal>`
+        to create IIR filters and the mne module :module:`filter <mne:mne.filter>`
+        to create FIR filters. See the factory methods for more information on the 
+        filter creation.
     """
     # these are the possible internal methods for storing the filter
     # parameters which determine how it will be executed
@@ -42,11 +40,11 @@ class Filter(MPBase):
     btypes = ['lowpass', 'highpass', 'bandpass', 'bandstop']
     ftypes = ['butter', 'cheby1', 'cheby2', 'ellip', 'bessel', 'fir']
 
-    def __init__(self, sess, ftype, btype, implementation, crit_frqs,
-                 fs, coeffs):
-        """
-        Constructor for the Filter class
-        """
+    def __init__(
+        self, sess, ftype, btype, implementation,
+        crit_frqs, fs, coeffs
+    ):
+        """ Init. """
         super().__init__(MPEnums.FILTER, sess)
 
         self.ftype = ftype
@@ -54,8 +52,7 @@ class Filter(MPBase):
         self.implementation = implementation
         self.fs = fs
         self.crit_frqs = crit_frqs
-
-        self.coeffs = coeffs
+        self._coeffs = coeffs
 
     def __str__(self):
         """
@@ -74,15 +71,14 @@ class Filter(MPBase):
                                                     self.fs, self.crit_frqs))
 
     @classmethod
-    def create_butter(cls, sess, N, Wn, btype='lowpass',
-                      implementation='ba', fs=1.0):
+    def create_butter(
+        cls, sess, N, Wn, btype='lowpass', implementation='ba', fs=1.0
+    ):
         """
         Factory method to create a butterworth MindPype filter object
-
-        Butterworth digital and analog filter design.
-
-        Design an Nth-order digital or analog Butterworth filter and
-        return the filter coefficients.
+        using the scipy.signal.butter method. See the scipy documentation
+        :method:`butter <scipy:scipy.signal.butter>`
+        for more details and parameter details.
 
         Parameters
         ----------
@@ -112,25 +108,25 @@ class Filter(MPBase):
 
         Return
         ------
-        BCIpy Filter object : Filter
-            The filter object containing the filter and its parameters
+        Filter
+            The MindPype filter object containing the filter and its parameters
 
         """
         coeffs = {}
         if implementation == 'ba':
-            b, a = signal.butter(N, Wn, btype=btype, output=implementation,
-                                 fs=fs)
+            b, a = signal.butter(N, Wn, btype=btype, 
+                                 output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
-            z, p, k = signal.butter(N, Wn, btype=btype, output=implementation,
-                                    fs=fs)
+            z, p, k = signal.butter(N, Wn, btype=btype, 
+                                    output=implementation, fs=fs)
             coeffs['z'] = z
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.butter(N, Wn, btype=btype, output=implementation,
-                                fs=fs)
+            sos = signal.butter(N, Wn, btype=btype, 
+                                output=implementation, fs=fs)
             coeffs['sos'] = sos
 
         f = cls(sess, 'butter', btype, implementation, Wn, fs, coeffs)
@@ -141,10 +137,14 @@ class Filter(MPBase):
         return f
 
     @classmethod
-    def create_cheby1(cls, sess, N, rp, Wn, btype='lowpass',
-                      implementation='ba', fs=1.0):
+    def create_cheby1(
+        cls, sess, N, rp, Wn, btype='lowpass', implementation='ba', fs=1.0
+    ):
         """
         Factory method to create a Chebyshev Type-I MindPype filter object
+        using the scipy.signal.cheby1 method. See the scipy documentation
+        :method:`cheby1 <scipy:scipy.signal.cheby1>`
+        for more details and parameter details.
 
         Parameters
         ----------
@@ -177,14 +177,14 @@ class Filter(MPBase):
 
         Return
         ------
-        MindPype Filter object : Filter
-            The filter object containing the filter and its parameters
+        Filter
+            The MindPype filter object containing the filter and its parameters
 
         """
         coeffs = {}
         if implementation == 'ba':
-            b, a = signal.cheby1(N, rp, Wn, btype=btype, output=implementation,
-                                 fs=fs)
+            b, a = signal.cheby1(N, rp, Wn, btype=btype, 
+                                 output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
@@ -194,8 +194,8 @@ class Filter(MPBase):
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.cheby1(N, rp, Wn, btype=btype, output=implementation,
-                                fs=fs)
+            sos = signal.cheby1(N, rp, Wn, btype=btype, 
+                                output=implementation, fs=fs)
             coeffs['sos'] = sos
 
         f = cls(sess, 'cheby1', btype, implementation, Wn, fs, coeffs)
@@ -210,6 +210,9 @@ class Filter(MPBase):
                       implementation='ba', fs=1.0):
         """
         Factory method to create a Chebyshev Type-II MindPype filter object
+        using the scipy.signal.cheby2 method. See the scipy documentation
+        :method:`cheby2 <scipy:scipy.signal.cheby2>`
+        for more details and parameter details.
 
         Parameters
         ----------
@@ -242,14 +245,14 @@ class Filter(MPBase):
 
         Return
         ------
-        MindPype Filter object : Filter
-            The filter object containing the filter and its parameters
+        Filter
+            The MindPype filter object containing the filter and its parameters
 
         """
         coeffs = {}
         if implementation == 'ba':
-            b, a = signal.cheby2(N, rs, Wn, btype=btype, output=implementation,
-                                 fs=fs)
+            b, a = signal.cheby2(N, rs, Wn, btype=btype,
+                                 output=implementation, fs=fs)
             coeffs['a'] = a
             coeffs['b'] = b
         elif implementation == 'zpk':
@@ -259,8 +262,8 @@ class Filter(MPBase):
             coeffs['p'] = p
             coeffs['k'] = k
         else:
-            sos = signal.cheby2(N, rs, Wn, btype=btype, output=implementation,
-                                fs=fs)
+            sos = signal.cheby2(N, rs, Wn, btype=btype, 
+                                output=implementation, fs=fs)
             coeffs['sos'] = sos
 
         f = cls(sess, 'cheby2', btype, implementation, Wn, fs, coeffs)
@@ -275,6 +278,9 @@ class Filter(MPBase):
                      implementation='ba', fs=1.0):
         """
         Factory method to create a Elliptic MindPype filter object
+        using the scipy.signal.ellip method. See the scipy documentation
+        :method:`ellip <scipy:scipy.signal.ellip>`
+        for more details and parameter details.
 
         Parameters
         ----------
@@ -310,8 +316,8 @@ class Filter(MPBase):
 
         Return
         ------
-        MindPype Filter object : Filter
-            The filter object containing the filter and its parameters
+        Filter
+            The MindPype filter object containing the filter and its parameters
 
         """
         coeffs = {}
@@ -343,6 +349,9 @@ class Filter(MPBase):
                       implementation='ba', norm='phase', fs=1.0):
         """
         Factory method to create a Bessel MindPype filter object
+        using the scipy.signal.bessel method. See the scipy documentation
+        :method:`bessel <scipy:scipy.signal.bessel>`
+        for more details and parameter details.
 
         Parameters
         ----------
@@ -387,8 +396,8 @@ class Filter(MPBase):
 
         Return
         ------
-        MindPype Filter object : Filter
-            The filter object containing the filter and its parameters
+        Filter
+            The MindPype filter object containing the filter and its parameters
 
 
         """
@@ -417,68 +426,84 @@ class Filter(MPBase):
         return f
 
     @classmethod
-    def create_fir(cls,
-                   sess,
-                   fs,
-                   low_freq=None,
-                   high_freq=None,
-                   filter_length="auto",
-                   l_trans_bandwidth="auto",
-                   h_trans_bandwidth="auto",
-                   method="fir",
-                   iir_params=None,
-                   phase="zero",
-                   fir_window="hamming",
-                   fir_design="firwin"):
+    def create_fir(
+        cls,
+        sess,
+        fs,
+        low_freq=None,
+        high_freq=None,
+        filter_length="auto",
+        l_trans_bandwidth="auto",
+        h_trans_bandwidth="auto",
+        fir_window="hamming",
+        fir_design="firwin"
+    ):
         """
-        Factory method to create a FIR MindPype filter object. Creates a
-        Scipy.signal.firwin object and stores it in the filter object.
-
-        .. note::
-            The FIR is based on the Scipy firwin class, visit the
-            `Scipy documentation <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.firwin.html>`_
-            for more information on the parameters.
+        Factory method to create a FIR MindPype filter object
+        using the mne.filter.create_filter method. See the mne documentation
+        :method:`create_filter <mne:mne.filter.create_filter>`
+        for more details and parameter details.
 
         Parameters
         ----------
-
         sess : Session 
             The session object to which the filter will be added
-
-        Other Parameters are the same as the MNE create_filter method, see the
-        `MNE documentation <https://mne.tools/stable/generated/mne.filter.create_filter.html>`_
-        for more information on the parameters.
+        fs : float
+            The sampling frequency of the signal
+        low_freq : float, default None
+            The low cutoff frequency in Hz. If None, a high-pass filter
+            is created.
+        high_freq : float, default None
+            The high cutoff frequency in Hz. If None, a low-pass filter
+            is created.
+        filter_length : str or int, default 'auto'
+            Length of the FIR filter to use (if applicable). Can be 'auto'
+            (default) to use the minimum good length for the given filter
+            type, or an integer to specify the length directly.
+        l_trans_bandwidth : str or float, default 'auto'
+            Width of the transition band at the low cut-off frequency in Hz
+            (high-pass and band-stop filters) or at the high cut-off frequency
+            in Hz (low-pass and band-pass filters). Can be 'auto' (default)
+            to use a multiple of the cutoff frequency, or a float to specify
+            the exact transition bandwidth.
+        h_trans_bandwidth : str or float, default 'auto'
+            Width of the transition band at the high cut-off frequency in Hz
+            (low-pass and band-stop filters) or at the low cut-off frequency
+            in Hz (high-pass and band-pass filters). Can be 'auto' (default)
+            to use a multiple of the cutoff frequency, or a float to specify
+            the exact transition bandwidth.
+        fir_window : str, default 'hamming'
+            The window to use in FIR design. See mne documentation for
+            available windows.
+        fir_design : str, default 'firwin'
+            The method to use for FIR design. See mne documentation for
+            available FIR design methods.
 
         Returns
         ------
-        MindPype Filter object : Filter
-            The filter object containing the filter and its parameters
-
-        Raises
-        ------
-        ValueError
-            If any value in cutoff is less than or equal to 0 or greater than
-            or equal to fs/2, if the values in cutoff are not strictly
-            monotonically increasing.
+        Filter
+            The MindPype filter object containing the filter and its parameters
         """
-        coeffs = {}
+        coeffs = {
+            'fir' : mne.filter.create_filter(None, fs, low_freq, 
+                                             high_freq,
+                                             filter_length,
+                                             l_trans_bandwidth,
+                                             h_trans_bandwidth,
+                                             "fir", None, 'zero',
+                                             fir_window, fir_design),
+            'phase' : 'zero'
+        }
 
-        coeffs['fir'] = mne.filter.create_filter(None, fs, low_freq, high_freq,
-                                                 filter_length,
-                                                 l_trans_bandwidth,
-                                                 h_trans_bandwidth,
-                                                 method, None, phase,
-                                                 fir_window, fir_design)
-        coeffs['phase'] = phase
         if low_freq is None and high_freq is not None:
             btype = 'lowpass'
         elif low_freq is not None and high_freq is None:
             btype = 'highpass'
         elif ((low_freq is not None and high_freq is not None) and
-                (low_freq < high_freq)):
+              (low_freq < high_freq)):
             btype = 'bandpass'
         elif ((low_freq is not None and high_freq is not None) and
-                (low_freq > high_freq)):
+              (low_freq > high_freq)):
             btype = 'bandstop'
 
         f = cls(sess, 'fir', btype, 'fir', crit_frqs=[low_freq, high_freq],
