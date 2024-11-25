@@ -10,9 +10,12 @@ from sklearn.metrics import (accuracy_score, f1_score,
 
 class Graph(MPBase):
     """
-    This class represents the data processing flow graph, or
-    processing pipelines. Individual nodes, or processing steps,
-    are added to the graph to create the pipeline.
+    Graph objects are used to represent the data processing flow graph, or
+    processing pipelines. Graphs consist of nodes representing data 
+    transformations and edges representing data ingested and produced by the 
+    nodes. The graphs must be directed and acyclic. The graph object consists
+    of methods to verify the validity of the graph and its nodes, schedule the
+    nodes in execution order, initialize the nodes, and execute the nodes.
 
     Parameters
     ----------
@@ -21,44 +24,28 @@ class Graph(MPBase):
 
     Attributes
     ----------
-    _nodes : List of Node
-        List of Node objects within the graph
+    nodes : List of Node
+        List of Node objects within the graph. After graph verification,
+        the nodes will be ordered in execution order.
 
-    _verified : bool
-        True is graph has been verified, false otherwise
+    verified : bool
+        True is graph has been verified, false otherwise.
 
-    _sess : Session object
-        Session where the Graph object exists
-
-    _volatile_sources : List of Sources
-        Data sources within this array will be polled/executed when
-        the graph is executed.
-
-    _volatile_outputs : List of data Outputs
-        Data outputs within this array will push to external sources when
-        the graph is executed.
-
+    initialized : bool
+        True if graph has been initialized, false otherwise.
     """
 
     def __init__(self, sess):
-        """
-        Constructor for the Graph object
-        """
-
+        """Init."""
         super().__init__(MPEnums.GRAPH, sess)
+        self.nodes = []
+        self.verified = False
+        self.initialized = False
 
         # private attributes
-        self._nodes = []
-        self._verified = False
-        self._initialized = False
-        self._sess = sess
-        self._volatile_sources = []
-        self._volatile_outputs = []
-        self._edges = {}
-
-        self._default_init_required = False
-        self._default_init_data = None
-        self._default_init_labels = None
+        self._volatile_sources = []  # data objects that need to be polled before execution
+        self._volatile_outputs = []  # data objects that need to be pushed after execution
+        self._edges = {}  # keys: session_id of data obj, vals: edge object - used for scheduling
 
     def add_node(self, node):
         """
@@ -68,71 +55,82 @@ class Graph(MPBase):
         ----------
         node : Node object
             Adds the specified Node object to the referenced graph
-
         """
-        self._verified = False
-        self._initialized = False
-        self._nodes.append(node)
-
-    def set_default_init_data(self, data, labels):
-        """
-        Add default initialization data to the graph. If a node requires
-        initialization data and it is not explicitly provided, this data
-        will be used. It will be added as initialization data to any
-        root nodes that ingest data from outside of the graph.
-        Parameters
-        ----------
-        data : Tensor or Array
-            Tensor or array containing the default initialization data
-        labels : Tensor or Array
-            Tensor or array containing the default initialization labels
-        """
-        self._verified = False
-        self._initialized = False
-        self._default_init_data = data
-        self._default_init_labels = labels
-
+        # the graph has changed, so it needs to be re-verified 
+        # and re-initialized
+        self.verified = False
+        self.initialized = False
+        self.nodes.append(node)
 
     def verify(self):
         """
-        Verify the processing graph is valid. This method orders the nodes
-        for execution if the graph is valid
+        Verify that the graph is valid and schedule the nodes in execution 
+        order. This method will also create any necessary initialization
+        edges between nodes. If verification is successful, the graph will
+        be marked as verified and the nodes will be ready for initializtion
+        or execution if no initialization is required.
+
+        Raises
+        ------
+        ValueError
+            If the graph is invalid and cannot be scheduled.
+        
+        TypeError
+            If any of the nodes within the graph contain invalid data inputs.
         """
-        if self._verified:
+        if self.verified:
+            # if the graph has already been verified,
+            # there is no need to verify again
             return
 
         # begin by scheduling the nodes in execution order
         self._schedule_nodes()
 
         # now all the nodes are in execution order create any
-        # necessary initialization edges
+        # necessary initialization edges. The initialization
+        # edges will mirror the processing graph.
         self._insert_init_edges()
 
-        # insert phony edges for verification
-        self._insert_phony_edges()
+        # insert verif edges for verification. These verif edges
+        # will be used to validate the nodes within the graph and confirm
+        # that the graph and its nodes can be executed without error
+        self._insert_verif_edges()
 
-        # set phony inputs with random data for validation
-        self._init_phony_edges()
+        # set verif inputs with random data for validation
+        self._init_verif_edges()
 
         # finally, validate each node
         self._validate_nodes()
 
-        # delete phony inputs and outputs
-        self._delete_phony_edges()
+        # delete verif inputs and outputs
+        # as they are no longer needed post-node verification
+        self._delete_verif_edges()
 
         # Done, all nodes scheduled and verified!
-        self._verified = True
+        self.verified = True
 
         # cleanup any data used within verification that are no longer needed
         self.session.free_unreferenced_data()
 
     def _schedule_nodes(self):
         """
-        Place the nodes of the graph in execution order
+        Places the nodes of the graph in execution order. 
+
+        This method will determine a valid execution order for the nodes within
+        the graph. The execution order is determined by the data dependencies
+        of the nodes and their parameters. The method will also create a set
+        of Edge objects that will be used to represent the data parameters
+        within the graph. These edges will also be used to create any necessary
+        initialization data connections between nodes.
+
+        Raises
+        ------
+        ValueError
+            If the graph is invalid and cannot be scheduled.
         """
         # first we'll create a set of edges representing data within the graph
         self._edges = {}  # keys: session_id of data obj, vals: edge object
-        for n in self._nodes:
+        for n in self.nodes:
             # get a list of all the input objects to the node
             n_inputs = n.extract_inputs()
             n_outputs = n.extract_outputs()
@@ -142,8 +140,12 @@ class Graph(MPBase):
                 if n_i.session_id not in self._edges:
                     # no edge created for this input yet, so create a new one
                     self._edges[n_i.session_id] = Edge(n_i)
+
+                    # if the data object is volatile, add it to the list of
+                    # volatile sources
                     if n_i.volatile:
                         self._volatile_sources.append(n_i)
+
                 # now add the node the edge's list of consumers
                 self._edges[n_i.session_id].add_consumer(n)
 
@@ -154,8 +156,12 @@ class Graph(MPBase):
 
                     # add the node as a producer
                     self._edges[n_o.session_id].add_producer(n)
+
+                    # if the data object is volatile, add it to the list of
+                    # volatile outputs
                     if n_o.volatile_out:
                         self._volatile_outputs.append(n_o)
+
                 else:
                     # edge already created, must check that it has no other
                     # producer
@@ -180,13 +186,13 @@ class Graph(MPBase):
                 consumable_edges[e_key] = self._edges[e_key]
 
         scheduled_nodes = 0
-        total_nodes = len(self._nodes)
+        total_nodes = len(self.nodes)
 
         while scheduled_nodes != total_nodes:
             nodes_added = 0
             # find the next node that has all its inputs ready to be consumed
-            for node_index in range(scheduled_nodes, len(self._nodes)):
-                n = self._nodes[node_index]
+            for node_index in range(scheduled_nodes, len(self.nodes)):
+                n = self.nodes[node_index]
                 n_inputs = n.extract_inputs()
                 n_outputs = n.extract_outputs()
                 consumable = True
@@ -202,29 +208,36 @@ class Graph(MPBase):
                     if scheduled_nodes != node_index:
                         # swap the nodes at these indices
                         tmp = self._nodes[scheduled_nodes]
-                        self._nodes[scheduled_nodes] = self._nodes[node_index]
-                        self._nodes[node_index] = tmp
+                        self.nodes[scheduled_nodes] = self.nodes[node_index]
+                        self.nodes[node_index] = tmp
 
                     # mark this node's outputs ready for consumption
                     for n_o in n_outputs:
                         consumable_edges[n_o.session_id] = self._edges[n_o.session_id]
 
                     nodes_added = nodes_added + 1
-
                     scheduled_nodes = scheduled_nodes + 1
 
             if nodes_added == 0:
-                # invalid graph, cannot be scheduled
+                # No nodes were added to the schedule, this means that the
+                # graph is invalid and cannot be scheduled
                 raise ValueError("Invalid graph, nodes cannot be scheduled, " +
                                  "check connections between nodes.")
 
     def _insert_init_edges(self):
         """
-        Insert initialization edges into the graph
+        Insert initialization data edges into the graph to mirror the
+        processing graph. These edges will be used to create the
+        necessary initialization data connections between nodes. This
+        method checks for any nodes that require initializtion data but
+        have not been provided with it during node creation. For these nodes,
+        the method will attempt to create the necessary initialization data
+        edges to propagate initialization data provided to upstream nodes
+        to the nodes that require it.
         """
         init_required = False  # flag if any nodes in the graph require init
         init_links_missing = False  # flag if any init data will need to propagate through graph
-        for n in self._nodes:
+        for n in self.nodes:
             # check for missing init data
             if n.kernel.init_style == MPEnums.INIT_FROM_DATA:
                 init_required = True
@@ -235,6 +248,7 @@ class Graph(MPBase):
                     n_ii = n.kernel.get_parameter(init_index, 'init', MPEnums.INPUT)
                     if n_ii is None:
                         init_provided = False
+                        break  # 1 missing init triggers process of inserting init links
 
                 # if not provided, flag that graph will need initialization
                 # data propagated through the graph
@@ -250,7 +264,18 @@ class Graph(MPBase):
 
     def _validate_nodes(self):
         """
-        Validate each node within the graph individually
+        Validates each node within the graph to ensure that the nodes
+        can be executed without error. This method will check that the
+        nodes have all the necessary data inputs and parameters required
+        for execution. If any node fails validation, the method will raise
+        an exception with a message indicating the node that failed validation.
+
+        Raises
+        ------
+        ValueError
+            If any node within the graph fails validation.
+        TypeError
+            If any of the nodes within the graph contain invalid data inputs.
         """
         for n in self._nodes:
             try:
@@ -266,59 +291,68 @@ class Graph(MPBase):
                     print(pretty_msg)
                 raise
 
-    def _insert_phony_edges(self):
+    def _insert_verif_edges(self):
         """
-        Add phony edges to the graph to be used during verification
+        Adds verif edges to the graph to be used during verification. These
+        edges contain references to containers that will contain random data
+        that will be used to attempt node execution during the verification
+        step. These edges are stored as distinct attributes within the Edge
+        objects used to define the data flow within the graph.
         """
         for e_id in self._edges:
             e = self._edges[e_id]
 
             # check if the data is virtual
             if not e.data.virtual:
-                # if not virtual, create a phony edge
-                e.add_phony_data()
+                # if not virtual, create a verif edge
+                e.add_verif_data()
 
             # check if the edge has non-virtual init data
             if e.init_data is not None and not e.init_data.virtual:
-                e.add_phony_init_data()
+                e.add_verif_init_data()
 
-    def _init_phony_edges(self):
+    def _init_verif_edges(self):
         """
-        Initialize phony edges with random data for validation
+        Initialize verif edges with random data for validation
         """
         for eid in self._edges:
-            self._edges[eid].initialize_phony_data()
+            self._edges[eid].initialize_verif_data()
 
-    def _delete_phony_edges(self):
+    def _delete_verif_edges(self):
         """
-        Remove references to any phony edges so the
+        Remove references to any verif edges so the
         data will be freed during garbage collection
         """
         for eid in self._edges:
-            self._edges[eid].delete_phony_data()
+            self._edges[eid].delete_verif_data()
 
-    def initialize(self, default_init_data=None, default_init_labels=None):
+    def initialize(self):
         """
-        Initialize each node within the graph for trial execution
+        Initialize each node within the graph for execution. This method will
+        initialize the nodes in the graph in the order they were scheduled
+        during the verification step. If any node fails initialization, the
+        method will raise an exception with a message indicating the node that
+        failed initialization. Any downstream nodes that require initialization
+        data but were not explicitly provided initialization inputs during 
+        node creation will be provided with transformed initialization data 
+        that was provided to upstream nodes. If the graph has not been 
+        verified, the method will first verify the graph before initializing
+        the nodes.
 
-        Parameters
-        ----------
-        default_init_dataA : Tensor, default = None
-            If the graph has no initialization data, this
-            tensor will be used to initialize the graph
-        default_init_labels : Tensor, default = None
-            If the graph has no initialization labels,
-            this tensor will be used to initialize the graph
-
+        Raises
+        ------
+        ValueError
+            If any node within the graph fails initialization.
+        TypeError
+            If any of the nodes within the graph contain invalid initialization
+            data inputs.
         """
-        if default_init_data is not None:
-            self.set_default_init_data(default_init_data, default_init_labels)
-
-        if not self._verified:
+        # if not verified, verify the graph first
+        if not self.verified:
             self.verify()
 
         # execute initialization for each node in the graph
-        for n in self._nodes:
+        for n in self.nodes:
             try:
                 n.initialize()
             except Exception as e:
@@ -332,22 +366,24 @@ class Graph(MPBase):
                     print(pretty_msg)
                 raise
 
-        self._initialized = True
+        self.initialized = True
         self.session.free_unreferenced_data()
 
     def update(self):
         """
-        Update each node within the graph for trial execution
+        Update each node within the graph for trial execution. This method
+        is similar to initialization. It will update the nodes in the graph
+        according to any update or partial re-initialization methods defined
+        within the node's kernel class. The data within the graph nodes'
+        intiialization inputs will be used to update the nodes.
 
-        Parameters
-        ----------
-        default_init_dataA : Tensor, default = None
-            If the graph has no initialization data, this
-            tensor will be used to initialize the graph
-        default_init_labels : Tensor, default = None
-            If the graph has no initialization labels,
-            this tensor will be used to initialize the graph
-
+        Raises
+        ------
+        ValueError
+            If any node within the graph fails update.
+        TypeError
+            If any of the nodes within the graph contain invalid initialization
+            data inputs.
         """
         if not self._verified:
             self.verify()
@@ -371,33 +407,40 @@ class Graph(MPBase):
 
     def execute(self, label=None):
         """
-        Execute the graph by iterating over all the nodes within the graph
-        and executing each one
+        Execute all of the nodes within the graph. This method will execute
+        the nodes in the graph in the order they were scheduled during the
+        verification step. If any node fails execution, the method will raise
+        an exception with a message indicating the node that failed execution
+        and the traceback. If the graph has not been verified or initialized,
+        the method will first verify or initialize the graph before executing
+        the nodes. If the graph contains volatile data sources or outputs,
+        the method will poll the volatile data sources before execution and
+        push the volatile outputs after execution.
 
         Parameters
         ----------
+        label : int, default = None
+            If the class label of the current trial is known, it can be
+            passed to poll and push epoched data. This is typically used
+            when using a file as a external data source.
 
-        Label : int, default = None
-            * If the trial label is known, it can be passed when a trial is
-            executed. This is required for class-separated input data
-            * If the trial label is not known, it will be
-            polled from the data source
-
+        Raises
+        ------
+        ValueError
+            If any node within the graph fails execution.
         """
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
-        if not self._verified:
+        if not self.verified:
             self.verify()
 
-        if not self._initialized:
+        if not self.initialized:
             self.initialize()
 
         # Check whether first node has volatile input
         # if so, poll the volatile data
         if len(self._volatile_sources) > 0:
             self._poll_volatile_sources(label)
-
-        print("Executing trial with label: {}".format(label))
 
         # iterate over all the nodes and execute the kernel
         for n in self._nodes:
@@ -414,22 +457,24 @@ class Graph(MPBase):
                     print(pretty_msg)
                 raise
 
+        # If there any volatile outputs, push the data
         if len(self._volatile_outputs) > 0:
             self.push_volatile_outputs(label)
 
     def _poll_volatile_sources(self, label=None):
         """
-        Poll data (update input data) from volatile sources within the graph.
+        Poll data from volatile sources within the graph. This will update the
+        data within any graph edges that represent data from external sources
+        (eg. files, LSL streams). This method will update the data attribute
+        within any container objects that are ingested by nodes within the
+        graph using the Source objects associated with those containers.
 
         Parameters
         ----------
         label : int, default = None
             If the class label of the current trial is known, it can be
-            passed to poll epoched data.
-
-        Return
-        ------
-        None
+            passed to poll epoched data. This is typically used when using
+            a file as a external data source.
 
         Example
         -------
@@ -440,17 +485,15 @@ class Graph(MPBase):
 
     def _push_volatile_outputs(self, label=None):
         """
-        Push data (update output data) to volatile outputs within the graph.
+        Push data to volatile outputs within the graph. This will publish any
+        data within volatile outputs to external sources (eg. files, LSL 
+        streams). 
 
         Parameters
         ----------
         label : int, default = None
             If the class label of the current trial is known, it can be passed
             to poll epoched data.
-
-        Return
-        ------
-        None
         """
         for datum in self._volatile_outputs:
             datum.push_volatile_outputs(label=label)
@@ -460,11 +503,17 @@ class Graph(MPBase):
                        shuffle=False, random_state=None, statistic='accuracy'):
         """
         Perform cross validation on the graph or a portion of the graph.
+        If the graph has not been verified, the method will first verify
+        the graph and schedule the nodes. The method will then initialize and
+        execute the graph for each fold of the cross validation. The method
+        will return the average score for the specified statistic across all
+        folds.
+
 
         Parameters
         ----------
-        target_validation_output : data container
-            MindPype container (Tensor, Scalar, etc.) containing the target validation output.
+        target_validation_output : (Tensor, Scalar)
+            MindPype container containing the target validation output.
             Likely, this will be the output of a classification node.
 
         folds : int, default = 5
@@ -482,12 +531,18 @@ class Graph(MPBase):
 
         Returns
         -------
-        mean_stat: float
+        float
             Average score for the specified statistic (accuracy, f1, etc.)
+
+        Raises
+        ------
+        ValueError
+            If the target validation output is not produced by a node in the 
+            graph or if the graph structure is invalid.
         """
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
-        if not self._verified:
+        if not self.verified:
             self.verify()
 
         # find the subset of nodes that need to executed for cross validation
@@ -496,7 +551,13 @@ class Graph(MPBase):
 
         # the first node is the node that produces the target validation output
         n = self._edges[target_validation_output.session_id].producers[0]
-        upstream_nodes.append(n)
+        if n is None:
+            raise ValueError(
+                "Invalid target validation output. The target "
+                "must be produced by a node in the graph."
+            )
+
+        upstream_nodes.append(n) 
         subset_node_ids = set([n.session_id])
         init_data_nodes = []
 
@@ -528,15 +589,23 @@ class Graph(MPBase):
 
         if len(init_data_nodes) != 1:
             # check that all these nodes are ingesting the same init data
-            first_node_init_in = init_data_nodes[0].kernel.get_parameter(0, 'init', MPEnums.INPUT)
+            first_node_init_in = init_data_nodes[0].kernel.get_parameter(
+                0, 'init', MPEnums.INPUT
+            )
+
             for n in init_data_nodes:
-                current_node_init_in = n.kernel.get_parameter(0, 'init', MPEnums.INPUT)
+                current_node_init_in = n.kernel.get_parameter(
+                    0, 'init', MPEnums.INPUT
+                )
+
                 if current_node_init_in.session_id != first_node_init_in.session_id:
-                    raise ValueError("Cross validation could not be performed. " +
-                                     "This may be because the target validation output " +
-                                     "is generated by a node that does not require " +
-                                     "initialization or because there are multiple " +
-                                     "nodes that require initialization data.")
+                    raise ValueError(
+                        "Cross validation could not be performed. " 
+                        "This may be because the target validation output " 
+                        "is generated by a node that does not require " 
+                        "initialization or because there are multiple " 
+                        "nodes that require initialization data."
+                    )
 
         # check the execution order of the subset of nodes
         node_execution_position = np.zeros((len(cv_node_subset),))
@@ -552,11 +621,18 @@ class Graph(MPBase):
 
         # verify that the the node with initialization data is the first node
         if init_data_nodes[0].session_id != cv_node_subset[0].session_id:
-            raise ValueError("Cross validation could not be performed. Invalid graph structure")
+            raise ValueError(
+                "Cross validation could not be performed. " 
+                "Invalid graph structure"
+            )
 
         # copy the initialization data object
-        init_data = init_data_nodes[0].kernel.get_parameter(0, 'init', MPEnums.INPUT)
-        init_labels = init_data_nodes[0].kernel.get_parameter(0, 'labels', MPEnums.INPUT)
+        init_data = init_data_nodes[0].kernel.get_parameter(
+            0, 'init', MPEnums.INPUT
+        )
+        init_labels = init_data_nodes[0].kernel.get_parameter(
+            0, 'labels', MPEnums.INPUT
+        )
 
         if init_data.mp_type != MPEnums.TENSOR:
             init_data = init_data.convert_to_tensor()
@@ -634,10 +710,12 @@ class Graph(MPBase):
                         start = i_b * Ngph_samples - overlap_offset
                         end = (i_b + 1) * Ngph_samples - overlap_offset
 
-                        predictions[start:end] = self._cv_execute_batch(init_data_nodes,
-                                                                        cv_node_subset,
-                                                                        test_data.data[start:end],
-                                                                        target_validation_output)
+                        predictions[start:end] = self._cv_execute_batch(
+                            init_data_nodes,
+                            cv_node_subset,
+                            test_data.data[start:end],
+                            target_validation_output
+                        )
 
                 else:
                     # there are more samples in the graph than the test data
@@ -645,15 +723,20 @@ class Graph(MPBase):
                     # input requirements
                     Noversamples = Ngph_samples // Ntest_samples
                     oversampled_data = np.zeros((Ngph_samples,) + test_data.shape[1:])
-                    oversampled_data[:Noversamples*Ntest_samples] = np.tile(test_data.data, (Noversamples,) + (1,) * (len(test_data.shape)-1))
+                    oversampled_data[:Noversamples*Ntest_samples] = np.tile(
+                        test_data.data, 
+                        (Noversamples,) + (1,) * (len(test_data.shape)-1)
+                    )
 
                     if Ngph_samples % Ntest_samples != 0:
                         oversampled_data[Noversamples*Ntest_samples:] = test_data.data[:Ngph_samples - Noversamples*Ntest_samples]
 
-                    oversampled_pred = self._cv_execute_batch(init_data_nodes,
-                                                              cv_node_subset,
-                                                              oversampled_data,
-                                                              target_validation_output)
+                    oversampled_pred = self._cv_execute_batch(
+                        init_data_nodes,
+                        cv_node_subset,
+                        oversampled_data,
+                        target_validation_output
+                    )
 
                     predictions = oversampled_pred[:Ntest_samples]
 
@@ -872,7 +955,7 @@ class Node(MPBase):
         """
         self.kernel.remove_initialization_data()
         self.add_initialization_data(init_data, init_labels)
-        self._session.free_unreferenced_data()
+        self.session.free_unreferenced_data()
 
 
 class Edge:
@@ -909,9 +992,9 @@ class Edge:
 
         self.init_data = None
         self.init_labels = None
-        self._phony_data = None
-        self._phony_init_data = None
-        self._phony_init_labels = None
+        self._verif_data = None
+        self._verif_init_data = None
+        self._verif_init_labels = None
 
     def add_producer(self, producing_node):
         """
@@ -981,18 +1064,18 @@ class Edge:
                                        'labels', MPEnums.INPUT)
             else:
                 # overwrite the edge's init data, we need this to create
-                # phony inputs later
+                # verif inputs later
                 self.init_data = c.kernel.get_parameter(input_index, 
                                                          'init', MPEnums.INPUT)
                 self.init_labels = c.kernel.get_parameter(input_index,
                                                            'labels', MPEnums.INPUT)
 
-    def add_phony_data(self):
+    def add_verif_data(self):
         """
-        Add phony data to the edge and the
+        Add verif data to the edge and the
         nodes it is connected to
         """
-        self._phony_data = self.data.make_copy()
+        self._verif_data = self.data.make_copy()
 
         # get the producing node
         for p in self.producers:
@@ -1000,7 +1083,7 @@ class Edge:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.set_parameter(self._phony_data, output_index, 'verif', 
+            p.kernel.set_parameter(self._verif_data, output_index, 'verif', 
                                    MPEnums.OUTPUT, add_if_missing=True)
 
         for c in self.consumers:
@@ -1008,17 +1091,17 @@ class Edge:
             input_index = self._find_input_index(c)
 
             #  assign the tensor to the consumer's corresponding init input
-            c.kernel.set_parameter(self._phony_data, input_index, 'verif', 
+            c.kernel.set_parameter(self._verif_data, input_index, 'verif', 
                                    MPEnums.INPUT, add_if_missing=True)
 
-    def add_phony_init_data(self):
+    def add_verif_init_data(self):
         """
-        Add phony init data to the edge and the
+        Add verif init data to the edge and the
         nodes connected to it
         """
-        self._phony_init_data = self.init_data.make_copy()
+        self._verif_init_data = self.init_data.make_copy()
         if self.init_labels is not None:
-            self._phony_init_labels = self.init_labels.make_copy()
+            self._verif_init_labels = self.init_labels.make_copy()
 
         # get the producing node
         for p in self.producers:
@@ -1026,7 +1109,7 @@ class Edge:
             output_index = self._find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.set_parameter(self._phony_init_data, output_index, 
+            p.kernel.set_parameter(self._verif_init_data, output_index, 
                                    'verif_init', MPEnums.OUTPUT, add_if_missing=True)
 
         # get the consuming node
@@ -1035,33 +1118,33 @@ class Edge:
             input_index = self._find_input_index(c)
 
             # assign the tensor to the consumer's corresponding init input
-            c.kernel.set_parameter(self._phony_init_data, input_index, 
+            c.kernel.set_parameter(self._verif_init_data, input_index, 
                                    'verif_init', MPEnums.INPUT, add_if_missing=True)
-            c.kernel.set_parameter(self._phony_init_labels, input_index, 
+            c.kernel.set_parameter(self._verif_init_labels, input_index, 
                                    'verif_labels', MPEnums.INPUT, add_if_missing=True)
 
-    def initialize_phony_data(self):
+    def initialize_verif_data(self):
         """
-        Assign random data to phony inputs
+        Assign random data to verif inputs
         """
         cov = self.is_covariance_input()
-        if self._phony_data is not None:
-            self._phony_data.assign_random_data(covariance=cov)
+        if self._verif_data is not None:
+            self._verif_data.assign_random_data(covariance=cov)
 
-        if self._phony_init_data is not None:
-            self._phony_init_data.assign_random_data(covariance=cov)
+        if self._verif_init_data is not None:
+            self._verif_init_data.assign_random_data(covariance=cov)
 
-        if self._phony_init_labels is not None:
-            self._phony_init_labels.assign_random_data(whole_numbers=True)
+        if self._verif_init_labels is not None:
+            self._verif_init_labels.assign_random_data(whole_numbers=True)
 
-    def delete_phony_data(self):
+    def delete_verif_data(self):
         """
-        Remove references to phony data so it can be freed
+        Remove references to verif data so it can be freed
         during garbage collection
         """
-        self._phony_data = None
-        self._phony_init_data = None
-        self._phony_init_labels = None
+        self._verif_data = None
+        self._verif_init_data = None
+        self._verif_init_labels = None
 
         # remove the references within the nodes
         for p in self.producers:

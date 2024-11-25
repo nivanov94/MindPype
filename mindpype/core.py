@@ -190,32 +190,56 @@ class MPEnums(IntEnum):
 
 class Session(MPBase):
     """
-    Session objects contain all other MindPype objects.
-    They are the top-level object in the MindPype API.
+    Session objects are the top-level entities in the MindPype API.
+
+    A `Session` serves as a container for all other MindPype objects, including
+    data, graphs, miscellaneous objects, and external sources.
+
+    Methods
+    -------
+    add_to_session(mp_obj)
+        Add a MindPype object to the session, categorizing it based on its type.
+    find_obj(id_num)
+        Search for and return a MindPype object within the session by its 
+        unique ID number.
+    free_unreferenced_data()
+        Free all data objects within the session that are no longer in use.
+    create()
+        Create and return a new `Session` instance.
     """
 
     def __init__(self):
         """ Init. """
         super().__init__(MPEnums.SESSION, self)
 
-        # define some private attributes
-        self._data = {}
-        self._misc_objs = {}
-        self._ext_srcs = {}
-        self._verified = False
-        self._initialized = False
-        self._ext_out = {}
-        self._graphs = {}
+        # define private attributes
+        self._data = {}  # container objects, eg. tensors, scalars, etc.
+        self._misc_objs = {}  # miscellaneous objects, eg. filters, classifiers, etc.
+        self._ext_srcs = {}  # external sources, eg. LSL streams
+        self._ext_out = {}  # external outputs, eg. LSL streams
+        self._graphs = {}  # graph objects
 
 
     def add_to_session(self, mp_obj):
         """
-        Add a MindPype object to the session
+        Add a MindPype object to the session.
+
+        This method adds a `MindPype` object to the appropriate category within 
+        the session based on its type (`mp_type`). The object must inherit 
+        from the `MPBase` class to be compatible with the session. If the object 
+        type is invalid or unsupported, a `ValueError` is raised.
 
         Parameters
         ----------
         mp_obj : MPBase
-            MindPype object to add to the session
+            A MindPype object to add to the session. This object must inherit 
+            from `MPBase` and have a valid `mp_type` attribute.
+
+        Raises
+        ------
+        ValueError
+            If the object does not inherit from `MPBase` or its `mp_type` is not 
+            supported for addition to the session.
         """
 
         if not issubclass(type(mp_obj), MPBase):
@@ -240,18 +264,19 @@ class Session(MPBase):
 
     def find_obj(self, id_num):
         """
-        Search for and return a MindPype object within the session with a
-        specific ID number
+        Search for and return a MindPype object within the session by its
+        unique ID number
 
         Parameters
         ----------
         id_num : int
-            ID number of the object to find
+            ID number of the object to find.
 
         Returns
         -------
-        MindPype object : MPBase
-            MindPype object with the specified ID number
+        MPBase or None
+            The `MindPype` object with the specified ID number, or `None` if
+            no object with that ID number is found.
         """
 
         # check if the ID is the session itself
@@ -273,44 +298,43 @@ class Session(MPBase):
         # not found, return None type
         return None
 
-    def save_session(self: object, file: str, additional_params=None) -> None:
-        """
-        Save the session object and all of its contents to a file
-
-        Parameters
-        ----------
-        file : str
-            File path to save the session to
-        additional_params : dict, optional
-            Additional parameters to save with the session. The default
-            is None.
-        Returns
-        -------
-        Pickle object : Pickle
-            Pickle object containing the session and all of its contents
-
-        """
-        new_object = copy.deepcopy(self)
-        output = additional_params if additional_params else {}
-
-        output['pipeline'] = new_object
-
-        sfile = open(file, 'wb')
-        pickle.dump(output, sfile)
-        sfile.close()
-
-        return output
-
     def free_unreferenced_data(self):
         """
-        Free all data objects within the Session 
-        that are no longer in use
+        Free all data objects within the session that are no longer in use.
+
+        This method iterates through the data stored within the session 
+        and identifies objects that are no longer referenced by 
+        anything outside of the session (determined by a reference count of 2). 
+        These objects are then removed from the session, freeing up memory.
+
+        Notes
+        -----
+        The reference count of 2 indicates that the object is referenced only by 
+        the `_data` dictionary itself and the `getrefcount` call. Therefore, it 
+        is safe to assume that such objects are no longer in use elsewhere.
+
+        References are managed internally using `sys.getrefcount`.
+
+        Examples
+        --------
+        >>> session = Session()
+        >>> some_scalar = Scalar.create_from_value(session, 5)
+        >>> scalar_id = some_scalar.session_id
+        >>> session.find_obj(scalar_id) is None
+        False
+        >>> # do something with some_scalar ...
+        >>> del some_scalar
+        >>> session.free_unreferenced_data()
+        >>> session.find_obj(scalar_id) is None
+        True
         """
+        # find all data objects that are no longer referenced
         keys_to_remove = []
         for d in self._data:
             if sys.getrefcount(self._data[d]) == 2:
                 keys_to_remove.append(d)
 
+        # remove them from the session so they will be garbage collected
         for d in keys_to_remove:
             self._data.pop(d)
 
@@ -321,6 +345,7 @@ class Session(MPBase):
 
         Returns
         -------
-        New session object : Session
+        Session
+            New session object
         """
         return cls()
