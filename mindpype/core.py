@@ -252,8 +252,11 @@ class Session(MPBase):
         """
 
         if not issubclass(type(mp_obj), MPBase):
-            raise ValueError(f"Objects of type {type(mp_obj)} cannot be added to the session."
-                             "Only MindPype objects inheriting from MPBase can be added to the session.")
+            raise ValueError(
+                f"Objects of type {type(mp_obj)} cannot be added to the "
+                "session. Only MindPype objects inheriting from MPBase can be "
+                "added to the session."
+            )
         
         if mp_obj.mp_type == MPEnums.GRAPH:
             self._graphs[mp_obj.session_id] = mp_obj
@@ -268,7 +271,10 @@ class Session(MPBase):
             self._ext_srcs[mp_obj.session_id] = mp_obj
 
         else:
-            raise ValueError(f"Objects of type {mp_obj.mp_type} cannot be directly added to the session.")
+            raise ValueError(
+                f"Objects of type {mp_obj.mp_type} cannot be "
+                "directly added to the session."
+            )
 
 
     def find_obj(self, id_num):

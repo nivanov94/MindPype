@@ -10,6 +10,21 @@ from sklearn.metrics import (accuracy_score, f1_score,
 
 class Graph(MPBase):
     """
+    Represents a data processing directed acyclic graph in MindPype.
+
+    A `Graph` object models a directed acyclic graph (DAG) used to define 
+    data processing pipelines. Nodes in the graph represent individual 
+    data transformations or operations, and edges represent the flow of 
+    data between nodes. The `Graph` class provides methods for verifying 
+    graph validity, scheduling nodes in execution order, initializing nodes, 
+    and executing the pipeline.
+
+    Parameters
+    ----------
+    sess : Session
+        The session object in which this graph will exist and operate.
+
+    
     Graph objects are used to represent the data processing flow graph, or
     processing pipelines. Graphs consist of nodes representing data 
     transformations and edges representing data ingested and produced by the 
@@ -25,14 +40,39 @@ class Graph(MPBase):
     Attributes
     ----------
     nodes : List of Node
-        List of Node objects within the graph. After graph verification,
-        the nodes will be ordered in execution order.
+        List of `Node` objects within the graph. After verification,
+        this list is ordered according to the node execution sequence.
 
     verified : bool
-        True is graph has been verified, false otherwise.
-
+        Indicates whether the graph structure has been verified as valid.
+        `True` if verified, `False` otherwise.
     initialized : bool
-        True if graph has been initialized, false otherwise.
+        Indicates whether the nodes in the graph have been initialized.
+        `True` if initialized, `False` otherwise.
+
+    Methods
+    -------
+    add_node(node)
+        Append a node to the list of nodes within the graph
+    verify()
+        Verify the graph structure and schedule the nodes for execution
+    initialize()
+        Initialize the nodes within the graph for execution
+    update()
+        Update the nodes within the graph for trial execution
+    execute(label=None)
+        Execute the nodes within the graph
+    cross_validate(target_validation_output, folds=5, shuffle=False, random_state=None, statistic='accuracy')
+        Perform k-fold cross-validation on the graph or a portion of the graph
+
+    Notes
+    -----
+    - The graph must always be a directed acyclic graph (DAG). Cyclic 
+      graphs are not supported and will result in a verification failure.
+    - Node scheduling ensures that each node's dependencies are executed 
+      before the node itself, respecting data dependencies.
+    - Graph execution is only possible after the graph has been verified 
+      and initialized.
     """
 
     def __init__(self, sess):
@@ -49,12 +89,16 @@ class Graph(MPBase):
 
     def add_node(self, node):
         """
-        Append a node object to the list of nodes
+        Add a node to the graph.
+
+        This method appends a `Node` object to the list of nodes in the graph. 
+        Adding a node marks the graph as unverified and uninitialized, 
+        requiring re-verification and re-initialization before execution.
 
         Parameters
         ----------
-        node : Node object
-            Adds the specified Node object to the referenced graph
+        node : Node
+            The `Node` object to be added to the graph.
         """
         # the graph has changed, so it needs to be re-verified 
         # and re-initialized
@@ -64,19 +108,23 @@ class Graph(MPBase):
 
     def verify(self):
         """
-        Verify that the graph is valid and schedule the nodes in execution 
-        order. This method will also create any necessary initialization
-        edges between nodes. If verification is successful, the graph will
-        be marked as verified and the nodes will be ready for initializtion
-        or execution if no initialization is required.
+        Verify the validity of the graph and schedule nodes for execution.
+
+        This method checks that the graph structure is valid and schedules the 
+        nodes in an appropriate execution order based on their dependencies. 
+        During verification, any necessary initialization edges between nodes 
+        are also created. If the verification succeeds, the graph is marked as 
+        verified, and the nodes are prepared for initialization or execution 
+        (if initialization is not required).
 
         Raises
         ------
         ValueError
-            If the graph is invalid and cannot be scheduled.
-        
+            If the graph is invalid or cannot be scheduled due to structural 
+            issues (e.g., cyclic dependencies or missing connections).
         TypeError
-            If any of the nodes within the graph contain invalid data inputs.
+            If any of the nodes in the graph contain invalid data inputs, such 
+            as incompatible types or missing required inputs.
         """
         if self.verified:
             # if the graph has already been verified,
@@ -168,8 +216,10 @@ class Graph(MPBase):
                     if len(self._edges[n_o.session_id].producers) != 0:
                         # this is an invalid graph, each data object can only
                         # have a single producer
-                        raise ValueError("Invalid graph, multiple " +
-                                         "nodes write to single data object")
+                        raise ValueError(
+                            "Invalid graph, multiple " 
+                            "nodes write to single data object"
+                        )
                     else:
                         # add the producer to the edge
                         self._edges[n_o.session_id].add_producer(n)
@@ -221,13 +271,17 @@ class Graph(MPBase):
             if nodes_added == 0:
                 # No nodes were added to the schedule, this means that the
                 # graph is invalid and cannot be scheduled
-                raise ValueError("Invalid graph, nodes cannot be scheduled, " +
-                                 "check connections between nodes.")
+                raise ValueError(
+                    "Invalid graph, nodes cannot be scheduled, "
+                    "check connections between nodes."
+                )
 
     def _insert_init_edges(self):
         """
         Insert initialization data edges into the graph to mirror the
-        processing graph. These edges will be used to create the
+        processing graph. 
+        
+        The inserted edges will be used to create the
         necessary initialization data connections between nodes. This
         method checks for any nodes that require initializtion data but
         have not been provided with it during node creation. For these nodes,
@@ -264,8 +318,10 @@ class Graph(MPBase):
 
     def _validate_nodes(self):
         """
-        Validates each node within the graph to ensure that the nodes
-        can be executed without error. This method will check that the
+        Validate each node within the graph to ensure that the nodes
+        can be executed without error. 
+        
+        This method will check that the
         nodes have all the necessary data inputs and parameters required
         for execution. If any node fails validation, the method will raise
         an exception with a message indicating the node that failed validation.
@@ -293,11 +349,12 @@ class Graph(MPBase):
 
     def _insert_verif_edges(self):
         """
-        Adds verif edges to the graph to be used during verification. These
-        edges contain references to containers that will contain random data
-        that will be used to attempt node execution during the verification
-        step. These edges are stored as distinct attributes within the Edge
-        objects used to define the data flow within the graph.
+        Add verif edges to the graph to be used during verification. 
+        
+        The inserted edges contain references to containers that will contain
+        random data that will be used to attempt node execution during the 
+        verification step. These edges are stored as distinct attributes 
+        within the `Edge` objects used to define the data flow within the graph.
         """
         for e_id in self._edges:
             e = self._edges[e_id]
@@ -328,24 +385,29 @@ class Graph(MPBase):
 
     def initialize(self):
         """
-        Initialize each node within the graph for execution. This method will
-        initialize the nodes in the graph in the order they were scheduled
-        during the verification step. If any node fails initialization, the
-        method will raise an exception with a message indicating the node that
-        failed initialization. Any downstream nodes that require initialization
-        data but were not explicitly provided initialization inputs during 
-        node creation will be provided with transformed initialization data 
-        that was provided to upstream nodes. If the graph has not been 
-        verified, the method will first verify the graph before initializing
-        the nodes.
+        Initialize the nodes within the graph for execution.
+
+        This method initializes each node in the graph in the order determined during 
+        the verification step. If a node fails to initialize, an exception is raised, 
+        indicating the specific node that caused the failure. For nodes that require 
+        initialization data but were not explicitly provided such inputs during creation, 
+        the method supplies transformed initialization data from upstream nodes. If the 
+        graph has not been verified, this method will automatically verify it before 
+        proceeding with initialization.
 
         Raises
         ------
         ValueError
-            If any node within the graph fails initialization.
+            If any node within the graph fails to initialize successfully.
         TypeError
-            If any of the nodes within the graph contain invalid initialization
-            data inputs.
+            If any node contains invalid or incompatible initialization data inputs.
+
+        Notes
+        -----
+        - Initialization ensures that all nodes are prepared to execute with the 
+          necessary data dependencies resolved.
+        - The graph must be verified before initialization; otherwise, verification 
+          is performed as part of this method.
         """
         # if not verified, verify the graph first
         if not self.verified:
@@ -371,7 +433,9 @@ class Graph(MPBase):
 
     def update(self):
         """
-        Update each node within the graph for trial execution. This method
+        Update each node within the graph for trial execution. 
+        
+        This method
         is similar to initialization. It will update the nodes in the graph
         according to any update or partial re-initialization methods defined
         within the node's kernel class. The data within the graph nodes'
@@ -407,27 +471,35 @@ class Graph(MPBase):
 
     def execute(self, label=None):
         """
-        Execute all of the nodes within the graph. This method will execute
-        the nodes in the graph in the order they were scheduled during the
-        verification step. If any node fails execution, the method will raise
-        an exception with a message indicating the node that failed execution
-        and the traceback. If the graph has not been verified or initialized,
-        the method will first verify or initialize the graph before executing
-        the nodes. If the graph contains volatile data sources or outputs,
-        the method will poll the volatile data sources before execution and
-        push the volatile outputs after execution.
+        Execute all nodes within the graph.
+
+        This method executes the nodes in the graph in the order determined during 
+        the verification step. If any node fails during execution, an exception 
+        is raised, providing a message and traceback for the failing node. If the 
+        graph has not been verified or initialized, it will be verified and/or 
+        initialized automatically before execution. For graphs containing volatile 
+        data sources or outputs, the method will poll these data sources before 
+        execution and push volatile outputs after execution.
 
         Parameters
         ----------
-        label : int, default = None
-            If the class label of the current trial is known, it can be
-            passed to poll and push epoched data. This is typically used
-            when using a file as a external data source.
+        label : int, optional
+            The class label for the current trial, if known. This label is used 
+            to poll and push epoched data, typically in scenarios involving an 
+            external data source, such as a file.
 
         Raises
         ------
         ValueError
-            If any node within the graph fails execution.
+            If any node in the graph fails during execution.
+
+        Notes
+        -----
+        - The execution order is determined during graph verification.
+        - Volatile data sources are dynamic inputs that may change at runtime, 
+          and volatile outputs are dynamic results produced by the graph.
+        - This method handles dependencies, ensuring that all required steps are 
+          executed in the correct order.
         """
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
@@ -463,7 +535,9 @@ class Graph(MPBase):
 
     def _poll_volatile_sources(self, label=None):
         """
-        Poll data from volatile sources within the graph. This will update the
+        Poll data from volatile sources within the graph. 
+        
+        This method will update the
         data within any graph edges that represent data from external sources
         (eg. files, LSL streams). This method will update the data attribute
         within any container objects that are ingested by nodes within the
@@ -485,7 +559,9 @@ class Graph(MPBase):
 
     def _push_volatile_outputs(self, label=None):
         """
-        Push data to volatile outputs within the graph. This will publish any
+        Push data to volatile outputs within the graph. 
+        
+        This method will publish any
         data within volatile outputs to external sources (eg. files, LSL 
         streams). 
 
@@ -1055,203 +1131,275 @@ class Node(MPBase):
 
 class Edge:
     """
-    Edge class used by MindPype block to schedule graphs. Each edge object
-    represents a different MindPype data object and stores the nodes that
-    produce and consume that data.
+    Edge objects are used to represent the data flow between nodes within a
+    MindPype graph. 
+    
+    Each edge object contains references to the nodes that
+    produce and consume the data within the edge. Edge objects are only
+    created by the graph object during the scheduling process and should not 
+    need to be used directly by the user.
 
     Parameters
     ----------
-    data : Data object
-        The data to be stored within the Edge object
+    data : (Tensor, Scalar, Array, or CircularBuffer)
+        The data represented by the edge
 
     Attributes
     ----------
-    _producers : array of Node objects
-        Node objects that will produce the data within the Edge object
-    _consumers : array of Node objects
-        Node objects that will consume the data within the Edge object
-
-    Examples
-    --------
-    >>> Edge.create(example_data)
-
+    producers : List of Node
+        Nodes that will produce the data represented by the edge
+    consumers : List of Node
+        Nodes that will consume the data represented by the edge
     """
-
     def __init__(self, data):
-        """
-        Constructor for Edge object
-        """
-        self.data = data
-        self.producers = []
-        self.consumers = []
+        """Init."""
+        self.data = data  # data that the edge represents within the graph
+        self.producers = []  # nodes that produce the data, should only be 1
+        self.consumers = []  # nodes that consume the data, can be multiple
 
+        ## Initialization data attributes
+        # These attributes are used for constructing data flow for 
+        # initialization data that is propagated through the graph
         self.init_data = None
         self.init_labels = None
-        self._verif_data = None
-        self._verif_init_data = None
-        self._verif_init_labels = None
+
+        ## Verification data attributes
+        # These attributes are used for constructing data flow for
+        # verification data that is propagated through the graph
+        self.verif_data = None
+        self.verif_init_data = None
+        self.verif_init_labels = None
 
     def add_producer(self, producing_node):
         """
-        Add a specified node as a producer to an Edge object
+        Add a node as a producer to the edge.
 
-        .. note:: Adds producer in place, does not return a new Edge object
+        This method appends the specified node to the list of producers for
+        the edge.
 
         Parameters
         ----------
-        producing_node : Node object
-            Node to be added as a producer to the referenced Edge object
-
-        Examples
-        --------
-        >>> example_edge.add_producer(example_producing_edge)
-
+        producing_node : Node
+            Node to be added as a producer to the edge
         """
         self.producers.append(producing_node)
 
     def add_consumer(self, consuming_node):
         """
-        Add a specified node as a consumer to an Edge object
+        Add a node as a consumer to the edge.
 
-        .. note:: Adds consumer in place, does not return a new Edge object
+        This method appends the specified node to the list of consumers for
+        the edge.
 
         Parameters
         ----------
-        consuming_node : Node object
-            Node to be added as a consumer to the referenced Edge object
-
-        Examples
-        --------
-        >>> example_edge.add_consumer(example_consumer_edge)
-
+        consuming_node : Node
+            Node to be added as a consumer to the edge
         """
         self.consumers.append(consuming_node)
 
     def insert_init_data(self):
         """
         Insert initialization data tensors into the graph that mirror the
-        connections contained within the Edge object
+        connections represented by the edge.
+
+        This method creates virtual tensors that will contain the 
+        initialization data for the edge. The virtual tensors are then
+        assigned to the corresponding input and output parameters of the
+        nodes that produce and consume the data represented by the edge.
         """
         # create a virtual tensor that will contain the initialization data
         self.init_data = Tensor.create_virtual(self.data.session)
         self.init_labels = Tensor.create_virtual(self.data.session)
 
         for p in self.producers:
-            output_index = self._find_output_index(p)
+            # find the output index number of the edge's data within the 
+            # producer node (output index)
+            output_index = self.find_output_index(p)
 
-            # assign the tensor to the producer's corresponding init output
-            p.kernel.set_parameter(self.init_data, output_index,
-                                   'init', MPEnums.OUTPUT)
-            p.kernel.set_parameter(self.init_labels, output_index,
-                                   'labels', MPEnums.OUTPUT)
+            # assign the init_data tensor to the producer's corresponding
+            # init output
+            p.kernel.set_parameter(
+                self.init_data, 
+                output_index,
+                'init',
+                MPEnums.OUTPUT
+            )
+            p.kernel.set_parameter(
+                self.init_labels, 
+                output_index,
+                'labels', 
+                MPEnums.OUTPUT
+            )
 
         for c in self.consumers:
-            # find the index of the data from the consumer node (input index)
-            input_index = self._find_input_index(c)
+            # find the index number of the edge's data within the consumer
+            # node (input index)
+            input_index = self.find_input_index(c)
 
             # check whether this input has not already been assigned init data
             if c.kernel.get_parameter(input_index, 'init', MPEnums.INPUT) is None:
                 # If so, assign the tensor to the consumer's corresponding
                 # init input
-                c.kernel.set_parameter(self.init_data, input_index,
-                                       'init', MPEnums.INPUT)
-                c.kernel.set_parameter(self.init_labels, input_index,
-                                       'labels', MPEnums.INPUT)
+                c.kernel.set_parameter(
+                    self.init_data, 
+                    input_index,
+                    'init', 
+                    MPEnums.INPUT
+                )
+                c.kernel.set_parameter(
+                    self.init_labels, 
+                    input_index,
+                    'labels', 
+                    MPEnums.INPUT
+                )
             else:
-                # overwrite the edge's init data, we need this to create
-                # verif inputs later
-                self.init_data = c.kernel.get_parameter(input_index, 
-                                                         'init', MPEnums.INPUT)
-                self.init_labels = c.kernel.get_parameter(input_index,
-                                                           'labels', MPEnums.INPUT)
+                # otherwise, overwrite the edge's init data attribute with
+                # the existing init data. We will need to use this to
+                # create verif inputs later
+                self.init_data = c.kernel.get_parameter(
+                    input_index, 
+                    'init', 
+                    MPEnums.INPUT
+                )
+                self.init_labels = c.kernel.get_parameter(
+                    input_index,
+                    'labels',
+                    MPEnums.INPUT
+                )
 
     def add_verif_data(self):
         """
-        Add verif data to the edge and the
-        nodes it is connected to
+        Insert verification data tensors into the graph that mirror the
+        connections represented by the edge.
+
+        This method creates virtual tensors that will contain the verification
+        data for the edge. The virtual tensors are then assigned to the
+        corresponding input and output parameters of the nodes that produce
+        and consume the data represented by the edge. The verification data
+        will be random data that is used to verify the execution of the graph.
         """
-        self._verif_data = self.data.make_copy()
+        self.verif_data = self.data.make_copy()
 
         # get the producing node
         for p in self.producers:
             # find the index of the data from the producer node (output index)
-            output_index = self._find_output_index(p)
+            output_index = self.find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.set_parameter(self._verif_data, output_index, 'verif', 
-                                   MPEnums.OUTPUT, add_if_missing=True)
+            p.kernel.set_parameter(
+                self.verif_data, 
+                output_index, 
+                'verif', 
+                MPEnums.OUTPUT, 
+                add_if_missing=True
+            )
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
-            input_index = self._find_input_index(c)
+            input_index = self.find_input_index(c)
 
             #  assign the tensor to the consumer's corresponding init input
-            c.kernel.set_parameter(self._verif_data, input_index, 'verif', 
-                                   MPEnums.INPUT, add_if_missing=True)
+            c.kernel.set_parameter(
+                self.verif_data, 
+                input_index, 
+                'verif', 
+                MPEnums.INPUT, 
+                add_if_missing=True
+            )
 
     def add_verif_init_data(self):
         """
-        Add verif init data to the edge and the
-        nodes connected to it
+        Insert verification initialization data tensors into the graph that
+        mirror the connections represented by the edge.
+
+        This method creates virtual tensors that will contain the verification
+        initialization data for the edge. The virtual tensors are then assigned
+        to the corresponding input and output parameters of the nodes that
+        produce and consume the data represented by the edge. The verification
+        initialization data will be random data that is used to verify the
+        initialization of the graph.
         """
-        self._verif_init_data = self.init_data.make_copy()
+        self.verif_init_data = self.init_data.make_copy()
         if self.init_labels is not None:
-            self._verif_init_labels = self.init_labels.make_copy()
+            self.verif_init_labels = self.init_labels.make_copy()
 
         # get the producing node
         for p in self.producers:
             # find the index of the data from the producer node (output index)
-            output_index = self._find_output_index(p)
+            output_index = self.find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
-            p.kernel.set_parameter(self._verif_init_data, output_index, 
-                                   'verif_init', MPEnums.OUTPUT, add_if_missing=True)
+            p.kernel.set_parameter(
+                self.verif_init_data,
+                output_index, 
+                'verif_init',
+                MPEnums.OUTPUT, 
+                add_if_missing=True
+            )
 
         # get the consuming node
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
-            input_index = self._find_input_index(c)
+            input_index = self.find_input_index(c)
 
             # assign the tensor to the consumer's corresponding init input
-            c.kernel.set_parameter(self._verif_init_data, input_index, 
-                                   'verif_init', MPEnums.INPUT, add_if_missing=True)
-            c.kernel.set_parameter(self._verif_init_labels, input_index, 
-                                   'verif_labels', MPEnums.INPUT, add_if_missing=True)
+            c.kernel.set_parameter(
+                self.verif_init_data,
+                input_index, 
+                'verif_init',
+                MPEnums.INPUT,
+                add_if_missing=True
+            )
+            c.kernel.set_parameter(
+                self.verif_init_labels,
+                input_index, 
+                'verif_labels',
+                MPEnums.INPUT,
+                add_if_missing=True
+            )
 
     def initialize_verif_data(self):
         """
-        Assign random data to verif inputs
+        Assign random data to verif inputs.
+
+        This method assigns random data to the verification data tensors
+        that are used to verify the execution of the graph.
         """
         cov = self.is_covariance_input()
-        if self._verif_data is not None:
-            self._verif_data.assign_random_data(covariance=cov)
+        if self.verif_data is not None:
+            self.verif_data.assign_random_data(covariance=cov)
 
-        if self._verif_init_data is not None:
-            self._verif_init_data.assign_random_data(covariance=cov)
+        if self.verif_init_data is not None:
+            self.verif_init_data.assign_random_data(covariance=cov)
 
-        if self._verif_init_labels is not None:
-            self._verif_init_labels.assign_random_data(whole_numbers=True)
+        if self.verif_init_labels is not None:
+            self.verif_init_labels.assign_random_data(whole_numbers=True)
 
     def delete_verif_data(self):
         """
-        Remove references to verif data so it can be freed
-        during garbage collection
+        Remove references to verif data so that it can be garbage collected.
+        
+        This method removes the references to the verification data tensors
+        that were used to verify the execution of the graph. This is done to
+        allow the tensors to be garbage collected. This should only be called
+        after the graph verification process is complete.
         """
-        self._verif_data = None
-        self._verif_init_data = None
-        self._verif_init_labels = None
+        self.verif_data = None
+        self.verif_init_data = None
+        self.verif_init_labels = None
 
         # remove the references within the nodes
         for p in self.producers:
             # find the index of the data from the producer node (output index)
-            output_index = self._find_output_index(p)
+            output_index = self.find_output_index(p)
 
             # assign the tensor to the producer's corresponding init output
             p.kernel.set_parameter(None, output_index, 'verif', MPEnums.OUTPUT)
 
         for c in self.consumers:
             # find the index of the data from the consumer node (input index)
-            input_index = self._find_input_index(c)
+            input_index = self.find_input_index(c)
 
             # assign the tensor to the consumer's corresponding init input
             c.kernel.set_parameter(None, input_index, 'verif', MPEnums.INPUT)
@@ -1260,12 +1408,12 @@ class Edge:
 
     def is_covariance_input(self):
         """
-        Check whether the data object contained within the edge is a covariance
-        matrix
+        Check whether the data represented by the edge is a covariance matrix
 
         Return
         ------
-        bool : True if the data object is a covariance matrix, False otherwise
+        bool
+            True if the data parameter is a covariance matrix, False otherwise
         """
         if len(self.consumers) == 0:
             return False
@@ -1276,36 +1424,38 @@ class Edge:
         # check whether this edge is a covariance input to the consumer
         return consumer.kernel.is_covariance_input(self.data)
 
-    def _find_output_index(self, producer):
+    def find_output_index(self, producer):
         """
         Find and return the numerical index of the producer's output that
-        corresponds to this edge
+        produces the data represented by the edge.
 
         Parameters
         ----------
         producer: Node
-            Edge object
+            The node that produces the data represented by the edge.
+
         Returns
         -------
-        output_index: int
+        int
             Index of the data from the producer node
         """
         # find the index of the data from the producer node (output index)
         return producer.kernel.find_param_index(self.data, MPEnums.OUTPUT)
 
-    def _find_input_index(self, consumer):
+    def find_input_index(self, consumer):
         """
         Find and return the numerical index of the consumer's input that
-        corresponds to this edge
+        consumes the data represented by the edge.
 
         Parameters
         ----------
         consumer: Node
-            Edge object
+            The node that consumes the data represented by the edge.
+
         Returns
         -------
         input_index: int
-            index of the data from the consumer node
+            index of the data from the consumer node.
         """
         # find the index of the data from the consumer node (input index)
         return consumer.kernel.find_param_index(self.data, MPEnums.INPUT)
@@ -1313,24 +1463,28 @@ class Edge:
 
 class Parameter:
     """
-    Parameter class can be used to abstract data types as inputs and outputs
-    to nodes.
+    Parameter objects are used to represent the input and output data objects
+    for nodes within a MindPype graph.
+
+    This class provides a simple container for the data objects that
+    are the connections between nodes in MindPype graphs.
 
     Parameters
     ----------
-    data : any
-        Reference to the data object represented by the parameter object
-    direction : [MPEnums.INPUT, MPEnums.OUTPUT]
-        Enum indicating whether this is an input-type or output-type parameter
+    data : MPBase
+        A MindPype container (Tensor, Array, etc.) that is will contain the
+        data produced or consumed by the node
+    direction : (MPEnums.INPUT, MPEnums.OUTPUT, or MPEnums.INOUT)
+        Enum indicating the direction of the parameter
 
+    Attributes
+    ----------
+    data : MPBase
+        The data object represented by the parameter
+    direction : (MPEnums.INPUT, MPEnums.OUTPUT, or MPEnums.INOUT)
+        Enum indicating the direction of the parameter
     """
-
     def __init__(self, data, direction):
-        """
-        Constructor for Parameter object
-        """
-        # reference of the data object represented by parameter
+        """Init. """
         self.data = data
-
-        # enum indicating whether this is an input or output
         self.direction = direction
