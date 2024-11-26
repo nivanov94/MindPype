@@ -6,26 +6,35 @@ import copy
 
 class MPBase(object):
     """
-    This is the base class for all objects used in the MindPype API.
-    It serves to define some attributes that will be shared across all
-    other objects.
+    Base class for all objects used in the MindPype API.
+
+    This class provides foundational attributes and behavior that are 
+    shared across all MindPype objects. It serves as the parent class 
+    for other objects in the MindPype framework, ensuring consistency 
+    and providing a common interface for session management.
 
     Parameters
     ----------
     mp_type : MPEnums
-        Indicates what type of object is being created
+        The type of the object, represented as an enumeration value 
+        from `MPEnums`. This indicates the category or role of the object 
+        within the MindPype framework.
     session : Session
-        The session where the object will exist
+        The session object to which this instance belongs. Each MindPype 
+        object must be associated with a session to enable proper management 
+        and interaction within the API.
 
     Attributes
     ----------
     mp_type : MPEnums
-        Indicates the type of the object
+        The type of the object, indicating its role or function within the 
+        MindPype system.
     session_id : int
-        ID of the object. Each object has a unique ID
-        within the session to which it belongs.
+        A unique identifier for the object within the session. This ID is 
+        automatically generated using Python's `id()` function.
     session : Session
-        The session to which the object belongs
+        The session instance that owns this object, representing the context 
+        in which the object operates.
     """
     def __init__(self, mp_type, session):
         """Init"""
@@ -209,7 +218,7 @@ class Session(MPBase):
     """
 
     def __init__(self):
-        """ Init. """
+        """ Init."""
         super().__init__(MPEnums.SESSION, self)
 
         # define private attributes
@@ -341,11 +350,11 @@ class Session(MPBase):
     @classmethod
     def create(cls):
         """
-        Create a new session object
+        Factory method to create a new `Session` instance.
 
         Returns
         -------
         Session
-            New session object
+            A reference to the new Session instance.
         """
         return cls()

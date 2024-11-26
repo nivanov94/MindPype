@@ -502,43 +502,52 @@ class Graph(MPBase):
     def cross_validate(self, target_validation_output, folds=5,
                        shuffle=False, random_state=None, statistic='accuracy'):
         """
-        Perform cross validation on the graph or a portion of the graph.
-        If the graph has not been verified, the method will first verify
-        the graph and schedule the nodes. The method will then initialize and
-        execute the graph for each fold of the cross validation. The method
-        will return the average score for the specified statistic across all
-        folds.
+        Perform k-fold cross-validation on the graph or a portion of the graph.
 
+        This method first verifies and schedules the nodes in the graph 
+        (if not already done), then initializes and executes the graph for each
+        fold of the cross-validation. It returns the average score of the 
+        specified statistic across all folds. The statistic can be any of the
+        supported metrics for model evaluation, such as accuracy or F1 score.
 
         Parameters
         ----------
         target_validation_output : (Tensor, Scalar)
-            MindPype container containing the target validation output.
-            Likely, this will be the output of a classification node.
+            The target validation output container, typically the result of a 
+            classification node. This can be a `Tensor` or a `Scalar`.
 
-        folds : int, default = 5
-            Number of folds to use for cross validation.
+        folds : int, optional, default=5
+            The number of folds to use for the cross-validation. The data will 
+            be split into this many parts, with each fold serving as the 
+            validation set once.
 
-        shuffle : bool, default = False
-            Whether to shuffle the data before splitting into folds.
+        shuffle : bool, optional, default=False
+            Whether to shuffle the data before splitting it into folds. Setting
+            this to `True` can ensure that the splits are randomized for better
+            generalization.
 
-        random_state : int, default = None
-            Random state to use for shuffling the data.
+        random_state : int, optional, default=None
+            The random state to use for shuffling the data. If `None`, the 
+            random state is not set, leading to a different shuffling each 
+            time.
 
-        statistic : str, default = 'accuracy'
-            Statistic to use for cross validation.
-            Options include 'accuracy', 'f1', 'precision', 'recall', and 'cross_entropy'.
+        statistic : str, optional, default='accuracy'
+            The evaluation metric to compute for each fold. Options include:
+            'accuracy', 'f1', 'precision', 'recall', and 'cross_entropy'. 
+            The method will return the average value of the specified 
+            statistic.
 
         Returns
         -------
         float
-            Average score for the specified statistic (accuracy, f1, etc.)
+            The average score of the specified statistic across all folds.
 
         Raises
         ------
         ValueError
-            If the target validation output is not produced by a node in the 
-            graph or if the graph structure is invalid.
+            If the target validation output is not produced by a valid node in
+            the graph or if the graph structure is invalid for 
+            cross-validation.
         """
         # first ensure the graph has been verified,
         # if not, verify and schedule the nodes
@@ -558,7 +567,7 @@ class Graph(MPBase):
             )
 
         upstream_nodes.append(n) 
-        subset_node_ids = set([n.session_id])
+        subset_node_ids = set([n.session_id])  # ids of the nodes to run for CV
         init_data_nodes = []
 
         # now find all upstream nodes that are required for the cross validation
@@ -646,15 +655,16 @@ class Graph(MPBase):
         mean_stat = 0
         for train_index, test_index in skf.split(init_data.data, init_labels.data):
             # create Tensors for the CV training and testing data
-            train_data = Tensor.create_from_data(self.session,  init_data.data[train_index])
-            train_labels = Tensor.create_from_data(self.session,  init_labels.data[train_index])
-            test_data = Tensor.create_from_data(self.session,  init_data.data[test_index])
-            test_labels = Tensor.create_from_data(self.session,  init_labels.data[test_index])
+            train_data = Tensor.create_from_data(self.session, init_data.data[train_index])
+            train_labels = Tensor.create_from_data(self.session, init_labels.data[train_index])
+            test_data = Tensor.create_from_data(self.session, init_data.data[test_index])
+            test_labels = Tensor.create_from_data(self.session, init_labels.data[test_index])
 
             # set the initialization data for the nodes
             for n in init_data_nodes:
-                n.kernel.set_parameter(train_data, 0, 'init', MPEnums.INPUT)
-                n.kernel.set_parameter(train_labels, 0, 'labels', MPEnums.INPUT)
+                init_param_index = 0
+                n.kernel.set_parameter(train_data, init_param_index, 'init', MPEnums.INPUT)
+                n.kernel.set_parameter(train_labels, init_param_index, 'labels', MPEnums.INPUT)
 
             # initialize the subset of nodes
             for n in cv_node_subset:
@@ -677,18 +687,22 @@ class Graph(MPBase):
 
             if not batched:
                 for i_t in range(test_labels.shape[0]):
-                    predictions[i_t] = self._cv_execute_batch(init_data_nodes, 
-                                                              cv_node_subset, 
-                                                              test_data.data[i_t],
-                                                              target_validation_output)
+                    predictions[i_t] = self._cv_execute_batch(
+                        init_data_nodes, 
+                        cv_node_subset, 
+                        test_data.data[i_t],
+                        target_validation_output
+                    )
             else:
                 if Ngph_samples == Ntest_samples:
                     # number of samples in the test data is the same as 
                     # the graph, so we can execute the graph in batch mode
-                    predictions = self._cv_execute_batch(init_data_nodes,
-                                                         cv_node_subset,
-                                                         test_data.data,
-                                                         target_validation_output)
+                    predictions = self._cv_execute_batch(
+                        init_data_nodes,
+                        cv_node_subset,
+                        test_data.data,
+                        target_validation_output
+                    )
                 
                 elif Ngph_samples < Ntest_samples:
                     # there are more samples in the test data than the
@@ -760,8 +774,9 @@ class Graph(MPBase):
 
         # reset the initialization data for the nodes
         for n in init_data_nodes:
-            n.kernel.set_parameter(init_data, 0, 'init', MPEnums.INPUT)
-            n.kernel.set_parameter(init_labels, 0, 'labels', MPEnums.INPUT)
+            init_param_index = 0
+            n.kernel.set_parameter(init_data, init_param_index, 'init', MPEnums.INPUT)
+            n.kernel.set_parameter(init_labels, init_param_index, 'labels', MPEnums.INPUT)
 
         # cleanup data objects
         del train_data, train_labels, test_data, test_labels
@@ -772,8 +787,31 @@ class Graph(MPBase):
     def _cv_execute_batch(self, init_data_nodes, cv_node_subset, 
                           test_data, target_validation_output):
         """
-        Execute the subset of nodes in the
-        graph in batch mode for cross validation
+        Execute the subset of nodes in the graph in batch mode for 
+        cross-validation.
+
+        This method exectutes a subset of nodes in the graph in batch mode
+        for cross-validation. It is used to execute a batch of test inputs
+        within a single fold. 
+
+        Parameters
+        ----------
+        init_data_nodes : list of Node
+            List of nodes that required initialization for the 
+            cross-validation. These are the nodes that will ingest the test
+            inputs.
+        cv_node_subset : list of Node
+            List of nodes to execute for the cross-validation.
+        test_data : np.ndarray
+            The test data to be ingested by the nodes.
+        target_validation_output : (Tensor, Scalar)
+            The target validation output container, typically the result of a
+            classification node. This can be a `Tensor` or a `Scalar`.
+
+        Returns
+        -------
+        np.ndarray
+            The predictions of the target validation output.
         """
         # set the test data input for the ingestion nodes
         for n in init_data_nodes:
@@ -791,16 +829,20 @@ class Graph(MPBase):
     @classmethod
     def create(cls, sess):
         """
-        Generic factory method for a graph
+        Factory method to create and register a graph within a session.
+
+        This method creates a new graph instance associated with the provided
+        session and automatically adds the graph to the session for management.
 
         Parameters
         ----------
-        cls: Graph
-        sess: Session Object
-            Session where graph will exist
+        sess : Session
+            The session object where the graph will be registered and managed.
+
         Returns
         -------
-        graph: Graph
+        Graph
+            A reference to the graph that was created and added to the session.
         """
         graph = cls(sess)
         sess.add_to_session(graph)
@@ -810,59 +852,71 @@ class Graph(MPBase):
 
 class Node(MPBase):
     """
-    Generic node object containing a kernel function
+    Node objects are used to represent the processing steps within a MindPype
+    graph. 
+    
+    Each node contains a kernel object that defines the processing
+    steps to be executed on the node's inputs. The node object also contains
+    a set of parameters that are used to store the input and output data
+    objects for the node.
 
     Parameters
     ----------
     graph : Graph object
-        Graph where the Node object will exist
+        The graph object that the node belongs to
     kernel : Kernel Object
-        Kernel object to be used for processing within the Node
-    params : dict
-        Dictionary of parameters outputted by kernel
+        The kernel object that defines the processing steps for the node
+    params : tuple of Parameters
+        The parameters that define the input and output data objects for the
+        node
 
     Attributes
     ----------
-    kernel : Kernel Object
-        Kernel object to be used for processing within the Node
-    params : dict
-        Dictionary of parameters outputted by kernel
+    graph : Graph object
+        The graph object that the node belongs to
+    kernel : Kernel object
+        The kernel object that defines the processing steps for the node
+    params : tuple of Parameters
+        The parameters that define the input and output data objects for the
+        node
 
-    Examples
-    --------
-    >>> Node.create(example_graph, example_kernel, example_params)
+    Methods
+    -------
+    extract_inputs()
+        Return a list of all the node's inputs
+    extract_outputs()
+        Return a list of all the node's outputs
+    verify()
+        Verify the node is executable
+    initialize()
+        Initialize the kernel function for execution
+    update()
+        Update the kernel function for execution
+    update_attributes(attribute, value)
+        Update the parameters of the node
+    add_initialization_data(init_data, init_labels=None)
+        Add initialization data to the node
     """
 
     def __init__(self, graph, kernel, params):
-        sess = graph.session
-        super().__init__(MPEnums.NODE, sess)
+        super().__init__(MPEnums.NODE, graph.session)
 
+        self.graph = graph
         self.kernel = kernel
         self.params = params
-
-        self._graph = graph
 
 
     def extract_inputs(self):
         """
-        Return a list of all the node's inputs
+        Return a list of all the node's input parameters. 
 
-        Parameters
-        ----------
-        None
+        This mehod identifies all of the node's input parameters and returns
+        them as a list.
 
         Return
         ------
-        List of inputs for the Node : List of Nodes
-
-        Examples
-        --------
-
-        >>> inputs = example_node.extract_inputs()
-        >>> print(inputs)
-
-            None
-
+        List of Nodes
+            List of the node's input parameters.
         """
         inputs = []
         for p in self.params:
@@ -873,23 +927,15 @@ class Node(MPBase):
 
     def extract_outputs(self):
         """
-        Return a list of all the node's outputs
+        Return a list of all the node's output parameters.
 
-        Parameters
-        ----------
-        None
+        This mehod identifies all of the node's output parameters and returns
+        them as a list.
 
         Return
         ------
-        List of inputs for the Node : List of Nodes
-
-        Examples
-        --------
-
-        >>> inputs = example_node.extract_outputs()
-        >>> print(inputs)
-
-            None
+        List of Nodes
+            List of the node's output parameters.
         """
         outputs = []
         for p in self.params:
@@ -900,58 +946,107 @@ class Node(MPBase):
 
     def verify(self):
         """
-        Verify the node is executable
+        Verify the node is executable.
+
+        This method verifies that the node is executable by checking that all
+        of the node's parameters are valid.
         """
-        return self.kernel.verify()
+        self.kernel.verify()
 
     def initialize(self):
         """
-        Initialize the kernel function for execution
+        Initialize the kernel function for execution.
+
+        This method initializes the kernel function for execution by calling
+        the kernel's initialization method. The kernel will be initialized
+        with either the initialization data explicitly provided to the node
+        or with the transformed initialization data provided to the node by
+        upstream nodes within its graph.
         """
-        return self.kernel.initialize()
+        self.kernel.initialize()
     
     def update(self):
         """
-        Update the kernel function for execution
+        Update the kernel function for execution.
+
+        This method updates the kernel function for execution by calling
+        the kernel's update method. The kernel will be updated with either
+        the initialization data explicitly provided to the node or with the
+        transformed initialization data provided to the node by upstream nodes
+        within its graph.
         """
-        return self.kernel.update()
+        self.kernel.update()
 
     def update_attributes(self, attribute, value):
         """
-        Update the parameters of the node
+        Update the parameters of the node.
+
+        This method updates the parameters of the node by calling the kernel's
+        update_attribute method. The method will update the specified attribute
+        with the provided value.
+
+        Parameters
+        ----------
+        attribute : str
+            The attribute to be updated
+        value : object
+            The value to be assigned to the attribute
+        
+        Notes
+        -----
+        The graph will be marked as unverified after the attributes are 
+        updated. The graph will need to be re-verified before execution.
         """
 
         self.kernel.update_attribute(attribute, value)
-        self._graph._verified = False
+        self.graph._verified = False
 
     def add_initialization_data(self, init_data, init_labels=None):
         """
-        Add initialization data to the node
+        Add initialization data to the node. 
+
+        This method adds initialization data to the node by calling the 
+        kernel's add_initialization_data method. 
 
         Parameters
         ----------
-        init_data : list or tuple of data objects
-            MindPype container containing the initialization data
-        init_labels : data object containing initialization
-        labels, default = None
-            MindPype container containing the initialization labels
+        init_data : list or tuple of MPBase
+            MindPype container (Tensor, Array, etc.) containing the
+            initialization data
+        init_labels : list or tuple of MPBase, default = None
+            MindPype container (Tensor, Array, etc.) containing the
+            initialization labels. Can be omitted if the node does not
+            require labels for initialization.
 
+        Notes
+        -----
+        The graph will be marked as unverified after the attributes are 
+        updated. The graph will need to be re-verified before execution.
         """
         self.kernel.add_initialization_data(init_data, init_labels)
-        self._graph.verified = False
+        self.graph.verified = False
 
     def _update_initialization_data(self, init_data, init_labels=None):
         """
-        Update the initialization data of the node
+        Update the initialization data of the node.
+
+        This method updates the initialization data of the node by calling the
+        kernel's update_initialization_data method. 
 
         Parameters
         ----------
-        init_data : list or tuple of data objects
-            MindPype container containing the initialization data
-        init_labels : data object containing initialization
-        labels, default = None
-            MindPype container containing the initialization labels
+        init_data : list or tuple of MPBase
+            MindPype container (Tensor, Array, etc.) containing the
+            initialization data
+        init_labels : list or tuple of MPBase, default = None
+            MindPype container (Tensor, Array, etc.) containing the
+            initialization labels. Can be omitted if the node does not
+            require labels for initialization.
 
+        Notes
+        -----
+        The graph will be marked as unverified after the attributes are 
+        updated. The graph will need to be re-verified before execution.
         """
         self.kernel.remove_initialization_data()
         self.add_initialization_data(init_data, init_labels)
