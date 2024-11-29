@@ -4,70 +4,130 @@ import numpy as np
 
 class Scalar(MPBase):
     """
-    MPBase Data type defining scalar-type data. The valid data types
-    are int, float, complex, str, and bool.
+    Represents scalar data that can be ingested and produced by nodes
+    within MindPype graphs. 
+
+    A `Scalar` object contains a single value of a specified data type
+    (int, float, complex, str, or bool). 
 
     Parameters
     ----------
-    sess : Session Object
-        Session where the Scalar object will exist
-    value_type : one of [int, float, complex, str, bool]
-        Indicates the type of data represented by the Scalar
-    val : value of type int, float, complex, str, or bool
-        Data value represented by the Scalar object
-    is_virtual : bool
-        If true, the Scalar object is virtual, non-virtual otherwise
-    ext_src : LSL data source input object, MAT data source, or None
-        External data source represented by the scalar; this data will
-        be polled/updated when trials are executed. If the data does
-        not represent an external data source, set ext_src to None
+    sess : Session 
+        The session object in which the scalar will exist and operate.
+    data_type : type
+        The data type contained within the scalar
+    value : (int, float, complex, str, or bool), optional
+        Data value contained within the scalar object. If not specified,
+        a default value will be assigned based on the data type.
+    is_virtual : bool, default = False
+        If True, the scalar is a virtual object, otherwise it is non-virtual.
+    ext_src : Source, default = None
+        A volatile external data source from which the scalar will pull data
+        during graph execution. If the scalar does not represent an external
+        data source, set ext_src to None.
+    ext_out : Source, default = None
+        A volatile external data source to which the scalar will push data
+        during graph execution. If the scalar does not push data to an
+        external source, set ext_out to None.
 
     Attributes
     ----------
-    data_type : one of [int, float, complex, str, bool]
-        Indicates the type of data represented by the Scalar
-    data : value of type int, float, complex, str, or bool
-        Data value represented by the Scalar object
+    data_type : type
+        The data type contained within the scalar.
+    data : (int, float, complex, str, or bool)
+        Data value contained within the scalar object.
     is_virtual : bool
-        If true, the Scalar object is virtual, non-virtual otherwise
-    ext_src : LSL data source input object, MAT data source, or None
-        External data source represented by the scalar; this data will
-        be polled/updated when trials are executed. If the data does
-        not represent an external data source, set ext_src to None
+        Indicates whether the scalar is a virtual object.
+    ext_src : Source
+        External data source from which the scalar will pull data during
+        graph execution.
+    ext_out : Source
+        External data source to which the scalar will push data during
+        graph execution.
     volatile : bool
-        True if source is volatile (needs to be updated/polled between
-        trials), false otherwise
+        Indicates whether the scalar is a volatile object that needs to pull
+        from or push to external sources during graph execution.
 
+    Methods
+    -------
+    make_copy()
+        Create and return a deep copy of the scalar.
+    copy_to(dest_scalar)
+        Copy all the attributes of the scalar to another scalar object.
+    assign_random_data(whole_numbers=False, vmin=0, vmax=1, covariance=False)
+        Assign random data to the scalar.
+    poll_volatile_data(label=None)
+        Pull data from external sources and assign it to the scalar's data
+        attribute.
+    push_volatile_outputs(label=None)
+        Push the scalar's data to external sources.
+    create(sess, data_type)
+        Factory method to create a non-virtual, non-volatile scalar object.
+    create_virtual(sess, data_type)
+        Factory method to create a virtual scalar object.
+    create_from_value(sess, value)
+        Factory method to create a non-virtual, non-volatile scalar object
+        with a specified data value.
+    create_from_source(sess, data_type, src)
+        Factory method to create a non-virtual, volatile scalar object with an
+        external data source.
+
+    Notes
+    -----
+    - Virtual scalars should only be used to define connections between nodes 
+      in a graph. The data within virtual scalars may be modified by
+      `Graph` or `Node` methods and they should not be used to store data that 
+      is used outside of graph execution.
+    - Volatile scalars cannot be virtual.
     """
 
     valid_types = [int, float, complex, str, bool]
     valid_numeric_types = [int, float, complex, bool]
 
-    def __init__(self, sess, value_type, val=None,
-                 is_virtual=False, ext_src=None, 
-                 ext_out=None):
+    def __init__(
+        self, sess, data_type, value=None, is_virtual=False, ext_src=None, ext_out=None
+    ):
         """Init."""
         super().__init__(MPEnums.SCALAR, sess)
-        self.data_type = value_type
+
+        if isinstance(data_type, str):
+            dtypes = {"int": int, "float": float, "complex": complex, 
+                      "str": str, "bool": bool}
+
+            if data_type in dtypes:
+                data_type = dtypes[data_type]
+            else:
+                raise ValueError(
+                    f"{data_type} is an invalid data type for scalar. "
+                    "Must be one of [int, float, complex, str, bool]."
+                )
+
+        self.data_type = data_type
 
         self.ext_src = ext_src
 
-        if val is None:
-            if value_type == int:
+        if value is None:
+            if data_type == int:
                 val = 0
-            elif value_type == float:
+            elif data_type == float:
                 val = 0.0
-            elif value_type == complex:
+            elif data_type == complex:
                 val = complex(0, 0)
-            elif value_type == str:
+            elif data_type == str:
                 val = ""
-            elif value_type == bool:
+            elif data_type == bool:
                 val = False
+            else:
+                raise ValueError(
+                    "Invalid data type for scalar, must be one of " 
+                    "[int, float, complex, str, bool]"
+                )
 
         self.ext_out = ext_out
-        self.data = val
+        self.data = value
 
         self.virtual = is_virtual
+
         if ext_src is None:
             self.volatile = False
         else:
@@ -78,81 +138,108 @@ class Scalar(MPBase):
         else:
             self.volatile_out = True
 
-    # API Getters
+        if self.volatile and self.virtual:
+            raise ValueError("Volatile scalars cannot be virtual")
+
     @property
     def data(self):
         """
-        Getter for scalar data attribute
+        Retrieve the scalar data value.
 
-        Return
-        ------
-        Data value represented by the Scalar object : int, float, complex, str, or bool
+        This property provides access to the scalar data value stored within 
+        the `Scalar` object. The data can represent various types, including 
+        integers, floats, complex numbers, strings, or booleans.
+
+        Returns
+        -------
+        int, float, complex, str, or bool
+            The scalar data value encapsulated by the `Scalar` object.
         """
         return self._data
 
     @property
     def is_numeric(self):
         """
-        Check if the data type of the scalar is numeric
+        Return whether the scalar's data type is numeric.
 
-        Return
-        ------
-        True if the data type of the scalar is numeric, False otherwise
-        """
-        return self.data_type in self.valid_numeric_types
-
-    # API Setters
-    @data.setter
-    def data(self, data):
-        """
-        Set the referenced Scalar's data field to the specified data
-
-        Parameters
-        ----------
-        data : Python built-in data or numpy array
-            Data to be represented by the Scalar object
-            Data must be scalar (1x1 numerical, single string/bool, etc)
-        """
-
-        # if the data passed in is a numpy array, check if its a single value
-        if type(data).__module__ == np.__name__:
-            if type(data) is np.ndarray and data.shape == (1, ):
-                # convert from the np type to native python type
-                data = data[0]
-
-            if isinstance(data, np.integer):
-                data = int(data)
-            elif isinstance(data, np.float_):
-                if data.is_integer() and self.data_type is int:
-                    data = int(data)
-                else:
-                    data = float(data)
-            elif isinstance(data, np.complex_):
-                data = complex(data)
-
-        if type(data) is self.data_type:
-            self._data = data
-        else:
-            raise TypeError(("MindPype Scalar contains data of type {}." +
-                             " Cannot set data to type {}").format(
-                                                                self.data_type,
-                                                                type(data)))
-
-    def make_copy(self):
-        """
-        Produce and return a deep copy of the scalar
+        This property checks whether the scalar's data type belongs to a set of 
+        valid numeric types, such as integers, floats, or complex numbers.
 
         Returns
         -------
-        Deep copy of referenced parameter: Scalar
-
+        bool
+        True if the scalar's data type is numeric, False otherwise.
         """
-        cpy = Scalar(self.session,
-                     self.data_type,
-                     self.data,
-                     self.virtual,
-                     self.ext_src,
-                     self.ext_out)
+        return self.data_type in self.valid_numeric_types
+
+    @data.setter
+    def data(self, data):
+        """
+        Set the scalar's data value.
+
+        Parameters
+        ----------
+        data : int, float, complex, str, bool, or numpy.ndarray
+            The value to be represented by the scalar object. 
+            The input must be scalar (e.g., a single numerical value, 
+            string, or boolean).
+
+        Raises
+        ------
+        TypeError
+            If the data type of the input does not match the scalar's 
+            existing data type.
+        """
+        # Handle numpy array input
+        if isinstance(data, np.ndarray):
+            # Ensure the array contains a single value
+            if data.size == 1:
+                data = data.item()  # Extract the scalar value
+            else:
+                raise ValueError(
+                    "The input numpy array must contain exactly one element."
+                )
+
+        # Convert numpy scalar types to native Python types
+        if isinstance(data, (np.integer, np.int_)):
+            data = int(data)
+        elif isinstance(data, (np.floating, np.float_)):
+            data = int(data) if data.is_integer() and self.data_type is int else float(data)
+        elif isinstance(data, np.complexfloating):
+            data = complex(data)
+
+        # Validate data type and set the value
+        if isinstance(data, self.data_type):
+            self._data = data
+        else:
+            raise TypeError(
+                f"MindPype Scalar expects data of type {self.data_type}. "
+                f"Cannot set data to type {type(data)}."
+            )
+
+    def make_copy(self):
+        """
+        Create and return a deep copy of the scalar.
+
+        This method creates a new `Scalar` object with the same attributes
+        as the original object, including the data type, data value, and
+        external data sources. The copied scalar is added to the same session
+        as the original scalar.
+
+        Returns
+        -------
+        Scalar
+            A deep copy of the scalar.
+        """
+        # create a new scalar object
+        cpy = Scalar(
+            self.session,
+            self.data_type,
+            self.data,
+            self.virtual,
+            self.ext_src,
+            self.ext_out
+        )
 
         # add the copy to the session
         sess = self.session
@@ -162,22 +249,35 @@ class Scalar(MPBase):
 
     def copy_to(self, dest_scalar):
         """
-        Copy all the data elements of the scalar to another scalar.
+        Copy the data to another scalar object.
         
-        .. note:: This method will not copy the virtual and ext_src attributes 
-        because these should only be set during creation and modifying could 
-        cause unintended consequences.
+        This method copies the data value from the referenced scalar to the
+        destination scalar object. Other attributes, such as the data type, 
+        virtual status, and external data sources, are not copied as they
+        should not be modified after the scalar is created.
 
         Parameters
         ----------
-        dest_scalar : Scalar Object
-            Scalar object which will represent the copy of the referenced
-            Scalar's elements
+        dest_scalar : Scalar
+            Scalar object to which the data value will be copied.
+
+        Raises
+        ------
+        TypeError
+            If the destination scalar's data type does not match the source
+            scalar's data type.
         """
+        # Validate the destination scalar's data type
+        if dest_scalar.data_type != self.data_type:
+            raise TypeError(
+                f"Cannot copy data from scalar with data type {self.data_type} "
+                f"to scalar with data type {dest_scalar.data_type}."
+            )
         dest_scalar.data = self.data
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
-                           covariance=False):
+    def assign_random_data(
+            self, whole_numbers=False, vmin=0, vmax=1, covariance=False
+    ):
         """
         Assign random data to the scalar. This is useful for testing and
         verification purposes.
@@ -208,21 +308,37 @@ class Scalar(MPBase):
 
     def poll_volatile_data(self, label=None):
         """
-        Polling/Updating volatile data within the scalar object
+        Poll data from external sources to update the scalar's data value.
+
+        This method uses the scalar's external data source to pull data and
+        update the scalar's data value. The label parameter may be used to
+        specify a class label corresponding to the data to be polled.
 
         Parameters
         ----------
-        Label : int, default = None
-            Class label corresponding to class data to poll.
-            This is required for epoched data but should be set to None for
-            LSL data
+        Label : int, default=None
+            Class label corresponding to class data to poll, if applicable.
+            This is typically used when polling epoched data from a file
+            source.
         """
         # check if the data is actually volatile
         if self.volatile:
             self.data = self.ext_src.poll_data(label)
 
     def push_volatile_outputs(self, label=None):
+        """
+        Push the scalar's data to external sources.
 
+        This method uses the scalar's external output source (e.g., LSL stream)
+        to push data during graph execution. The label parameter may be used
+        to specify a class label corresponding to the data to be pushed.
+
+        Parameters
+        ----------
+        Label : int, default=None
+            Class label corresponding to class data to push, if applicable.
+        """
+        # check if the output is actually volatile
         if self.volatile_out:
             self.ext_out.push_data(self.data, label)
 
@@ -230,123 +346,130 @@ class Scalar(MPBase):
     @classmethod
     def create(cls, sess, data_type):
         """
-        Initialize a non-virtual, non-volatile Scalar object with an empty
-        data field and add it to the session
+        Factory method to create a non-virtual, non-volatile Scalar and 
+        register it within a session.
+
+        This method creates a new `Scalar` object with a default data value
+        based on the specified data type. The scalar is added to the specified
+        session.
 
         Parameters
         ----------
-        sess : Session Object
-            Session where the Scalar object will exist
+        sess : Session
+            Session where the scalar will exist.
         data_type : int, float, complex, str, or bool
-            Data type of data represented by Scalar object
+            Data type of data represented by scalar.
 
         Return
         ------
         Scalar 
+            A reference to the scalar that was created and added to the session.
+
+        Raises
+        ------
+        ValueError
+            If the specified data type is not supported by the Scalar class.
         """
-        if isinstance(data_type, str):
-            dtypes = {'int': int, 'float': float, 'complex': complex,
-                      'str': str, 'bool': bool}
-            if data_type in dtypes:
-                data_type = dtypes[data_type]
-
-        if not (data_type in cls.valid_types):
-            return
         s = cls(sess, data_type, None, False, None)
-
         sess.add_to_session(s)
         return s
 
     @classmethod
     def create_virtual(cls, sess, data_type):
-
         """
-        Initialize a virtual, non-volatile Scalar object with an empty data
-        field and add it to the session
+        Factory method to create a virtual Scalar object.
+
+        This method creates a new virtual `Scalar` object with the specified
+        data type. The scalar is added to the specified session.
 
         Parameters
         ----------
-        sess : Session Object
-            Session where the Scalar object will exist
+        sess : Session
+            Session where the scalar will exist.
         data_type : int, float, complex, str, or bool
-            Data type of data represented by Scalar object
+            Data type of data represented by scalar.
 
         Return
         ------
-        Scalar 
+        Scalar
+            A reference to the virtual scalar that was created and added to the
+            session.
+
+        Raises
+        ------
+        ValueError
+            If the specified data type is not supported by the Scalar class. 
         """
-        if isinstance(data_type, str):
-            dtypes = {'int': int, 'float': float, 'complex': complex,
-                      'str': str, 'bool': bool}
-            if data_type in dtypes:
-                data_type = dtypes[data_type]
-
-        if not (data_type in Scalar._valid_types):
-            return
-
-        if not (data_type in Scalar._valid_types):
-            return
         s = cls(sess, data_type)
-
-        # add the scalar to the session
         sess.add_to_session(s)
         return s
 
     @classmethod
     def create_from_value(cls, sess, value):
-
         """
-        Initialize a non-virtual, non-volatile Scalar object with specified
-        data and add it to the session
+        Factory method to create a non-virtual, non-volatile Scalar object
+        with a specified data value.
+
+        This method creates a new `Scalar` object with the specified data value
+        and adds it to the specified session. The scalar's data type is inferred
+        from the input value.
 
         Parameters
         ----------
-        sess : Session Object
-            Session where the Scalar object will exist
-        value : Value of type int, float, complex, str, or bool
-            Data represented by Scalar object
+        sess : Session
+            Session where the Scalar object will exist.
+        value : int, float, complex, str, or bool
+            Data value to be stored within the scalar.
 
         Return
         ------
         Scalar
+            A reference to the scalar that was created and added to the session.
+        
+        Raises
+        ------
+        TypeError
+            If the specified data type is not supported by the Scalar class.
         """
-
         data_type = type(value)
         if not (data_type in cls.valid_types):
-            return
+            raise TypeError(
+                f"Data type {data_type} is not supported by the Scalar class."
+            )
 
         s = cls(sess, data_type, value)
-
-        # add the scalar to the session
         sess.add_to_session(s)
         return s
 
     @classmethod
     def create_from_source(cls, sess, data_type, src):
-
         """
-        Initialize a non-virtual, volatile Scalar object with an empty data
-        field and add it to the session
+        Factory method to create a non-virtual, volatile Scalar object with an
+        external data source.
+
+        This method creates a new `Scalar` object with an external data source
+        and adds it to the specified session.
 
         Parameters
         ----------
-        sess : Session Object
-            Session where the Scalar object will exist
+        sess : Session
+            Session where the Scalar object will exist.
         data_type : int, float, complex, str, or bool
-            Data type of data represented by Scalar object
-        src : Data Source object
-            Data source object (LSL, continuousMat, or epochedMat) from
-            which to poll data
+            Data type of data represented by scalar.
+        src : Source
+            External data source from which to poll data
 
         Return
         ------
         Scalar
-        """
-        if not (data_type in cls.valid_types):
-            return
-        s = cls(sess, data_type, ext_src=src)
+            A reference to the scalar that was created and added to the session.
 
-        # add the scalar to the session
+        Raises
+        ------
+        ValueError
+            If the specified data type is not supported by the Scalar class.
+        """
+        s = cls(sess, data_type, ext_src=src)
         sess.add_to_session(s)
         return s
 

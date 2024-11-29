@@ -22,7 +22,7 @@ class Graph(MPBase):
     Parameters
     ----------
     sess : Session
-        The session object in which this graph will exist and operate.
+        The session object in which the graph will exist and operate.
 
     
     Graph objects are used to represent the data processing flow graph, or
@@ -42,7 +42,6 @@ class Graph(MPBase):
     nodes : List of Node
         List of `Node` objects within the graph. After verification,
         this list is ordered according to the node execution sequence.
-
     verified : bool
         Indicates whether the graph structure has been verified as valid.
         `True` if verified, `False` otherwise.
@@ -64,6 +63,8 @@ class Graph(MPBase):
         Execute the nodes within the graph
     cross_validate(target_validation_output, folds=5, shuffle=False, random_state=None, statistic='accuracy')
         Perform k-fold cross-validation on the graph or a portion of the graph
+    create(sess)
+        Factory method to create and register a graph within a session.
 
     Notes
     -----
@@ -483,7 +484,7 @@ class Graph(MPBase):
 
         Parameters
         ----------
-        label : int, optional
+        label : int, default=None
             The class label for the current trial, if known. This label is used 
             to poll and push epoched data, typically in scenarios involving an 
             external data source, such as a file.
