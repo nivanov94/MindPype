@@ -19,7 +19,7 @@ class Scalar(MPBase):
     value : (int, float, complex, str, or bool), optional
         Data value contained within the scalar object. If not specified,
         a default value will be assigned based on the data type.
-    is_virtual : bool, default = False
+    virtual : bool, default = False
         If True, the scalar is a virtual object, otherwise it is non-virtual.
     ext_src : Source, default = None
         A volatile external data source from which the scalar will pull data
@@ -36,7 +36,7 @@ class Scalar(MPBase):
         The data type contained within the scalar.
     data : (int, float, complex, str, or bool)
         Data value contained within the scalar object.
-    is_virtual : bool
+    virtual : bool
         Indicates whether the scalar is a virtual object.
     ext_src : Source
         External data source from which the scalar will pull data during
@@ -53,7 +53,7 @@ class Scalar(MPBase):
     make_copy()
         Create and return a deep copy of the scalar.
     copy_to(dest_scalar)
-        Copy all the attributes of the scalar to another scalar object.
+        Copy the data value to another scalar object.
     assign_random_data(whole_numbers=False, vmin=0, vmax=1, covariance=False)
         Assign random data to the scalar.
     poll_volatile_data(label=None)
@@ -85,7 +85,7 @@ class Scalar(MPBase):
     valid_numeric_types = [int, float, complex, bool]
 
     def __init__(
-        self, sess, data_type, value=None, is_virtual=False, ext_src=None, ext_out=None
+        self, sess, data_type, value=None, virtual=False, ext_src=None, ext_out=None
     ):
         """Init."""
         super().__init__(MPEnums.SCALAR, sess)
@@ -126,7 +126,7 @@ class Scalar(MPBase):
         self.ext_out = ext_out
         self.data = value
 
-        self.virtual = is_virtual
+        self.virtual = virtual
 
         if ext_src is None:
             self.volatile = False
@@ -279,30 +279,36 @@ class Scalar(MPBase):
             self, whole_numbers=False, vmin=0, vmax=1, covariance=False
     ):
         """
-        Assign random data to the scalar. This is useful for testing and
-        verification purposes.
+        Assign random data to the scalar. 
+        
+        This method assigns a random value to the scalar's `data` attribute.
+        This method is typically used for graph verification.
 
         Parameters
         ----------
-        whole_numbers: bool
-            Assigns data that is only whole numbers if True
-        vmin: int
-            Lower limit for values in the random data
-        vmax: int
-            Upper limits for values in the random data
-        covarinace: bool
-            If True, assigns random covariance matrix
-
+        whole_numbers : bool, default=False
+            If True, assigns data that is only whole numbers.
+        vmin : int, default=0
+            Lower limit for values in the random data.
+        vmax : int, default=1
+            Upper limit for values in the random data.
+        covariance : bool, default=False
+            Ignored for scalars. This parameter is included for consistency
+            with the `assign_random_data` method in the `Tensor` class.
         """
         if self.data_type == int or whole_numbers:
             self._data = np.random.randint(vmin, vmax+1)
+
         elif self.data_type == float:
             vrange = vmax - vmin
             self.data = vrange * np.random.rand() + vmin
+        
         elif self.data_type == complex:
             self.data = complex(np.random.rand(), np.random.rand())
+        
         elif self.data_type == str:
             self.data = str(np.random.rand())
+        
         elif self.data_type == bool:
             self.data = np.random.choice([True, False])
 
@@ -311,8 +317,8 @@ class Scalar(MPBase):
         Poll data from external sources to update the scalar's data value.
 
         This method uses the scalar's external data source to pull data and
-        update the scalar's data value. The label parameter may be used to
-        specify a class label corresponding to the data to be polled.
+        update the scalar's `data` attribute. The label parameter may be used 
+        to specify a class label corresponding to the data to be polled.
 
         Parameters
         ----------
@@ -342,7 +348,7 @@ class Scalar(MPBase):
         if self.volatile_out:
             self.ext_out.push_data(self.data, label)
 
-    # Factory Methods
+    ## Factory Methods
     @classmethod
     def create(cls, sess, data_type):
         """
@@ -476,64 +482,93 @@ class Scalar(MPBase):
 
 class Tensor(MPBase):
     """
-    Tensor (or n-dimensional matrices), are defined by the tensor class.
-    MindPype tensors can either be volatile (are updated/change each trial,
-    generally reserved for tensors containing current trial data), virtual
-    (empty, dimensionless tensor object). Like scalars and array, tensors can
-    be created from data, copied from a different variable, or created
-    virtually, so they don’t initially contain a value.
-    Each of the scalars, tensors and array data containers also have an
-    external source (_ext_src) attribute, which indicates, if necessary,
-    the source from which the data is being pulled from. This is
-    especially important if trial/training data is loaded into a tensor
-    each trial from an LSL stream or MAT file.
+    Represeents a multi-dimensional array of data that can be ingested and
+    produced by nodes within MindPype graphs.
+
+    A `Tensor` object contains a multi-dimensional array of data with a
+    specified shape.
 
     Parameters
     ----------
     sess : Session object
-        Session where Tensor will exist
-    shape : shape_like
-        Shape of the Tensor
-    data : ndarray
-        Data to be stored within the array
-    is_virtual : bool
-        If False, the Tensor is non-virtual, if True, the Tensor is virtual
-    ext_src : input Source
-        Data source the tensor pulls data from (only applies to Tensors
-        created from a handle)
-    ext_out : output Source
-        Data source the tensor pushes data to (only applies to Tensors created
-        from a handle)
+        The session object in which the tensor will exist and operate.
+    shape : tuple
+        Shape of the tensor data array.
+    data : ndarray, default = None
+        Data value represented by the tensor object. If not specified, a
+        default value of zeros will be assigned based on the shape.
+    virtual : bool, default = False
+        If True, the tensor is a virtual object, otherwise it is non-virtual.
+    ext_src : Source, default = None
+        A volatile external data source from which the tensor will pull data
+        during graph execution. If the tensor does not represent an external
+        data source, set ext_src to None.
+    ext_out : Source, default = None
+        A volatile external data source to which the tensor will push data
+        during graph execution. If the tensor does not push data to an
+        external source, set ext_out to None.
         
     Attributes
     ----------
     shape : tuple
-        Shape of the data
+        Shape of the tensor data array.
+    data : ndarray
+        Data value represented by the tensor object.
     virtual : bool
-        If true, the Scalar object is virtual, non-virtual otherwise
-    ext_src : LSL data source input object, MAT data source, or None
-        External data source represented by the scalar; this data will
-        be polled/updated when trials are executed. If the data does
-        not represent an external data source, set ext_src to None
+        Indicates whether the tensor is a virtual object.
+    ext_src : Source
+        External data source from which the tensor will pull data during
+        graph execution.
     ext_out : output Source
-        Data source the tensor pushes data to (only applies to Tensors created
-        from a handle)
-    data : value of type int, float, complex, str, or bool
-        Data value represented by the Scalar object
+        External data source to which the tensor will push data during
+        graph execution.
     volatile : bool
-        True if source is volatile (needs to be updated/polled between
-        trials), false otherwise
+        Indicates whether the tensor is a volatile object that needs to pull
+        from or push to external sources during graph execution.
+
+    Methods
+    -------
+    make_copy()
+        Create and return a deep copy of the tensor.
+    copy_to(dest_tensor)
+        Copy the data value to another tensor object.
+    assign_random_data(whole_numbers=False, vmin=0, vmax=1, covariance=False)
+        Assign random data to the tensor.
+    poll_volatile_data(label=None)
+        Pull data from external sources and assign it to the tensor's data
+        attribute.
+    push_volatile_outputs(label=None)
+        Push the tensor's data to external sources.
+    create(sess, shape)
+        Factory method to create a non-virtual Tensor object.
+    create_virtual(sess, shape)
+        Factory method to create a virtual Tensor object.
+    create_from_data(sess, data)
+        Factory method to create a Tensor with a specified data array.
+    create_from_source(sess, shape, src, direction="input")
+        Factory method to create a non-virtual, volatile Tensor object with an
+        external data source or destination.
+    
+    Notes
+    -----
+    - Virtual tensors should only be used to define connections between nodes
+      in a graph. The data within virtual tensors may be modified by `Graph`
+      or `Node` methods and they should not be used to store data that is used
+      outside of graph execution.
+    - Volatile tensors cannot be virtual.
     """
 
-    def __init__(self, sess, shape, data, is_virtual, ext_src, ext_out=None):
+    def __init__(
+            self, sess, shape, data=None, virtual=False, ext_src=None, ext_out=None
+        ):
         """Init."""
         super().__init__(MPEnums.TENSOR, sess)
         self._shape = tuple(shape)
-        self.virtual = is_virtual
+        self.virtual = virtual
         self.ext_src = ext_src
         self.ext_out = ext_out
 
-        if not (data is None):
+        if data is not None:
             self._data = data
         else:
             self._data = np.zeros(shape)
@@ -548,157 +583,207 @@ class Tensor(MPBase):
         else:
             self.volatile_out = True
 
-    # API Getters
     @property
     def data(self):
         """
-        Getter for Tensor data
+        Retrieve the tensor data value.
+
+        This property provides access to the tensor data value stored within
+        the `Tensor` object. The data is represented as a multi-dimensional
+        array with a specified shape.
 
         Returns
         -------
-        Data stored in Tensor : ndarray
+        ndarray
+            The tensor data value encapsulated by the `Tensor` object
         """
         return self._data
 
     @property
     def shape(self):
         """
-        Getter for Tensor shape
+        Retrieve the shape of the tensor data array.
+
+        This property provides access to the shape of the tensor data array
+        stored within the `Tensor` object. The shape is represented as a tuple
+        of integers indicating the size of each dimension of the array.
 
         Returns
         -------
-        Shape of the Tensor : tuple
+        tuple
+            The shape of the tensor data array.
         """
         return self._shape
 
-    # API setters
+    
     @data.setter
     def data(self, data):
         """
-        Set data of a Tensor. If the current shape of the Tensor
-        is different from the shape of the data being inputted,
-        you must first change the shape of the Tensor before adding
-        the data, or an error will be thrown
+        Set the data of the Tensor.
+
+        This method updates the data stored in the Tensor. If the shape of the 
+        provided data does not match the current shape of the Tensor, the shape
+        of the Tensor must first be updated using the appropriate method before 
+        assigning the new data. An error will be raised if the shapes are 
+        incompatible.
 
         Parameters
         ----------
-        data : nd_array
-            Data to have the Tensor data changed to
+        data : numpy.ndarray or scalar
+            Data to set as the tensor's data attribute. Scalars (e.g., int, 
+            float, complex) will be automatically converted into a numpy array.
 
         Raises
         ------
+        TypeError
+            If the input data is not a numpy array or cannot be converted 
+            to one.
         ValueError
-            If the shape of the Tensor is different from the shape of the data
-            being input
+            If the shape of the input data does not match the current shape of
+            the Tensor.
         """
-        # check that the value is a numpy array
+        # Ensure the input is a numpy array or convert a scalar to a 
+        # numpy array
         if not isinstance(data, np.ndarray):
-            # if the value is a number, convert it to a numpy array
             if isinstance(data, (int, float, complex)):
-                data = np.array(data)
+                data = np.array(data)  # Convert scalar to numpy array
             else:
-                raise TypeError("Data assigned to Tensors must be a numpy array")
+                raise TypeError(
+                    "Data assigned to Tensor must be a numpy array or a scalar."
+                )
 
-        # special case where every dimension is a singleton
-        if (np.prod(np.asarray(data.shape)) == 1 and
-                np.prod(np.asarray(self.shape)) == 1):
-            while len(self.shape) > len(data.shape):
+        # Handle special case: scalar data with all singleton dimensions
+        if (np.prod(data.shape) == 1 and np.prod(self.shape) == 1):
+            while len(data.shape) < len(self.shape):
                 data = np.expand_dims(data, axis=0)
-
-            while len(self.shape) < len(data.shape):
+            while len(data.shape) > len(self.shape):
                 data = np.squeeze(data, axis=0)
 
+        # Adjust virtual Tensor's shape if necessary
         if self.virtual and self.shape != data.shape:
             self._shape = data.shape
 
+        # Set the data if shapes match; otherwise, raise an error
         if self.shape == data.shape:
             self._data = data
         else:
-            raise ValueError("Mismatched shape")
+            raise ValueError(
+                f"Shape mismatch: Tensor shape {self.shape} does not match"
+                f"data shape {data.shape}."
+            )
 
     @shape.setter
     def shape(self, shape):
         """
-        Method to set the shape of a Tensor. Only applies to
-        non-virtual tensors and sets all values in the
-        modified tensor to 0.
+        Set the shape of the Tensor.
+
+        This method changes the shape of the Tensor. If the Tensor is
+        non-virtual, the shape cannot be changed and an error will be raised.
+        The data attribute of the Tensor will be updated to a new array of 
+        zeros.
 
         Parameters
         ----------
-        shape : shape_like
-            Shape to change the Tensor to
+        shape : tuple
+            New shape for the Tensor data array.
 
         Raises
         ------
-        ValueError
-            If the Tensor is non-virtual, the shape cannot be changed
-
-        .. note:: This method is only applicable to virtual Tensors, and will
-                  raise a TypeError if called on a non-virtual Tensor.
+        TypeError
+            If the Tensor is non-virtual and the shape is attempted to be
+            changed.
         """
-
         if self.virtual:
             self._shape = shape
             # when changing the shape write a zero tensor to data
             self.data = np.zeros(shape)
         else:
-            raise TypeError("Cannot change shape of non-virtual tensor")
+            raise TypeError("Attempted to change shape of non-virtual Tensor.")
 
     def make_copy(self):
         """
-        Create and return a deep copy of the tensor
+        Create and return a deep copy of the tensor.
+
+        This method creates a new `Tensor` object with the same attributes as
+        the original object, including the shape, data, virtual status, and
+        external data sources. The copied tensor is added to the same session
+        as the original tensor.
 
         Returns
         -------
-        Tensor object
-            Deep copy of the Tensor object
+        Tensor
+            A deep copy of the tensor.
         """
-        cpy = Tensor(self.session,
-                     self.shape,
-                     self.data,
-                     self.virtual,
-                     self.ext_src)
+        cpy = Tensor(
+            self.session,
+            self.shape,
+            self.data,
+            self.virtual,
+            self.ext_src,
+            self.ext_out
+        )
 
         # add the copy to the session
-        sess = self.session
-        sess.add_to_session(cpy)
+        self.session.add_to_session(cpy)
 
         return cpy
 
     def copy_to(self, dest_tensor):
         """
-        Copy the attributes of the tensor to another tensor object
+        Copy the data value to another tensor object.
 
-        .. note: This method will not copy the virtual and ext_src attributes
-                 because these should only be set during creation and modifying could
-                 cause unintended consequences.
+        This method copies the data value from the referenced tensor to the
+        destination tensor object. Other attributes including the virtual
+        status and external data sources are not copied as they should
+        not be modified after the tensor is created.
 
         Parameters
         ----------
-        dest_tensor : Tensor object
-            Tensor object where the attributes with the referenced Tensor will
-            be copied to
+        dest_tensor : Tensor
+            Tensor object to which the data value will be copied.
+
+        Raises
+        ------
+        ValueError
+            If the destination tensor's shape does not match the source
+            tensor's shape.
         """
+        # adjust the shape of the destination tensor if it is a virtual tensor
         if dest_tensor.virtual and dest_tensor.shape != self.shape:
             dest_tensor.shape = self.shape
+
         dest_tensor.data = self.data
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
-                           covariance=False):
+    def assign_random_data(
+            self, whole_numbers=False, vmin=0, vmax=1, covariance=False
+    ):
         """
-        Assign random data to the tensor. This is useful for testing and
-        verification purposes.
+        Assign random data to the tensor.
+
+        This method assigns random data to the tensor object. The data type of
+        the tensor determines the type of random data that is assigned. The
+        data value is generated based on the specified parameters. This method
+        is typically used for graph verification.
 
         Parameters
         ----------
-        whole_numbers: bool
-            Assigns data that is only whole numbers if True
-        vmin: int
-            Lower limit for values in the random data
-        vmax: int
-            Upper limits for values in the random data
-        covarinace: bool
-            If True, assigns random covariance matrix
+        whole_numbers : bool, default=False
+            If True, assigns data that is only whole numbers.
+        vmin : int, default=0
+            Lower limit for values in the random data.
+        vmax : int, default=1
+            Upper limit for values in the random data.
+        covariance : bool, default=False
+            If True, assigns a random covariance matrix to the tensor.
+
+        Raises
+        ------
+        ValueError
+            If the tensor shape is not 2D or 3D when assigning a covariance
+            matrix.
+        ValueError
+            If the tensor shape is not square when assigning a covariance
+            matrix.
         """
         if whole_numbers:
             self.data = np.random.randint(vmin, vmax+1, size=self.shape)
@@ -709,12 +794,16 @@ class Tensor(MPBase):
         if covariance:
             rank = len(self.shape)
             if rank != 2 and rank != 3:
-                raise ValueError("Cannot assign random covariance matrix to " +
-                                 "tensor with rank other than 2 or 3")
+                raise ValueError(
+                    "Cannot assign random covariance matrix to "
+                    "tensor with rank other than 2 or 3"
+                )
 
             if self.shape[-2] != self.shape[-1]:
-                raise ValueError("Cannot assign random covariance matrix to " +
-                                 "tensor with non-square last two dimensions")
+                raise ValueError(
+                    "Cannot assign random covariance matrix to "
+                    "tensor with non-square last two dimensions"
+                )
 
             if rank == 2:
                 self.data = np.cov(self.data)
@@ -723,175 +812,168 @@ class Tensor(MPBase):
                     self.data[i,:,:] = np.cov(self.data[i,:,:])
 
             # add regularization
-            self.data += 0.001 * np.eye(self.shape[-1])
+            r = 0.001 # could be a method parameter in the future
+            self.data = (1-r)*self.data + r*np.eye(self.shape[-1])
 
     def poll_volatile_data(self, label=None):
         """
-        Pull data from external sources or MindPype input data sources.
+        Pull data from external sources to update the tensor's data value.
+
+        This method uses the tensor's external data source to pull data and
+        update the tensor's `data` attribute. The label parameter may be used 
+        to specify a class label corresponding to the data to be polled.
 
         Parameters
         ----------
         Label : int, default = None
-            Class label corresponding to class data to poll.
+            Class label corresponding to class data to poll, if applicable.
+            This is typically used when polling epoched data from a file
+            source.
         """
         # check if the data is actually volatile, if not just return
-        if not self.volatile:
-            return
-
-        data = self.ext_src.poll_data(label=label)
-        # if we only pulled one trial, remove the first dimension
-        if len(data.shape) > 2:
-            data = np.squeeze(data, axis=0)
-        self.data = data
+        if self.volatile:
+            self.data = self.ext_src.poll_data(label=label)
 
     def push_volatile_outputs(self, label=None):
         """
-        Push data to external sources.
+        Push the tensor's data to an external source.
+
+        This method uses the tensor's external output source to push data
+        during graph execution. The label parameter may be used to specify a
+        class label corresponding to the data to be pushed.
+
+        Parameters
+        ----------
+        Label : int, default = None
+            Class label corresponding to class data to push, if applicable.
         """
         # check if the output is actually volatile first
         if self.volatile_out:
             # push the data
             self.ext_out.push_data(self.data)
 
-    # Factory Methods
+    ## Factory Methods
     @classmethod
     def create(cls, sess, shape):
         """
-        Factory Method to create a generic, non-virtual, Tensor object. The
-        shape must be known to create this object
+        Factory method to create a non-virtual Tensor object and register it
+        within a session.
+
+        This method creates a new `Tensor` object with a default data value
+        of zeros based on the specified shape. The tensor is added to the
+        specified session.
 
         Parameters
         ----------
-        sess : Session object
-            Session where Tensor will exist
-        shape : shape_like
-            Shape of the Tensor
+        sess : Session 
+            Session where the tensor will exist.
+        shape : tuple
+            Shape of the tensor data array.
+        
+        Return
+        ------
+        Tensor
+            A reference to the tensor that was created and added to the 
+            session.
 
         """
-        t = cls(sess, shape, None, False, None)
-
-        # add the tensor to the session
+        t = cls(sess, shape)
         sess.add_to_session(t)
         return t
 
     @classmethod
     def create_virtual(cls, sess, shape=()):
         """
-        Factory method to create a virtual Tensor
+        Factory method to create a virtual Tensor object and register it within
+        a session.
+
+        This method creates a new virtual `Tensor` object with the specified
+        shape. The tensor is added to the specified session.
 
         Parameters
         ----------
-
-        sess : Session object
-            Session where Tensor will exist
-
-        shape : shape_like, default = ()
-            Shape of the Tensor, can be changed for virtual tensors
+        sess : Session
+            Session where the tensor will exist.
+        shape : tuple, default=()
+            Shape of the tensor data array. If not specified, the shape will
+            be an empty tuple. Virutal tensors can be dynamically resized
+            after creation.
         """
-        t = cls(sess, shape, None, True, None)
-
-        # add the tensor to the session
+        t = cls(sess, shape, virtual=True)
         sess.add_to_session(t)
         return t
 
     @classmethod
     def create_from_data(cls, sess, data):
         """
-        Factory method to create a Tensor from data
+        Factory method to create a Tensor with a specified data array and 
+        register it within a session.
+
+        This method creates a new `Tensor` object with the specified data
+        array. The tensor is added to the specified session.
 
         Parameters
         ----------
-
-        sess : Session object
-            Session where Tensor will exist
-
+        sess : Session
+            Session where the tensor will exist.
         data : ndarray
-            Data to be stored within the array
-
+            Data value to be stored within the tensor. The shape of the data
+            array will be used as the shape of the tensor.
+        
+        Return
+        ------
+        Tensor
+            A reference to the tensor that was created and added to the session.
         """
-        if type(data) is list:
+        if isinstance(data, (list, tuple)):
             data = np.asarray(data)
 
-        t = cls(sess, data.shape, data, False, None)
-
-        # add the tensor to the session
+        t = cls(sess, data.shape, data)
         sess.add_to_session(t)
         return t
 
     @classmethod
-    def create_from_handle(cls, sess, shape, src):
+    def create_from_source(cls, sess, shape, src, direction="input"):
         """
-        Factory method to create a Tensor from a handle/external source
+        Factory method to create a non-virtual, volatile Tensor object with an
+        external data source or destination.
+
+        This method creates a new `Tensor` object with an external data source
+        and adds it to the specified session.
 
         Parameters
         ----------
+        sess : Session
+            Session where the tensor will exist.
+        shape : tuple
+            Shape of the tensor data array.
+        src : Source
+            External data source from which to pull or push data.
+        direction : str, default="input"
+            Direction of the external data source. Options are "input" or
+            "output". If "input", the tensor will pull data from the source.
+            If "output", the tensor will push data to the source.
 
-        sess : Session object
-            Session where Tensor will exist
+        Return
+        ------
+        Tensor
+            A reference to the tensor that was created and added to the session.
 
-        shape : shape_like
-            Shape of the Tensor
-
-        ext_src : input Source
-            Data source the tensor pulls data from (only applies to Tensors
-            created from a handle)
-
+        Raises
+        ------
+        ValueError
+            If the specified direction is not "input" or "output".
         """
-        t = cls(sess, shape, None, False, src)
+        if direction == "input":
+            t = cls(sess, shape, ext_src=src)
+        elif direction == "output":
+            t = cls(sess, shape, ext_out=src)
+        else:
+            raise ValueError("Invalid direction")
 
         # add the tensor to the session
         sess.add_to_session(t)
         return t
-
-    @classmethod
-    def _create_for_volatile_output(cls, sess, shape, out):
-        """
-        Create data source for volatile output
-
-        Parameters
-        ----------
-        sess : Session object
-            Session where Tensor will exist
-
-        shape : shape_like
-            Shape of the Tensor
-
-        out : output Source
-            Data source the tensor pushes data to (only applies to Tensors
-            created for volatile output)
-        """
-        # These tensors should be non-volatile but since init and trial data
-        # can be different sizes, they need to be virtual until that is
-        # addressed
-
-        t = cls(sess, shape, None, True, None, out)
-        sess.add_to_session(t)
-        return t
-
-    # utility static methods
-    @staticmethod
-    def _validate_data(shape, data):
-        """
-        Method that returns True if  the data within the tensor is the right
-        shape and is a numpy ndarray. False otherwise.
-
-        Parameters
-        ----------
-        data: Tensor
-            Data to be validated
-
-        Returns
-        -------
-        is_valid: bool
-            Returns true if the data in the tensor is the correct shape and is a numpy ndarray
-        """
-        if data is None:
-            return False
-
-        if (not (type(data) is np.ndarray)) or (tuple(shape) != data.shape):
-            return False
-
-        return True
 
 
 class Array(MPBase):
