@@ -524,7 +524,10 @@ class Tensor(MPBase):
         graph execution.
     volatile : bool
         Indicates whether the tensor is a volatile object that needs to pull
-        from or push to external sources during graph execution.
+        from external sources during graph execution.
+    volatile_out : bool
+        Indicates whether the tensor is a volatile object that needs to push
+        to external sources during graph execution
 
     Methods
     -------
@@ -978,156 +981,166 @@ class Tensor(MPBase):
 
 class Array(MPBase):
     """
-    Array containing instances of other MindPype classes. Each array can only
-    hold one type of MindPype class.
-    
-    .. note:: A single array object should only contain one MindPype/data
-            object type.
+    Represents an array of other MindPype Container objects that can be 
+    ingested and produced by nodes within MindPype graphs.
 
+    An `Array` object contains instances of other MindPype Containers (i.e.,
+    scalars and tensors). Array elements must be homogenous, meaning that all
+    elements must be of the same type (i.e., all scalars or all tensors).
+    
     Parameters
     ----------
     sess : Session object
-        Session where the Array object will exist
+        The session object in which the array will exist and operate.
     capacity : int
-        Maximum number of elements to be stored within the array (for
-        allocation purposes)
-    element_template : any
-        The template MindPype element to populate the array (see examples)
-
+        Number of elements within the array.
+    element_template : Scalar or Tensor
+        A meta tensor or scalar object that will be used to create the array.
+        The array will be initialized with copies of this object.
 
     Attributes
     ----------
     virtual : bool
-        If true, the Scalar object is virtual, non-virtual otherwise
+        Always False. Virtual arrays are not supported. The virtual attribute
+        is included for consistency with other MindPype Container objects.
     volatile : bool
-        True if source is volatile (needs to be updated/polled between
-        trials), false otherwise
+        Always False. Volatile arrays are not supported. The volatile attribute
+        is included for consistency with other MindPype Container objects.
     capacity: int
-        Max number of elements that can be stored in the array
-    _elements: array
+        Number of elements within the array.
+    elements: list of Scalar or Tensor objects
         Elements of the array
+
+    Methods
+    -------
+    get_element(index)
+        Returns the element at a specific index within the array.
+    set_element(index, element)
+        Changes the element at a specific index to a specified value.
+    make_copy()
+        Create and return a deep copy of the array.
+    copy_to(dest_array)
+        Copy the data value to another array object.
+    assign_random_data(whole_numbers=False, vmin=0, vmax=1, covariance=False)
+        Assign random data to the elements of the array.
+    to_tensor()
+        Stack the elements of the array into a new Tensor object.
+    create(sess, capacity, element_template)
+        Factory method to create an Array object.
     
-    Examples
+    See Also
     --------
-    >>> # Creating An Array of tensors
-    >>> template = Tensor.create(example_session, input_data.shape)
-    >>> example = Array.create(example_session, example_capacity, template)
-
-    Return
-    ------
-    array: Array Object
-
+    Scalar : Represents a single data value within MindPype.
+    Tensor : Represents a multi-dimensional array of data within MindPype.
     """
 
     def __init__(self, sess, capacity, element_template):
         """ Init """
         super().__init__(MPEnums.ARRAY, sess)
 
+        self.capacity = capacity
+        self.elements = [None] * capacity
+
+        # create the elements
+        for i in range(capacity):
+            self.elements[i] = element_template.make_copy()
+
+        ## Set these attributes for API consistency with other containers
         self.virtual = False  # no virtual arrays for now
         self.volatile = False  # no volatile arrays for now...
         self.volatile_out = False  # no volatile arrays for now...
 
-        self._capacity = capacity
-
-        self._elements = [None] * capacity
-
-        for i in range(capacity):
-            self._elements[i] = element_template.make_copy()
-
-    # Returns an element at a particular index
     def get_element(self, index):
         """
-        Returns the element at a specific index within an array object.
+        Returns the element from a specified index from the array.
 
         Parameters
         ----------
         index : int
             Index is the position within the array with the element will be
-            returned. Index should be 0 <= Index < Capacity
+            returned.
 
         Return
         ------
-        any : Data object at index index
+        Scalar or Tensor
+            The element at the specified index within the array.
 
-        Examples
-        --------
-        >>> example_element = example_array.get_element(0)
-
-
+        Raises
+        ------
+        ValueError
+            If the specified index is out of bounds for the array.
         """
-        if index >= self.capacity or index < 0:
-            return
+        # if negative index, convert to positive
+        if index < 0:
+            index = self.capacity + index
 
-        return self._elements[index]
+        if index >= self.capacity:
+            raise ValueError(
+                f"Index {index} out of bounds for Array with "
+                f"capacity {self.capacity}."                
+            )
 
-    # Changes the element at a particular index to a specified value
+        return self.elements[index]
+
     def set_element(self, index, element):
-
         """
-        Changes the element at a particular index to a specified value
+        Sets the element at a specified index within the array.
+
+        The method will copy the attributes of the parameter element to the
+        element at the specified index within the array. The element must be
+        of the same type as the other elements within the array.
 
         Parameters
         ----------
         index : int
-            Index in the array where the element will
-            change. 0 <= Index < capacity
+            Index within the array to set.
 
-        element : any
-            specified value which will be set at index index
+        element : Scalar or Tensor
+            The element to set at the specified index. The element must be
+            of the same type as the other elements within the array.
 
-        Examples
-        --------
-        >>> example_array.set_element(0, 12) # changes 0th element to 12
-        >>> print(example_array.get_element(0), example_array.get_element(1))
-                (12, 5)
-
-
-        Notes
-        -----
-        element must be the same type as the other elements within the array.
+        Raises
+        ------
+        ValueError
+            If the specified index is out of bounds for the array.
         """
+        # if negative index, convert to positive
+        if index < 0:
+            index = self.capacity + index
 
-        if index >= self._capacity or index < 0:
-            raise ValueError("Index out of bounds")
-
+        if index >= self.capacity:
+            raise ValueError(
+                f"Index {index} out of bounds for Array with "
+                f"capacity {self.capacity}."
+            )
         element.copy_to(self._elements[index])
-
-    # User Facing Getters
-    @property
-    def capacity(self):
-        return self._capacity
 
     @property
     def num_elements(self):
         # this property is included to allow for seamless abstraction with
         # circle buffer property
-        return self._capacity
-
-    @capacity.setter
-    def capacity(self, capacity):
-        if self.virtual:
-            self._capacity = capacity
-            self._elements = [None] * capacity
+        return self.capacity
 
     def make_copy(self):
         """
-        Create and return a deep copy of the array
-        The copied array will maintain references to the same objects.
-        If a copy of these is also desired, they will need to be copied
-        separately.
+        Create and return a deep copy of the array.
 
-        Parameters
-        ----------
-        None
+        This method creates a new `Array` object with the same attributes as
+        the original object, including the capacity and element objects. The
+        copied array is added to the same session as the original array.
 
-        Examples
-        --------
-        >>> new_array = old_array.make_copy()
+        Returns
+        -------
+        Array
+            A deep copy of the array.
         """
-        cpy = Array(self.session,
-                    self.capacity,
-                    self.get_element(0))
+        cpy = Array(
+            self.session,
+            self.capacity,
+            self.get_element(0)
+        )
 
+        # copy the contents of the array to the new array
         for e in range(self.capacity):
             cpy.set_element(e, self.get_element(e))
 
@@ -1138,59 +1151,106 @@ class Array(MPBase):
 
     def copy_to(self, dest_array):
         """
-        Copy all the attributes of the array to another array. Note
-        these will reference the same objects within the element list
+        Copy the contents of the array to another array object. 
+
+        This method copies the contents of the array's elements to the 
+        destination array object. The destination array must have the same
+        capacity and data element type as the source array.
 
         Parameters
         ----------
-        dest_array : Array object
-            Array object where the attributes with the referenced array
-            will be copied to
+        dest_array : Array 
+            Array object to which the data value will be copied.
 
-        Examples
-        --------
-        >>> old_array.copy_to(copy_of_old_array)
-
+        Raises
+        ------
+        ValueError
+            If the destination array's capacity does not match the source
+            array's capacity.
+        TypeError
+            If the destination array's element type does not match the source
+            array's element type.
         """
-        dest_array.capacity = self.capacity
+        # Validate the destination array's capacity
+        if dest_array.capacity != self.capacity:
+            raise ValueError(
+                f"Cannot copy data from array with capacity {self.capacity} "
+                f"to array with capacity {dest_array.capacity}."
+            )
+    
+        # Validate the destination array's element type
+        if dest_array.get_element(0).mp_type != self.get_element(0).mp_type:
+            raise TypeError(
+                "Cannot copy data from array with element type "
+                f"{str(dest_array.get_element(0).mp_type)} to array with "
+                f"element type {str(dest_array.get_element(0).mp_type)}."
+            )
+
         for i in range(self.capacity):
             dest_array.set_element(i, self.get_element(i))
 
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
-                           covariance=False):
+    def assign_random_data(
+            self, whole_numbers=False, vmin=0, vmax=1, covariance=False
+    ):
         """
-        Assign random data to the array. This is useful for testing and
-        verification purposes.
+        Assign random data to the elements of the array.
+
+        This method assigns random data to the elements of the array. For each
+        element within the array, the element's `assign_random_data` method is
+        called to assign random data based on the specified parameters. This
+        method is typically used for graph verification.
 
         Parameters
         ----------
-        whole_numbers: bool
-            Assigns data that is only whole numbers if True
-        vmin: int
-            Lower limit for values in the random data
-        vmax: int
-            Upper limits for values in the random data
-        covarinace: bool
-            If True, assigns random covariance matrix
+        whole_numbers : bool, default=False
+            If True, assigns data that is only whole numbers.
+        vmin : int, default=0
+            Lower limit for values in the random data.
+        vmax : int, default=1
+            Upper limit for values in the random data.
+        covariance : bool, default=False
+            If True, assigns a random covariance matrix to tensor elements
+            within the array.
+
+        See Also
+        --------
+        Tensor.assign_random_data : Assign random data to a Tensor object.
+        Scalar.assign_random_data : Assign random data to a Scalar object.
         """
         for i in range(self.capacity):
-            self.get_element(i).assign_random_data(whole_numbers, vmin, vmax,
-                                                   covariance)
+            self.get_element(i).assign_random_data(
+                whole_numbers, vmin, vmax, covariance
+            )
 
     def to_tensor(self):
         """
-        Stack the elements of the array into a Tensor object.
+        Stack the elements of the array into a new Tensor object.
+
+        This method stacks the elements of the array into a new `Tensor` object
+        with the same shape as the array. The elements are stacked along the 
+        first dimension.
 
         Returns
         -------
         Tensor
+            A new Tensor object with the elements of the array stacked along
+            the first dimension.
+
+        Raises
+        ------
+        TypeError
+            If the array contains non-numeric Scalar elements.
         """
         element = self.get_element(0)
 
-        if not (element.mp_type == MPEnums.TENSOR or
-                (element.mp_type == MPEnums.SCALAR and
-                 element.data_type in Scalar._valid_numeric_types())):
-            return None
+        if element.mp_type == MPEnums.SCALAR:
+            # ensure all elements are numeric scalars
+            for ei in range(self.capacity):
+                if not self.get_element(ei).is_numeric:
+                    raise TypeError(
+                        "Cannot convert Array to Tensor: Array contains "
+                        "non-numeric Scalar elements."
+                    )
 
         # extract elements and stack into numpy array
         elements = [self.get_element(i).data for i in range(self.capacity)]
@@ -1199,28 +1259,37 @@ class Array(MPBase):
         # create tensor
         return Tensor.create_from_data(self.session, stacked_elements)
 
-    # API constructor
     @classmethod
     def create(cls, sess, capacity, element_template):
-
         """
-        Factory method to create array object
+        Factory method to create an Array object and register it within a
+        session.
+
+        This method creates a new `Array` object with a specified capacity.
+        All elements within the array are initialized with copies of the
+        specified element template. The array is added to the specified 
+        session.
 
         Parameters
         ----------
         sess : Session object
-            Session where the Array object will exist
+            Session where the Array object will exist.
         capacity : int
-            Maximum number of elements to be stored within the array
-            (for allocation purposes)
-        element_template : any
-            The template MindPype element to populate the array (see examples)
+            Number of elements within the array.
+        element_template : Scalar or Tensor
+            A meta tensor or scalar object that will be used to create the array.
+            The array will be initialized with copies of this object.
 
+        Return
+        ------
+        Array
+            A reference to the array that was created and added to the session.
+
+        Examples
+        --------
+        >>> a = Array.create(sess, 10, Scalar.create(sess, int))  # create an array of 10 integer scalars
         """
-
         a = cls(sess, capacity, element_template)
-
-        # add the array to the session
         sess.add_to_session(a)
         return a
 
