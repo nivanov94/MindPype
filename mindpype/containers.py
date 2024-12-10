@@ -1151,7 +1151,7 @@ class Array(MPBase):
 
     def copy_to(self, dest_array):
         """
-        Copy the contents of the array to another array object. 
+        Copy the contents of the array to another array. 
 
         This method copies the contents of the array's elements to the 
         destination array object. The destination array must have the same
@@ -1272,7 +1272,7 @@ class Array(MPBase):
 
         Parameters
         ----------
-        sess : Session object
+        sess : Session
             Session where the Array object will exist.
         capacity : int
             Number of elements within the array.
@@ -1296,34 +1296,90 @@ class Array(MPBase):
 
 class CircleBuffer(Array):
     """
-    A circular buffer/Array for MindPype/data objects.
+    Represents a circular buffer of other MindPype Container objects that can
+    be ingested and produced by nodes within MindPype graphs.
+
+    A `CircleBuffer` object contains instances of other MindPype Containers
+    (i.e., scalars and tensors) that are stored in a circular buffer. The
+    circular buffer has a fixed capacity and allows for elements to be added
+    and removed in a FIFO (first-in, first-out) manner. The buffer is
+    implemented as a ring buffer, where the head and tail pointers wrap around
+    the buffer's capacity.
 
     Parameters
     ----------
     sess : Session object
-        Session where the Array object will exist
+        The session object in which the circle buffer will exist and operate.
     capacity : int
-        Maximum number of elements to be stored within the array
-        (for allocation purposes)
-    element_template : any
-        The template MindPype element to populate the array
-        (see Array examples)
+        Maximum number of elements that can be stored within the circle buffer.
+    element_template : Scalar or Tensor
+        A meta tensor or scalar object that will be used to create the circle
+        buffer. The circle buffer will be initialized with copies of this
+        object.
         
     Attributes
     ----------
-    mp_type : MP Enum
-        Data source the tensor pushes data to (only applies to Tensors created
-        from a handle)
-    head : data object
-        First element of the circle buffer
-    tail : data object
-        Last element of the circle buffer
+    capacity : int
+        Maximum number of elements that can be stored within the circle buffer.
+    num_elements : int
+        Number of elements currently in the buffer.
+    elements : list of Scalar or Tensor objects
+        Elements of the circle buffer. The elements are stored in a circular
+        buffer. The elements head of the buffer should not be assumed to be
+        at index 0. Elements of the buffer should only be accessed using the
+        methods provided by the CircleBuffer class.
+    virtual : bool
+        Always False. Virtual circle buffers are not supported. The virtual
+        attribute is included for consistency with other MindPype Container
+        objects.
+    volatile : bool
+        Always False. Volatile circle buffers are not supported. The volatile
+        attribute is included for consistency with other MindPype Container
+        objects.
+    volatile_out : bool
+        Always False. Volatile circle buffers are not supported. The volatile
+        attribute is included for consistency with other MindPype Container
+        objects.
 
+    Methods
+    -------
+    is_empty()
+        Checks if the circle buffer is empty.
+    is_full()
+        Checks if the circle buffer is full.
+    get_queued_element(index)
+        Returns the element at a specific index relative to the head within the
+        circle buffer.
+    peek()
+        Returns the front element of the circle buffer.
+    enqueue(elem)
+        Enqueues an element to the tail of the circle buffer.
+    enqueue_chunk(cb)
+        Enqueues a number of elements from another circle buffer into this
+        circle buffer.
+    dequeue()
+        Dequeues and returns the element at the head of the circle buffer.
+    flush()
+        Removes all elements from the circle buffer.
+    make_copy()
+        Create and return a deep copy of the circle buffer.
+    copy_to(dest_array)
+        Copy all the attributes and elements of the circle buffer to another
+        circle buffer.
+    assign_random_data(whole_numbers=False, vmin=0, vmax=1, covariance=False)
+        Assign random data to the elements of the circle buffer.
+    create(sess, capacity, element_template)
+        Factory method to create a `CircleBuffer` object and register it within
+        a session.
+        
+    See Also
+    --------
+    Array : Represents an array of other MindPype Container objects.
     """
 
     def __init__(self, sess, capacity, element_template):
         super().__init__(sess, capacity, element_template)
-        self.mp_type = MPEnums.CIRCLE_BUFFER  # overwrite
+        self.mp_type = MPEnums.CIRCLE_BUFFER  # overwrite from parent init
 
         self._head = None
         self._tail = None
@@ -1333,17 +1389,14 @@ class CircleBuffer(Array):
         """
         Return the number of elements currently in the buffer.
 
-        Parameters
-        ----------
-        None
+        This property provides the number of elements currently stored within
+        the circular buffer. The number of elements is determined by the
+        difference between the head and tail pointers.
 
         Return
         ------
-        int: Number of elements currently in the buffer
-
-        Examples
-        --------
-        >>> example_num_elements = example_buffer.num_elements()
+        int
+            Number of elements currently enqueued within the buffer.
         """
         if self.is_empty():
             return 0
@@ -1352,25 +1405,16 @@ class CircleBuffer(Array):
 
     def is_empty(self):
         """
-        Checks if circle buffer is empty
+        Checks if circle buffer is empty.
 
-        Parameters
-        ----------
+        The method checks if the head and tail pointers of the circular buffer
+        are both None, indicating that the buffer is empty.
 
         Return
         ------
-        bool : True if circle buffer is empty, false otherwise
-
-
-        Examples
-        --------
-
-        >>> is_empty = example_buffer.is_empty()
-        >>> print(is_empty)
-
-            True
+        bool
+            True if circle buffer is empty, False otherwise
         """
-
         if self._head is None and self._tail is None:
             return True
         else:
@@ -1378,22 +1422,16 @@ class CircleBuffer(Array):
 
     def is_full(self):
         """
-        Checks if circle buffer is full
+        Checks if circle buffer is full.
+
+        The method checks if the head and tail pointers of the circular buffer
+        are equal, indicating that the buffer is full.
 
         Return
         ------
-        bool : True if circle buffer is empty, false otherwise
-
-
-        Examples
-        --------
-
-        >>> is_empty = example_buffer.is_empty()
-        >>> print(is_empty)
-
-            True
+        bool
+            True if circle buffer is full, False otherwise.
         """
-
         if self._head == ((self._tail + 1) % self._capacity):
             return True
         else:
@@ -1401,85 +1439,109 @@ class CircleBuffer(Array):
 
     def get_queued_element(self, index):
         """
-        Returns the element at a specific index within an Circle Buffer object.
+        Returns the element at a specific index relative to the head within the
+        circle buffer.
+
+        The method returns the element at a specific index relative to the head
+        within the circular buffer. The index should be within the range of the
+        number of elements currently in the buffer.
 
         Parameters
         ----------
         index : int
-            Index is the position within the array with the element will be
-            returned. Index should be 0 <= Index < Capacity
+            Index of the element relative to the head of the circular buffer.
 
         Return
         ------
-        any : Data object at index index
+        Scalar or Tensor or None
+            The element at the specified index relative to the head of the
+            circular buffer.
 
-        Examples
-        --------
-        >>> example_element = example_circle_buffer.get_element(0)
+        ValueError
+            If the specified index value exceeds the number of elements in the
+            buffer.
         """
         if index > self.num_elements:
-            return None
+            raise ValueError(
+                f"Index {index} exceeds the number of elements in the buffer."
+            )
 
+        # compute the absolute index of the element in the buffer
         abs_index = (index + self._head) % self._capacity
-
         return self.get_element(abs_index)
 
     def peek(self):
         """
-        Returns the front element of a circle buffer
+        Returns the front element of the circle buffer.
 
-        Parameters
-        ----------
-        None
+        The method returns the element at the head of the circular buffer
+        without removing it from the buffer.
 
         Return
         ------
-        any : Data object at first index
-
-        Examples
-        --------
-        >>> example_element = example_circle_buffer.peek()
-        >>> print(example_element)
-
-            12
-
-
+        Scalar or Tensor or None
+            The element at the head of the circular buffer. If the buffer is
+            empty, the method will return None.
         """
-
         if self.is_empty():
             return None
 
-        return super(CircleBuffer, self).get_element(self._head)
+        return self.get_element(self._head)
 
-    def enqueue(self, obj):
+    def enqueue(self, elem):
         """
-        Enqueue an element into circle buffer
+        Enqueues an element to the tail of the circle buffer.
+
+        The method adds an element to the tail of the circular buffer. If the
+        buffer is full, the new element will overwrite the element at the head
+        position and the head pointer will be incremented.
 
         Parameters
         ----------
-        obj: data object
-            Object to be added to circle buffer
+        elem : Scalar or Tensor
+            Element to add to the tail of the circular buffer.
         """
         if self.is_empty():
+            # reset the head and tail pointers
             self._head = 0
-            self._tail = -1
+            self._tail = -1 # will be incremented to 0 below so head and tail are the same
 
         elif self.is_full():
+            # increment the head pointer to the next position
             self._head = (self._head + 1) % self.capacity
 
+        # increate the tail pointer to the next position and set the element
         self._tail = (self._tail + 1) % self.capacity
-        return super().set_element(self._tail, obj)
+        return self.set_element(self._tail, elem)
 
     def enqueue_chunk(self, cb):
         """
-        Enqueue a number of elements from another circle buffer into this
-        circle buffer
+        Enqueues all of the elements from another circle buffer into this
+        circle buffer.
+
+        The method enqueues all of the elements from another circle buffer into
+        this circle buffer. The elements are added to the tail of the buffer.
+        All of the elements are removed from the source buffer. Both buffers
+        must contain the same type of elements.
         
         Parameters
         ----------
         cb: Circle Buffer
-            Circle buffer to enqueue into the other Circle buffer
+            Circle buffer from which to enqueue elements into the destination
+            circle buffer.
+
+        Raises
+        ------
+        TypeError
+            If the source and destination buffers contain elements of different
+            types.
         """
+        # validate that the source and destination buffers have the same type
+        if self.get_element(0).mp_type != cb.get_element(0).mp_type:
+            raise TypeError(
+                "Cannot enqueue elements from CircleBuffer with different "
+                "element types."
+            )
 
         while not cb.is_empty():
             element = cb.dequeue()
@@ -1487,19 +1549,27 @@ class CircleBuffer(Array):
 
     def dequeue(self):
         """ 
-        Dequeue element from circle buffer 
+        Dequeues and returns the element at the head of the circle buffer.
+
+        The method removes and returns the element at the head of the circular
+        buffer. If the buffer is empty, the method will return None.
         
         Returns
         -------
-        ret: data object
-            MindPype data object at the head of the circle buffer that is removed
+        Scalar or Tensor or None
+            Element at the head of the circular buffer. If the buffer is empty,
+            the method will return None.
         """
         if self.is_empty():
             return None
 
-        ret = super().get_element(self._head)
+        # get the element at the head of the buffer
+        ret = self.get_element(self._head)
 
-        if self._head == self._tail:
+        # adjust the head pointer
+        if self.num_elements == 1:
+            # reset the head and tail pointers to None to indicate that the
+            # buffer is now empty
             self._head = None
             self._tail = None
         else:
@@ -1509,25 +1579,30 @@ class CircleBuffer(Array):
 
     def make_copy(self):
         """
-        Create and return a deep copy of the Circle Buffer
-        The copied Circle Buffer will maintain references to the same objects.
-        If a copy of these is also desired, they will need to be copied
-        separately.
+        Create and return a deep copy of the circle buffer.
+
+        This method creates a new `CircleBuffer` object with the same attributes
+        as the original object, including the capacity, elements, head, and tail
+        pointers. The copied circle buffer is added to the same session as the
+        original circle buffer.
 
         Returns
         -------
-        cpy: Circle Buffer
-            Copy of the circle buffer
+        CircleBuffer
+            A deep copy of the circle buffer.
         """
-        cpy = CircleBuffer(self.session,
-                           self.capacity,
-                           self.get_element(0))
+        # create the copy
+        cpy = CircleBuffer(
+            self.session,
+            self.capacity,
+            self.get_element(0)
+        )
 
+        # copy the contents of the array to the new array
         for e in range(self.capacity):
             cpy.set_element(e, self.get_element(e))
 
-        # TODO this should be handled using API methods instead
-            # copy the head and tail as well
+        # copy the head and tail as well
         cpy._tail = self._tail
         cpy._head = self._head
 
@@ -1538,54 +1613,137 @@ class CircleBuffer(Array):
 
     def copy_to(self, dest_array):
         """
-        Copy all the attributes of the circle buffer to another circle buffer
+        Copy all the attributes and elements of the circle buffer to another
+        circle buffer or array.
+
+        This method copies all the attributes and elements of the circle buffer
+        to the destination circle buffer or array object. Only elements queued
+        within the source circle buffer will be copied. The destination 
+        circle buffer or array must have the same data element 
+        type as the source circle buffer. If the destination object is an 
+        array, elements will be copied to the array starting from the head of
+        the source circle buffer (i.e., the head of the source circle buffer
+        will be at index 0 in the destination array).
 
         Parameters
         ----------
-        dest_array: Circle buffer
-            Circle buffer to copy attributes to
+        dest_array : CircleBuffer
+            Circle buffer object to which the data value will be copied.
+
+        Raises
+        ------
+        ValueError
+            If the destination's capacity does not match the
+            source circle buffer's capacity.
+        TypeError
+            If the destination's element type does not match the
+            source circle buffer's element type.
         """
-        dest_array.capacity = self.capacity
-        for i in range(self.capacity):
-            dest_array.set_element(i, self.get_element(i))
+        # Validate the destination array's capacity
+        if (dest_array.mp_type == MPEnums.ARRAY and 
+            dest_array.capacity < self.num_elements
+        ):
+            raise ValueError(
+                f"Cannot copy data from CircleBuffer with num_elements {self.num_elements} "
+                f"to Array with capacity {dest_array.capacity}."
+            )
+        
+        # Validate the destination array's element type
+        if dest_array.get_element(0).mp_type != self.get_element(0).mp_type:
+            raise TypeError(
+                "Cannot copy data from circle buffer with element type "
+                f"{str(self.get_element(0).mp_type)} to {str(dest_array.mp_type)} "
+                f"with element type {str(dest_array.get_element(0).mp_type)}."
+            )
+
+        for i in range(self.num_elements):
+            dest_array.set_element(i, self.get_queued_element(i))
 
         if dest_array.mp_type == MPEnums.CIRCLE_BUFFER:
-            # copy the head and tail as well
-            dest_array._tail = self._tail
-            dest_array._head = self._head
+            if self.is_empty():
+                dest_array._head = None
+                dest_array._tail = None
+            else:
+                dest_array._tail = self.num_elements - 1
+                dest_array._head = 0
 
     def flush(self):
         """
-        Empty the buffer of all elements
+        Removes all elements from the circle buffer.
+
+        This method removes all elements from the circular buffer.
         """
         while not self.is_empty():
             self.dequeue()
 
     def to_tensor(self):
         """
-        Copy the elements of the buffer to a Tensor and return the tensor
+        Stack the elements of the circle buffer into a new Tensor object.
+
+        This method stacks the elements of the circular buffer into a new
+        `Tensor` object with the same shape as the circular buffer. The elements
+        are stacked along the first dimension.
+
+        Returns
+        -------
+        Tensor or None
+            A new Tensor object with the elements of the circular buffer stacked
+            along the first dimension. If the circular buffer is empty, the
+            method will return None.
+
+        Raises
+        ------
+        TypeError
+            If the circular buffer contains non-numeric Scalar elements.
         """
         if self.is_empty():
-            return Tensor.create(self.session, (0,))
+            return None
 
-        t = super().to_tensor()
+        elements = [self.get_queued_element(i) for i in range(self.num_elements)]
+        if elements[0].mp_type == MPEnums.SCALAR:
+            # ensure all elements are numeric scalars
+            for e in elements:
+                if not e.is_numeric:
+                    raise TypeError(
+                        "Cannot convert CircleBuffer to Tensor: CircleBuffer "
+                        "contains non-numeric Scalar elements."
+                    )
 
-        # remove data from tensor that is outside the
-        # range of the cb's head and tail
-        if self._head < self._tail:
-            valid_data = t.data[self._head:self._tail+1]
-        else:
-            valid_data = np.concatenate((t.data[self._head:],
-                                         t.data[:self._tail+1]),
-                                        axis=0)
+        # stack element data into numpy array
+        stacked_elements = np.stack([e.data for e in elements])
+        return Tensor.create_from_data(self.session, stacked_elements)
 
-        return Tensor.create_from_data(self.session, valid_data)
-
-    def assign_random_data(self, whole_numbers=False, vmin=0, vmax=1,
-                           covariance=False):
+    def assign_random_data(
+            self, whole_numbers=False, vmin=0, vmax=1, covariance=False
+    ):
         """
-        Assign random data to the buffer. This is useful for testing
-        and verification purposes.
+        Assign random data to the elements of the circle buffer.
+
+        This method assigns random data to the elements of the circular buffer.
+        For each element within the circular buffer, the element's
+        `assign_random_data` method is called to assign random data based on
+        the specified parameters. This method is typically used for graph
+        verification. After this method is called, the circular buffer will be
+        full.
+
+        Parameters
+        ----------
+        whole_numbers : bool, default=False
+            If True, assigns data that is only whole numbers.
+        vmin : int, default=0
+            Lower limit for values in the random data.
+        vmax : int, default=1
+            Upper limit for values in the random data.
+        covariance : bool, default=False
+            If True, assigns a random covariance matrix to tensor elements
+            within the circular buffer.
+        
+        See Also
+        --------
+        Tensor.assign_random_data : Assign random data to a Tensor object.
+        Scalar.assign_random_data : Assign random data to a Scalar object.
+        Array.assign_random_data : Assign random data to the elements of an
+        Array object.
         """
         super().assign_random_data(whole_numbers, vmin, vmax, covariance)
         self._head = 0
@@ -1594,25 +1752,27 @@ class CircleBuffer(Array):
     @classmethod
     def create(cls, sess, capacity, element_template):
         """ 
-        Create circle buffer 
+        Factory method to create a CircleBuffer object and register it within a
+        session.
 
         Parameters
         ----------
-        sess: Session Object
-            Session where graph will exist
-        capacity: Int
-            Capacity of buffer
-        element_template : any
-            The template MindPype element to populate the array
-            (see Array examples)
+        sess: Session
+            Session where the CircleBuffer object will exist.
+        capacity: int
+            Maximum number of elements that can be stored within the circle
+            buffer.
+        element_template : Scalar or Tensor
+            A meta tensor or scalar object that will be used to create the
+            circle buffer. The circle buffer will be initialized with copies of
+            this object.
 
         Returns
         -------
-        cb: Circle Buffer
+        CircleBuffer
+            A reference to the circle buffer that was created and added to the
+            session.
         """
         cb = cls(sess, capacity, element_template)
-
-        # add to the session
         sess.add_to_session(cb)
-
         return cb
