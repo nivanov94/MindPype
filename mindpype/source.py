@@ -568,7 +568,9 @@ class InputLSLStream(MPBase):
         marker_stream_info=None,
         active=True,
         interval=None,
-        Ns=1
+        Ns=1,
+        mode='single',
+        n_epochs=1
     ):
         """
         Create a new LSL inlet stream object
@@ -614,6 +616,18 @@ class InputLSLStream(MPBase):
         Ns : int, default = 1
             The number of samples to be extracted per poll.
 
+        mode : str, default = 'single'
+            Mode of the stream. Can be 'single', 'continuous', or 'epoched'. 
+            If 'single', the stream will be polled for a single trial at a time.
+            If 'continuous', the first trial will be couple to a marker, and subsequent trials 
+            will be polled based on the interval. If 'epoched', the first trial will be coupled 
+            to a marker, and then a fixed number of subsequent trials, defined by the n_epochs 
+            parameter, will be polled based on the interval. The interval parameter must be 
+            provided for both the epoched and continuous modes.
+
+        n_epochs : int, default = 1
+            Number of epochs to poll for in the epoched mode. Only used if mode is 'epoched'.
+
         .. note::
             The active parameter is used when the session is created before the LSL stream is started, or the stream is
             not available when the session is created. In that case, the stream can be updated later by calling the update_input_stream() method.
@@ -631,6 +645,9 @@ class InputLSLStream(MPBase):
         self._interval = interval
         self.channels = channels
         self.Ns = Ns
+        self.mode = mode
+        self.n_epochs = n_epochs
+        self._epochs_polled = 0
         self._data_buffer = {"time_series": None, "time_stamps": None}
 
         if active:
@@ -653,7 +670,16 @@ class InputLSLStream(MPBase):
         if not self._active:
             raise RuntimeWarning("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
-        if self._marker_inlet is not None:
+        poll_marker = False
+        if self.marker_coupled:
+            if self.mode == 'single':
+                poll_marker = True
+            elif self.mode == 'epoched' and self._epochs_polled in (0, self.n_epochs):
+                poll_marker = True
+                # reset the epochs polled counter
+                self._epochs_polled = 0
+
+        if poll_marker:
             # start by getting the timestamp for this trial's marker
             t_begin = None
             null_reads = 0
@@ -792,6 +818,10 @@ class InputLSLStream(MPBase):
             # reset the maker peeked flag since we have polled new data
             self._already_peeked = False
 
+        # if in epoched mode, increment the epochs polled counter
+        if self.mode == 'epoched':
+            self._epochs_polled += 1
+
         return self._trial_data
 
     def peek_marker(self):
@@ -841,6 +871,58 @@ class InputLSLStream(MPBase):
             raise RuntimeError("InputLSLStream.last_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
         return self._marker_buffer["time_series"]
+    
+    def change_mode(self, new_mode, interval=None, n_epochs=None):
+        """
+        Change the mode of the stream
+
+        Parameters
+        ----------
+        new_mode : str
+            The new mode of the stream. Can be 'single', 'continuous', or 'epoched'
+
+        """
+        if new_mode not in ('single', 'continuous', 'epoched'):
+            raise ValueError(f"Invalid mode {new_mode}. Mode must be 'single', 'continuous', or 'epoched'.")
+
+        if new_mode in ('single', 'epoched'):
+            # ensure that a valid marker stream is available
+            if self.marker_inlet is None:
+                raise RuntimeError("Cannot change mode to 'single' or 'epoched' without a valid marker stream.")
+            
+        self.mode = new_mode
+        if new_mode in ('continuous', 'epoched'):
+            if interval is not None and interval != self._interval:
+                self._interval = interval
+            
+        if new_mode == 'epoched':
+            if n_epochs is not None and n_epochs != self.n_epochs:
+                self.n_epochs = n_epochs
+            self._epochs_polled = 0
+
+        # flush the data buffer to ensure that the next trial is polled correctly
+        self.flush_data_buffer()
+
+    def flush_data_buffer(self):
+        """
+        Flush the data buffer
+
+        """
+        self._data_buffer = {"time_series": None, "time_stamps": None}
+        self._marker_buffer = {"time_series": None, "time_stamps": None}
+
+        # poll from the LSL inlets to ensure that the next trial is polled correctly
+        if self._marker_inlet is not None:
+            m = "dummy"
+            while m is not None:
+                m, _ = self._marker_inlet.pull_sample(timeout=0.0)
+
+        d = "dummy"
+        while d is not None:
+            d, _ = self._data_inlet.pull_sample(timeout=0.0)
+
+        # reset the marker peeked flag
+        self._already_peeked = False
 
     def update_input_streams(
         self,
@@ -953,6 +1035,9 @@ class InputLSLStream(MPBase):
         marker_stream_info=None,
         Ns=1,
         active=True,
+        mode='single'
+        epoch_interval=None,
+        n_epochs=1
     ):
         """
         Create a LSLStream data object that maintains a data stream and a
@@ -976,6 +1061,16 @@ class InputLSLStream(MPBase):
             StreamInfo object to use for the data stream, if None a default StreamInfo object will be created
         Ns : int, default = 1
             Number of samples to be extracted per poll.
+        mode: str, default = 'single'
+            Mode of the stream. Can be 'single', 'continuous', or 'epoched'. 
+            If 'single', the stream will be polled for a single trial at a time.
+            If 'continuous', the first trial will be couple to a marker, and subsequent trials 
+            will be polled based on the interval. If 'epoched', the first trial will be coupled 
+            to a marker, and then a fixed number of subsequent trials, defined by the n_epochs 
+            parameter, will be polled based on the interval. The interval parameter must be 
+            provided for both the epoched and continuous modes.
+        n_epochs: int, default = 1
+            Number of epochs to be extracted per poll. Only used for the epoched mode.
         """
         src = cls(
             sess,
@@ -989,19 +1084,25 @@ class InputLSLStream(MPBase):
             marker_stream_info,
             active,
             Ns=Ns
+            mode=mode,
+            interval=epoch_interval,
+            n_epochs=n_epochs
         )
         sess.add_ext_src(src)
 
         return src
 
     @classmethod
-    def create_marker_uncoupled_data_stream(cls, sess,
-                                            pred=None,
-                                            channels=None,
-                                            relative_start=0,
-                                            active=True,
-                                            interval=None,
-                                            Ns=1):
+    def create_marker_uncoupled_data_stream(
+        cls, 
+        sess, 
+        pred=None, 
+        channels=None, 
+        relative_start=0,
+        active=True, 
+        interval=None, 
+        Ns=1
+    ):
         """
         Create a LSLStream data object that maintains only a data stream with
         no associated marker stream
@@ -1021,7 +1122,9 @@ class InputLSLStream(MPBase):
         Ns : int, default = 1
             Number of samples to be extracted per poll.
         """
-        src = cls(sess, pred, channels, relative_start, marker_coupled=False, active=active, interval=interval, Ns=Ns)
+        src = cls(
+            sess, pred, channels, relative_start, marker_coupled=False, active=active,
+            interval=interval, Ns=Ns, mode='continuous')
         sess.add_ext_src(src)
 
         return src
