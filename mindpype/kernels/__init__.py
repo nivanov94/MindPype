@@ -33,3 +33,4 @@ from .feature_selection import FeatureSelectionKernel
 from .slope import SlopeKernel
 from .adaptive_rebias import AdaptiveRebiasKernel
 from .pattern_state import PatternStateKernel
+from .linear_algebra import MatrixMultKernel
