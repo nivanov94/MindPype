@@ -290,7 +290,7 @@ class InputXDFFile(MPBase):
         marker_stream: dictionary
             Time series and time stamps for inferred tasks
         """
-        if not self._inferred_tasks and self._tasks:
+        if not self._inferred_tasks and self.tasks:
             # filter for markers that are tasks
             task_marker_mask = np.array([marker[0] in self.tasks for marker in marker_stream["time_series"]])
             marker_stream["time_series"] = [marker[0] for marker, mask in zip(marker_stream["time_series"], task_marker_mask) if mask]
@@ -299,7 +299,7 @@ class InputXDFFile(MPBase):
             # infer tasks from Marker stream - only works for Mindset P300 data
             warnings.warn("No task list provided. Infering tasks from the marker stream. This is only supported for Mindset P300 data.", RuntimeWarning, stacklevel=2)
             marker_stream["time_series"] = [marker[0] for marker in marker_stream["time_series"]]
-            self._tasks = ['non-target', 'target']  # default tasks for Mindset P300 data
+            self.tasks = ['non-target', 'target']  # default tasks for Mindset P300 data
 
             inferred_markers = []
             inferred_marker_times = []
@@ -345,13 +345,13 @@ class InputXDFFile(MPBase):
         if label is not None and label not in self.tasks:
             # check if the coorresponding numerical label has been provided
             if label in self._data["numerical_labels"]:
-                label = self.tasks[np.argwhere(self._data["numerical_labels"]==label)[0][0]]
+                label = self._data['Markers'][np.argwhere(self._data["numerical_labels"]==label)[0][0]]
             else:
                 raise ValueError(f"Label {label} is not in the list of tasks")
 
 
         # determine the index of the next trial to be polled
-        if self._mode == "epoched":
+        if self.mode == "epoched":
             markers = self._data["Markers"]
         else:
             markers = self._data["Markers"]["time_series"]
@@ -367,9 +367,10 @@ class InputXDFFile(MPBase):
 
             label = markers[poll_index]
         else:
-            poll_index = markers.index(label, self._task_counter[label])
+            label_indices = [i for i, m in enumerate(markers) if m == label]
+            poll_index = label_indices[self._task_counter[label]]
 
-        if self._mode == "epoched":
+        if self.mode == "epoched":
             # Extract sample data from epoched trial data
             sample_data = self._data["Data"][poll_index, :, :]
 
@@ -421,13 +422,13 @@ class InputXDFFile(MPBase):
             Tensor containing the Marker timestamps
         """
 
-        if self._mode == "epoched":
+        if self.mode == "epoched":
             data = Tensor.create_from_data(self.session, self._data["Data"])
             labels = Tensor.create_from_data(self.session, self._data["numerical_labels"])
 
             return data, labels
 
-        elif self._mode == "continuous":
+        elif self.mode == "continuous":
             data = Tensor.create_from_data(self.session, self._data["Data"]["time_series"])
             labels = Tensor.create_from_data(self.session, self._data["numerical_labels"])
 
@@ -478,13 +479,22 @@ class InputXDFFile(MPBase):
         """
 
         src = cls(sess, files, channels, tasks, relative_start, Ns, mode="continuous")
-        sess.add_ext_src(src)
+        sess.add_to_session(src)
 
         return src
 
 
     @classmethod
-    def create_epoched(cls, sess, files, channels, tasks=None, relative_start=0, Ns=1, stype='EEG'):
+    def create_epoched(
+        cls, 
+        sess, 
+        files, 
+        channels, 
+        tasks=None, 
+        relative_start=0, 
+        Ns=1, 
+        stype='EEG'
+    ):
 
         """
         Factory Method for creating epoched XDF File input source.
@@ -522,11 +532,12 @@ class InputXDFFile(MPBase):
             Epoched XDF file input source
 
         """
-        src = cls(sess, files, channels, tasks, relative_start, Ns, stype=stype, mode="epoched")
-        sess.add_ext_src(src)
+        src = cls(
+            sess, files, channels, tasks, relative_start, Ns, stype=stype, mode="epoched", )
+        sess.add_to_session(src)
 
         return src
-
+    
 
 class InputLSLStream(MPBase):
     """
@@ -1035,7 +1046,7 @@ class InputLSLStream(MPBase):
         marker_stream_info=None,
         Ns=1,
         active=True,
-        mode='single'
+        mode='single',
         epoch_interval=None,
         n_epochs=1
     ):
@@ -1069,6 +1080,8 @@ class InputLSLStream(MPBase):
             to a marker, and then a fixed number of subsequent trials, defined by the n_epochs 
             parameter, will be polled based on the interval. The interval parameter must be 
             provided for both the epoched and continuous modes.
+        epoch_interval: float, default = None
+            The minimum interval between polling the stream for new data. Only used for the epoched and continuous modes.
         n_epochs: int, default = 1
             Number of epochs to be extracted per poll. Only used for the epoched mode.
         """
@@ -1083,12 +1096,12 @@ class InputLSLStream(MPBase):
             stream_info,
             marker_stream_info,
             active,
-            Ns=Ns
+            Ns=Ns,
             mode=mode,
             interval=epoch_interval,
             n_epochs=n_epochs
         )
-        sess.add_ext_src(src)
+        sess.add_to_session(src)
 
         return src
 
@@ -1125,7 +1138,7 @@ class InputLSLStream(MPBase):
         src = cls(
             sess, pred, channels, relative_start, marker_coupled=False, active=active,
             interval=interval, Ns=Ns, mode='continuous')
-        sess.add_ext_src(src)
+        sess.add_to_session(src)
 
         return src
 

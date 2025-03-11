@@ -52,7 +52,7 @@ class Filter(MPBase):
         self.implementation = implementation
         self.fs = fs
         self.crit_frqs = crit_frqs
-        self._coeffs = coeffs
+        self.coeffs = coeffs
 
     def __str__(self):
         """

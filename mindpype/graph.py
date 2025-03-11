@@ -334,7 +334,7 @@ class Graph(MPBase):
         TypeError
             If any of the nodes within the graph contain invalid data inputs.
         """
-        for n in self._nodes:
+        for n in self.nodes:
             try:
                 n.verify()
             except Exception as e:
@@ -516,7 +516,7 @@ class Graph(MPBase):
             self._poll_volatile_sources(label)
 
         # iterate over all the nodes and execute the kernel
-        for n in self._nodes:
+        for n in self.nodes:
             try:
                 n.kernel.execute()
             except Exception as e:

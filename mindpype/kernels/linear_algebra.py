@@ -31,6 +31,8 @@ class MatrixMultKernel(Kernel):
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
+        self._covariance_inputs = (0, 1) # HACK for now probably need to remove verification pass... too restrictive
+
     def _compute_output_sz(self, inA, inB):
         """
         Compute the output tensor size based on the input tensors.
@@ -200,9 +202,9 @@ class MatrixMultKernel(Kernel):
         k = cls(graph, inA, inB, outA)
 
         params = (
-            Parameter(Parameter.INPUT, inA),
-            Parameter(Parameter.INPUT, inB),
-            Parameter(Parameter.OUTPUT, outA)
+            Parameter(inA, MPEnums.INPUT),
+            Parameter(inB, MPEnums.INPUT),
+            Parameter(outA, MPEnums.OUTPUT)
         )
 
         # add the kernel to a generic node object

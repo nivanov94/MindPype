@@ -108,15 +108,15 @@ class Scalar(MPBase):
 
         if value is None:
             if data_type == int:
-                val = 0
+                value = 0
             elif data_type == float:
-                val = 0.0
+                value = 0.0
             elif data_type == complex:
-                val = complex(0, 0)
+                value = complex(0, 0)
             elif data_type == str:
-                val = ""
+                value = ""
             elif data_type == bool:
-                val = False
+                value = False
             else:
                 raise ValueError(
                     "Invalid data type for scalar, must be one of " 
@@ -203,19 +203,13 @@ class Scalar(MPBase):
         # Convert numpy scalar types to native Python types
         if isinstance(data, (np.integer, np.int_)):
             data = int(data)
-        elif isinstance(data, (np.floating, np.float_)):
+        elif isinstance(data, (np.floating, np.float64)):
             data = int(data) if data.is_integer() and self.data_type is int else float(data)
         elif isinstance(data, np.complexfloating):
             data = complex(data)
 
-        # Validate data type and set the value
-        if isinstance(data, self.data_type):
-            self._data = data
-        else:
-            raise TypeError(
-                f"MindPype Scalar expects data of type {self.data_type}. "
-                f"Cannot set data to type {type(data)}."
-            )
+        # convert data to the correct type
+        self._data = self.data_type(data)
 
     def make_copy(self):
         """

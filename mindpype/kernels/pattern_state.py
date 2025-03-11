@@ -67,12 +67,14 @@ class PatternStateKernel(Kernel):
     Kernel: Base class for all kernels.
     """
 
-    def __init__(self, graph, inA, outA, outB, 
-                 k_selection_method='pred_strength', 
-                 n_clusters=2, k_sel_thresh=0.5, 
-                 tangent_space=True, scale_data=True,
-                 outlier_state=False, update_rate=0.1,
-                 init_data=None, init_labels=None):
+    def __init__(
+            self, graph, inA, outA, outB, 
+            k_selection_method='pred_strength', 
+            n_clusters=2, k_sel_thresh=0.5, k_range=(2, 10),
+            tangent_space=True, scale_data=True,
+            outlier_state=False, update_rate=0.1,
+            init_data=None, init_labels=None
+        ):
         """Init."""
         super().__init__('PatternState', MPEnums.INIT_FROM_DATA, graph)
         self.inputs = [inA]
@@ -150,7 +152,7 @@ class PatternStateKernel(Kernel):
         
         # add the clustering step to the pipeline
         if self._mode == 'potato':
-            pipeline.append(('clustering', MultiPotatoClustering(n_clusters=self._n_clusters)))
+            pipeline = [('clustering', MultiPotatoClustering(n_clusters=self._n_clusters))]
         elif self._mode == 'tanget_space':
             pipeline.append(('clustering', sklearn.cluster.KMeans(n_clusters=self._n_clusters)))
         else:
@@ -287,13 +289,15 @@ class PatternStateKernel(Kernel):
 
 
     @classmethod
-    def add_to_graph(cls, graph, inA, outA=None, outB=None,
-                     k_selection_method='pred_strength', 
-                     n_clusters=2, k_sel_thresh=0.5, 
-                     k_range=(2, 10), tangent_space=True,
-                     update_rate=0.1,
-                     scale_data=True, init_data=None, 
-                     init_labels=None):
+    def add_to_graph(
+        cls, graph, inA, outA=None, outB=None,
+        k_selection_method='pred_strength', 
+        n_clusters=2, k_sel_thresh=0.5, 
+        k_range=(2, 10), tangent_space=True,
+        update_rate=0.1, outlier_state=False,
+        scale_data=True, init_data=None, 
+        init_labels=None
+    ):
         """
         Factory method to create a PatternStateKernel and add it to the graph.
 
@@ -330,6 +334,11 @@ class PatternStateKernel(Kernel):
             input covariance data prior to clustering.
         scale_data : bool, default=True
             Whether to scale the input data prior to clustering.
+        outlier_state : bool, default=False
+            Whether the model should include an outlier state. If True,
+            the predictions will be made using a set of Riemannian Potato
+            models. If the input data is not close to any of the potato
+            models, it will be classified as an outlier.
         update_rate : float, default=0.1
             Learning rate for updating the clustering model.
         init_data : Tensor, default=None
@@ -347,11 +356,12 @@ class PatternStateKernel(Kernel):
             The created PatternStateKernel object.
         """
         # create the kernel object
-        k = cls(graph, inA, outA, outB, k_selection_method,
-                n_clusters, k_sel_thresh,
-                k_range, tangent_space, scale_data,
-                update_rate,
-                init_data, init_labels)
+        k = cls(
+            graph, inA, outA, outB, k_selection_method,
+            n_clusters, k_sel_thresh, k_range, tangent_space, scale_data,
+            outlier_state, update_rate,
+            init_data, init_labels
+        )
         
         # create parameters for the kernel
         params = (Parameter(inA, MPEnums.INPUT),)
@@ -436,10 +446,12 @@ def _compute_pred_strength(k, tr_mod, te_mod, Xte):
     return ps
 
 
-class MultiPotatoClustering(sklearn.base.BaseEstimator, 
-                            sklearn.base.ClassifierMixin,
-                            sklearn.base.ClusterMixin,
-                            sklearn.base.TransformerMixin):
+class MultiPotatoClustering(
+    sklearn.base.BaseEstimator, 
+    sklearn.base.ClassifierMixin,
+    sklearn.base.ClusterMixin,
+    sklearn.base.TransformerMixin
+):
     
     """
     Defines an extension to the sklearn KMeans clustering algorithm
@@ -450,11 +462,12 @@ class MultiPotatoClustering(sklearn.base.BaseEstimator,
 
     """
 
-    def __init__(self, n_clusters=2, threshold=2.0, space='tangent_space'):
+    def __init__(self, n_clusters=2, threshold=2.5, space='tangent_space', scale=True):
         """Init."""
         self.n_clusters = n_clusters
         self.threshold = threshold
         self.space = space
+        self.scale = scale,
         self._state_models = []
 
 
@@ -469,10 +482,16 @@ class MultiPotatoClustering(sklearn.base.BaseEstimator,
         y : None
             Not used. Here for compatibility with sklearn API.        
         """
+        self._state_models = []
 
         # first use KMeans to define the initial set of clusters
         if self.space == 'tangent_space':
-            km = sklearn.cluster.KMeans(n_clusters=self.n_clusters)
+            km_pipe = []
+            km_pipe.append(('tangent', pyriemann.tangentspace.TangentSpace()))
+            if self.scale:
+                km_pipe.append(('scaler', sklearn.preprocessing.StandardScaler()))
+            km_pipe.append(('clustering', sklearn.cluster.KMeans(n_clusters=self.n_clusters)))
+            km = sklearn.pipeline.Pipeline(km_pipe)
         else:
             km = pyriemann.clustering.Kmeans(n_clusters=self.n_clusters)
             
@@ -481,10 +500,10 @@ class MultiPotatoClustering(sklearn.base.BaseEstimator,
         # create a set of Riemannian Potato models
         for i in range(self.n_clusters):
             # extract the data for the i-th cluster
-            X_i = X[km.labels_ == i]
+            X_i = X[km[-1].labels_ == i]
 
             # create a Potato model for the i-th cluster
-            potato = pyriemann.classification.Potato()
+            potato = pyriemann.clustering.Potato(threshold=self.threshold)
             potato.fit(X_i)
 
             self._state_models.append(potato)
@@ -515,7 +534,22 @@ class MultiPotatoClustering(sklearn.base.BaseEstimator,
         y[min_dists > self.threshold] = self.n_clusters
 
         return y
-    
+
+    def predict_proba(self, X):
+        """
+        Predict the class probabilities of the input data.
+
+        NOTE: The probability of the outlier class is not
+        computed.
+        """
+        dists = self.transform(X)
+        # compute softmax based on negative distances
+        probs = np.exp(-dists) / np.sum(np.exp(-dists), axis=1)[:, np.newaxis]
+        
+        # add zero probability for the outlier class
+        probs = np.hstack((probs, np.zeros((probs.shape[0], 1))))
+
+        return probs
 
     def transform(self, X):
         """
@@ -531,7 +565,7 @@ class MultiPotatoClustering(sklearn.base.BaseEstimator,
         dists : array-like
             Distance of the input data to each of the potato models
         """
-        dists = np.zeros(X.shape[0], self.n_clusters)
+        dists = np.zeros((X.shape[0], self.n_clusters))
 
         # compute the distance of the input data to each of the 
         # potato models

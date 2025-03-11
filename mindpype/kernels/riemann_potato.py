@@ -42,8 +42,11 @@ class RiemannPotatoKernel(Kernel):
 
     """
 
-    def __init__(self,graph,inA,outA,thresh,max_iter,regulization,
-                 initialization_data=None):
+    def __init__(
+            self, graph, inA, outA,
+            thresh, max_iter, regulization,
+            initialization_data=None
+        ):
         """ Init """
         super().__init__('RiemannPotato',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
@@ -126,7 +129,9 @@ class RiemannPotatoKernel(Kernel):
         if X.shape[-2] != X.shape[-1]:
             # convert to covs
             X = covariances(X)
-            X = (1-self._r)*X + self._r*np.eye(X.shape[-1])
+       
+        # apply regularization
+        X = (1-self._r)*X + self._r*np.eye(X.shape[-1])
 
         self._potato_filter = Potato(threshold=self._thresh, n_iter_max=self._max_iter)
         self._potato_filter.fit(X)
@@ -217,8 +222,10 @@ class RiemannPotatoKernel(Kernel):
         outputs[0].data = self._potato_filter.predict(input_data)
 
     @classmethod
-    def add_to_graph(cls,graph,inA,outA, initialization_data=None,
-                     thresh=3,max_iter=100,regularization=0.01):
+    def add_to_graph(
+        cls, graph, inA, outA, initialization_data=None,
+        thresh=3, max_iter=100, regularization=0.01
+    ):
         """
         Factory method to create a riemann potato artifact detector
 
@@ -247,9 +254,11 @@ class RiemannPotatoKernel(Kernel):
         """
 
         # create the kernel object
-
-        k = cls(graph,inA,outA,thresh,max_iter,regularization,
-                initialization_data)
+        k = cls(
+            graph, inA, outA,
+            thresh, max_iter, regularization,
+            initialization_data
+        )
 
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
