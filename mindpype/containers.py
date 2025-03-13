@@ -560,10 +560,10 @@ class Tensor(MPBase):
         ):
         """Init."""
         super().__init__(MPEnums.TENSOR, sess)
-        self._shape = tuple(shape)
         self.virtual = virtual
         self.ext_src = ext_src
         self.ext_out = ext_out
+        self.change_shape(shape)
 
         if data is not None:
             self._data = data
@@ -595,15 +595,16 @@ class Tensor(MPBase):
             The tensor data value encapsulated by the `Tensor` object
         """
         return self._data
-
+    
     @property
     def shape(self):
         """
-        Retrieve the shape of the tensor data array.
+        Retrieve the shape of the Tensor data.
 
         This property provides access to the shape of the tensor data array
         stored within the `Tensor` object. The shape is represented as a tuple
-        of integers indicating the size of each dimension of the array.
+        of integers, where each integer represents the size of a dimension in
+        the tensor data array.
 
         Returns
         -------
@@ -612,7 +613,6 @@ class Tensor(MPBase):
         """
         return self._shape
 
-    
     @data.setter
     def data(self, data):
         """
@@ -658,7 +658,7 @@ class Tensor(MPBase):
 
         # Adjust virtual Tensor's shape if necessary
         if self.virtual and self.shape != data.shape:
-            self._shape = data.shape
+            self.change_shape(data.shape)
 
         # Set the data if shapes match; otherwise, raise an error
         if self.shape == data.shape:
@@ -668,34 +668,42 @@ class Tensor(MPBase):
                 f"Shape mismatch: Tensor shape {self.shape} does not match"
                 f"data shape {data.shape}."
             )
-
+        
     @shape.setter
-    def shape(self, shape):
+    def shape(self, new_shape):
         """
         Set the shape of the Tensor.
 
-        This method changes the shape of the Tensor. If the Tensor is
-        non-virtual, the shape cannot be changed and an error will be raised.
-        The data attribute of the Tensor will be updated to a new array of 
-        zeros.
+        This method changes the shape of the Tensor data array. The current
+        data within the Tensor will be overwritten.
+        """
+        self.change_shape(new_shape)
+
+    def change_shape(self, new_shape):
+        """
+        Modify the shape of the Tensor. 
+
+        This method changes the shape of the Tensor to the specified new shape.
+        The current data witin the Tensor will be overwritten.
 
         Parameters
         ----------
-        shape : tuple
+        new_shape : tuple
             New shape for the Tensor data array.
-
+        
         Raises
         ------
         TypeError
-            If the Tensor is non-virtual and the shape is attempted to be
-            changed.
+            If the new shape is not a tuple (or appropriate iterable) of ints.
         """
-        if self.virtual:
-            self._shape = shape
-            # when changing the shape write a zero tensor to data
-            self.data = np.zeros(shape)
-        else:
-            raise TypeError("Attempted to change shape of non-virtual Tensor.")
+        if (not isinstance(new_shape, (list, tuple)) or
+            not all(isinstance(i, int) for i in new_shape)
+        ):
+            raise TypeError("New shape must be a tuple or list of integers.")
+
+        self._shape = tuple(new_shape)
+        self.data = np.zeros(self.shape)
+
 
     def make_copy(self):
         """
