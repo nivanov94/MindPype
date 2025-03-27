@@ -27,6 +27,9 @@ class RiemannMDMClassifierKernel(Kernel):
     outA : Tensor or Scalar
         Output data
 
+    fgda : bool
+        True if the classifier should apply Fisher Geodesic Discriminant Analysis to the data
+
     initialization_data : Tensor
         Initialization data to train the classifier (n_trials, n_channels, n_samples)
 
@@ -36,16 +39,17 @@ class RiemannMDMClassifierKernel(Kernel):
 
     """
 
-    def __init__(self,graph,inA,outA,num_classes,initialization_data,labels):
+    def __init__(self,graph,inA,outA,fgda,initialization_data,labels):
         """ Init """
         super().__init__('RiemannMDM',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
         self.outputs = [outA]
 
+        self.fgda = fgda
+
         self._initialized = False
         self._covariance_inputs = (0,)
 
-        self._num_classes = num_classes
         if initialization_data is not None:
             self.add_initialization_data([initialization_data], labels)
 
@@ -115,7 +119,10 @@ class RiemannMDMClassifierKernel(Kernel):
         if X.shape[0] != y.shape[0]:
             raise ValueError('RiemannianMDM kernel: number of trials in initialization data and labels must match')
 
-        self.classifier = classification.MDM()
+        if not self.fgda:
+            self.classifier = classification.MDM()
+        else:
+            self.classifier = classification.FgMDM()
         self.classifier.fit(X,y)
 
 
@@ -192,7 +199,7 @@ class RiemannMDMClassifierKernel(Kernel):
         outputs[0].data = self.classifier.predict(input_data)
 
     @classmethod
-    def add_to_graph(cls,graph,inA,outA,num_classes=2,
+    def add_to_graph(cls,graph,inA,outA,fgda=False,
                      initialization_data=None,labels=None):
         """
         Factory method to create an untrained riemann minimum distance
@@ -213,6 +220,10 @@ class RiemannMDMClassifierKernel(Kernel):
         outA : Tensor or Scalar
             Output data
 
+        fgda : bool
+            True if the classifier should apply Fisher Geodesic Discriminant Analysis
+            to the data
+
         initialization_data : Tensor
             Initialization data to train the classifier with (n_trials, n_channels, n_samples)
 
@@ -226,7 +237,7 @@ class RiemannMDMClassifierKernel(Kernel):
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,num_classes,initialization_data,labels)
+        k = cls(graph,inA,outA,fgda,initialization_data,labels)
 
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
