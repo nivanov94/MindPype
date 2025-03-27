@@ -287,6 +287,22 @@ class PatternStateKernel(Kernel):
         ps_score[ps_score < self._k_sel_thresh] = np.inf # filter out values below the threahold
         return k_range[np.argmin(ps_score)]
 
+    def prune_state(self, state_idx):
+        """
+        Remove a state from the clustering model.
+
+        Parameters
+        ----------
+        state_idx : int
+            Index of the state to remove
+        """
+        if self._mode == 'potato':
+            self._mod[-1].prune_state(state_idx)
+        else:
+            self._mod.named_steps['clustering'].cluster_centers_ = np.delete(
+                self._mod.named_steps['clustering'].cluster_centers_, state_idx, axis=0
+            )
+        self._n_clusters -= 1
 
     @classmethod
     def add_to_graph(
@@ -602,5 +618,15 @@ class MultiPotatoClustering(
 
         return self
 
+    def prune_state(self, state_idx):
+        """
+        Remove a state from the clustering model.
 
+        Parameters
+        ----------
+        state_idx : int
+            Index of the state to remove
+        """
+        self._state_models.pop(state_idx)
+        self.n_clusters -= 1
 
