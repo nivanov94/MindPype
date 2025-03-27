@@ -348,7 +348,7 @@ class Kernel(MPBase, ABC):
         if hasattr(self, '_verify'):
             # execute any kernel-specific verification
             self._verify()
-
+        
         # extract verification inputs and outputs
         verif_inputs = []
         verif_outputs = []
@@ -479,7 +479,7 @@ class Kernel(MPBase, ABC):
         """
         if hasattr(self, '_update'):
             self._initialized = False
-            self.update(self._init_inputs,
+            self._update(self._init_inputs,
                          self._init_outputs,
                          self._init_input_labels)
             self._initialized = True
