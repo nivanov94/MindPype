@@ -39,11 +39,14 @@ class RiemannMDMClassifierKernel(Kernel):
 
     """
 
-    def __init__(self,graph,inA,outA,fgda,initialization_data,labels):
+    def __init__(
+            self, graph, inA, out_pred, out_probs=None,
+            fgda=False, initialization_data=None, labels=None
+        ):
         """ Init """
         super().__init__('RiemannMDM',MPEnums.INIT_FROM_DATA,graph)
         self.inputs = [inA]
-        self.outputs = [outA]
+        self.outputs = [out_pred, out_probs]
 
         self.fgda = fgda
 
@@ -72,16 +75,19 @@ class RiemannMDMClassifierKernel(Kernel):
         self._train_classifier(init_inputs[0], labels)
 
         init_in = init_inputs[0]
-        init_out = init_outputs[0]
+        init_pred, init_probs = init_outputs
 
         if init_in.mp_type != MPEnums.TENSOR:
             init_in = init_in.to_tensor()
 
         # compute init output
-        if init_out is not None:
+        if init_pred is not None:
             # adjust the shape of init output tensor
             if len(init_in.shape) == 3:
-                init_out.shape = (init_in.shape[0],)
+                init_pred.shape = (init_in.shape[0],)
+
+                if init_probs is not None:
+                    init_probs.shape = (init_in.shape[0], self.classifier.n_classes_)
 
             # compute the init output
             self._process_data([init_in], init_outputs)
@@ -132,16 +138,18 @@ class RiemannMDMClassifierKernel(Kernel):
         """
 
         d_in = self.inputs[0]
-        d_out = self.outputs[0]
+        d_out_pred, d_out_probs = self.outputs
 
         # first ensure the input is a tensor
         if d_in.mp_type != MPEnums.TENSOR:
             raise TypeError('RiemannianMDM kernel: input must be a tensor')
 
         # ensure the output is a tensor or scalar
-        if (d_out.mp_type != MPEnums.TENSOR and
-            d_out.mp_type != MPEnums.SCALAR):
+        if (d_out_pred.mp_type != MPEnums.TENSOR and d_out_pred.mp_type != MPEnums.SCALAR):
             raise TypeError('RiemannianMDM kernel: output must be a tensor or scalar')
+        
+        if d_out_probs is not None and d_out_probs.mp_type != MPEnums.TENSOR:
+            raise TypeError('RiemannianMDM kernel: probabilities output must be a tensor')
 
         input_shape = d_in.shape
         input_rank = len(input_shape)
@@ -152,16 +160,23 @@ class RiemannMDMClassifierKernel(Kernel):
 
         # if the output is a virtual tensor and dimensionless,
         # add the dimensions now
-        if (d_out.mp_type == MPEnums.TENSOR and
-            d_out.virtual and
-            len(d_out.shape) == 0):
+        if (d_out_pred.mp_type == MPEnums.TENSOR and
+            d_out_pred.virtual and
+            len(d_out_pred.shape) == 0
+        ):
             if input_rank == 2:
-                d_out.shape = (1,)
+                d_out_pred.shape = (1,)
             else:
-                d_out.shape = (input_shape[0],)
+                d_out_pred.shape = (input_shape[0],)
+
+        if (d_out_probs is not None and
+            d_out_probs.virtual and 
+            len(d_out_probs.shape) == 0
+        ):
+            d_out_probs.shape = (input_shape[0], self.classifier.n_classes_)
 
         # check for dimensional alignment
-        if d_out.mp_type == MPEnums.SCALAR:
+        if d_out_pred.mp_type == MPEnums.SCALAR:
             # input tensor should only be a single trial
             if len(d_in.shape) == 3:
                 # first dimension must be equal to one
@@ -170,12 +185,16 @@ class RiemannMDMClassifierKernel(Kernel):
         else:
             # check that the dimensions of the output match the dimensions of
             # input
-            if d_in.shape[0] != d_out.shape[0]:
+            if d_in.shape[0] != d_out_pred.shape[0]:
                 raise ValueError('RiemannianMDM kernel: input and output tensor must equal first dimension')
 
             # output tensor should be one dimensional
-            if len(d_out.shape) > 1:
+            if len(d_out_pred.shape) > 1:
                 raise ValueError('RiemannianMDM kernel: output tensor must be one dimensional')
+            
+            if d_out_probs is not None:
+                if d_out_probs.shape[0] != d_out_pred.shape[0]:
+                    raise ValueError('RiemannianMDM kernel: probability output tensor must equal first dimension of input tensor')
 
     def _process_data(self, inputs, outputs):
         """
@@ -198,9 +217,14 @@ class RiemannMDMClassifierKernel(Kernel):
 
         outputs[0].data = self.classifier.predict(input_data)
 
+        if outputs[1] is not None:
+            outputs[1].data = self.classifier.predict_proba(input_data)
+
     @classmethod
-    def add_to_graph(cls,graph,inA,outA,fgda=False,
-                     initialization_data=None,labels=None):
+    def add_to_graph(
+        cls, graph, inA, out_pred, out_probs=None,
+        fgda=False, initialization_data=None, labels=None
+    ):
         """
         Factory method to create an untrained riemann minimum distance
         to the mean classifier kernel and add it to a graph
@@ -217,8 +241,11 @@ class RiemannMDMClassifierKernel(Kernel):
         inA : Tensor or Array
             Input data
 
-        outA : Tensor or Scalar
-            Output data
+        out_pred : Tensor or Scalar
+            Output class prediction
+
+        out_probs : Tensor
+            Output class probabilities
 
         fgda : bool
             True if the classifier should apply Fisher Geodesic Discriminant Analysis
@@ -237,11 +264,14 @@ class RiemannMDMClassifierKernel(Kernel):
         """
 
         # create the kernel object
-        k = cls(graph,inA,outA,fgda,initialization_data,labels)
+        k = cls(graph, inA, out_pred, out_probs, fgda, initialization_data, labels)
 
         # create parameter objects for the input and output
         params = (Parameter(inA,MPEnums.INPUT),
-                  Parameter(outA,MPEnums.OUTPUT))
+                  Parameter(out_pred,MPEnums.OUTPUT))
+        
+        if out_probs is not None:
+            params += (Parameter(out_probs,MPEnums.OUTPUT),)
 
         # add the kernel to a generic node object
         node = Node(graph,k,params)
