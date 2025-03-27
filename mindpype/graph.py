@@ -1041,6 +1041,15 @@ class Node(MPBase):
         upstream nodes within its graph.
         """
         self.kernel.initialize()
+
+    def execute(self):
+        """
+        Execute the kernel function for the node.
+
+        This method executes the kernel function for the node by calling the
+        kernel's execution method. 
+        """
+        self.kernel.execute()
     
     def update(self):
         """
