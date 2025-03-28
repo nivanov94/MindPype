@@ -677,7 +677,6 @@ class InputLSLStream(MPBase):
         Label : None
             used for file-based polling, not used here
         """
-
         if not self._active:
             raise RuntimeWarning("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
@@ -711,7 +710,7 @@ class InputLSLStream(MPBase):
                         raise RuntimeError(
                             f"The marker stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
                         )
-                    time.sleep(0.001)
+                    time.sleep(0.1)
 
         else:
             # marker-uncoupled stream, determine the start time based on the interval attribute
@@ -898,7 +897,7 @@ class InputLSLStream(MPBase):
 
         if new_mode in ('single', 'epoched'):
             # ensure that a valid marker stream is available
-            if self.marker_inlet is None:
+            if self._marker_inlet is None:
                 raise RuntimeError("Cannot change mode to 'single' or 'epoched' without a valid marker stream.")
             
         self.mode = new_mode
@@ -981,9 +980,11 @@ class InputLSLStream(MPBase):
 
         if len(available_streams) == 0:
             raise RuntimeError("No streams found matching the predicate")
-        else:
-            warnings.warn("More than one stream found matching the predicate. Using the first stream found.",
-                          RuntimeWarning, stacklevel=2)
+        elif len(available_streams) > 1:
+            warnings.warn(
+                "More than one stream found matching the predicate. Using the first stream found.",
+                RuntimeWarning, stacklevel=2
+            )
 
         self._data_buffer = {"time_series": None, "time_stamps": None}
         self._data_inlet = pylsl.StreamInlet(
@@ -1011,9 +1012,11 @@ class InputLSLStream(MPBase):
 
             if len(marker_streams) == 0:
                 raise RuntimeError("No marker streams found matching the predicate")
-            else:
-                warnings.warn("More than one marker stream found matching the predicate. Using the first stream found.",
-                              RuntimeWarning, stacklevel=2)
+            elif len(marker_streams) > 1:
+                warnings.warn(
+                    "More than one marker stream found matching the predicate. Using the first stream found.",
+                    RuntimeWarning, stacklevel=2
+                )
 
             self._marker_inlet = pylsl.StreamInlet(marker_streams[0])
             self._peek_marker_inlet = pylsl.StreamInlet(marker_streams[0])
