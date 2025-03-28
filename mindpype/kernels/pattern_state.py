@@ -524,6 +524,7 @@ class MultiPotatoClustering(
 
             self._state_models.append(potato)
 
+        self.is_fitted_ = True
         return self
     
 
