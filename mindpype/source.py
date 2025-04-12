@@ -135,7 +135,7 @@ class InputXDFFile(MPBase):
 
     """
 
-    def __init__(self, sess, files, channels, tasks=None, relative_start=0, Ns=1, stype='EEG', mode="epoched"):
+    def __init__(self, sess, files, channels, tasks=None, relative_start=0, Ns=1, stype='EEG', mode="epoched", marker_stream_name=None):
         """
         Create a new xdf file reader interface
         """
@@ -170,7 +170,10 @@ class InputXDFFile(MPBase):
                 for stream in data:
                     if (stream["info"]["type"][0] == "Marker" or
                         stream["info"]["type"][0] == "Markers"):
-                        if marker_stream is None or stream["time_stamps"].shape[0] > marker_stream["time_stamps"].shape[0]:
+                        if (marker_stream is None or 
+                            marker_stream_name is None or 
+                            stream["info"]["name"][0] == marker_stream_name
+                        ):
                             marker_stream = stream
 
                     elif stream["info"]["type"][0] == self.stream_type:
@@ -493,7 +496,8 @@ class InputXDFFile(MPBase):
         tasks=None, 
         relative_start=0, 
         Ns=1, 
-        stype='EEG'
+        stype='EEG',
+        marker_stream_name=None
     ):
 
         """
@@ -526,6 +530,9 @@ class InputXDFFile(MPBase):
             Number of samples to be extracted per trial. For class-separated data, this value determines the
             size of each epoch, whereas this value is used in polling for continuous data.
 
+        marker_stream : str, default = None
+            Name of the marker stream to be used. If none, the first marker stream found in the XDF file will be used.
+
         Returns
         -------
         src: InputXDFFile
@@ -533,7 +540,16 @@ class InputXDFFile(MPBase):
 
         """
         src = cls(
-            sess, files, channels, tasks, relative_start, Ns, stype=stype, mode="epoched", )
+            sess, 
+            files, 
+            channels, 
+            tasks, 
+            relative_start, 
+            Ns, 
+            stype=stype, 
+            mode="epoched", 
+            marker_stream_name=marker_stream_name
+        )
         sess.add_to_session(src)
 
         return src
@@ -677,6 +693,7 @@ class InputLSLStream(MPBase):
         Label : None
             used for file-based polling, not used here
         """
+
         if not self._active:
             raise RuntimeWarning("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
@@ -822,7 +839,7 @@ class InputLSLStream(MPBase):
                     raise RuntimeError(
                         f"The stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
                     )
-                time.sleep(0.001)
+                time.sleep(0.1)
 
         if self.marker_coupled:
             # reset the maker peeked flag since we have polled new data
@@ -913,26 +930,88 @@ class InputLSLStream(MPBase):
         # flush the data buffer to ensure that the next trial is polled correctly
         self.flush_data_buffer()
 
-    def flush_data_buffer(self):
+    def flush_data_buffer(self, time_cutoff=None):
         """
         Flush the data buffer
 
+        Parameters
+        ----------
+        time_cutoff : float
+            The time cutoff for the data buffer. If None, all data will be flushed.
         """
-        self._data_buffer = {"time_series": None, "time_stamps": None}
-        self._marker_buffer = {"time_series": None, "time_stamps": None}
 
-        # poll from the LSL inlets to ensure that the next trial is polled correctly
-        if self._marker_inlet is not None:
-            m = "dummy"
-            while m is not None:
-                m, _ = self._marker_inlet.pull_sample(timeout=0.0)
+        if time_cutoff is None:
+            # clear the entire buffer
+            self._data_buffer = {"time_series": None, "time_stamps": None}
+            self._marker_buffer = {"time_series": None, "time_stamps": None}
+        else:
+            # reserve the data that is newer than the time cutoff
+            for buf in (self._data_buffer, self._marker_buffer):
+                if buf["time_series"] is not None:
+                    valid_indices = buf["time_stamps"] >= time_cutoff + self.relative_start
+                    buf["time_series"] = buf["time_series"][:, valid_indices]
+                    buf["time_stamps"] = buf["time_stamps"][valid_indices]
+        
 
-        d = "dummy"
-        while d is not None:
-            d, _ = self._data_inlet.pull_sample(timeout=0.0)
+        if time_cutoff is None:
+            # flush the inlet streams
+            if self._marker_inlet is not None:
+                self._marker_inlet.flush()
 
-        # reset the marker peeked flag
-        self._already_peeked = False
+            self._data_inlet.flush()
+        elif self.mode == 'continuous':
+            # poll data and discard it until the time cutoff is reached
+            adj_cutoff = time_cutoff + self.relative_start
+            null_reads = 0
+            cutoff_reached = False
+            while not cutoff_reached:
+                data, timestamps = self._data_inlet.pull_chunk(timeout=0.0)
+
+                if len(timestamps) > 0:
+                    timestamps = np.asarray(timestamps)
+                    null_reads = 0
+                    # apply time correction to timestamps
+                    self._time_correction = self._data_inlet.time_correction()
+                    timestamps += self._time_correction
+
+                    # check if the data is within the target time window
+                    if np.any(timestamps >= adj_cutoff):
+                        # convert data to numpy arrays
+                        data = np.asarray(data).T
+                        valid_timestamps = timestamps >= adj_cutoff
+
+                        # discard extra channels and old data
+                        data = data[np.ix_(self.channels, valid_timestamps)]
+                        timestamps = timestamps[valid_timestamps]
+
+                        # append the latest chunk to the trial_data array
+                        # start by indentifying the start and end indices
+                        # of the source and destination arrays
+                        if self._data_buffer["time_series"] is None:
+                            # first chunk of data, create the buffer
+                            self._data_buffer["time_series"] = data
+                            self._data_buffer["time_stamps"] = timestamps
+                        else:
+                            # append the data to the buffer
+                            self._data_buffer["time_series"] = np.concatenate(
+                                (self._data_buffer["time_series"], data), axis=1
+                            )
+                            self._data_buffer["time_stamps"] = np.concatenate(
+                                (self._data_buffer["time_stamps"], timestamps)
+                            )
+
+                        cutoff_reached = True
+
+                else:
+                    null_reads += 1
+                    if null_reads > self.MAX_NULL_READS:
+                        raise RuntimeError(
+                            f"The stream has not been updated in the last {self.MAX_NULL_READS} read attemps. Please check the stream."
+                        )
+                    time.sleep(0.01)
+        else:
+            raise RuntimeError("Cannot flush this type of stream.")
+
 
     def update_input_streams(
         self,
