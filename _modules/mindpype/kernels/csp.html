@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mindpype.kernels.csp &mdash; mindpype 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mindpype
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../README.html">Getting Started with MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../before.html">Before Using MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../BasicSetup.html">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../AdvancedSetup.html">Advanced Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mindpype.html">MindPype Package Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mindpype.kernels.html">List of available kernels</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mindpype</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mindpype.kernels.csp</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mindpype.kernels.csp</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">..core</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPEnums</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..kernel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Kernel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Parameter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.kernel_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_init_inputs</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mne</span>
+
+
+<div class="viewcode-block" id="CommonSpatialPatternKernel">
+<a class="viewcode-back" href="../../../mindpype.kernels.html#mindpype.kernels.csp.CommonSpatialPatternKernel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CommonSpatialPatternKernel</span><span class="p">(</span><span class="n">Kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Kernel to apply common spatial pattern (CSP) filters to trial data. CSP works by </span>
+<span class="sd">    finding spatial filters that maximize the variance for one condition while minimizing </span>
+<span class="sd">    it for the other, to distinguishing between different mental states.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This kernel utilizes the mne class :class:`CSP &lt;mne:mne.decoding.CSP&gt;`</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : Graph</span>
+<span class="sd">        Graph that the kernel should be added to</span>
+<span class="sd">    inA : Tensor</span>
+<span class="sd">        First input trial data</span>
+<span class="sd">    outA : Tensor</span>
+<span class="sd">        Output trial data</span>
+<span class="sd">    n_components : int, default=4</span>
+<span class="sd">        Number of components to decompose the input signals.</span>
+<span class="sd">        See :class:`CSP &lt;mne:mne.decoding.CSP&gt;` for more information.</span>
+<span class="sd">    cov_est : str, default=&#39;concat&#39;</span>
+<span class="sd">        Method to estimate the covariance matrix. Options are &#39;concat&#39; or &#39;epoch&#39;.</span>
+<span class="sd">        See :class:`CSP &lt;mne:mne.decoding.CSP&gt;` for more information.</span>
+<span class="sd">    reg : float, default=None</span>
+<span class="sd">        Regularization parameter for covariance matrix estimation.</span>
+<span class="sd">        See :class:`CSP &lt;mne:mne.decoding.CSP&gt;` for more information.</span>
+<span class="sd">    init_data : Tensor or Array, default=None</span>
+<span class="sd">        Initialization data to configure the filters (n_trials, n_channels, n_samples)</span>
+<span class="sd">    labels : Tensor or Array, default=None</span>
+<span class="sd">        Labels corresponding to initialization data class labels (n_trials,)</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Kernel : Base class for all kernel objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span> <span class="n">n_components</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                 <span class="n">cov_est</span><span class="o">=</span><span class="s1">&#39;concat&#39;</span><span class="p">,</span> <span class="n">reg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">init_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Init &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;CSP&#39;</span><span class="p">,</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">inA</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">outA</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">init_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">init_data</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_input_labels</span> <span class="o">=</span> <span class="n">labels</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_components</span> <span class="o">=</span> <span class="n">n_components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mdl</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">decoding</span><span class="o">.</span><span class="n">CSP</span><span class="p">(</span><span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">,</span> <span class="n">cov_est</span><span class="o">=</span><span class="n">cov_est</span><span class="p">,</span> 
+                                     <span class="n">reg</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span> <span class="n">transform_into</span><span class="o">=</span><span class="s1">&#39;csp_space&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_inputs</span><span class="p">,</span> <span class="n">init_outputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the kernel and compute intialization data output.</span>
+<span class="sd">        Sets the filter values based on the provided initialization data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        init_inputs : list of Tensors or Arrays </span>
+<span class="sd">            Initialization input data container, list of length 1</span>
+<span class="sd">        init_outputs : list of Tensors or Arrays</span>
+<span class="sd">            Initialization output data container, list of length 1</span>
+<span class="sd">        labels : Tensor or Array</span>
+<span class="sd">            Labels corresponding to initialization data class labels (n_trials,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># check that the input init data is in the correct type</span>
+        <span class="n">init_in</span> <span class="o">=</span> <span class="n">init_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">accepted_inputs</span> <span class="o">=</span> <span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">,</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">ARRAY</span><span class="p">,</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">CIRCLE_BUFFER</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">init_obj</span> <span class="ow">in</span> <span class="p">(</span><span class="n">init_in</span><span class="p">,</span><span class="n">labels</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">init_obj</span><span class="o">.</span><span class="n">mp_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">accepted_inputs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Initialization data must be a tensor, array, or circle buffer&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_style</span> <span class="o">==</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">:</span>
+            <span class="c1"># extract the initialization data</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">extract_init_inputs</span><span class="p">(</span><span class="n">init_in</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">extract_init_inputs</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">old_log_level</span> <span class="o">=</span> <span class="n">mne</span><span class="o">.</span><span class="n">set_log_level</span><span class="p">(</span><span class="s1">&#39;WARNING&#39;</span><span class="p">,</span> <span class="n">return_old_level</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># suppress CSP calculation output</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mdl</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">mne</span><span class="o">.</span><span class="n">set_log_level</span><span class="p">(</span><span class="n">old_log_level</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># compute init output</span>
+        <span class="n">init_out</span> <span class="o">=</span> <span class="n">init_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">init_out</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">init_in</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">!=</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+                <span class="n">init_in</span> <span class="o">=</span> <span class="n">init_in</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">()</span>
+
+            <span class="c1"># adjust the shape of init output tensor</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">init_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">init_out</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">init_in</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_components</span><span class="p">,</span> <span class="n">init_in</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="n">init_inputs</span><span class="p">,</span> <span class="n">init_outputs</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the CSP filters to the input data and</span>
+<span class="sd">        assign the filtered data to the output tensor</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputs : list of Tensors</span>
+<span class="sd">            Input data container, list of length 1</span>
+<span class="sd">        outputs : list of Tensors</span>
+<span class="sd">            Output data container, list of length 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">d_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d_in</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+        
+        <span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mdl</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">d_in</span><span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the kernel parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># first ensure the input and output are tensors</span>
+        <span class="n">d_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">d_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">(</span><span class="n">d_in</span><span class="p">,</span> <span class="n">d_out</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">!=</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Input and output parameters must be tensors&#39;</span><span class="p">)</span>
+
+        <span class="c1"># input tensor should be two- or three-dimensional</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">d_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input tensor must be two- or three-dimensional&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">d_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">out_sz</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_components</span><span class="p">,</span> <span class="n">d_in</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out_sz</span> <span class="o">=</span>  <span class="p">(</span><span class="n">d_in</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_components</span><span class="p">,</span> <span class="n">d_in</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">d_out</span><span class="o">.</span><span class="n">virtual</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">d_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">d_out</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">out_sz</span>
+
+        <span class="c1"># verify that output tensor can accept data of this size</span>
+        <span class="n">d_out</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">out_sz</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CommonSpatialPatternKernel.add_to_graph">
+<a class="viewcode-back" href="../../../mindpype.kernels.html#mindpype.kernels.csp.CommonSpatialPatternKernel.add_to_graph">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_to_graph</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span>
+                     <span class="n">initialization_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">n_components</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">cov_est</span><span class="o">=</span><span class="s1">&#39;concat&#39;</span><span class="p">,</span> <span class="n">reg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a CSP filter kernel and </span>
+<span class="sd">        add it as a node to a graph</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        graph : Graph</span>
+<span class="sd">            Graph that the kernel should be added to</span>
+
+<span class="sd">        inA : Tensor</span>
+<span class="sd">            Input trial data</span>
+<span class="sd">        outA : Tensor</span>
+<span class="sd">            Filtered trial data</span>
+<span class="sd">        initialization_data : Tensor or Array, default=None</span>
+<span class="sd">            Initialization data to configure the filters (n_trials, n_channels, n_samples)</span>
+<span class="sd">        labels : Tensor or Array, default=None</span>
+<span class="sd">            Labels corresponding to initialization data class labels (n_trials,)</span>
+<span class="sd">        n_components : int, default=4</span>
+<span class="sd">            Number of components to decompose the input signals.</span>
+<span class="sd">            See :class:`CSP &lt;mne:mne.decoding.CSP&gt;` for more information.</span>
+<span class="sd">        cov_est : str, default=&#39;concat&#39;</span>
+<span class="sd">            Method to estimate the covariance matrix. Options are &#39;concat&#39; or &#39;epoch&#39;.</span>
+<span class="sd">            See :class:`CSP &lt;mne:mne.decoding.CSP&gt;` for more information.</span>
+<span class="sd">        reg : float, default=None</span>
+<span class="sd">            Regularization parameter for covariance matrix estimation.</span>
+<span class="sd">            See :class:`CSP &lt;mne:mne.decoding.CSP&gt;` for more information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># create the kernel object</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">inA</span><span class="p">,</span> <span class="n">outA</span><span class="p">,</span>
+                <span class="n">n_components</span><span class="o">=</span><span class="n">n_components</span><span class="p">,</span> 
+                <span class="n">cov_est</span><span class="o">=</span><span class="n">cov_est</span><span class="p">,</span> <span class="n">reg</span><span class="o">=</span><span class="n">reg</span><span class="p">,</span>
+                <span class="n">init_data</span><span class="o">=</span><span class="n">initialization_data</span><span class="p">,</span>
+                <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># create parameter objects for the input and output</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">Parameter</span><span class="p">(</span><span class="n">inA</span><span class="p">,</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
+                  <span class="n">Parameter</span><span class="p">(</span><span class="n">outA</span><span class="p">,</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">))</span>
+
+        <span class="c1"># add the kernel to a generic node object</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># add the node to the graph</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">node</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nicolas Ivanov, Aaron Lio, Maddie Wong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

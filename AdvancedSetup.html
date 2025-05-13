@@ -1,0 +1,222 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced Setup &mdash; mindpype 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MindPype Package Contents" href="mindpype.html" />
+    <link rel="prev" title="Basic Setup" href="BasicSetup.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mindpype
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="before.html">Before Using MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="BasicSetup.html">Basic Setup</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#adding-new-kernels">Adding new kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-functionality">Other functionality</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mindpype.html">MindPype Package Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mindpype.kernels.html">List of available kernels</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mindpype</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Advanced Setup</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/AdvancedSetup.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="advanced-setup">
+<h1>Advanced Setup<a class="headerlink" href="#advanced-setup" title="Link to this heading"></a></h1>
+<p>There are a number of more advanced features that may be useful to users</p>
+<section id="adding-new-kernels">
+<h2>Adding new kernels<a class="headerlink" href="#adding-new-kernels" title="Link to this heading"></a></h2>
+<p>MindPype was made to be extendable. If there is a particular operation that has not been implemented, it is possible to add it yourself. The following steps will guide you through the process of adding a new kernel.</p>
+<ol class="arabic">
+<li><p>Create a new python file in the <code class="docutils literal notranslate"><span class="pre">kernels</span></code> directory. The name of the file should be the name of the kernel you are implementing. For example, if you are implementing a kernel that performs a convolution, the file name should be <code class="docutils literal notranslate"><span class="pre">convolution.py</span></code>.</p></li>
+<li><dl>
+<dt>Within the file, create a class for the kernel. The name of the class should be the same as the file name, followed by <code class="docutils literal notranslate"><span class="pre">Kernel</span></code>. For example, if the file name is <code class="docutils literal notranslate"><span class="pre">convolution.py</span></code>, the class name should be <code class="docutils literal notranslate"><span class="pre">ConvolutionKernel</span></code>.</dt><dd><ul class="simple">
+<li><p>The class should inherit from <code class="docutils literal notranslate"><span class="pre">Kernel</span></code>.</p></li>
+<li><p>It may be useful to create a docstring for the class. This will be displayed when the user calls <code class="docutils literal notranslate"><span class="pre">help</span></code> on the kernel.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ConvolutionKernel</span><span class="p">(</span><span class="n">Kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Performs a convolution on the input data.&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>At this point, the kernel is ready to be implemented. The following methods must be implemented:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>: This method should take in any parameters that are required for the kernel to operate. These parameters should be stored as attributes of the class.</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">verify</span></code>: This method should check that the input and output tensor parameters passed to the kernel are valid. If they are not, it should return <code class="docutils literal notranslate"><span class="pre">BcipEnums.INVALID_PARAMETERS</span></code>.</dt><dd><ul>
+<li><p>With a convolution kernel, the output dimensions can be computed using a manual formula. If the output tensor dimensions do not match the computed dimensions, the input parameters are invalid.</p></li>
+<li><p>Alternatively, it will be shown how the process_data method can be used to verify the input and output tensors.</p></li>
+<li><p>The verify method must also check that the type of the input and output tensors are valid. For example, the input and output tensors for a convolution kernel should be MindPype <code class="docutils literal notranslate"><span class="pre">Tensor</span></code> objects.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">initialize</span></code>: This method should perform any initialization that is required before the kernel can be used. This method is particularly relevant when kernels have a component that needs to be trained.</dt><dd><ul>
+<li><p>For example, a classifier kernel may have a classifier object that need to be initialized.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">execute</span></code>: Executes single trial processing</dt><dd><ul>
+<li><p>For most kernels, this method will simply call <code class="docutils literal notranslate"><span class="pre">_process_data</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">_process_data</span></code>: This method should perform the operation on the input data and store the result in the output tensor.</dt><dd><ul>
+<li><p>For example, a convolution kernel may perform a convolution on the input data and store the result in the output tensor.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">add_convolution_node</span></code>: a Factory Method (Don’t forget the &#64;classmethod decorator) used to create a kernel, adding it to a node, and adding that node to a specified graph.</dt><dd><ul>
+<li><dl class="simple">
+<dt>This method should take in the following parameters:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">graph</span></code>: The graph to which the node should be added.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_tensor_name</span></code>: The name of the input tensor to the node.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">second_input_tensor_name</span></code>: The name of the second input tensor to the node. This is only required for kernels that take in two input tensors.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_tensor_name</span></code>: The name of the output tensor to the node.</p></li>
+<li><p>Other parameters that are required for the kernel to operate.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>The method should create an instance of the kernel, add it to a node, and add that node to the specified graph. The method should return the node that was added to the graph.</p></li>
+<li><p>For example, a convolution kernel may be added to a graph as follows:</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@classmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_convolution_node</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">input_tensor_name</span><span class="p">,</span> <span class="n">second_input_tensor_name</span><span class="p">,</span> <span class="n">output_tensor_name</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds a convolution node to the graph.&quot;&quot;&quot;</span>
+
+    <span class="n">kernel</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">input_tensor_name</span><span class="p">,</span> <span class="n">second_input_tensor_name</span><span class="p">,</span> <span class="n">output_tensor_name</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">bcipy</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">input_tensor_name</span><span class="p">,</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
+              <span class="n">bcipy</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">second_input_tensor_name</span><span class="p">,</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">INPUT</span><span class="p">),</span>
+              <span class="n">bcipy</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">output_tensor_name</span><span class="p">,</span> <span class="n">BcipEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">))</span>
+
+    <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">node</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><dl class="simple">
+<dt>As mentioned, it is possible to use the <code class="docutils literal notranslate"><span class="pre">_process_data</span></code> method in <code class="docutils literal notranslate"><span class="pre">verify</span></code>. For example, by passing two empty numpy arrays to <code class="docutils literal notranslate"><span class="pre">_process_data</span></code>, the kernel will perform the operation on the empty arrays.</dt><dd><ul>
+<li><p>If the output dimensions from <code class="docutils literal notranslate"><span class="pre">_process_data</span></code> do not match the expected output dimensions, the input parameters are invalid.</p></li>
+<li><p>NOTE: This may not work for all kernels, and a manual formula may be required to verify the input parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>At this point, the kernel is ready to be used.</p></li>
+</ol>
+</section>
+<section id="other-functionality">
+<h2>Other functionality<a class="headerlink" href="#other-functionality" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="BasicSetup.html" class="btn btn-neutral float-left" title="Basic Setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mindpype.html" class="btn btn-neutral float-right" title="MindPype Package Contents" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nicolas Ivanov, Aaron Lio, Maddie Wong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

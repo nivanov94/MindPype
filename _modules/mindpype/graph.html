@@ -1,0 +1,1291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mindpype.graph &mdash; mindpype 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mindpype
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Getting Started with MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../before.html">Before Using MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../BasicSetup.html">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../AdvancedSetup.html">Advanced Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.html">MindPype Package Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.kernels.html">List of available kernels</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mindpype</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mindpype.graph</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mindpype.graph</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Mon Dec  2 12:00:43 2019</span>
+
+<span class="sd">graph.py - Defines the graph object</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPBase</span><span class="p">,</span> <span class="n">MPEnums</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">StratifiedKFold</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">,</span> <span class="n">log_loss</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<div class="viewcode-block" id="Graph">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Graph</span><span class="p">(</span><span class="n">MPBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents the data processing flow graph, or</span>
+<span class="sd">    processing pipelines. Individual nodes, or processing steps,</span>
+<span class="sd">    are added to the graph to create the pipeline.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sess : Session Object</span>
+<span class="sd">        Session where the graph will exist</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _nodes : List of Node</span>
+<span class="sd">        List of Node objects within the graph</span>
+
+<span class="sd">    _verified : bool</span>
+<span class="sd">        True is graph has been verified, false otherwise</span>
+
+<span class="sd">    _sess : Session object</span>
+<span class="sd">        Session where the Graph object exists</span>
+
+<span class="sd">    _volatile_sources : List of Sources</span>
+<span class="sd">        Data sources within this array will be polled/executed when</span>
+<span class="sd">        the graph is executed.</span>
+
+<span class="sd">    _volatile_outputs : List of data Outputs</span>
+<span class="sd">        Data outputs within this array will push to external sources when</span>
+<span class="sd">        the graph is executed.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sess</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor for the Graph object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">GRAPH</span><span class="p">,</span> <span class="n">sess</span><span class="p">)</span>
+
+        <span class="c1"># private attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sess</span> <span class="o">=</span> <span class="n">sess</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_sources</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_required</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Graph.add_node">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.add_node">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Append a node object to the list of nodes</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        node : Node object</span>
+<span class="sd">            Adds the specified Node object to the referenced graph</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Graph.set_default_init_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.set_default_init_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_default_init_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add default initialization data to the graph. If a node requires</span>
+<span class="sd">        initialization data and it is not explicitly provided, this data</span>
+<span class="sd">        will be used. It will be added as initialization data to any</span>
+<span class="sd">        root nodes that ingest data from outside of the graph.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : Tensor or Array</span>
+<span class="sd">            Tensor or array containing the default initialization data</span>
+<span class="sd">        labels : Tensor or Array</span>
+<span class="sd">            Tensor or array containing the default initialization labels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_labels</span> <span class="o">=</span> <span class="n">labels</span></div>
+
+
+
+<div class="viewcode-block" id="Graph.verify">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the processing graph is valid. This method orders the nodes</span>
+<span class="sd">        for execution if the graph is valid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># begin by scheduling the nodes in execution order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_schedule_nodes</span><span class="p">()</span>
+
+        <span class="c1"># assign default initialization data to nodes that require it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assign_default_init_data</span><span class="p">()</span>
+
+        <span class="c1"># now all the nodes are in execution order create any</span>
+        <span class="c1"># necessary initialization edges</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_init_edges</span><span class="p">()</span>
+
+        <span class="c1"># insert phony edges for verification</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_phony_edges</span><span class="p">()</span>
+
+        <span class="c1"># set phony inputs with random data for validation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_phony_edges</span><span class="p">()</span>
+
+        <span class="c1"># finally, validate each node</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_nodes</span><span class="p">()</span>
+
+        <span class="c1"># delete phony inputs and outputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delete_phony_edges</span><span class="p">()</span>
+
+        <span class="c1"># Done, all nodes scheduled and verified!</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># cleanup any data used within verification that are no longer needed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">free_unreferenced_data</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_schedule_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Place the nodes of the graph in execution order</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first we&#39;ll create a set of edges representing data within the graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># keys: session_id of data obj, vals: edge object</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="c1"># get a list of all the input objects to the node</span>
+            <span class="n">n_inputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_inputs</span><span class="p">()</span>
+            <span class="n">n_outputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_outputs</span><span class="p">()</span>
+
+            <span class="c1"># add these inputs/outputs to edge objects</span>
+            <span class="k">for</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="n">n_inputs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">:</span>
+                    <span class="c1"># no edge created for this input yet, so create a new one</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Edge</span><span class="p">(</span><span class="n">n_i</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">n_i</span><span class="o">.</span><span class="n">volatile</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_i</span><span class="p">)</span>
+                <span class="c1"># now add the node the edge&#39;s list of consumers</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_consumer</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">n_o</span> <span class="ow">in</span> <span class="n">n_outputs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">:</span>
+                    <span class="c1"># no edge created for this output yet, so create a new one</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Edge</span><span class="p">(</span><span class="n">n_o</span><span class="p">)</span>
+
+                    <span class="c1"># add the node as a producer</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_producer</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">n_o</span><span class="o">.</span><span class="n">volatile_out</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_o</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># edge already created, must check that it has no other</span>
+                    <span class="c1"># producer</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># this is an invalid graph, each data object can only</span>
+                        <span class="c1"># have a single producer</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid graph, multiple &quot;</span> <span class="o">+</span>
+                                         <span class="s2">&quot;nodes write to single data object&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># add the producer to the edge</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">add_producer</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">n_o</span><span class="o">.</span><span class="n">volatile_out</span> <span class="ow">and</span>
+                                <span class="n">n_o</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span><span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n_o</span><span class="p">)</span>
+
+        <span class="c1"># now determine which edges are ready to be consumed</span>
+        <span class="n">consumable_edges</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">e_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">e_key</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># these edges have no producing nodes, so they are inputs to</span>
+                <span class="c1"># the graph and therefore can be consumed immediately</span>
+                <span class="n">consumable_edges</span><span class="p">[</span><span class="n">e_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">e_key</span><span class="p">]</span>
+
+        <span class="n">scheduled_nodes</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">total_nodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">scheduled_nodes</span> <span class="o">!=</span> <span class="n">total_nodes</span><span class="p">:</span>
+            <span class="n">nodes_added</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># find the next node that has all its inputs ready to be consumed</span>
+            <span class="k">for</span> <span class="n">node_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">scheduled_nodes</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">)):</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+                <span class="n">n_inputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_inputs</span><span class="p">()</span>
+                <span class="n">n_outputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_outputs</span><span class="p">()</span>
+                <span class="n">consumable</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="n">n_inputs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span> <span class="ow">in</span> <span class="n">consumable_edges</span><span class="p">):</span>
+                        <span class="c1"># the inputs for this node must be produced by another</span>
+                        <span class="c1"># node first, therefore this node cannot be scheduled</span>
+                        <span class="c1"># yet</span>
+                        <span class="n">consumable</span> <span class="o">=</span> <span class="kc">False</span>
+
+                <span class="k">if</span> <span class="n">consumable</span><span class="p">:</span>
+                    <span class="c1"># schedule this node</span>
+                    <span class="k">if</span> <span class="n">scheduled_nodes</span> <span class="o">!=</span> <span class="n">node_index</span><span class="p">:</span>
+                        <span class="c1"># swap the nodes at these indices</span>
+                        <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">scheduled_nodes</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">scheduled_nodes</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">[</span><span class="n">node_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+
+                    <span class="c1"># mark this node&#39;s outputs ready for consumption</span>
+                    <span class="k">for</span> <span class="n">n_o</span> <span class="ow">in</span> <span class="n">n_outputs</span><span class="p">:</span>
+                        <span class="n">consumable_edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_o</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span>
+
+                    <span class="n">nodes_added</span> <span class="o">=</span> <span class="n">nodes_added</span> <span class="o">+</span> <span class="mi">1</span>
+
+                    <span class="n">scheduled_nodes</span> <span class="o">=</span> <span class="n">scheduled_nodes</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">nodes_added</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># invalid graph, cannot be scheduled</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid graph, nodes cannot be scheduled, &quot;</span> <span class="o">+</span>
+                                 <span class="s2">&quot;check connections between nodes.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_insert_init_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Insert initialization edges into the graph</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">init_required</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># flag if any nodes in the graph require init</span>
+        <span class="n">init_links_missing</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># flag if any init data will need to propagate through graph</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="c1"># check for missing init data</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_style</span> <span class="o">==</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">:</span>
+                <span class="n">init_required</span> <span class="o">=</span> <span class="kc">True</span>
+
+                <span class="c1"># check whether all init inputs have been provided by the user</span>
+                <span class="n">init_provided</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">n_ii</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">n_ii</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">init_provided</span> <span class="o">=</span> <span class="kc">False</span>
+
+                <span class="c1"># if not provided, flag that graph will need initialization</span>
+                <span class="c1"># data propagated through the graph</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">init_provided</span><span class="p">:</span>
+                    <span class="n">init_links_missing</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># fill in all init data links</span>
+        <span class="k">if</span> <span class="n">init_required</span> <span class="ow">and</span> <span class="n">init_links_missing</span><span class="p">:</span>
+            <span class="c1"># use the existing Edge objects to create init connections</span>
+            <span class="c1"># mirroring the processing graph</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">e</span><span class="p">]</span><span class="o">.</span><span class="n">insert_init_data</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate each node within the graph individually</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Node: </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed verification. See traceback for details.&quot;</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># for older versions of Python, print a hint and raise the exception</span>
+                    <span class="c1"># TODO may be useful to encapsulate these errors into a MindPype specific exception</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_assign_default_init_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If default init data exists, add it to any root nodes</span>
+<span class="sd">        that do not have any init data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="n">n_inputs</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_inputs</span><span class="p">()</span>
+            <span class="n">root_data_node</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># check whether this node ingests data from outside the graph</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">n_inputs</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">root_data_node</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">init_data_index</span> <span class="o">=</span> <span class="n">index</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">root_data_node</span><span class="p">:</span>
+                <span class="c1"># copy the default init data to the node&#39;s init input</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="n">init_data_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_data</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_input_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_init_labels</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_insert_phony_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add phony edges to the graph to be used during verification</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">e_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">e_id</span><span class="p">]</span>
+
+            <span class="c1"># check if the data is virtual</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">virtual</span><span class="p">:</span>
+                <span class="c1"># if not virtual, create a phony edge</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">add_phony_data</span><span class="p">()</span>
+
+            <span class="c1"># check if the edge has non-virtual init data</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">init_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">init_data</span><span class="o">.</span><span class="n">virtual</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">add_phony_init_data</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_phony_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize phony edges with random data for validation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">initialize_phony_data</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_delete_phony_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove references to any phony edges so the</span>
+<span class="sd">        data will be freed during garbage collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">eid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">eid</span><span class="p">]</span><span class="o">.</span><span class="n">delete_phony_data</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Graph.initialize">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.initialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default_init_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default_init_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize each node within the graph for trial execution</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        default_init_dataA : Tensor, default = None</span>
+<span class="sd">            If the graph has no initialization data, this</span>
+<span class="sd">            tensor will be used to initialize the graph</span>
+<span class="sd">        default_init_labels : Tensor, default = None</span>
+<span class="sd">            If the graph has no initialization labels,</span>
+<span class="sd">            this tensor will be used to initialize the graph</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">default_init_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_default_init_data</span><span class="p">(</span><span class="n">default_init_data</span><span class="p">,</span> <span class="n">default_init_labels</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+
+        <span class="c1"># execute initialization for each node in the graph</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Node: </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed initialization. See traceback for details.&quot;</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># for older versions of Python, print a hint and raise the exception</span>
+                    <span class="c1"># TODO may be useful to encapsulate these errors into a MindPype specific exception</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">free_unreferenced_data</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Graph.update">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update each node within the graph for trial execution</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        default_init_dataA : Tensor, default = None</span>
+<span class="sd">            If the graph has no initialization data, this</span>
+<span class="sd">            tensor will be used to initialize the graph</span>
+<span class="sd">        default_init_labels : Tensor, default = None</span>
+<span class="sd">            If the graph has no initialization labels,</span>
+<span class="sd">            this tensor will be used to initialize the graph</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+
+        <span class="c1"># execute initialization for each node in the graph</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Node: </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed update. See traceback for details.&quot;</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># for older versions of Python, print a hint and raise the exception</span>
+                    <span class="c1"># TODO may be useful to encapsulate these errors into a MindPype specific exception</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">free_unreferenced_data</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Graph.execute">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.execute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute the graph by iterating over all the nodes within the graph</span>
+<span class="sd">        and executing each one</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        Label : int, default = None</span>
+<span class="sd">            * If the trial label is known, it can be passed when a trial is</span>
+<span class="sd">            executed. This is required for class-separated input data</span>
+<span class="sd">            * If the trial label is not known, it will be</span>
+<span class="sd">            polled from the data source</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first ensure the graph has been verified,</span>
+        <span class="c1"># if not, verify and schedule the nodes</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+
+        <span class="c1"># Check whether first node has volatile input</span>
+        <span class="c1"># if so, poll the volatile data</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_volatile_sources</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_poll_volatile_sources</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executing trial with label: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+
+        <span class="c1"># iterate over all the nodes and execute the kernel</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Node: </span><span class="si">{</span><span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed execution. See traceback for details.&quot;</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># for older versions of Python, print a hint and raise the exception</span>
+                    <span class="c1"># TODO may be useful to encapsulate these errors into a MindPype specific exception</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_poll_volatile_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Poll data (update input data) from volatile sources within the graph.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : int, default = None</span>
+<span class="sd">            If the class label of the current trial is known, it can be</span>
+<span class="sd">            passed to poll epoched data.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Example</span>
+<span class="sd">        -------</span>
+<span class="sd">        &gt;&gt;&gt; example_graph._poll_volatile_data(0) # Polls next class 0 trial data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">datum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_sources</span><span class="p">:</span>
+            <span class="n">datum</span><span class="o">.</span><span class="n">poll_volatile_data</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_push_volatile_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push data (update output data) to volatile outputs within the graph.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : int, default = None</span>
+<span class="sd">            If the class label of the current trial is known, it can be passed</span>
+<span class="sd">            to poll epoched data.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">datum</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volatile_outputs</span><span class="p">:</span>
+            <span class="n">datum</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Graph.cross_validate">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.cross_validate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cross_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_validation_output</span><span class="p">,</span> <span class="n">folds</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                       <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">statistic</span><span class="o">=</span><span class="s1">&#39;accuracy&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform cross validation on the graph or a portion of the graph.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        target_validation_output : data container</span>
+<span class="sd">            MindPype container (Tensor, Scalar, etc.) containing the target validation output.</span>
+<span class="sd">            Likely, this will be the output of a classification node.</span>
+
+<span class="sd">        folds : int, default = 5</span>
+<span class="sd">            Number of folds to use for cross validation.</span>
+
+<span class="sd">        shuffle : bool, default = False</span>
+<span class="sd">            Whether to shuffle the data before splitting into folds.</span>
+
+<span class="sd">        random_state : int, default = None</span>
+<span class="sd">            Random state to use for shuffling the data.</span>
+
+<span class="sd">        statistic : str, default = &#39;accuracy&#39;</span>
+<span class="sd">            Statistic to use for cross validation.</span>
+<span class="sd">            Options include &#39;accuracy&#39;, &#39;f1&#39;, &#39;precision&#39;, &#39;recall&#39;, and &#39;cross_entropy&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        mean_stat: float</span>
+<span class="sd">            Average score for the specified statistic (accuracy, f1, etc.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># first ensure the graph has been verified,</span>
+        <span class="c1"># if not, verify and schedule the nodes</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+
+        <span class="c1"># find the subset of nodes that need to executed for cross validation</span>
+        <span class="n">cv_node_subset</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">upstream_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># the first node is the node that produces the target validation output</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">target_validation_output</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">upstream_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">subset_node_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">session_id</span><span class="p">])</span>
+        <span class="n">init_data_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># now find all upstream nodes that are required for the cross validation</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">upstream_nodes</span><span class="p">):</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">upstream_nodes</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+
+            <span class="c1"># check if this node has initialization data</span>
+            <span class="n">init_provided</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">n_ii</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n_ii</span><span class="o">.</span><span class="n">virtual</span><span class="p">:</span>
+                    <span class="n">init_provided</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">init_provided</span><span class="p">:</span>
+                <span class="c1"># add nodes that produce the current node&#39;s inputs</span>
+                <span class="c1"># to the uptream nodes set</span>
+                <span class="k">for</span> <span class="n">n_i</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">extract_inputs</span><span class="p">():</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edges</span><span class="p">[</span><span class="n">n_i</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span><span class="o">.</span><span class="n">producers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="c1"># add this node if it has not been added yet</span>
+                    <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">session_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">subset_node_ids</span><span class="p">:</span>
+                        <span class="n">upstream_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="n">subset_node_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">init_data_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+            <span class="c1"># add the current node to the cross validation subset</span>
+            <span class="n">cv_node_subset</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">init_data_nodes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># check that all these nodes are ingesting the same init data</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">init_data_nodes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">session_id</span> <span class="o">!=</span> <span class="n">init_data_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cross validation could not be performed. &quot;</span> <span class="o">+</span>
+                                     <span class="s2">&quot;This may be because the target validation output &quot;</span> <span class="o">+</span>
+                                     <span class="s2">&quot;is generated by a node that does not require &quot;</span> <span class="o">+</span>
+                                     <span class="s2">&quot;initialization or because there are multiple &quot;</span> <span class="o">+</span>
+                                     <span class="s2">&quot;nodes that require initialization data.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># check the execution order of the subset of nodes</span>
+        <span class="n">node_execution_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">cv_node_subset</span><span class="p">),))</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cv_node_subset</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">position</span><span class="p">,</span> <span class="n">nn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nodes</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">nn</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="n">n</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+                    <span class="n">node_execution_position</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">position</span>
+                    <span class="k">break</span>
+
+        <span class="c1"># sort the nodes by execution order</span>
+        <span class="n">subset_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">node_execution_position</span><span class="p">)</span>
+        <span class="n">cv_node_subset</span> <span class="o">=</span> <span class="p">[</span><span class="n">cv_node_subset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subset_order</span><span class="p">]</span>
+
+        <span class="c1"># verify that the the node with initialization data is the first node</span>
+        <span class="k">if</span> <span class="n">init_data_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">session_id</span> <span class="o">!=</span> <span class="n">cv_node_subset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cross validation could not be performed. Invalid graph structure&quot;</span><span class="p">)</span>
+
+        <span class="c1"># copy the initialization data object</span>
+        <span class="n">init_data</span> <span class="o">=</span> <span class="n">init_data_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">init_labels</span> <span class="o">=</span> <span class="n">init_data_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_input_labels</span>
+
+        <span class="k">if</span> <span class="n">init_data</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">!=</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+            <span class="n">init_data</span> <span class="o">=</span> <span class="n">init_data</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">init_labels</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">!=</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+            <span class="n">init_labels</span> <span class="o">=</span> <span class="n">init_labels</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">()</span>
+
+
+        <span class="c1"># create the cross validation object</span>
+        <span class="n">skf</span> <span class="o">=</span> <span class="n">StratifiedKFold</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="n">folds</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_state</span><span class="p">)</span>
+        <span class="n">mean_stat</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">train_index</span><span class="p">,</span> <span class="n">test_index</span> <span class="ow">in</span> <span class="n">skf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">init_data</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">init_labels</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+            <span class="c1"># create Tensors for the CV training and testing data</span>
+            <span class="n">train_data</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>  <span class="n">init_data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">train_index</span><span class="p">])</span>
+            <span class="n">train_labels</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>  <span class="n">init_labels</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">train_index</span><span class="p">])</span>
+            <span class="n">test_data</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>  <span class="n">init_data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">test_index</span><span class="p">])</span>
+            <span class="n">test_labels</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>  <span class="n">init_labels</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">test_index</span><span class="p">])</span>
+
+            <span class="c1"># set the initialization data for the nodes</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">init_data_nodes</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_data</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_input_labels</span> <span class="o">=</span> <span class="n">train_labels</span>
+
+            <span class="c1"># initialize the subset of nodes</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">cv_node_subset</span><span class="p">:</span>
+                <span class="n">n</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+
+            <span class="n">predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">test_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+            <span class="k">for</span> <span class="n">i_t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">test_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="c1"># set the test data input for the ingestion nodes</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">init_data_nodes</span><span class="p">:</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">test_data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i_t</span><span class="p">]</span>
+
+                <span class="c1"># execute the subset of nodes</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">cv_node_subset</span><span class="p">:</span>
+                    <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+                <span class="c1"># get the output of the target validation node</span>
+                <span class="n">predictions</span><span class="p">[</span><span class="n">i_t</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_validation_output</span><span class="o">.</span><span class="n">data</span>
+
+            <span class="c1"># calculate the statistic</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="n">test_labels</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">if</span> <span class="n">statistic</span> <span class="o">==</span> <span class="s1">&#39;accuracy&#39;</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">statistic</span> <span class="o">==</span> <span class="s1">&#39;f1&#39;</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">=</span> <span class="n">f1_score</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">statistic</span> <span class="o">==</span> <span class="s1">&#39;precision&#39;</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">=</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">statistic</span> <span class="o">==</span> <span class="s1">&#39;recall&#39;</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">=</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">statistic</span> <span class="o">==</span> <span class="s1">&#39;cross_entropy&#39;</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">=</span> <span class="n">log_loss</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+
+            <span class="n">mean_stat</span> <span class="o">+=</span> <span class="n">stat</span>
+
+        <span class="c1"># compute mean statistic across folds</span>
+        <span class="n">mean_stat</span> <span class="o">/=</span> <span class="n">folds</span>
+
+        <span class="c1"># reset the initialization data for the nodes</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">init_data_nodes</span><span class="p">:</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_data</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_input_labels</span> <span class="o">=</span> <span class="n">init_labels</span>
+
+        <span class="c1"># cleanup data objects</span>
+        <span class="k">del</span> <span class="n">train_data</span><span class="p">,</span> <span class="n">train_labels</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">test_labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">free_unreferenced_data</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">mean_stat</span></div>
+
+
+
+<div class="viewcode-block" id="Graph.create">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Graph.create">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sess</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generic factory method for a graph</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cls: Graph</span>
+<span class="sd">        sess: Session Object</span>
+<span class="sd">            Session where graph will exist</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        graph: Graph</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_graph</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">graph</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Node">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Node">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">(</span><span class="n">MPBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic node object containing a kernel function</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    graph : Graph object</span>
+<span class="sd">        Graph where the Node object will exist</span>
+<span class="sd">    kernel : Kernel Object</span>
+<span class="sd">        Kernel object to be used for processing within the Node</span>
+<span class="sd">    params : dict</span>
+<span class="sd">        Dictionary of parameters outputted by kernel</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kernel : Kernel Object</span>
+<span class="sd">        Kernel object to be used for processing within the Node</span>
+<span class="sd">    _params : dict</span>
+<span class="sd">        Dictionary of parameters outputted by kernel</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; Node.create(example_graph, example_kernel, example_params)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="n">sess</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">session</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">NODE</span><span class="p">,</span> <span class="n">sess</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">params</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graph</span> <span class="o">=</span> <span class="n">graph</span>
+
+<div class="viewcode-block" id="Node.extract_inputs">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Node.extract_inputs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of all the node&#39;s inputs</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        List of inputs for the Node : List of Nodes</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; inputs = example_node.extract_inputs()</span>
+<span class="sd">        &gt;&gt;&gt; print(inputs)</span>
+
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">direction</span> <span class="o">!=</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">:</span>
+                <span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">inputs</span></div>
+
+
+<div class="viewcode-block" id="Node.extract_outputs">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Node.extract_outputs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of all the node&#39;s outputs</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        List of inputs for the Node : List of Nodes</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; inputs = example_node.extract_outputs()</span>
+<span class="sd">        &gt;&gt;&gt; print(inputs)</span>
+
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">direction</span> <span class="o">==</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">:</span>
+                <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">outputs</span></div>
+
+
+<div class="viewcode-block" id="Node.verify">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Node.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Verify the node is executable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Node.initialize">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Node.initialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the kernel function for execution</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span></div>
+
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the kernel function for execution</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Node.update_parameters">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Node.update_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the parameters of the node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">update_parameters</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graph</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Node.add_initialization_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Node.add_initialization_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_initialization_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_data</span><span class="p">,</span> <span class="n">init_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add initialization data to the node</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        init_data : list or tuple of data objects</span>
+<span class="sd">            MindPype container containing the initialization data</span>
+<span class="sd">        init_labels : data object containing initialization</span>
+<span class="sd">        labels, default = None</span>
+<span class="sd">            MindPype container containing the initialization labels</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">add_initialization_data</span><span class="p">(</span><span class="n">init_data</span><span class="p">,</span> <span class="n">init_labels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graph</span><span class="o">.</span><span class="n">verified</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_initialization_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_data</span><span class="p">,</span> <span class="n">init_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the initialization data of the node</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        init_data : list or tuple of data objects</span>
+<span class="sd">            MindPype container containing the initialization data</span>
+<span class="sd">        init_labels : data object containing initialization</span>
+<span class="sd">        labels, default = None</span>
+<span class="sd">            MindPype container containing the initialization labels</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">remove_initialization_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_initialization_data</span><span class="p">(</span><span class="n">init_data</span><span class="p">,</span> <span class="n">init_labels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="o">.</span><span class="n">free_unreferenced_data</span><span class="p">()</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Edge</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Edge class used by MindPype block to schedule graphs. Each edge object</span>
+<span class="sd">    represents a different MindPype data object and stores the nodes that</span>
+<span class="sd">    produce and consume that data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : Data object</span>
+<span class="sd">        The data to be stored within the Edge object</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _producers : array of Node objects</span>
+<span class="sd">        Node objects that will produce the data within the Edge object</span>
+<span class="sd">    _consumers : array of Node objects</span>
+<span class="sd">        Node objects that will consume the data within the Edge object</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; Edge.create(example_data)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor for Edge object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">producers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_producer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">producing_node</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a specified node as a producer to an Edge object</span>
+
+<span class="sd">        .. note:: Adds producer in place, does not return a new Edge object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        producing_node : Node object</span>
+<span class="sd">            Node to be added as a producer to the referenced Edge object</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; example_edge.add_producer(example_producing_edge)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">producers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">producing_node</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_consumer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consuming_node</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a specified node as a consumer to an Edge object</span>
+
+<span class="sd">        .. note:: Adds consumer in place, does not return a new Edge object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        consuming_node : Node object</span>
+<span class="sd">            Node to be added as a consumer to the referenced Edge object</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; example_edge.add_consumer(example_consumer_edge)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">consuming_node</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add specified data to an Edge object</span>
+
+<span class="sd">        .. note:: Adds data object in place, does not return a new Edge object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : Tensor, Scalar, Array, Python Built-in Data Types</span>
+<span class="sd">            Data to be added to the referenced Edge object</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; example_edge.add_data(example_data)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">insert_init_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Insert initialization data tensors into the graph that mirror the</span>
+<span class="sd">        connections contained within the Edge object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create a virtual tensor that will contain the initialization data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_data</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_virtual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_virtual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">producers</span><span class="p">:</span>
+            <span class="n">output_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_output_index</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+            <span class="c1"># assign the tensor to the producer&#39;s corresponding init output</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_outputs</span><span class="p">[</span><span class="n">output_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_output_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">:</span>
+            <span class="c1"># find the index of the data from the consumer node (input index)</span>
+            <span class="n">input_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_input_index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+            <span class="c1"># check whether this input has not already been assigned init data</span>
+            <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># If so, assign the tensor to the consumer&#39;s corresponding</span>
+                <span class="c1"># init input</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_input_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># overwrite the edge&#39;s init data, we need this to create</span>
+                <span class="c1"># phony inputs later</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_data</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_labels</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">init_input_labels</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phony_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add phony data to the edge and the</span>
+<span class="sd">        nodes it is connected to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">make_copy</span><span class="p">()</span>
+
+        <span class="c1"># get the producing node</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">producers</span><span class="p">:</span>
+            <span class="c1"># find the index of the data from the producer node (output index)</span>
+            <span class="n">output_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_output_index</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+            <span class="c1"># assign the tensor to the producer&#39;s corresponding init output</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_outputs</span><span class="p">[</span><span class="n">output_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_data</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">:</span>
+            <span class="c1"># find the index of the data from the consumer node (input index)</span>
+            <span class="n">input_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_input_index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+            <span class="c1">#  assign the tensor to the consumer&#39;s corresponding init input</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_inputs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phony_init_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add phony init data to the edge and the</span>
+<span class="sd">        nodes connected to it</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_data</span><span class="o">.</span><span class="n">make_copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span><span class="o">.</span><span class="n">make_copy</span><span class="p">()</span>
+
+        <span class="c1"># get the producing node</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">producers</span><span class="p">:</span>
+            <span class="c1"># find the index of the data from the producer node (output index)</span>
+            <span class="n">output_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_output_index</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+            <span class="c1"># assign the tensor to the producer&#39;s corresponding init output</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_init_outputs</span><span class="p">[</span><span class="n">output_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_data</span>
+
+        <span class="c1"># get the consuming node</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">:</span>
+            <span class="c1"># find the index of the data from the consumer node (input index)</span>
+            <span class="n">input_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_input_index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+            <span class="c1"># assign the tensor to the consumer&#39;s corresponding init input</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_init_inputs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_data</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_init_input_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_labels</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_phony_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign random data to phony inputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_covariance_input</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phony_data</span><span class="o">.</span><span class="n">assign_random_data</span><span class="p">(</span><span class="n">covariance</span><span class="o">=</span><span class="n">cov</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_data</span><span class="o">.</span><span class="n">assign_random_data</span><span class="p">(</span><span class="n">covariance</span><span class="o">=</span><span class="n">cov</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_labels</span><span class="o">.</span><span class="n">assign_random_data</span><span class="p">(</span><span class="n">whole_numbers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_phony_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove references to phony data so it can be freed</span>
+<span class="sd">        during garbage collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># remove the references within the nodes</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">producers</span><span class="p">:</span>
+            <span class="c1"># find the index of the data from the producer node (output index)</span>
+            <span class="n">output_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_output_index</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
+            <span class="c1"># assign the tensor to the producer&#39;s corresponding init output</span>
+            <span class="k">if</span> <span class="n">output_index</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_outputs</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_outputs</span><span class="p">[</span><span class="n">output_index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">:</span>
+            <span class="c1"># find the index of the data from the consumer node (input index)</span>
+            <span class="n">input_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_input_index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+            <span class="c1"># assign the tensor to the consumer&#39;s corresponding init input</span>
+            <span class="k">if</span> <span class="n">input_index</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_inputs</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_inputs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">input_index</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_init_inputs</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_init_inputs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="n">c</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">phony_init_input_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_covariance_input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check whether the data object contained within the edge is a covariance</span>
+<span class="sd">        matrix</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        bool : True if the data object is a covariance matrix, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># get one of the consumers of this edge</span>
+        <span class="n">consumer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">consumers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># check whether this edge is a covariance input to the consumer</span>
+        <span class="k">return</span> <span class="n">consumer</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">is_covariance_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_output_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">producer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find and return the numerical index of the producer&#39;s output that</span>
+<span class="sd">        corresponds to this edge</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        producer: Node</span>
+<span class="sd">            Edge object</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        output_index: int</span>
+<span class="sd">            Index of the data from the producer node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># find the index of the data from the producer node (output index)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">producer_output</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">producer</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">outputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">producer_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                    <span class="n">producer_output</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">session_id</span><span class="p">):</span>
+                <span class="n">output_index</span> <span class="o">=</span> <span class="n">index</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">output_index</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_input_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">consumer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find and return the numerical index of the consumer&#39;s input that</span>
+<span class="sd">        corresponds to this edge</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        consumer: Node</span>
+<span class="sd">            Edge object</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        input_index: int</span>
+<span class="sd">            index of the data from the consumer node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># find the index of the data from the consumer node (input index)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">consumer_input</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">consumer</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">inputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">consumer_input</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                    <span class="n">consumer_input</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">session_id</span><span class="p">):</span>
+                <span class="n">input_index</span> <span class="o">=</span> <span class="n">index</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">input_index</span>
+
+
+<div class="viewcode-block" id="Parameter">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.graph.Parameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Parameter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameter class can be used to abstract data types as inputs and outputs</span>
+<span class="sd">    to nodes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : any</span>
+<span class="sd">        Reference to the data object represented by the parameter object</span>
+<span class="sd">    direction : [MPEnums.INPUT, MPEnums.OUTPUT]</span>
+<span class="sd">        Enum indicating whether this is an input-type or output-type parameter</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor for Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># reference of the data object represented by parameter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c1"># enum indicating whether this is an input or output</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nicolas Ivanov, Aaron Lio, Maddie Wong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

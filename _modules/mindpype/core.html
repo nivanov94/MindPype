@@ -1,0 +1,578 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mindpype.core &mdash; mindpype 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mindpype
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Getting Started with MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../before.html">Before Using MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../BasicSetup.html">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../AdvancedSetup.html">Advanced Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.html">MindPype Package Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.kernels.html">List of available kernels</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mindpype</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mindpype.core</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mindpype.core</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. sectionauthor:: Aaron Lio &lt;aaron.lio@mail.utoronto.ca&gt;</span>
+
+<span class="sd">.. codeauthor:: Nicolas Ivanov &lt;nicolas.ivanov@mail.utoronto.ca&gt;</span>
+<span class="sd">.. codeauthor:: Aaron Lio &lt;aaron.lio@mail.utoronto.ca&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntEnum</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+
+
+<div class="viewcode-block" id="MPBase">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.MPBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MPBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the base class for all objects used in the MindPype API.</span>
+<span class="sd">    It serves to define some attributes that will be shared across all</span>
+<span class="sd">    other objects.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mp_type : MPEnums</span>
+<span class="sd">        Indicates what type of object is being created</span>
+<span class="sd">    session : Session</span>
+<span class="sd">        The session where the object will exist</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mp_type</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor for MPBase base class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">=</span> <span class="n">mp_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">session</span>
+        
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">session_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the session id of the object</span>
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        session_id : int</span>
+<span class="sd">            ID of the session where the object exists</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span></div>
+
+
+<div class="viewcode-block" id="MPEnums">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.MPEnums">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MPEnums</span><span class="p">(</span><span class="n">IntEnum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines a class of enums used by MindPype</span>
+
+<span class="sd">    The following enums are defined and available for use:</span>
+
+<span class="sd">    .. list-table:: Object Type MPEnums - Leading &#39;1&#39;</span>
+<span class="sd">        :widths: 50 50</span>
+<span class="sd">        :header-rows: 1</span>
+
+<span class="sd">        * - Enum</span>
+<span class="sd">          - Value</span>
+<span class="sd">        * - MPBase</span>
+<span class="sd">          - 100</span>
+<span class="sd">        * - SESSION</span>
+<span class="sd">          - 101</span>
+<span class="sd">        * - GRAPH</span>
+<span class="sd">          - 102</span>
+<span class="sd">        * - NODE</span>
+<span class="sd">          - 103</span>
+<span class="sd">        * - KERNEL</span>
+<span class="sd">          - 104</span>
+<span class="sd">        * - PARAMETER</span>
+<span class="sd">          - 105</span>
+<span class="sd">        * - TENSOR</span>
+<span class="sd">          - 106</span>
+<span class="sd">        * - SCALAR</span>
+<span class="sd">          - 107</span>
+<span class="sd">        * - ARRAY</span>
+<span class="sd">          - 108</span>
+<span class="sd">        * - CIRCLE_BUFFER</span>
+<span class="sd">          - 109</span>
+<span class="sd">        * - FILTER</span>
+<span class="sd">          - 110</span>
+<span class="sd">        * - SRC</span>
+<span class="sd">          - 111</span>
+<span class="sd">        * - CLASSIFIER</span>
+<span class="sd">          - 112</span>
+
+<span class="sd">    .. list-table:: Status Codes - Leading &#39;2&#39; -- DEPRECIATED</span>
+<span class="sd">        :widths: 50 50</span>
+<span class="sd">        :header-rows: 1</span>
+
+<span class="sd">    .. list-table:: Parameter Directions - Leading &#39;3&#39;</span>
+<span class="sd">        :widths: 50 50</span>
+<span class="sd">        :header-rows: 1</span>
+
+<span class="sd">        * - Enum</span>
+<span class="sd">          - Value</span>
+<span class="sd">        * - INPUT</span>
+<span class="sd">          - 300</span>
+<span class="sd">        * - OUTPUT</span>
+<span class="sd">          - 301</span>
+<span class="sd">        * - INOUT</span>
+<span class="sd">          - 302</span>
+
+<span class="sd">    .. list-table:: Kernel Initialization types - leading &#39;4&#39;</span>
+<span class="sd">        :widths: 50 50</span>
+<span class="sd">        :header-rows: 1</span>
+
+<span class="sd">        * - Enum</span>
+<span class="sd">          - Value</span>
+<span class="sd">        * - INIT_FROM_NONE</span>
+<span class="sd">          - 400</span>
+<span class="sd">        * - INIT_FROM_DATA</span>
+<span class="sd">          - 401</span>
+<span class="sd">        * - INIT_FROM_COPY</span>
+<span class="sd">          - 402</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Object Type Enums - Have a leading &#39;1&#39;</span>
+    <span class="n">MPBase</span>        <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">SESSION</span>       <span class="o">=</span> <span class="mi">101</span>
+    <span class="n">GRAPH</span>         <span class="o">=</span> <span class="mi">102</span>
+    <span class="n">NODE</span>          <span class="o">=</span> <span class="mi">103</span>
+    <span class="n">KERNEL</span>        <span class="o">=</span> <span class="mi">104</span>
+    <span class="n">PARAMETER</span>     <span class="o">=</span> <span class="mi">105</span>
+    <span class="n">TENSOR</span>        <span class="o">=</span> <span class="mi">106</span>
+    <span class="n">SCALAR</span>        <span class="o">=</span> <span class="mi">107</span>
+    <span class="n">ARRAY</span>         <span class="o">=</span> <span class="mi">108</span>
+    <span class="n">CIRCLE_BUFFER</span> <span class="o">=</span> <span class="mi">109</span>
+    <span class="n">FILTER</span>        <span class="o">=</span> <span class="mi">110</span>
+    <span class="n">SRC</span>           <span class="o">=</span> <span class="mi">111</span>
+    <span class="n">CLASSIFIER</span>    <span class="o">=</span> <span class="mi">112</span>
+
+    <span class="c1"># Parameter Directions - Leading &#39;3&#39;</span>
+    <span class="n">INPUT</span>  <span class="o">=</span> <span class="mi">300</span>
+    <span class="n">OUTPUT</span> <span class="o">=</span> <span class="mi">301</span>
+    <span class="n">INOUT</span>  <span class="o">=</span> <span class="mi">302</span>
+
+    <span class="c1"># Kernel Initialization types - leading &#39;4&#39;</span>
+    <span class="n">INIT_FROM_NONE</span> <span class="o">=</span> <span class="mi">400</span>
+    <span class="n">INIT_FROM_DATA</span> <span class="o">=</span> <span class="mi">401</span>
+    <span class="n">INIT_FROM_COPY</span> <span class="o">=</span> <span class="mi">402</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
+
+
+
+<div class="viewcode-block" id="Session">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Session</span><span class="p">(</span><span class="n">MPBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Session objects contain all other MindPype objects instances within a data</span>
+<span class="sd">    capture session.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from mindpype.classes import session as S</span>
+<span class="sd">    &gt;&gt;&gt; S.session.create()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor for Session class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">SESSION</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># define some private attributes</span>
+        <span class="c1"># self._blocks = [] # queue of blocks to execute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Configure logging for the session</span>
+        <span class="c1"># logging.basicConfig(filename=&#39;../mindpype/logs/log.log&#39;, filemode=&#39;a&#39;, format=&#39;%(asctime)s: [%(pathname)s:%(funcName)s:%(lineno)d] - [%(levelname)s] - %(message)s &#39;, level=logging.INFO, encoding=&#39;utf-8&#39;)</span>
+        <span class="c1"># logging.info(&quot;Session created&quot;)</span>
+
+<div class="viewcode-block" id="Session.verify">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure all graphs are valid.</span>
+<span class="sd">        Execute this method prior data collection to mitigate potential</span>
+<span class="sd">        crashes due to invalid processing graph construction.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Verifying session...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">i_g</span><span class="p">,</span> <span class="n">g_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Verifying graph </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i_g</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">)))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">[</span><span class="n">g_id</span><span class="p">]</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Graph </span><span class="si">{</span><span class="n">i_g</span><span class="si">}</span><span class="s2"> failed verification. &quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;Please check graph definition. &quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;See traceback for more information.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">free_temp_data</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Session.initialize">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.initialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize all graphs in the session</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing graphs...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_g</span><span class="p">,</span> <span class="n">g_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Initializing graph </span><span class="si">{}</span><span class="s2"> of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i_g</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                                                         <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">)))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">[</span><span class="n">g_id</span><span class="p">]</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Graph </span><span class="si">{</span><span class="n">i_g</span><span class="si">}</span><span class="s2"> failed initialization. &quot;</span> <span class="o">+</span>
+                                    <span class="s2">&quot;Please check graph definition. &quot;</span> <span class="o">+</span>
+                                    <span class="s2">&quot;See traceback for more information.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">free_temp_data</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Session.poll_volatile_channels">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.poll_volatile_channels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">poll_volatile_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the contents of all volatile data streams</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : str, optional</span>
+<span class="sd">            Label for the current trial. The default is None.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; session.poll_volatile_channels()</span>
+
+<span class="sd">.. warning::</span>
+<span class="sd">    For Developers: may need to add an input parameter with some timing</span>
+<span class="sd">    information to indicate how each data object should be synced</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">volatile</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">poll_volatile_data</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Session.push_volatile_outputs">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.push_volatile_outputs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">push_volatile_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push outputs to volatile sources</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        label : str, optional</span>
+<span class="sd">            Label for the current trial. The default is None.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; session.push_volatile_outputs()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">volatile_out</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">push_volatile_outputs</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Session.add_graph">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.add_graph">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a graph to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        graph : Graph</span>
+<span class="sd">            Graph to add to the session</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; session.add_graph(graph)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verified</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">[</span><span class="n">graph</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">graph</span></div>
+
+        <span class="c1"># logging.info(&quot;Graph added to session&quot;)</span>
+
+<div class="viewcode-block" id="Session.add_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.add_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a data object to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : Tensor or Scalar or Array or CircleBuffer</span>
+<span class="sd">            Data object to add</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; session.add_data(data)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="Session.add_misc_mp_obj">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.add_misc_mp_obj">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_misc_mp_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a misc MindPype object to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        any MindPype object : MPBase</span>
+<span class="sd">            MindPype object to add</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; session.add_misc_mp_obj(obj)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span></div>
+
+
+<div class="viewcode-block" id="Session.add_ext_src">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.add_ext_src">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_ext_src</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an external source to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        src : LSLStream, CircleBuffer, or other external source</span>
+<span class="sd">            External source to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span></div>
+
+
+<div class="viewcode-block" id="Session.add_ext_out">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.add_ext_out">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_ext_out</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an external outlet to the session</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        src : OutputLSLStream, CircleBuffer, or other external outlet</span>
+<span class="sd">            External outlet to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ext_out</span><span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">session_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span></div>
+
+
+<div class="viewcode-block" id="Session.find_obj">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.find_obj">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_num</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Search for and return a MindPype object within the session with a</span>
+<span class="sd">        specific ID number</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        id_num : int</span>
+<span class="sd">            ID number of the object to find</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MindPype object : MPBase</span>
+<span class="sd">            MindPype object with the specified ID number</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># check if the ID is the session itself</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="c1"># check if its a data obj</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">id_num</span><span class="p">]</span>
+
+        <span class="c1"># check if its a misc obj</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_misc_objs</span><span class="p">[</span><span class="n">id_num</span><span class="p">]</span>
+
+        <span class="c1"># check if its a external source</span>
+        <span class="k">if</span> <span class="n">id_num</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ext_srcs</span><span class="p">[</span><span class="n">id_num</span><span class="p">]</span>
+
+        <span class="c1"># not found, return None type</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_session</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">additional_params</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the session object and all of its contents to a file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file : str</span>
+<span class="sd">            File path to save the session to</span>
+<span class="sd">        additional_params : dict, optional</span>
+<span class="sd">            Additional parameters to save with the session. The default</span>
+<span class="sd">            is None.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Pickle object : Pickle</span>
+<span class="sd">            Pickle object containing the session and all of its contents</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_object</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">additional_params</span> <span class="k">if</span> <span class="n">additional_params</span> <span class="k">else</span> <span class="p">{}</span>
+
+        <span class="n">output</span><span class="p">[</span><span class="s1">&#39;pipeline&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_object</span>
+
+        <span class="n">sfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">sfile</span><span class="p">)</span>
+        <span class="n">sfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">output</span>
+
+<div class="viewcode-block" id="Session.free_unreferenced_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.free_unreferenced_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">free_unreferenced_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Free all data objects that are no longer in use</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keys_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">getrefcount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">keys_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">keys_to_remove</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_datum</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Session.create">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.core.Session.create">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new session object</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        New session object : Session</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nicolas Ivanov, Aaron Lio, Maddie Wong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
