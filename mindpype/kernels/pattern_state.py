@@ -640,9 +640,15 @@ class MultiPotatoClustering(
         y = self.predict(X)
 
         # update the potato models
-        for i, potato in enumerate(self._state_models):
-            X_i = X[y == i]
-            potato.partial_fit(X_i, alpha)
+        for i, pt in enumerate(self._state_models):
+            #X_i = X[y == i]
+            #potato.partial_fit(X_i, alpha)
+            Xm = pyriemann.utils.mean.mean_riemann(X[y==i])
+            pt._mdm.covmeans_[0] = pyriemann.utils.geodesic.geodesic(pt._mdm.covmeans_[0], Xm, alpha=alpha)
+            d = np.log(np.array([pyriemann.utils.distance.distance_riemann(pt._mdm.covmeans_[0], Xx) for Xx in X[y==i]]))
+            pt._mean = (1-alpha)*pt._mean + alpha*np.mean(d)
+            pt._std = ((1-alpha)*pt._std**2 + alpha*np.mean((d-pt._mean)**2)) ** (1/2)
+
 
         return self
 

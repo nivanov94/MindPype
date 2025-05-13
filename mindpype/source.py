@@ -729,6 +729,8 @@ class InputLSLStream(MPBase):
                         )
                     time.sleep(0.1)
 
+            t_begin += self.relative_start
+
         else:
             # marker-uncoupled stream, determine the start time based on the interval attribute
             if self._data_buffer["time_series"] is not None:
@@ -743,7 +745,6 @@ class InputLSLStream(MPBase):
             else:
                 t_begin = 0  # i.e. all data is valid
 
-        t_begin += self.relative_start
 
         # pull the data in chunks until we get the total number of samples
         samples_polled = 0
