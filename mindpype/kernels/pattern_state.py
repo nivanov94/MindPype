@@ -304,6 +304,21 @@ class PatternStateKernel(Kernel):
             )
         self._n_clusters -= 1
 
+    def dump_mdl_to_file(self, file_path):
+        """
+        Save the clustering model to a file.
+
+        Parameters
+        ----------
+        file_path : str
+            Path to the file where the model will be saved.
+        """
+        import pickle
+        # save the model to a file
+        mdl = self._mod
+        with open(file_path, 'wb') as f:
+            pickle.dump(mdl, f, protocol=pickle.HIGHEST_PROTOCOL)
+
     @classmethod
     def add_to_graph(
         cls, graph, inA, outA=None, outB=None,
@@ -485,6 +500,7 @@ class MultiPotatoClustering(
         self.space = space
         self.scale = scale,
         self._state_models = []
+        self._km = None
 
 
     def fit(self, X, y=None):
@@ -499,6 +515,7 @@ class MultiPotatoClustering(
             Not used. Here for compatibility with sklearn API.        
         """
         self._state_models = []
+        self._km = None
 
         # first use KMeans to define the initial set of clusters
         if self.space == 'tangent_space':
@@ -506,17 +523,19 @@ class MultiPotatoClustering(
             km_pipe.append(('tangent', pyriemann.tangentspace.TangentSpace()))
             if self.scale:
                 km_pipe.append(('scaler', sklearn.preprocessing.StandardScaler()))
-            km_pipe.append(('clustering', sklearn.cluster.KMeans(n_clusters=self.n_clusters)))
-            km = sklearn.pipeline.Pipeline(km_pipe)
+            km_pipe.append(('clustering', sklearn.cluster.KMeans(n_clusters=self.n_clusters, random_state=7164425)))
+            self._km = sklearn.pipeline.Pipeline(km_pipe)
         else:
-            km = pyriemann.clustering.Kmeans(n_clusters=self.n_clusters)
-            
-        km.fit(X)
+            self._km = pyriemann.clustering.Kmeans(n_clusters=self.n_clusters)
+
+        print(f"Fitting KMeans with {self.n_clusters} clusters")
+        self._km.fit(X)
+        labels = self._km.predict(X)
 
         # create a set of Riemannian Potato models
         for i in range(self.n_clusters):
             # extract the data for the i-th cluster
-            X_i = X[km[-1].labels_ == i]
+            X_i = X[labels == i]
 
             # create a Potato model for the i-th cluster
             potato = pyriemann.clustering.Potato(threshold=self.threshold)
@@ -524,7 +543,6 @@ class MultiPotatoClustering(
 
             self._state_models.append(potato)
 
-        self.is_fitted_ = True
         return self
     
 
@@ -542,12 +560,14 @@ class MultiPotatoClustering(
         y : array-like
             Predicted class labels
         """
-        dists = self.transform(X)
+        zdists, rdists = self.transform(X)
 
         # check if any samples should be classified to
         # the outlier class
-        min_dists = np.min(dists, axis=1)
-        y = np.argmin(dists, axis=1)
+        rdists[zdists > self.threshold] = np.inf
+        #min_dists = np.min(zdists, axis=1)
+        y = np.argmin(rdists, axis=1)
+        min_dists = np.array([zdists[i, y[i]] for i in range(X.shape[0])])
         y[min_dists > self.threshold] = self.n_clusters
 
         return y
@@ -559,7 +579,7 @@ class MultiPotatoClustering(
         NOTE: The probability of the outlier class is not
         computed.
         """
-        dists = self.transform(X)
+        dists, _ = self.transform(X)
         # compute softmax based on negative distances
         probs = np.exp(-dists) / np.sum(np.exp(-dists), axis=1)[:, np.newaxis]
         
@@ -582,14 +602,21 @@ class MultiPotatoClustering(
         dists : array-like
             Distance of the input data to each of the potato models
         """
-        dists = np.zeros((X.shape[0], self.n_clusters))
+        zdists = np.zeros((X.shape[0], self.n_clusters))
+        rdists = np.zeros((X.shape[0], self.n_clusters))
 
         # compute the distance of the input data to each of the 
         # potato models
         for i, potato in enumerate(self._state_models):
-            dists[:,i] = potato.transform(X)
+            zdists[:,i] = potato.transform(X)
+            for j, xj in enumerate(X):
+                rdists[j,i] = pyriemann.utils.distance.distance_riemann(
+                    xj, potato._mdm.covmeans_[0]
+                )
 
-        return dists
+        
+        #print(f"Potato state distances: {dists}")
+        return zdists, rdists
     
 
     def update(self, X, alpha=0.1):
