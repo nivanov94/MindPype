@@ -706,6 +706,8 @@ class InputLSLStream(MPBase):
                 # reset the epochs polled counter
                 self._epochs_polled = 0
 
+        print(f"Poll_marker: {poll_marker}")
+
         if poll_marker:
             # start by getting the timestamp for this trial's marker
             t_begin = None
@@ -729,6 +731,7 @@ class InputLSLStream(MPBase):
                         )
                     time.sleep(0.1)
 
+            print(f"Marker: {marker}, Time: {t_begin}")
             t_begin += self.relative_start
 
         else:
@@ -745,6 +748,8 @@ class InputLSLStream(MPBase):
             else:
                 t_begin = 0  # i.e. all data is valid
 
+            print(f"No marker, Time: {t_begin}")
+
 
         # pull the data in chunks until we get the total number of samples
         samples_polled = 0
@@ -757,6 +762,7 @@ class InputLSLStream(MPBase):
 
             # Find the number of samples in the buffer that are valid
             samples_polled = np.sum(valid_indices)
+            print(f"Samples polled from buffer: {samples_polled}")
 
             # discard old data
             self._data_buffer["time_series"] = self._data_buffer["time_series"][:, valid_indices]
@@ -953,6 +959,8 @@ class InputLSLStream(MPBase):
                     buf["time_series"] = buf["time_series"][:, valid_indices]
                     buf["time_stamps"] = buf["time_stamps"][valid_indices]
         
+        if self.mode == 'epoched':
+            self._epochs_polled = 0
 
         if time_cutoff is None:
             # flush the inlet streams
