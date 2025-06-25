@@ -23,7 +23,7 @@ class ClassifierKernelUnitTest:
         init_labels = mp.Tensor.create_from_data(self.__session, init_labels_data)
         node = mp.kernels.ClassifierKernel.add_to_graph(self.__graph,inTensor,mp_clsf,predictions,num_classes=num_classes,initialization_data=init_tensor,labels=init_labels)
         self.__graph.verify()
-        self.__graph.initialize(init_tensor, init_labels)
+        self.__graph.initialize()
         self.__graph.execute()
         return predictions.data
 

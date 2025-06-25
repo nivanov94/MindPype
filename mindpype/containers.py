@@ -1115,7 +1115,7 @@ class Array(MPBase):
                 f"Index {index} out of bounds for Array with "
                 f"capacity {self.capacity}."
             )
-        element.copy_to(self._elements[index])
+        element.copy_to(self.elements[index])
 
     @property
     def num_elements(self):
@@ -1434,7 +1434,7 @@ class CircleBuffer(Array):
         bool
             True if circle buffer is full, False otherwise.
         """
-        if self._head == ((self._tail + 1) % self._capacity):
+        if self._head == ((self._tail + 1) % self.capacity):
             return True
         else:
             return False

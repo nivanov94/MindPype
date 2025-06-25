@@ -696,7 +696,7 @@ class Graph(MPBase):
         # check the execution order of the subset of nodes
         node_execution_position = np.zeros((len(cv_node_subset),))
         for index, n in enumerate(cv_node_subset):
-            for position, nn in enumerate(self._nodes):
+            for position, nn in enumerate(self.nodes):
                 if nn.session_id == n.session_id:
                     node_execution_position[index] = position
                     break
