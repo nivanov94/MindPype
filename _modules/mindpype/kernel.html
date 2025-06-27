@@ -1,0 +1,850 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mindpype.kernel &mdash; mindpype 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mindpype
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Getting Started with MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../before.html">Before Using MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../BasicSetup.html">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../AdvancedSetup.html">Advanced Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.html">MindPype Package Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.kernels.html">List of available kernels</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mindpype</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mindpype.kernel</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mindpype.kernel</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPBase</span><span class="p">,</span> <span class="n">MPEnums</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABC</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<div class="viewcode-block" id="Kernel">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Kernel</span><span class="p">(</span><span class="n">MPBase</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An abstract base class for kernels. Only used by developers loooking to extend the library.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the kernel</span>
+<span class="sd">    init_style : MPEnums Object</span>
+<span class="sd">        Kernel initialization style, according to MPEnum class</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the kernel</span>
+<span class="sd">    init_style : MPEnums Object</span>
+<span class="sd">        Kernel initialization style, according to BcipEnum class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">init_style</span><span class="p">,</span> <span class="n">graph</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor for the Kernel class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">session</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">KERNEL</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_style</span> <span class="o">=</span> <span class="n">init_style</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_classes</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_input_labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_output_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># phony inputs and outputs for verification</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_inputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_outputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_inputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_outputs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_input_labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_output_labels</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># tuple to define which inputs must be covariance matrices</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_covariance_inputs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># API Getters</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_input_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the labels for the initialization inputs</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _init_input_labels : list</span>
+<span class="sd">            The labels for the initialization inputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_input_labels</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_output_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the labels for the initialization outputs</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _init_output_labels : list</span>
+<span class="sd">            The labels for the initialization outputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_output_labels</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phony_init_input_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the labels for the phony initialization inputs</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _phony_init_input_labels : list</span>
+<span class="sd">            The labels for the initialization inputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_input_labels</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phony_init_output_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the labels for the phony initialization outputs</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _phony_init_output_labels : list</span>
+<span class="sd">            The labels for the initialization outputs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_output_labels</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the inputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _inputs : list</span>
+<span class="sd">            The inputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the outputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _outputs : list</span>
+<span class="sd">            The outputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the inputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _init_inputs : list</span>
+<span class="sd">            The inputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the outputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _init_outputs : list</span>
+<span class="sd">            The outputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phony_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the phony inputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _phony_inputs : list</span>
+<span class="sd">            The phony inputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phony_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the phony outputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _phony_outputs : list</span>
+<span class="sd">            The phony outputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_outputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phony_init_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the phony inputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _phony_init_inputs : list</span>
+<span class="sd">            The phony inputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phony_init_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the phony outputs of the kernel</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _phony_init_outputs : list</span>
+<span class="sd">            The phony outputs of the kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_outputs</span>
+
+    <span class="nd">@init_input_labels</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_input_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the labels for the initialization inputs</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        labels : list</span>
+<span class="sd">            The list of labels to be set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_input_labels</span> <span class="o">=</span> <span class="n">labels</span>
+
+    <span class="nd">@init_output_labels</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_output_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the labels for the initialization outputs</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        labels : list</span>
+<span class="sd">            The list of labels to be set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_output_labels</span> <span class="o">=</span> <span class="n">labels</span>
+
+    <span class="nd">@inputs</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the inputs of the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputs : list</span>
+<span class="sd">            The list of inputs to be set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span> <span class="o">=</span> <span class="n">inputs</span>
+
+        <span class="c1"># update init_inputs so the length matches inputs</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span><span class="p">)))</span>
+
+    <span class="nd">@outputs</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the outputs of the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        outputs : list</span>
+<span class="sd">            The list of outputs to be set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="n">outputs</span>
+
+        <span class="c1"># update init_outputs so the length matches outputs</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span><span class="p">)))</span>
+
+    <span class="nd">@init_inputs</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the initialization inputs of the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inputs : list</span>
+<span class="sd">            The list of inputs to be set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span> <span class="o">=</span> <span class="n">inputs</span>
+
+    <span class="nd">@init_outputs</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the initialization outputs of the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        outputs : list</span>
+<span class="sd">            The list of outputs to be set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span> <span class="o">=</span> <span class="n">outputs</span>
+
+    <span class="nd">@phony_init_input_labels</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phony_init_input_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the labels for the phony initialization inputs</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        labels : list</span>
+<span class="sd">            The list of labels to be set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_input_labels</span> <span class="o">=</span> <span class="n">labels</span>
+
+    <span class="c1"># INPUT and OUTPUT getter methods</span>
+<div class="viewcode-block" id="Kernel.get_input">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.get_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the input at the specified index</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the input to be returned</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _inputs[index] : Object</span>
+<span class="sd">            The input at the specified index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Kernel.get_output">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.get_output">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the output at the specified index</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the output to be returned</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _outputs[index] : Object</span>
+<span class="sd">            The output at the specified index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Kernel.get_init_input">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.get_init_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_init_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the input at the specified index</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the input to be returned</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _init_inputs[index] : Object</span>
+<span class="sd">            The input at the specified index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_inputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Kernel.get_init_output">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.get_init_output">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_init_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the output at the specified index</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index of the output to be returned</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        _init_outputs[index] : Object</span>
+<span class="sd">            The output at the specified index</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_outputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Kernel.add_phony_input">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.add_phony_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phony_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ph_input</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a phony input to the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ph_input : Object</span>
+<span class="sd">            The input to be added</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index at which the input is to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_inputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_input</span></div>
+
+
+<div class="viewcode-block" id="Kernel.add_phony_output">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.add_phony_output">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phony_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ph_output</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a phony output to the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ph_output : Object</span>
+<span class="sd">            The output to be added</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index at which the output is to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_outputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_output</span></div>
+
+
+<div class="viewcode-block" id="Kernel.add_phony_init_input">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.add_phony_init_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phony_init_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ph_input</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a phony initialization input to the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ph_input : Object</span>
+<span class="sd">            The input to be added</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index at which the input is to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_inputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_input</span></div>
+
+
+<div class="viewcode-block" id="Kernel.add_phony_init_output">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.add_phony_init_output">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_phony_init_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ph_output</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a phony initialization output to the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ph_output : Object</span>
+<span class="sd">            The output to be added</span>
+<span class="sd">        index : int</span>
+<span class="sd">            The index at which the output is to be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phony_init_outputs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">ph_output</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_copy_init_labels_to_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verification</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Copies the input labels from initialization to the output</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        verification: Bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verification</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_input_labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_input_labels</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_input_labels</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">verification</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_output_labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_output_labels</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_output_labels</span>
+
+        <span class="k">if</span> <span class="n">src</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># nothing to copy</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">!=</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">dst</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_virtual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">)</span>
+
+        <span class="n">src</span><span class="o">.</span><span class="n">copy_to</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Kernel.update_parameters">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.update_parameters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the kernel parameters</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kwargs : dict</span>
+<span class="sd">            Dictionary of parameters to be updated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">((</span><span class="s2">&quot;Kernel </span><span class="si">{}</span><span class="s2"> does not &quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;have parameter </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                                              <span class="n">parameter</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Kernel.verify">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Basic verification method that can be applied to all kernels.</span>
+<span class="sd">        Generates phony inputs and attemps to execute the kernel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Verifying kernel </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_verify&#39;</span><span class="p">):</span>
+            <span class="c1"># execute any kernel-specific verification</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_verify</span><span class="p">()</span>
+
+        <span class="c1"># extract verification inputs and outputs</span>
+        <span class="n">verif_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">verif_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">verif_io</span> <span class="o">=</span> <span class="p">(</span><span class="n">verif_inputs</span><span class="p">,</span> <span class="n">verif_outputs</span><span class="p">)</span>
+        <span class="n">io</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+        <span class="n">phony_io</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phony_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_outputs</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">verif_params</span><span class="p">,</span> <span class="n">phony_params</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">io</span><span class="p">,</span> <span class="n">verif_io</span><span class="p">,</span> <span class="n">phony_io</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i_p</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i_p</span> <span class="ow">in</span> <span class="n">phony_params</span><span class="p">:</span>
+                    <span class="c1"># use phony params if available</span>
+                    <span class="n">verif_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phony_params</span><span class="p">[</span><span class="n">i_p</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># otherwise use real virtual params</span>
+                    <span class="n">verif_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+        <span class="c1"># if the kernel requires initialization, extract phony init</span>
+        <span class="c1"># inputs and outputs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_verif_inits_exist</span><span class="p">():</span>
+            <span class="n">verif_init_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">verif_init_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">verif_init_io</span> <span class="o">=</span> <span class="p">(</span><span class="n">verif_init_inputs</span><span class="p">,</span> <span class="n">verif_init_outputs</span><span class="p">)</span>
+            <span class="n">init_io</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_outputs</span><span class="p">)</span>
+            <span class="n">phony_init_io</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phony_init_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_outputs</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">params</span><span class="p">,</span> <span class="n">verif_params</span><span class="p">,</span> <span class="n">phony_params</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">init_io</span><span class="p">,</span>
+                                                          <span class="n">verif_init_io</span><span class="p">,</span>
+                                                          <span class="n">phony_init_io</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i_p</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">i_p</span> <span class="ow">in</span> <span class="n">phony_params</span><span class="p">:</span>
+                        <span class="c1"># use phony params if available</span>
+                        <span class="n">verif_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phony_params</span><span class="p">[</span><span class="n">i_p</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># otherwise use real virtual params</span>
+                        <span class="n">verif_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_input_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">verif_init_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_input_labels</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">verif_init_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_input_labels</span>
+
+            <span class="c1"># adjust labels if needed</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_classes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">verif_init_labels</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">!=</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span><span class="p">:</span>
+                    <span class="n">verif_init_labels</span> <span class="o">=</span> <span class="n">verif_init_labels</span><span class="o">.</span><span class="n">to_tensor</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">verif_init_labels</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_classes</span><span class="p">:</span>
+                    <span class="n">verif_init_labels</span><span class="o">.</span><span class="n">assign_random_data</span><span class="p">(</span><span class="n">whole_numbers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                         <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                                         <span class="n">vmax</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_classes</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+            <span class="c1"># attempt initialization</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_initialize</span><span class="p">(</span><span class="n">verif_init_inputs</span><span class="p">,</span>
+                                 <span class="n">verif_init_outputs</span><span class="p">,</span>
+                                 <span class="n">verif_init_labels</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_copy_init_labels_to_output</span><span class="p">(</span><span class="n">verification</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Test initialization of node &quot;</span> <span class="o">+</span>
+                                  <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed during verification. &quot;</span> <span class="o">+</span>
+                                  <span class="s2">&quot;See trace for further details.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span>
+
+            <span class="c1"># set init output shapes using phony init outputs as needed</span>
+            <span class="k">for</span> <span class="n">init_output</span><span class="p">,</span> <span class="n">verif_init_output</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_outputs</span><span class="p">,</span>
+                                                      <span class="n">verif_init_outputs</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">init_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                        <span class="n">init_output</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">verif_init_output</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Test initialization of node &quot;</span> <span class="o">+</span>
+                                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed during &quot;</span> <span class="o">+</span>
+                                     <span class="s2">&quot;verification. Please check parameters.&quot;</span><span class="p">)</span>
+                
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_style</span> <span class="o">==</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">INIT_FROM_DATA</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> requires initialization &quot;</span> <span class="o">+</span>
+                             <span class="s2">&quot;data but none was provided&quot;</span><span class="p">)</span>
+
+        <span class="c1"># attempt kernel execution</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="n">verif_inputs</span><span class="p">,</span> <span class="n">verif_outputs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">additional_msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Test execution of node &quot;</span> <span class="o">+</span>
+                              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> failed during verification. &quot;</span> <span class="o">+</span>
+                              <span class="s2">&quot;See trace for further details.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+            <span class="k">raise</span>
+
+        <span class="c1"># set output shapes using phony outputs as needed</span>
+        <span class="k">for</span> <span class="n">output</span><span class="p">,</span> <span class="n">verif_output</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span> <span class="n">verif_outputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">mp_type</span> <span class="o">==</span> <span class="n">MPEnums</span><span class="o">.</span><span class="n">TENSOR</span> <span class="ow">and</span>
+                    <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">verif_output</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Test execution of node </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="o">+</span>
+                                 <span class="s2">&quot;failed during verification. Output &quot;</span> <span class="o">+</span>
+                                 <span class="s2">&quot;shape does not match expected value.&quot;</span> <span class="o">+</span>
+                                 <span class="s2">&quot;Please check parameters.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Kernel.initialize">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.initialize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_initialize&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">init_outputs</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">init_input_labels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_copy_init_labels_to_output</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Kernel.update">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update kernel</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_update&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">init_outputs</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">init_input_labels</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_copy_init_labels_to_output</span><span class="p">()</span></div>
+
+            
+
+<div class="viewcode-block" id="Kernel.execute">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.execute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Execute kernel to process data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_process_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_verif_inits_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the kernel has initialization inputs for verification</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">exist</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">i_i</span><span class="p">,</span> <span class="n">init_input</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i_i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_inputs</span> <span class="ow">and</span>
+                <span class="p">(</span><span class="n">init_input</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
+                 <span class="n">init_input</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">())):</span>
+                <span class="n">exist</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">exist</span>
+
+<div class="viewcode-block" id="Kernel.is_covariance_input">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.is_covariance_input">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_covariance_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns true if the parameter is a covariance input</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param: data object</span>
+<span class="sd">            data object to be check if is a covariance matrix</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool: True if the data object is a covariance matrix, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_covariance_inputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># kernel does not have covariance inputs</span>
+
+        <span class="c1"># search for the parameter in the inputs and init_inputs</span>
+        <span class="n">param_index</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">input_groups</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">)</span>
+        <span class="n">i_ig</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">param_index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i_ig</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_groups</span><span class="p">):</span>
+            <span class="n">input_group</span> <span class="o">=</span> <span class="n">input_groups</span><span class="p">[</span><span class="n">i_ig</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i_p</span><span class="p">,</span> <span class="n">candidate_param</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">input_group</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">candidate_param</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+                    <span class="n">param_index</span> <span class="o">=</span> <span class="n">i_p</span>
+                    <span class="k">break</span>
+            <span class="n">i_ig</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">param_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># search for the parameter in the phony inputs and</span>
+            <span class="c1"># phony init_inputs</span>
+            <span class="n">input_groups</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phony_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phony_init_inputs</span><span class="p">)</span>
+            <span class="n">i_ig</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">param_index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">i_ig</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_groups</span><span class="p">):</span>
+                <span class="n">input_group</span> <span class="o">=</span> <span class="n">input_groups</span><span class="p">[</span><span class="n">i_ig</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">i_p</span> <span class="ow">in</span> <span class="n">input_group</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">input_group</span><span class="p">[</span><span class="n">i_p</span><span class="p">]</span><span class="o">.</span><span class="n">session_id</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">session_id</span><span class="p">:</span>
+                        <span class="n">param_index</span> <span class="o">=</span> <span class="n">i_p</span>
+                        <span class="k">break</span>
+                <span class="n">i_ig</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">param_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_covariance_inputs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Kernel.add_initialization_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.kernel.Kernel.add_initialization_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_initialization_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_inputs</span><span class="p">,</span> <span class="n">init_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add initialization data to the kernel</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        init_data : list or tuple of data objects</span>
+<span class="sd">            MindPype container containing the initialization data</span>
+<span class="sd">        init_labels : data object containing initialization</span>
+<span class="sd">        labels, default = None</span>
+<span class="sd">            MindPype container containing the initialization labels</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">init_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_input_labels</span> <span class="o">=</span> <span class="n">init_labels</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span> <span class="o">=</span> <span class="n">init_inputs</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nicolas Ivanov, Aaron Lio, Maddie Wong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

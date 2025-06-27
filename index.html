@@ -1,0 +1,686 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to MindPype’s documentation! &mdash; mindpype 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2709fde1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started with MindPype" href="README.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            mindpype
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="before.html">Before Using MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="BasicSetup.html">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AdvancedSetup.html">Advanced Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mindpype.html">MindPype Package Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mindpype.kernels.html">List of available kernels</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">mindpype</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to MindPype’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-mindpype-s-documentation">
+<h1>Welcome to MindPype’s documentation!<a class="headerlink" href="#welcome-to-mindpype-s-documentation" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started with MindPype</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="README.html#what-is-mindpype">What is MindPype?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#why-use-mindpype">Why use MindPype?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#can-i-use-mindpype">Can I use MindPype?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#basic-structure-of-mindpype">Basic Structure of MindPype</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="before.html">Before Using MindPype</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="before.html#installing-pip">Installing Pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="before.html#installing-mindpype">Installing MindPype</a></li>
+<li class="toctree-l2"><a class="reference internal" href="before.html#installing-from-source">Installing from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="before.html#checking-the-installation">Checking the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="before.html#checking-requirements">Checking Requirements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="BasicSetup.html">Basic Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#creating-a-session">Creating a Session</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#creating-a-graph">Creating a Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#creating-input-data">Creating input data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#converting-data-to-mindpype-type">Converting data to MindPype type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#defining-outputs">Defining outputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#creating-nodes">Creating Nodes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#verifying-a-graph">Verifying a graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#initializing-the-graph">Initializing the graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#executing-a-graph">Executing a graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#execution-with-epochs-known-labels">Execution with epochs, known labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BasicSetup.html#execution-with-continuous-data-unknown-labels">Execution with continuous data, unknown labels</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="AdvancedSetup.html">Advanced Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="AdvancedSetup.html#adding-new-kernels">Adding new kernels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AdvancedSetup.html#other-functionality">Other functionality</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mindpype.html">MindPype Package Contents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.html#module-mindpype.core">Core Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.core.MPBase"><code class="docutils literal notranslate"><span class="pre">MPBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.MPBase.session_id"><code class="docutils literal notranslate"><span class="pre">MPBase.session_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.core.MPEnums"><code class="docutils literal notranslate"><span class="pre">MPEnums</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.core.Session"><code class="docutils literal notranslate"><span class="pre">Session</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.add_data"><code class="docutils literal notranslate"><span class="pre">Session.add_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.add_ext_out"><code class="docutils literal notranslate"><span class="pre">Session.add_ext_out()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.add_ext_src"><code class="docutils literal notranslate"><span class="pre">Session.add_ext_src()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.add_graph"><code class="docutils literal notranslate"><span class="pre">Session.add_graph()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.add_misc_mp_obj"><code class="docutils literal notranslate"><span class="pre">Session.add_misc_mp_obj()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.create"><code class="docutils literal notranslate"><span class="pre">Session.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.find_obj"><code class="docutils literal notranslate"><span class="pre">Session.find_obj()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.free_unreferenced_data"><code class="docutils literal notranslate"><span class="pre">Session.free_unreferenced_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.initialize"><code class="docutils literal notranslate"><span class="pre">Session.initialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.poll_volatile_channels"><code class="docutils literal notranslate"><span class="pre">Session.poll_volatile_channels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.push_volatile_outputs"><code class="docutils literal notranslate"><span class="pre">Session.push_volatile_outputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.core.Session.verify"><code class="docutils literal notranslate"><span class="pre">Session.verify()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.html#module-mindpype.containers">Data Containers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.containers.Array"><code class="docutils literal notranslate"><span class="pre">Array</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.virtual"><code class="docutils literal notranslate"><span class="pre">Array.virtual</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.volatile"><code class="docutils literal notranslate"><span class="pre">Array.volatile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.capacity"><code class="docutils literal notranslate"><span class="pre">Array.capacity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array._elements"><code class="docutils literal notranslate"><span class="pre">Array._elements</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.assign_random_data"><code class="docutils literal notranslate"><span class="pre">Array.assign_random_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#id0"><code class="docutils literal notranslate"><span class="pre">Array.capacity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.copy_to"><code class="docutils literal notranslate"><span class="pre">Array.copy_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.create"><code class="docutils literal notranslate"><span class="pre">Array.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.get_element"><code class="docutils literal notranslate"><span class="pre">Array.get_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.make_copy"><code class="docutils literal notranslate"><span class="pre">Array.make_copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.num_elements"><code class="docutils literal notranslate"><span class="pre">Array.num_elements</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.set_element"><code class="docutils literal notranslate"><span class="pre">Array.set_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Array.to_tensor"><code class="docutils literal notranslate"><span class="pre">Array.to_tensor()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer"><code class="docutils literal notranslate"><span class="pre">CircleBuffer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.mp_type"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.mp_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.head"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.head</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.tail"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.tail</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.assign_random_data"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.assign_random_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.copy_to"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.copy_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.create"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.dequeue"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.dequeue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.enqueue"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.enqueue()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.enqueue_chunk"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.enqueue_chunk()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.flush"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.flush()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.get_queued_element"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.get_queued_element()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.is_empty"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.is_empty()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.is_full"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.is_full()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.make_copy"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.make_copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.num_elements"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.num_elements</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.peek"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.peek()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.CircleBuffer.to_tensor"><code class="docutils literal notranslate"><span class="pre">CircleBuffer.to_tensor()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar"><code class="docutils literal notranslate"><span class="pre">Scalar</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.data_type"><code class="docutils literal notranslate"><span class="pre">Scalar.data_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.data"><code class="docutils literal notranslate"><span class="pre">Scalar.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.is_virtual"><code class="docutils literal notranslate"><span class="pre">Scalar.is_virtual</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.ext_src"><code class="docutils literal notranslate"><span class="pre">Scalar.ext_src</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.volatile"><code class="docutils literal notranslate"><span class="pre">Scalar.volatile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.assign_random_data"><code class="docutils literal notranslate"><span class="pre">Scalar.assign_random_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.copy_to"><code class="docutils literal notranslate"><span class="pre">Scalar.copy_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.create"><code class="docutils literal notranslate"><span class="pre">Scalar.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.create_from_source"><code class="docutils literal notranslate"><span class="pre">Scalar.create_from_source()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.create_from_value"><code class="docutils literal notranslate"><span class="pre">Scalar.create_from_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.create_virtual"><code class="docutils literal notranslate"><span class="pre">Scalar.create_virtual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#id1"><code class="docutils literal notranslate"><span class="pre">Scalar.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.make_copy"><code class="docutils literal notranslate"><span class="pre">Scalar.make_copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.poll_volatile_data"><code class="docutils literal notranslate"><span class="pre">Scalar.poll_volatile_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Scalar.push_volatile_outputs"><code class="docutils literal notranslate"><span class="pre">Scalar.push_volatile_outputs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor"><code class="docutils literal notranslate"><span class="pre">Tensor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.shape"><code class="docutils literal notranslate"><span class="pre">Tensor.shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.virtual"><code class="docutils literal notranslate"><span class="pre">Tensor.virtual</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.ext_src"><code class="docutils literal notranslate"><span class="pre">Tensor.ext_src</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.ext_out"><code class="docutils literal notranslate"><span class="pre">Tensor.ext_out</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.data"><code class="docutils literal notranslate"><span class="pre">Tensor.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.volatile"><code class="docutils literal notranslate"><span class="pre">Tensor.volatile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.assign_random_data"><code class="docutils literal notranslate"><span class="pre">Tensor.assign_random_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.copy_to"><code class="docutils literal notranslate"><span class="pre">Tensor.copy_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.create"><code class="docutils literal notranslate"><span class="pre">Tensor.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.create_from_data"><code class="docutils literal notranslate"><span class="pre">Tensor.create_from_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.create_from_handle"><code class="docutils literal notranslate"><span class="pre">Tensor.create_from_handle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.create_virtual"><code class="docutils literal notranslate"><span class="pre">Tensor.create_virtual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#id2"><code class="docutils literal notranslate"><span class="pre">Tensor.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.make_copy"><code class="docutils literal notranslate"><span class="pre">Tensor.make_copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.poll_volatile_data"><code class="docutils literal notranslate"><span class="pre">Tensor.poll_volatile_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.containers.Tensor.push_volatile_outputs"><code class="docutils literal notranslate"><span class="pre">Tensor.push_volatile_outputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#id3"><code class="docutils literal notranslate"><span class="pre">Tensor.shape</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.html#module-mindpype.graph">Graphs - The Processing Pipelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph"><code class="docutils literal notranslate"><span class="pre">Graph</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph._nodes"><code class="docutils literal notranslate"><span class="pre">Graph._nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph._verified"><code class="docutils literal notranslate"><span class="pre">Graph._verified</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph._sess"><code class="docutils literal notranslate"><span class="pre">Graph._sess</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph._volatile_sources"><code class="docutils literal notranslate"><span class="pre">Graph._volatile_sources</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph._volatile_outputs"><code class="docutils literal notranslate"><span class="pre">Graph._volatile_outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.add_node"><code class="docutils literal notranslate"><span class="pre">Graph.add_node()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.create"><code class="docutils literal notranslate"><span class="pre">Graph.create()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.cross_validate"><code class="docutils literal notranslate"><span class="pre">Graph.cross_validate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.execute"><code class="docutils literal notranslate"><span class="pre">Graph.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.initialize"><code class="docutils literal notranslate"><span class="pre">Graph.initialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.set_default_init_data"><code class="docutils literal notranslate"><span class="pre">Graph.set_default_init_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.update"><code class="docutils literal notranslate"><span class="pre">Graph.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Graph.verify"><code class="docutils literal notranslate"><span class="pre">Graph.verify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.graph.Node"><code class="docutils literal notranslate"><span class="pre">Node</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node.kernel"><code class="docutils literal notranslate"><span class="pre">Node.kernel</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node._params"><code class="docutils literal notranslate"><span class="pre">Node._params</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node.add_initialization_data"><code class="docutils literal notranslate"><span class="pre">Node.add_initialization_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node.extract_inputs"><code class="docutils literal notranslate"><span class="pre">Node.extract_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node.extract_outputs"><code class="docutils literal notranslate"><span class="pre">Node.extract_outputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node.initialize"><code class="docutils literal notranslate"><span class="pre">Node.initialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node.update_parameters"><code class="docutils literal notranslate"><span class="pre">Node.update_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.graph.Node.verify"><code class="docutils literal notranslate"><span class="pre">Node.verify()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.graph.Parameter"><code class="docutils literal notranslate"><span class="pre">Parameter</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.html#module-mindpype.source">External Data Sources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.data_buffer"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.data_buffer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.data_inlet"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.data_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.marker_inlet"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.marker_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.marker_pattern"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.marker_pattern</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.channels"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.TODO"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.TODO</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.MAX_NULL_READS"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.MAX_NULL_READS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.create_marker_coupled_data_stream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.create_marker_coupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.create_marker_uncoupled_data_stream"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.create_marker_uncoupled_data_stream()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.last_marker"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.last_marker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.peek_marker"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.peek_marker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.poll_data"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.poll_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputLSLStream.update_input_streams"><code class="docutils literal notranslate"><span class="pre">InputLSLStream.update_input_streams()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile"><code class="docutils literal notranslate"><span class="pre">InputXDFFile</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.files"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.files</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.relative_start"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.relative_start</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.Ns"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.Ns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.tasks"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.tasks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.channels"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.mode"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.mode</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.stream_type"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.stream_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.create_continuous"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.create_continuous()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.create_epoched"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.create_epoched()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.load_into_tensors"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.load_into_tensors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.InputXDFFile.poll_data"><code class="docutils literal notranslate"><span class="pre">InputXDFFile.poll_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.source.OutputLSLStream"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.OutputLSLStream.check_status"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.check_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.OutputLSLStream.create_outlet"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.create_outlet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.source.OutputLSLStream.push_data"><code class="docutils literal notranslate"><span class="pre">OutputLSLStream.push_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.html#module-mindpype.kernel">Kernel Base Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel"><code class="docutils literal notranslate"><span class="pre">Kernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.name"><code class="docutils literal notranslate"><span class="pre">Kernel.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.init_style"><code class="docutils literal notranslate"><span class="pre">Kernel.init_style</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.add_initialization_data"><code class="docutils literal notranslate"><span class="pre">Kernel.add_initialization_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.add_phony_init_input"><code class="docutils literal notranslate"><span class="pre">Kernel.add_phony_init_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.add_phony_init_output"><code class="docutils literal notranslate"><span class="pre">Kernel.add_phony_init_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.add_phony_input"><code class="docutils literal notranslate"><span class="pre">Kernel.add_phony_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.add_phony_output"><code class="docutils literal notranslate"><span class="pre">Kernel.add_phony_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.execute"><code class="docutils literal notranslate"><span class="pre">Kernel.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.get_init_input"><code class="docutils literal notranslate"><span class="pre">Kernel.get_init_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.get_init_output"><code class="docutils literal notranslate"><span class="pre">Kernel.get_init_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.get_input"><code class="docutils literal notranslate"><span class="pre">Kernel.get_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.get_output"><code class="docutils literal notranslate"><span class="pre">Kernel.get_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.init_input_labels"><code class="docutils literal notranslate"><span class="pre">Kernel.init_input_labels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.init_inputs"><code class="docutils literal notranslate"><span class="pre">Kernel.init_inputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.init_output_labels"><code class="docutils literal notranslate"><span class="pre">Kernel.init_output_labels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.init_outputs"><code class="docutils literal notranslate"><span class="pre">Kernel.init_outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.initialize"><code class="docutils literal notranslate"><span class="pre">Kernel.initialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.inputs"><code class="docutils literal notranslate"><span class="pre">Kernel.inputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.is_covariance_input"><code class="docutils literal notranslate"><span class="pre">Kernel.is_covariance_input()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.outputs"><code class="docutils literal notranslate"><span class="pre">Kernel.outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.phony_init_input_labels"><code class="docutils literal notranslate"><span class="pre">Kernel.phony_init_input_labels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.phony_init_inputs"><code class="docutils literal notranslate"><span class="pre">Kernel.phony_init_inputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.phony_init_output_labels"><code class="docutils literal notranslate"><span class="pre">Kernel.phony_init_output_labels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.phony_init_outputs"><code class="docutils literal notranslate"><span class="pre">Kernel.phony_init_outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.phony_inputs"><code class="docutils literal notranslate"><span class="pre">Kernel.phony_inputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.phony_outputs"><code class="docutils literal notranslate"><span class="pre">Kernel.phony_outputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.update"><code class="docutils literal notranslate"><span class="pre">Kernel.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.update_parameters"><code class="docutils literal notranslate"><span class="pre">Kernel.update_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.kernel.Kernel.verify"><code class="docutils literal notranslate"><span class="pre">Kernel.verify()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.html#module-mindpype.classifier">MindPype Classifier Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier"><code class="docutils literal notranslate"><span class="pre">Classifier</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier.ctype"><code class="docutils literal notranslate"><span class="pre">Classifier.ctype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier.classifier"><code class="docutils literal notranslate"><span class="pre">Classifier.classifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier.create_LDA"><code class="docutils literal notranslate"><span class="pre">Classifier.create_LDA()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier.create_SVM"><code class="docutils literal notranslate"><span class="pre">Classifier.create_SVM()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier.create_custom_classifier"><code class="docutils literal notranslate"><span class="pre">Classifier.create_custom_classifier()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier.create_logistic_regression"><code class="docutils literal notranslate"><span class="pre">Classifier.create_logistic_regression()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.classifier.Classifier.ctypes"><code class="docutils literal notranslate"><span class="pre">Classifier.ctypes</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.html#module-mindpype.filter">MindPype Filter Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter"><code class="docutils literal notranslate"><span class="pre">Filter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.ftype"><code class="docutils literal notranslate"><span class="pre">Filter.ftype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.btype"><code class="docutils literal notranslate"><span class="pre">Filter.btype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.implementation"><code class="docutils literal notranslate"><span class="pre">Filter.implementation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.fs"><code class="docutils literal notranslate"><span class="pre">Filter.fs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.crit_frqs"><code class="docutils literal notranslate"><span class="pre">Filter.crit_frqs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.coeffs"><code class="docutils literal notranslate"><span class="pre">Filter.coeffs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.btypes"><code class="docutils literal notranslate"><span class="pre">Filter.btypes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.create_bessel"><code class="docutils literal notranslate"><span class="pre">Filter.create_bessel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.create_butter"><code class="docutils literal notranslate"><span class="pre">Filter.create_butter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.create_cheby1"><code class="docutils literal notranslate"><span class="pre">Filter.create_cheby1()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.create_cheby2"><code class="docutils literal notranslate"><span class="pre">Filter.create_cheby2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.create_ellip"><code class="docutils literal notranslate"><span class="pre">Filter.create_ellip()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.create_fir"><code class="docutils literal notranslate"><span class="pre">Filter.create_fir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.ftypes"><code class="docutils literal notranslate"><span class="pre">Filter.ftypes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.html#mindpype.filter.Filter.implementations"><code class="docutils literal notranslate"><span class="pre">Filter.implementations</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mindpype.kernels.html">List of available kernels</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.arithmetic">Arithmetic Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.AbsoluteKernel"><code class="docutils literal notranslate"><span class="pre">AbsoluteKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.AbsoluteKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">AbsoluteKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.AdditionKernel"><code class="docutils literal notranslate"><span class="pre">AdditionKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.AdditionKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">AdditionKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.DivisionKernel"><code class="docutils literal notranslate"><span class="pre">DivisionKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.DivisionKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">DivisionKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.LogKernel"><code class="docutils literal notranslate"><span class="pre">LogKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.LogKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">LogKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.MultiplicationKernel"><code class="docutils literal notranslate"><span class="pre">MultiplicationKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.MultiplicationKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">MultiplicationKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.SubtractionKernel"><code class="docutils literal notranslate"><span class="pre">SubtractionKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.arithmetic.SubtractionKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">SubtractionKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.baseline_correction">Baseline Correction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.baseline_correction.BaselineCorrectionKernel"><code class="docutils literal notranslate"><span class="pre">BaselineCorrectionKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.baseline_correction.BaselineCorrectionKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">BaselineCorrectionKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.classifier">Classifier</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.classifier.ClassifierKernel"><code class="docutils literal notranslate"><span class="pre">ClassifierKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.classifier.ClassifierKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ClassifierKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.csp">Common Spatial Pattern (CSP)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.csp.CommonSpatialPatternKernel"><code class="docutils literal notranslate"><span class="pre">CommonSpatialPatternKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.csp.CommonSpatialPatternKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">CommonSpatialPatternKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.datamgmt">Data Management/Manipulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.ConcatenationKernel"><code class="docutils literal notranslate"><span class="pre">ConcatenationKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.ConcatenationKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ConcatenationKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.EnqueueKernel"><code class="docutils literal notranslate"><span class="pre">EnqueueKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.EnqueueKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">EnqueueKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.ExtractKernel"><code class="docutils literal notranslate"><span class="pre">ExtractKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.ExtractKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ExtractKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.ReshapeKernel"><code class="docutils literal notranslate"><span class="pre">ReshapeKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.ReshapeKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ReshapeKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.StackKernel"><code class="docutils literal notranslate"><span class="pre">StackKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.StackKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">StackKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.TensorStackKernel"><code class="docutils literal notranslate"><span class="pre">TensorStackKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.datamgmt.TensorStackKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">TensorStackKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.epoch">Epoch</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.epoch.EpochKernel"><code class="docutils literal notranslate"><span class="pre">EpochKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.epoch.EpochKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">EpochKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.feature_normalization">Feature Normalization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.feature_normalization.FeatureNormalizationKernel"><code class="docutils literal notranslate"><span class="pre">FeatureNormalizationKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.feature_normalization.FeatureNormalizationKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">FeatureNormalizationKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.feature_selection">Feature Selection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.feature_selection.FeatureSelectionKernel"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.feature_selection.FeatureSelectionKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.filters">Filters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.filters.FiltFiltKernel"><code class="docutils literal notranslate"><span class="pre">FiltFiltKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.filters.FiltFiltKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">FiltFiltKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.filters.Filter"><code class="docutils literal notranslate"><span class="pre">Filter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.filters.FilterKernel"><code class="docutils literal notranslate"><span class="pre">FilterKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.filters.FilterKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">FilterKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.kernel_utils">Kernel Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.kernel_utils.extract_init_inputs"><code class="docutils literal notranslate"><span class="pre">extract_init_inputs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.kernel_utils.extract_nested_data"><code class="docutils literal notranslate"><span class="pre">extract_nested_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.logical">Logical Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.AndKernel"><code class="docutils literal notranslate"><span class="pre">AndKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.AndKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">AndKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.Binary"><code class="docutils literal notranslate"><span class="pre">Binary</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.EqualKernel"><code class="docutils literal notranslate"><span class="pre">EqualKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.EqualKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">EqualKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.GreaterKernel"><code class="docutils literal notranslate"><span class="pre">GreaterKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.GreaterKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">GreaterKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.LessKernel"><code class="docutils literal notranslate"><span class="pre">LessKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.LessKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">LessKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.NotKernel"><code class="docutils literal notranslate"><span class="pre">NotKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.NotKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">NotKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.OrKernel"><code class="docutils literal notranslate"><span class="pre">OrKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.OrKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">OrKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.Unary"><code class="docutils literal notranslate"><span class="pre">Unary</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.XorKernel"><code class="docutils literal notranslate"><span class="pre">XorKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.logical.XorKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">XorKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.pad">Pad</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.pad.PadKernel"><code class="docutils literal notranslate"><span class="pre">PadKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.pad.PadKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">PadKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.reduced_sum">Reduced Sum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.reduced_sum.ReducedSumKernel"><code class="docutils literal notranslate"><span class="pre">ReducedSumKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.reduced_sum.ReducedSumKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ReducedSumKernel.add_to_graph()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.reduced_sum.ReducedSumKernel.verify"><code class="docutils literal notranslate"><span class="pre">ReducedSumKernel.verify()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.resample">Resampling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.resample.ResampleKernel"><code class="docutils literal notranslate"><span class="pre">ResampleKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.resample.ResampleKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ResampleKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.riemann_distance">Riemann Distance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_distance.RiemannDistanceKernel"><code class="docutils literal notranslate"><span class="pre">RiemannDistanceKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_distance.RiemannDistanceKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">RiemannDistanceKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.riemann_mdm_classifier_kernel">Riemann MDM Classifier</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel"><code class="docutils literal notranslate"><span class="pre">RiemannMDMClassifierKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_mdm_classifier_kernel.RiemannMDMClassifierKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">RiemannMDMClassifierKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.riemann_mean">Riemann Mean</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_mean.RiemannMeanKernel"><code class="docutils literal notranslate"><span class="pre">RiemannMeanKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_mean.RiemannMeanKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">RiemannMeanKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.riemann_potato">Riemann Potato</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_potato.RiemannPotatoKernel"><code class="docutils literal notranslate"><span class="pre">RiemannPotatoKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.riemann_potato.RiemannPotatoKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">RiemannPotatoKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.running_average">Running Average</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.running_average.RunningAverageKernel"><code class="docutils literal notranslate"><span class="pre">RunningAverageKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.running_average.RunningAverageKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">RunningAverageKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.slope">Slope</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.slope.SlopeKernel"><code class="docutils literal notranslate"><span class="pre">SlopeKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.slope.SlopeKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">SlopeKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.statistics">Statistical Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.CDFKernel"><code class="docutils literal notranslate"><span class="pre">CDFKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.CDFKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">CDFKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.CovarianceKernel"><code class="docutils literal notranslate"><span class="pre">CovarianceKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.CovarianceKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">CovarianceKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.Descriptive"><code class="docutils literal notranslate"><span class="pre">Descriptive</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.KurtosisKernel"><code class="docutils literal notranslate"><span class="pre">KurtosisKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.KurtosisKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">KurtosisKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.MaxKernel"><code class="docutils literal notranslate"><span class="pre">MaxKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.MaxKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">MaxKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.MeanKernel"><code class="docutils literal notranslate"><span class="pre">MeanKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.MeanKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">MeanKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.MinKernel"><code class="docutils literal notranslate"><span class="pre">MinKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.MinKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">MinKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.SkewnessKernel"><code class="docutils literal notranslate"><span class="pre">SkewnessKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.SkewnessKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">SkewnessKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.StdKernel"><code class="docutils literal notranslate"><span class="pre">StdKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.StdKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">StdKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.VarKernel"><code class="docutils literal notranslate"><span class="pre">VarKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.VarKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">VarKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.ZScoreKernel"><code class="docutils literal notranslate"><span class="pre">ZScoreKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.statistics.ZScoreKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ZScoreKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.tangent_space">Tangent Space</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.tangent_space.TangentSpaceKernel"><code class="docutils literal notranslate"><span class="pre">TangentSpaceKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.tangent_space.TangentSpaceKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">TangentSpaceKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.threshold">Thresholding</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.threshold.ThresholdKernel"><code class="docutils literal notranslate"><span class="pre">ThresholdKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.threshold.ThresholdKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">ThresholdKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.transpose">Transpose</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.transpose.TransposeKernel"><code class="docutils literal notranslate"><span class="pre">TransposeKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.transpose.TransposeKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">TransposeKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mindpype.kernels.html#module-mindpype.kernels.xdawn_covariances">XDawn Covariances</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.xdawn_covariances.XDawnCovarianceKernel"><code class="docutils literal notranslate"><span class="pre">XDawnCovarianceKernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mindpype.kernels.html#mindpype.kernels.xdawn_covariances.XDawnCovarianceKernel.add_to_graph"><code class="docutils literal notranslate"><span class="pre">XDawnCovarianceKernel.add_to_graph()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="README.html" class="btn btn-neutral float-right" title="Getting Started with MindPype" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nicolas Ivanov, Aaron Lio, Maddie Wong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

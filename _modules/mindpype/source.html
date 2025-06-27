@@ -1,0 +1,1373 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mindpype.source &mdash; mindpype 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mindpype
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Getting Started with MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../before.html">Before Using MindPype</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../BasicSetup.html">Basic Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../AdvancedSetup.html">Advanced Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.html">MindPype Package Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mindpype.kernels.html">List of available kernels</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mindpype</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mindpype.source</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mindpype.source</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Currently supported sources:</span>
+<span class="sd">    - Lab Streaming Layer</span>
+<span class="sd">    - xdf files</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPBase</span><span class="p">,</span> <span class="n">MPEnums</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">loadmat</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pylsl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyxdf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">liesl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<div class="viewcode-block" id="InputXDFFile">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputXDFFile">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InputXDFFile</span><span class="p">(</span><span class="n">MPBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utility class for extracting trial data from an XDF file for MindPype.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    sess : Session Object</span>
+<span class="sd">        Session where the MPXDF data source will exist.</span>
+
+<span class="sd">    files : list of str</span>
+<span class="sd">        XDF file(s) where data should be extracted from.</span>
+
+<span class="sd">    tasks : list or tuple of strings</span>
+<span class="sd">        List or Tuple of strings corresponding to the tasks to be completed by the user.</span>
+<span class="sd">        For example, the tasks &#39;target&#39; and &#39;non-target&#39;/&#39;flash&#39; can be used for P300-type setups.</span>
+
+<span class="sd">    channels : list or tuple of int</span>
+<span class="sd">        Values corresponding to the stream channels used during the session</span>
+
+<span class="sd">    relative_start : float, default = 0</span>
+<span class="sd">        Value corresponding to the start of the trial relative to the marker onset.</span>
+
+<span class="sd">    Ns : int, default = 1</span>
+<span class="sd">        Number of samples to be extracted per trial. For epoched data, this value determines the</span>
+<span class="sd">        size of each epoch, whereas this value is used in polling for continuous data.</span>
+
+<span class="sd">    mode : &#39;continuous&#39;, &#39;class-separated&#39; or &#39;epoched&#39;, default = &#39;epoched&#39;</span>
+<span class="sd">        Mode indicates whether the inputted data will be epoched sequentially as individual trials,</span>
+<span class="sd">        epoched by class, or to leave the data in a continuous format</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">       The task list used in the InputXDFFile object MUST REFLECT the task list used in the XDF file.</span>
+<span class="sd">       Differences will cause the program to fail.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        There are 3 types of modes for the MPXDF object: &#39;continuous&#39;, &#39;class-separated&#39; and &#39;epoched&#39;.</span>
+<span class="sd">        Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples</span>
+<span class="sd">        each time the poll_data method is called. Class-separated mode will epoch the data by class, and will poll the</span>
+<span class="sd">        data for the next Ns samples of the specified class each time the poll_data method is called. Epoched mode will</span>
+<span class="sd">        epoch the data sequentially, and will poll the data for the next Ns samples of the next trial</span>
+<span class="sd">        (Ns &lt; length of the epoch) each time the poll_data method is called.</span>
+
+<span class="sd">        For P300/MI paradigms, where there are specified task names (i.e. &#39;target&#39; and &#39;non-target&#39;/&#39;flash&#39;, etc.),</span>
+<span class="sd">        class-separated mode is recommended. For other paradigms, where there are no specified task names, and data will</span>
+<span class="sd">        be polled sequentially, either continuous or epoched mode is recommended.</span>
+
+<span class="sd">        Class-separated mode will store the data in a dictionary with the following format:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            self.trial_data = {</span>
+<span class="sd">                &quot;Data&quot;:</span>
+<span class="sd">                    {&quot;time_series&quot;:</span>
+<span class="sd">                        {task_name1: np.array([Nt x Nc x Ns]),</span>
+<span class="sd">                         task_name2: np.array([Nt x Nc x Ns]),},</span>
+<span class="sd">                     &quot;time_stamps&quot;: np.array([Ns])}},</span>
+<span class="sd">                &quot;Markers&quot;: {&quot;time_series&quot;: np.array([Ns]),</span>
+<span class="sd">                            &quot;time_stamps&quot;: np.array([Ns])},</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Continuous mode will store the data in a dictionary with the following format:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            self.trial_data = {</span>
+<span class="sd">                &quot;Data&quot;:</span>
+<span class="sd">                    {&quot;time_series&quot;: np.array([Nc x Ns]),</span>
+<span class="sd">                     &quot;time_stamps&quot;: np.array([Ns])},</span>
+<span class="sd">                &quot;Markers&quot;:</span>
+<span class="sd">                    {&quot;time_series&quot;: np.array([Ns]),</span>
+<span class="sd">                     &quot;time_stamps&quot;: np.array([Ns])},</span>
+
+<span class="sd">        Epoched mode will store the data in a dictionary with the following format:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            self.trial_data = {</span>
+<span class="sd">                &quot;Data&quot;:</span>
+<span class="sd">                    {&quot;time_series&quot;: np.array([Nt x Nc x Ns]),</span>
+<span class="sd">                     &quot;time_stamps&quot;: np.array([Ns])},</span>
+<span class="sd">                &quot;Markers&quot;:</span>
+<span class="sd">                    {&quot;time_series&quot;: np.array([Ns]),</span>
+<span class="sd">                     &quot;time_stamps&quot;: np.array([Ns])},</span>
+<span class="sd">            }</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    files : list of str</span>
+<span class="sd">        XDF file(s) where data should be extracted from.</span>
+<span class="sd">        </span>
+<span class="sd">    relative_start : float, default = 0</span>
+<span class="sd">        Value corresponding to the start of the trial relative to the marker onset.</span>
+<span class="sd">        </span>
+<span class="sd">    Ns : int, default = 1</span>
+<span class="sd">        Number of samples to be extracted per trial. For epoched data, this value determines the</span>
+<span class="sd">        size of each epoch, whereas this value is used in polling for continuous data.</span>
+
+<span class="sd">    tasks : list or tuple of strings</span>
+<span class="sd">        List or Tuple of strings corresponding to the tasks to be completed by the user.</span>
+<span class="sd">        For example, the tasks &#39;target&#39; and &#39;non-target&#39;/&#39;flash&#39; can be used for P300-type setups.</span>
+
+<span class="sd">    channels : list or tuple of int</span>
+<span class="sd">        Values corresponding to the stream channels used during the session</span>
+
+<span class="sd">    mode : &#39;continuous&#39;, &#39;class-separated&#39; or &#39;epoched&#39;, default = &#39;epoched&#39;</span>
+<span class="sd">        Mode indicates whether the inputted data will be epoched sequentially as individual trials,</span>
+<span class="sd">        epoched by class, or to leave the data in a continuous format</span>
+<span class="sd">        </span>
+<span class="sd">    stream_type: str</span>
+<span class="sd">        Type of stream (Data or Markers)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">tasks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relative_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Ns</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stype</span><span class="o">=</span><span class="s1">&#39;EEG&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;epoched&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new xdf file reader interface</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">SRC</span><span class="p">,</span> <span class="n">sess</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">files</span> <span class="o">=</span> <span class="n">files</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relative_start</span> <span class="o">=</span> <span class="n">relative_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">Ns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="n">tasks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inferred_tasks</span> <span class="o">=</span> <span class="n">tasks</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_label_counter</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_type</span> <span class="o">=</span> <span class="n">stype</span>
+
+        <span class="c1"># Epoched mode will store trial data in a 3D array, with the first dimension corresponding to the trial number</span>
+        <span class="c1"># and the second and third dimensions corresponding to the channel and sample number, respectively</span>
+        <span class="c1"># The markers will be stored in a 1D tuple, with the first dimension corresponding to the sample number.</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;epoched&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Data&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;Markers&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="c1"># open file and extract data</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">header</span> <span class="o">=</span> <span class="n">pyxdf</span><span class="o">.</span><span class="n">load_xdf</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+                <span class="c1"># extract the marker and data streams</span>
+                <span class="n">marker_stream</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">data_stream</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Marker&quot;</span> <span class="ow">or</span>
+                        <span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Markers&quot;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">marker_stream</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                            <span class="n">marker_stream</span> <span class="o">=</span> <span class="n">stream</span>
+
+                    <span class="k">elif</span> <span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_type</span><span class="p">:</span>
+                        <span class="n">data_stream</span> <span class="o">=</span> <span class="n">stream</span>
+
+                <span class="k">if</span> <span class="n">marker_stream</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">data_stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The XDF file </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> does not contain the required streams&quot;</span><span class="p">)</span>
+
+                <span class="n">sample_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">data_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># used to extract data samples, pre-allocated here</span>
+
+                <span class="c1"># filter the marker stream for the specified tasks</span>
+                <span class="n">marker_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_marker_stream</span><span class="p">(</span><span class="n">marker_stream</span><span class="p">)</span>
+
+                <span class="c1"># iterate throught the markers and extract the data for each task</span>
+                <span class="k">for</span> <span class="n">i_m</span><span class="p">,</span> <span class="n">marker</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]):</span>
+                    <span class="c1"># compute the correct start and end indices for the current trial</span>
+                    <span class="n">marker_time</span> <span class="o">=</span> <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="n">i_m</span><span class="p">]</span>
+                    <span class="n">data_window_start</span> <span class="o">=</span> <span class="n">marker_time</span> <span class="o">+</span> <span class="n">relative_start</span>
+
+                    <span class="c1"># find the index of the first sample after the marker</span>
+                    <span class="n">sample_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">data_window_start</span><span class="p">)</span>
+                    <span class="n">first_sample_ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">sample_indices</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">sample_indices</span><span class="p">[</span><span class="n">first_sample_ix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># remove the samples after the end of the trial</span>
+
+                    <span class="c1"># extract the data and append to the data dictionary</span>
+                    <span class="n">sample_data</span> <span class="o">=</span> <span class="n">data_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">sample_indices</span><span class="p">,</span> <span class="n">channels</span><span class="p">)]</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># Nc X Ns</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample_data</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">marker</span><span class="p">)</span>
+
+            <span class="c1"># convert the data to a numpy array and the markers to a tuple</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Nt x Nc x Ns</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">])</span>
+
+            <span class="c1"># create a corresponding numerical task label for each task</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;numerical_labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">]])</span>
+
+
+        <span class="c1"># Continuous mode will leave the data in a continuous format, and will poll the data for the next Ns samples</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;continuous&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;time_series&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;time_stamps&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+                          <span class="s2">&quot;Markers&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;time_series&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;time_stamps&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}}</span>
+
+            <span class="c1"># First order the files by the first marker timestamp</span>
+            <span class="n">file_first_marker</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),))</span>
+            <span class="k">for</span> <span class="n">i_f</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pyxdf</span><span class="o">.</span><span class="n">load_xdf</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+                <span class="c1"># extract the first marker timestamp from the file</span>
+                <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Marker&quot;</span> <span class="ow">or</span>
+                        <span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Markers&quot;</span><span class="p">):</span>
+                        <span class="n">file_first_marker</span><span class="p">[</span><span class="n">i_f</span><span class="p">]</span> <span class="o">=</span> <span class="n">stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># Sort the files by the first marker value</span>
+            <span class="n">file_order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">file_first_marker</span><span class="p">)</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">file_order</span><span class="p">]</span>
+
+            <span class="n">data_streams</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">marker_streams</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># Iterate through all files and extract the data</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pyxdf</span><span class="o">.</span><span class="n">load_xdf</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+                <span class="c1"># Iterate through all streams in every file, add current file&#39;s data to the previously loaded data</span>
+                <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Marker&quot;</span> <span class="ow">or</span>
+                        <span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Markers&quot;</span><span class="p">):</span>
+                        <span class="n">marker_stream</span> <span class="o">=</span> <span class="n">stream</span>
+
+                    <span class="c1"># If the data stream already exists, concatenate the new data to the existing data</span>
+                    <span class="k">elif</span> <span class="n">stream</span><span class="p">[</span><span class="s2">&quot;info&quot;</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_type</span><span class="p">:</span>
+                        <span class="n">data_stream</span> <span class="o">=</span> <span class="n">stream</span>
+
+                <span class="k">if</span> <span class="n">marker_stream</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">data_stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The XDF file </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> does not contain the required streams&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Extract the data from the data stream</span>
+                <span class="n">data_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">][:,</span> <span class="n">channels</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+
+                <span class="c1"># Filter the marker stream for the specified tasks</span>
+                <span class="n">marker_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_marker_stream</span><span class="p">(</span><span class="n">marker_stream</span><span class="p">)</span>
+
+                <span class="c1"># Append the data and marker streams to the list</span>
+                <span class="n">data_streams</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_stream</span><span class="p">)</span>
+                <span class="n">marker_streams</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">marker_stream</span><span class="p">)</span>
+
+            <span class="c1"># Concatenate the data and marker streams</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">data_streams</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">][</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">data_streams</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">marker_streams</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">marker_streams</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">marker_streams</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">][</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">marker_streams</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;numerical_labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">]])</span>
+
+        <span class="c1"># create a counter to keep track of the number of trials extracted when polling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_task_counter</span> <span class="o">=</span> <span class="p">{</span><span class="n">task</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_filter_marker_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">marker_stream</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filter the marker stream for the specified tasks.</span>
+<span class="sd">        If no task list is provided, try to infer the tasks</span>
+<span class="sd">        from the marker stream (currently only supported for Mindset P300 data).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        marker_stream: dictionary</span>
+<span class="sd">            Time series and time stamps for data </span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        marker_stream: dictionary</span>
+<span class="sd">            Time series and time stamps for inferred tasks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inferred_tasks</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span><span class="p">:</span>
+            <span class="c1"># filter for markers that are tasks</span>
+            <span class="n">task_marker_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="k">for</span> <span class="n">marker</span> <span class="ow">in</span> <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]])</span>
+            <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">marker</span><span class="p">,</span> <span class="n">mask</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">],</span> <span class="n">task_marker_mask</span><span class="p">)</span> <span class="k">if</span> <span class="n">mask</span><span class="p">]</span>
+            <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="n">task_marker_mask</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># infer tasks from Marker stream - only works for Mindset P300 data</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No task list provided. Infering tasks from the marker stream. This is only supported for Mindset P300 data.&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">marker</span> <span class="ow">in</span> <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;non-target&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">]</span>  <span class="c1"># default tasks for Mindset P300 data</span>
+
+            <span class="n">inferred_markers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">inferred_marker_times</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">current_target</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">i_m</span><span class="p">,</span> <span class="n">marker</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="s2">&quot;target&quot;</span> <span class="ow">in</span> <span class="n">marker</span><span class="p">:</span>
+                    <span class="c1"># if the marker identifies a target, store the target grid</span>
+                    <span class="n">current_target</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">marker</span><span class="p">)[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">current_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;flash&quot;</span> <span class="ow">in</span> <span class="n">marker</span><span class="p">:</span>
+                    <span class="c1"># if the marker is a flash, check if it is a target or non-target</span>
+                    <span class="n">flash_positions</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">marker</span><span class="p">)[</span><span class="s2">&quot;flash&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">current_target</span> <span class="ow">in</span> <span class="n">flash_positions</span><span class="p">:</span>
+                        <span class="n">inferred_markers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;target&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">inferred_markers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;non-target&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># record the time of the marker</span>
+                    <span class="n">inferred_marker_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="n">i_m</span><span class="p">])</span>
+
+            <span class="c1"># overwrite the original marker stream with the inferred markers</span>
+            <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inferred_markers</span>
+            <span class="n">marker_stream</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">inferred_marker_times</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">marker_stream</span>
+
+<div class="viewcode-block" id="InputXDFFile.poll_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputXDFFile.poll_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">poll_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Polls the data source for new data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        label : string</span>
+<span class="sd">            Marker of next trial to be polled. If None, the next trial according</span>
+<span class="sd">            to timestamps will be polled.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        sample_data: dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+            <span class="c1"># check if the coorresponding numerical label has been provided</span>
+            <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;numerical_labels&quot;</span><span class="p">]:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;numerical_labels&quot;</span><span class="p">]</span><span class="o">==</span><span class="n">label</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Label </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> is not in the list of tasks&quot;</span><span class="p">)</span>
+
+
+        <span class="c1"># determine the index of the next trial to be polled</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;epoched&quot;</span><span class="p">:</span>
+            <span class="n">markers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">markers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_prev_polled</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_task_counter</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="n">poll_index</span> <span class="o">=</span> <span class="n">num_prev_polled</span>  <span class="c1"># default, assumes that the trials have been polled in order</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+                <span class="c1"># find the first trial for the specified task that has not been polled</span>
+                <span class="n">task_min</span> <span class="o">=</span> <span class="n">markers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_counter</span><span class="p">[</span><span class="n">task</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">task_min</span> <span class="o">&lt;</span> <span class="n">poll_index</span><span class="p">:</span>
+                    <span class="n">poll_index</span> <span class="o">=</span> <span class="n">task_min</span>
+
+            <span class="n">label</span> <span class="o">=</span> <span class="n">markers</span><span class="p">[</span><span class="n">poll_index</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">poll_index</span> <span class="o">=</span> <span class="n">markers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_task_counter</span><span class="p">[</span><span class="n">label</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;epoched&quot;</span><span class="p">:</span>
+            <span class="c1"># Extract sample data from epoched trial data</span>
+            <span class="n">sample_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">][</span><span class="n">poll_index</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Extract the nth marker timestamp, corresponding to the nth trial in the XDF file</span>
+            <span class="n">data_window_start</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">][</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="n">poll_index</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">relative_start</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Construct the boolean array for samples that fall after the marker timestamp</span>
+            <span class="n">sample_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">][</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">data_window_start</span>
+            <span class="n">first_sample_ix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">sample_indices</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sample_indices</span><span class="p">[</span><span class="n">first_sample_ix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># remove the samples after the end of the trial</span>
+            <span class="n">sample_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">][:,</span> <span class="n">sample_indices</span><span class="p">]</span>
+
+        <span class="c1"># increment the task counter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_task_counter</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">sample_data</span></div>
+
+
+<div class="viewcode-block" id="InputXDFFile.load_into_tensors">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputXDFFile.load_into_tensors">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_into_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_timestamps</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads entirity of InputXDFFile data object into a tensor.</span>
+<span class="sd">        Returns 2-4 MindPype Tensor objects, in the following order.</span>
+
+<span class="sd">            1. Tensor containing the Stream data</span>
+<span class="sd">            2. Tensor containing the Marker data</span>
+<span class="sd">            3. Tensor containing the Stream timestamps (if continuous data and include_timestamps is True)</span>
+<span class="sd">            4. Tensor containing the Marker timestamps (if continuous data and include_timestamps is True)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        include_timestamps : bool, default = False</span>
+<span class="sd">            If True, the function will return the Marker timestamps as well as the data.</span>
+<span class="sd">            Only applicable for continuous data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        data : Tensor</span>
+<span class="sd">            Tensor containing the stream data</span>
+
+<span class="sd">        labels : Tensor</span>
+<span class="sd">            Tensor containing the numerical encoded markers</span>
+
+<span class="sd">        data_ts : Tensor</span>
+<span class="sd">            Tensor containing the stream timestamps</span>
+
+<span class="sd">        labels_ts : Tensor</span>
+<span class="sd">            Tensor containing the Marker timestamps</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;epoched&quot;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">])</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;numerical_labels&quot;</span><span class="p">])</span>
+
+            <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">labels</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;continuous&quot;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">][</span><span class="s2">&quot;time_series&quot;</span><span class="p">])</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;numerical_labels&quot;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">include_timestamps</span><span class="p">:</span>
+                <span class="n">data_ts</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Data&quot;</span><span class="p">][</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">])</span>
+                <span class="n">labels_ts</span> <span class="o">=</span> <span class="n">Tensor</span><span class="o">.</span><span class="n">create_from_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="s2">&quot;Markers&quot;</span><span class="p">][</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">])</span>
+
+                <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">data_ts</span><span class="p">,</span> <span class="n">labels_ts</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">labels</span></div>
+
+
+
+<div class="viewcode-block" id="InputXDFFile.create_continuous">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputXDFFile.create_continuous">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_continuous</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">tasks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relative_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Ns</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory Method for creating continuous XDF File input source.</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        sess : Session Object</span>
+<span class="sd">            Session where the MPXDF data source will exist.</span>
+
+<span class="sd">        files : list of str</span>
+<span class="sd">            XDF file(s) where data should be extracted from.</span>
+
+<span class="sd">        tasks : list or tuple of strings (default = None)</span>
+<span class="sd">            List or Tuple of strings corresponding to the tasks to be completed by the user.</span>
+<span class="sd">            For P300-type setups, the tasks &#39;target&#39; and &#39;non-target&#39;/&#39;flash&#39; can be used.</span>
+<span class="sd">            If None, the tasks will be inferred from the marker stream. This is only</span>
+<span class="sd">            supported for P300 data recorded using Mindset.</span>
+
+<span class="sd">        channels : list or tuple of int</span>
+<span class="sd">            Values corresponding to the data stream channels used during the session</span>
+
+<span class="sd">        relative_start : float, default = 0</span>
+<span class="sd">            Value corresponding to the start of the trial relative to the marker onset.</span>
+
+<span class="sd">        Ns : int, default = 1</span>
+<span class="sd">            Number of samples to be extracted per trial. For epoched data, this value determines the</span>
+<span class="sd">            size of each epoch, whereas this value is used in polling for continuous data.</span>
+
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        src: InputXDFFile</span>
+<span class="sd">            Continous XDF file input source</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">relative_start</span><span class="p">,</span> <span class="n">Ns</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;continuous&quot;</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_src</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">src</span></div>
+
+
+
+<div class="viewcode-block" id="InputXDFFile.create_epoched">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputXDFFile.create_epoched">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_epoched</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">tasks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relative_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Ns</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stype</span><span class="o">=</span><span class="s1">&#39;EEG&#39;</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory Method for creating epoched XDF File input source.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        sess : Session Object</span>
+<span class="sd">            Session where the MPXDF data source will exist.</span>
+
+<span class="sd">        files : list of str</span>
+<span class="sd">            XDF file(s) where data should be extracted from.</span>
+
+<span class="sd">        tasks : list or tuple of strings (default = None)</span>
+<span class="sd">            List or Tuple of strings corresponding to the tasks to be completed by the user.</span>
+<span class="sd">            For P300-type setups, the tasks &#39;target&#39; and &#39;non-target&#39;/&#39;flash&#39; can be used.</span>
+<span class="sd">            If None, the tasks will be inferred from the marker stream. This is only</span>
+<span class="sd">            supported for P300 data recorded using Mindset.</span>
+
+<span class="sd">        channels : list or tuple of int</span>
+<span class="sd">            Values corresponding to the data stream channels used during the session</span>
+
+<span class="sd">        relative_start : float, default = 0</span>
+<span class="sd">            Value corresponding to the start of the trial relative to the marker onset.</span>
+
+<span class="sd">        stype : str, default = EEG</span>
+<span class="sd">            String indicating the data type</span>
+
+<span class="sd">        Ns : int, default = 1</span>
+<span class="sd">            Number of samples to be extracted per trial. For class-separated data, this value determines the</span>
+<span class="sd">            size of each epoch, whereas this value is used in polling for continuous data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        src: InputXDFFile</span>
+<span class="sd">            Epoched XDF file input source</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="n">relative_start</span><span class="p">,</span> <span class="n">Ns</span><span class="p">,</span> <span class="n">stype</span><span class="o">=</span><span class="n">stype</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;epoched&quot;</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_src</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">src</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="InputLSLStream">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputLSLStream">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InputLSLStream</span><span class="p">(</span><span class="n">MPBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object for maintaining an LSL inlet</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_buffer : dict</span>
+<span class="sd">        {&#39;Data&#39;: np.array, &#39;time_stamps&#39;: np.array}</span>
+<span class="sd">        A dictionary containing the data and time stamps from past samples (used when trials have overlapping data)</span>
+
+<span class="sd">    data_inlet : pylsl.StreamInlet</span>
+<span class="sd">        The LSL inlet object</span>
+
+<span class="sd">    marker_inlet : pylsl.StreamInlet</span>
+<span class="sd">        The LSL inlet object for the marker stream</span>
+
+<span class="sd">    marker_pattern : re.Pattern</span>
+<span class="sd">        The regular expression pattern for the marker stream. Use &quot;task1$|task2$|task3$&quot; if task1, task2, and task3 are the markers</span>
+
+<span class="sd">    channels : tuple of ints</span>
+<span class="sd">        Index value of channels to poll from the stream, if None all channels will be polled.</span>
+
+<span class="sd">    TODO: update attributes docstring </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">MAX_NULL_READS</span> <span class="o">=</span> <span class="mi">1000</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sess</span><span class="p">,</span>
+        <span class="n">pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">relative_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">marker_coupled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">marker_fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">marker_pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">stream_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">marker_stream_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">Ns</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new LSL inlet stream object</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        sess : session object</span>
+<span class="sd">            Session object where the data source will exist</span>
+
+<span class="sd">        pred : str</span>
+<span class="sd">            The predicate string, e.g. &quot;name=&#39;BioSemi&#39;&quot; or &quot;type=&#39;EEG&#39; and starts-with(name, &#39;BioSemi&#39;) and</span>
+<span class="sd">            count(description/desc/channels/channel)=32&quot;</span>
+
+<span class="sd">        channels : tuple of ints</span>
+<span class="sd">            Index value of channels to poll from the stream, if None all channels will be polled</span>
+
+<span class="sd">        relative_start : float, default = 0</span>
+<span class="sd">            Duration of tiem before marker from which samples should be extracted during polling.</span>
+
+<span class="sd">        marker_coupled : bool</span>
+<span class="sd">            true if there is an associated marker to indicate relative time where data should begin to be polled</span>
+
+<span class="sd">        marker_fmt : Regex or list</span>
+<span class="sd">            Regular expression template of the marker to be matched, if none all markers will be matched. Alternatively, a list of markers can be provided.</span>
+
+<span class="sd">        marker_pred : str</span>
+<span class="sd">            The predicate string for the marker stream</span>
+
+<span class="sd">        stream_info : pylsl.StreamInfo</span>
+<span class="sd">            The stream info object for the stream can be passed instead of the predicate to avoid the need to resolve the stream</span>
+
+<span class="sd">        marker_stream_info : pylsl.StreamInfo</span>
+<span class="sd">            The stream info object for the marker stream can be passed instead of the predicate to avoid the need to resolve the stream</span>
+
+<span class="sd">        active : bool</span>
+<span class="sd">            True if the stream should be opened immediately, false if the stream should be opened later</span>
+
+<span class="sd">        interval : float</span>
+<span class="sd">            The minimum interval between polling the stream for new data. Only used for marker uncoupled streams.</span>
+<span class="sd">            If None, then the stream will be polled as fast as possible.</span>
+
+<span class="sd">        Ns : int, default = 1</span>
+<span class="sd">            The number of samples to be extracted per poll.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The active parameter is used when the session is created before the LSL stream is started, or the stream is</span>
+<span class="sd">            not available when the session is created. In that case, the stream can be updated later by calling the update_input_stream() method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">SRC</span><span class="p">,</span> <span class="n">sess</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker_coupled</span> <span class="o">=</span> <span class="n">marker_coupled</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_marker_inlet</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">marker_pattern</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relative_start</span> <span class="o">=</span> <span class="n">relative_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_already_peeked</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peeked_marker</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_marker_buffer</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;time_series&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;time_stamps&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span> <span class="c1"># only keeps most recent value, can expand in future if needed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_correction</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_interval</span> <span class="o">=</span> <span class="n">interval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span> <span class="o">=</span> <span class="n">Ns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;time_series&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;time_stamps&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">active</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># will be set to True when the stream is opened</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_input_streams</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">marker_coupled</span><span class="p">,</span> <span class="n">marker_fmt</span><span class="p">,</span> <span class="n">marker_pred</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">,</span> <span class="n">marker_stream_info</span><span class="p">,</span> <span class="n">Ns</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InputLSLStream.poll_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputLSLStream.poll_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">poll_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pull data from the inlet stream until we have Ns data points for each</span>
+<span class="sd">        channel.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Ns: int</span>
+<span class="sd">            number of samples to collect</span>
+<span class="sd">        Label : None</span>
+<span class="sd">            used for file-based polling, not used here</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeWarning</span><span class="p">(</span><span class="s2">&quot;InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_marker_inlet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># start by getting the timestamp for this trial&#39;s marker</span>
+            <span class="n">t_begin</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">null_reads</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">t_begin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">marker</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_marker_inlet</span><span class="o">.</span><span class="n">pull_sample</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">marker</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">null_reads</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># reset the null reads counter</span>
+                    <span class="n">marker</span> <span class="o">=</span> <span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># extract the string portion of the marker</span>
+
+                    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marker_pattern</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">marker</span><span class="p">):</span>
+                        <span class="n">t_begin</span> <span class="o">=</span> <span class="n">t</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_marker_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_begin</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_marker_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">marker</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">null_reads</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">null_reads</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAX_NULL_READS</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;The marker stream has not been updated in the last </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">MAX_NULL_READS</span><span class="si">}</span><span class="s2"> read attemps. Please check the stream.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># marker-uncoupled stream, determine the start time based on the interval attribute</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">t_begin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interval</span> <span class="c1"># shift forward by interval</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">t_begin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># shift forward by 1 sample</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># rare situation where the buffer only contains one sample</span>
+                    <span class="c1"># and the interval is None. Shift forward by a very small amount.</span>
+                    <span class="n">t_begin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">)</span> <span class="c1"># shift forward by 1 microsecond</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">t_begin</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># i.e. all data is valid</span>
+
+        <span class="n">t_begin</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relative_start</span>
+
+        <span class="c1"># pull the data in chunks until we get the total number of samples</span>
+        <span class="n">samples_polled</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># First, pull the data required data from the buffer</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="c1"># Create a boolean array to index the data buffer for the required data</span>
+            <span class="n">valid_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">t_begin</span>
+
+            <span class="c1"># Find the number of samples in the buffer that are valid</span>
+            <span class="n">samples_polled</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">valid_indices</span><span class="p">)</span>
+
+            <span class="c1"># discard old data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">][:,</span> <span class="n">valid_indices</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="n">valid_indices</span><span class="p">]</span>
+
+            <span class="c1"># If the number of samples in the buffer is greater than the number of samples required, extract the required data</span>
+            <span class="k">if</span> <span class="n">samples_polled</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:</span>
+                <span class="c1"># Buffer contains a backlog of data, warn that execution may be too slow for target polling rate</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Buffer contains a backlog of data. Execution may be too slow for target polling rate.&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_coupled</span><span class="p">:</span>
+                    <span class="c1"># if this is a marker-coupled stream, use the oldest valid data in the buffer</span>
+                    <span class="c1"># to ensure that the data is aligned with the marker</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_trial_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">][:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_trial_timestamps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][:</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># if this is a marker-uncoupled stream, use the newest valid data in the buffer</span>
+                    <span class="c1"># to ensure that the data is as recent as possible</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_trial_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">][:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_trial_timestamps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">][</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:]</span>
+
+            <span class="c1"># If the number of valid samples in the buffer is less than the number of samples required, extract all the data in the buffer</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_trial_data</span><span class="p">[:,</span> <span class="p">:</span><span class="n">samples_polled</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_trial_timestamps</span><span class="p">[:</span><span class="n">samples_polled</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span>
+
+        <span class="c1"># If the buffer does not contain enough data, pull data from the inlet</span>
+        <span class="n">null_reads</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">samples_polled</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">timestamps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_inlet</span><span class="o">.</span><span class="n">pull_chunk</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">timestamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">timestamps</span><span class="p">)</span>
+                <span class="n">null_reads</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># reset the null reads counter</span>
+
+                <span class="c1"># apply time correction to timestamps</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_time_correction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_inlet</span><span class="o">.</span><span class="n">time_correction</span><span class="p">()</span>
+                <span class="n">timestamps</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_correction</span>
+
+                <span class="c1"># check if the data is within the target time window</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">timestamps</span> <span class="o">&gt;=</span> <span class="n">t_begin</span><span class="p">):</span>
+                    <span class="c1"># convert data to numpy arrays</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="c1"># now in Nchannel x Nsamples format</span>
+                    <span class="n">valid_timestamps</span> <span class="o">=</span> <span class="n">timestamps</span> <span class="o">&gt;=</span> <span class="n">t_begin</span>
+
+                    <span class="c1"># discard extra channels and old data</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">,</span> <span class="n">valid_timestamps</span><span class="p">)]</span>
+                    <span class="n">timestamps</span> <span class="o">=</span> <span class="n">timestamps</span><span class="p">[</span><span class="n">valid_timestamps</span><span class="p">]</span>
+
+                    <span class="c1"># append the latest chunk to the trial_data array</span>
+                    <span class="c1"># start by indentifying the start and end indices</span>
+                    <span class="c1"># of the source and destination arrays</span>
+                    <span class="n">chunk_sz</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">samples_polled</span> <span class="o">+</span> <span class="n">chunk_sz</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:</span>
+                        <span class="c1"># more data in the chunk than required</span>
+                        <span class="n">dst_end_ix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span>
+                        <span class="n">src_end_ix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span> <span class="o">-</span> <span class="n">samples_polled</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># less data in the chunk than required</span>
+                        <span class="n">dst_end_ix</span> <span class="o">=</span> <span class="n">samples_polled</span> <span class="o">+</span> <span class="n">chunk_sz</span>
+                        <span class="n">src_end_ix</span> <span class="o">=</span> <span class="n">chunk_sz</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_trial_data</span><span class="p">[:,</span> <span class="n">samples_polled</span><span class="p">:</span><span class="n">dst_end_ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="p">:</span><span class="n">src_end_ix</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_trial_timestamps</span><span class="p">[</span><span class="n">samples_polled</span><span class="p">:</span><span class="n">dst_end_ix</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestamps</span><span class="p">[:</span><span class="n">src_end_ix</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">dst_end_ix</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">:</span>
+                        <span class="c1"># we have polled enough data, update the buffer</span>
+                        <span class="c1"># with the latest data plus any extra data</span>
+                        <span class="c1"># that we did not use in this trial</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trial_data</span><span class="p">,</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">src_end_ix</span><span class="p">:]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+                        <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span><span class="p">[</span><span class="s2">&quot;time_stamps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trial_timestamps</span><span class="p">,</span> <span class="n">timestamps</span><span class="p">[</span><span class="n">src_end_ix</span><span class="p">:])</span>
+                        <span class="p">)</span>
+
+                    <span class="n">samples_polled</span> <span class="o">+=</span> <span class="n">chunk_sz</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">null_reads</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">null_reads</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAX_NULL_READS</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;The stream has not been updated in the last </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">MAX_NULL_READS</span><span class="si">}</span><span class="s2"> read attemps. Please check the stream.&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_coupled</span><span class="p">:</span>
+            <span class="c1"># reset the maker peeked flag since we have polled new data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_already_peeked</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trial_data</span></div>
+
+
+<div class="viewcode-block" id="InputLSLStream.peek_marker">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputLSLStream.peek_marker">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">peek_marker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Peek at the next marker in the marker stream</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        marker : str</span>
+<span class="sd">            The marker string</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;InputLSLStream.peek_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_already_peeked</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peeked_marker</span>
+
+        <span class="n">marker</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_marker_inlet</span><span class="o">.</span><span class="n">pull_sample</span><span class="p">()</span>
+        <span class="n">read_attemps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marker_pattern</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+               <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">marker_pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="n">marker</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek_marker_inlet</span><span class="o">.</span><span class="n">pull_sample</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+            <span class="n">read_attemps</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">read_attemps</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">MAX_NULL_READS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The marker stream has not been updated in the last </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">MAX_NULL_READS</span><span class="si">}</span><span class="s2"> read attemps. Please check the stream.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_peeked_marker</span> <span class="o">=</span> <span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_already_peeked</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">marker</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="InputLSLStream.last_marker">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputLSLStream.last_marker">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">last_marker</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the last marker in the marker stream</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        marker : str</span>
+<span class="sd">            The last marker string</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;InputLSLStream.last_marker() called on inactive stream. Please call update_input_streams() first to configure the stream object.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_marker_buffer</span><span class="p">[</span><span class="s2">&quot;time_series&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="InputLSLStream.update_input_streams">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputLSLStream.update_input_streams">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_input_streams</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">marker_coupled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">marker_fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">marker_pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">stream_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">marker_stream_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">Ns</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the input stream with new parameters</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pred : str</span>
+<span class="sd">            The predicate string, e.g. &quot;name=&#39;BioSemi&#39;&quot; or &quot;type=&#39;EEG&#39; and starts-with(name, &#39;BioSemi&#39;) and</span>
+<span class="sd">            count(description/desc/channels/channel)=32&quot;</span>
+<span class="sd">        channels : tuple of ints</span>
+<span class="sd">            Index value of channels to poll from the stream, if None all channels will be polled</span>
+<span class="sd">        marker_coupled : bool</span>
+<span class="sd">            true if there is an associated marker to indicate relative time where data should begin to be polled</span>
+<span class="sd">        marker_fmt : Regex or list</span>
+<span class="sd">            Regular expression template of the marker to be matched, if none all markers will be matched. Alternatively, a list of markers can be provided.</span>
+<span class="sd">        marker_pred : str</span>
+<span class="sd">            The predicate string for the marker stream</span>
+<span class="sd">        stream_info : pylsl.StreamInfo</span>
+<span class="sd">            The stream info object for the stream can be passed instead of the predicate to avoid the need to resolve the stream</span>
+<span class="sd">        marker_stream_info : pylsl.StreamInfo</span>
+<span class="sd">            The stream info object for the marker stream can be passed instead of the predicate to avoid the need to resolve the stream</span>
+<span class="sd">        Ns : int, default = 1</span>
+<span class="sd">            The number of samples to be extracted per poll.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stream_info</span><span class="p">:</span>
+            <span class="c1"># resolve the stream on the LSL network</span>
+            <span class="n">available_streams</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">resolve_bypred</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">available_streams</span> <span class="o">=</span> <span class="p">[</span><span class="n">stream_info</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">available_streams</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No streams found matching the predicate&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;More than one stream found matching the predicate. Using the first stream found.&quot;</span><span class="p">,</span>
+                          <span class="ne">RuntimeWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_buffer</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;time_series&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;time_stamps&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_inlet</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">StreamInlet</span><span class="p">(</span>
+            <span class="n">available_streams</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">processing_flags</span><span class="o">=</span><span class="n">pylsl</span><span class="o">.</span><span class="n">proc_clocksync</span> <span class="o">|</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">proc_dejitter</span><span class="p">,</span>
+            <span class="n">recover</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_inlet</span><span class="o">.</span><span class="n">open_stream</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_inlet</span><span class="o">.</span><span class="n">channel_count</span> <span class="ow">or</span> <span class="nb">min</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;The number of channels in the stream does not match the channel indices specified in the channels parameter. Please check the channels parameter and try again.&quot;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="n">channels</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data_inlet</span><span class="o">.</span><span class="n">channel_count</span><span class="p">)])</span>
+
+        <span class="k">if</span> <span class="n">marker_coupled</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">marker_stream_info</span><span class="p">:</span>
+                <span class="c1"># resolve the stream on the LSL network</span>
+                <span class="n">marker_streams</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">resolve_bypred</span><span class="p">(</span><span class="n">marker_pred</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">marker_streams</span> <span class="o">=</span> <span class="p">[</span><span class="n">marker_stream_info</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">marker_streams</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No marker streams found matching the predicate&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;More than one marker stream found matching the predicate. Using the first stream found.&quot;</span><span class="p">,</span>
+                              <span class="ne">RuntimeWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_marker_inlet</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">StreamInlet</span><span class="p">(</span><span class="n">marker_streams</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peek_marker_inlet</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">StreamInlet</span><span class="p">(</span><span class="n">marker_streams</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="c1"># open the inlet</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_marker_inlet</span><span class="o">.</span><span class="n">open_stream</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_peek_marker_inlet</span><span class="o">.</span><span class="n">open_stream</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">marker_fmt</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">marker_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">marker_fmt</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span> <span class="o">=</span> <span class="n">Ns</span>
+
+        <span class="c1"># allocate array for trial data and timestamps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trial_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trial_timestamps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Ns</span><span class="p">,))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="InputLSLStream.create_marker_coupled_data_stream">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputLSLStream.create_marker_coupled_data_stream">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_marker_coupled_data_stream</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">sess</span><span class="p">,</span>
+        <span class="n">pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">relative_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">marker_fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">marker_pred</span><span class="o">=</span><span class="s2">&quot;type=&#39;Markers&#39;&quot;</span><span class="p">,</span>
+        <span class="n">stream_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">marker_stream_info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">Ns</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a LSLStream data object that maintains a data stream and a</span>
+<span class="sd">        marker stream</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+
+<span class="sd">        sess : session object</span>
+<span class="sd">            Session object where the data source will exist</span>
+<span class="sd">        pred : str</span>
+<span class="sd">            The predicate string, e.g. &quot;name=&#39;BioSemi&#39;&quot; or &quot;type=&#39;EEG&#39; and starts-with(name, &#39;BioSemi&#39;) and</span>
+<span class="sd">            count(description/desc/channels/channel)=32&quot;</span>
+<span class="sd">        channels : tuple or list of ints</span>
+<span class="sd">            Index value of channels to poll from the stream, if None all channels will be polled</span>
+<span class="sd">        marker_fmt : str</span>
+<span class="sd">            Regular expression template of the marker to be matched, if none all markers will be matched</span>
+<span class="sd">        marker_pred : str</span>
+<span class="sd">            Predicate string to match the marker stream, if None all streams will be matched</span>
+<span class="sd">        stream_info : StreamInfo object</span>
+<span class="sd">            StreamInfo object to use for the data stream, if None a default StreamInfo object will be created</span>
+<span class="sd">        Ns : int, default = 1</span>
+<span class="sd">            Number of samples to be extracted per poll.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">sess</span><span class="p">,</span>
+            <span class="n">pred</span><span class="p">,</span>
+            <span class="n">channels</span><span class="p">,</span>
+            <span class="n">relative_start</span><span class="p">,</span>
+            <span class="kc">True</span><span class="p">,</span>
+            <span class="n">marker_fmt</span><span class="p">,</span>
+            <span class="n">marker_pred</span><span class="p">,</span>
+            <span class="n">stream_info</span><span class="p">,</span>
+            <span class="n">marker_stream_info</span><span class="p">,</span>
+            <span class="n">active</span><span class="p">,</span>
+            <span class="n">Ns</span><span class="o">=</span><span class="n">Ns</span>
+        <span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_src</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">src</span></div>
+
+
+<div class="viewcode-block" id="InputLSLStream.create_marker_uncoupled_data_stream">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.InputLSLStream.create_marker_uncoupled_data_stream">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_marker_uncoupled_data_stream</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span>
+                                            <span class="n">pred</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                            <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                            <span class="n">relative_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                            <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                            <span class="n">interval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                            <span class="n">Ns</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a LSLStream data object that maintains only a data stream with</span>
+<span class="sd">        no associated marker stream</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sess : session object</span>
+<span class="sd">            Session object where the data source will exist</span>
+<span class="sd">        pred : str</span>
+<span class="sd">            The predicate string, e.g. &quot;name=&#39;BioSemi&#39;&quot; or &quot;type=&#39;EEG&#39; and starts-with(name, &#39;BioSemi&#39;) and</span>
+<span class="sd">            count(description/desc/channels/channel)=32&quot;</span>
+<span class="sd">        channels : tuple or list of ints</span>
+<span class="sd">            Index value of channels to poll from the stream, if None all channels will be polled</span>
+<span class="sd">        active : bool</span>
+<span class="sd">            Flag to indicate whether the stream is active or will be activated in the future</span>
+<span class="sd">        interval : float</span>
+<span class="sd">            The minimum interval at which the stream will be polled</span>
+<span class="sd">        Ns : int, default = 1</span>
+<span class="sd">            Number of samples to be extracted per poll.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">pred</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">relative_start</span><span class="p">,</span> <span class="n">marker_coupled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="n">active</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span> <span class="n">Ns</span><span class="o">=</span><span class="n">Ns</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_src</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">src</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="OutputLSLStream">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.OutputLSLStream">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OutputLSLStream</span><span class="p">(</span><span class="n">MPBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An object for maintaining an LSL outlet</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">,</span> <span class="n">filesave</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_buffer</span><span class="o">=</span><span class="mi">360</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Establish a new stream outlet. This makes the stream discoverable.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        stream_info : StreamInfo</span>
+<span class="sd">            StreamInfo object to describe this stream. Stays constant over the lifetime of the outlet.</span>
+
+<span class="sd">        chunk_size : int, default = 0</span>
+<span class="sd">            Optionally the desired chunk granularity (in samples) for transmission.</span>
+<span class="sd">            If unspecified, each push operation yields one chunk. Inlets can override this setting. (default 0)</span>
+
+<span class="sd">        max_buffered : default = 360</span>
+<span class="sd">            The maximum amount of data to buffer (in seconds if there is a nominal sampling rate, otherwise</span>
+<span class="sd">            x100 in samples). The default is 6 minutes of data. Note that, for high-bandwidth data, you will want to</span>
+<span class="sd">            use a lower value here to avoid running out of RAM.</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">MPEnums</span><span class="o">.</span><span class="n">SRC</span><span class="p">,</span> <span class="n">sess</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sess</span> <span class="o">=</span> <span class="n">sess</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream_info</span>
+        <span class="c1"># resolve the stream on the LSL network</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lsl_marker_outlet</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">StreamOutlet</span><span class="p">(</span><span class="n">stream_info</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">max_buffer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_liesl_session</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Start LieSL recording if the user has specified a filesave</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span>
+            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">RuntimeWarning</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="s2">&quot;subprocess&quot;</span>
+        <span class="p">)</span>
+        <span class="n">output_save_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">check_status</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">filesave</span><span class="p">,))</span>
+        <span class="n">output_save_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<div class="viewcode-block" id="OutputLSLStream.check_status">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.OutputLSLStream.check_status">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filesave</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TODO: add description</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filesave: TODO - add type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filesave</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">streamargs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_info</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span>
+                    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_info</span><span class="o">.</span><span class="n">type</span><span class="p">(),</span>
+                    <span class="s2">&quot;channel_count&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_info</span><span class="o">.</span><span class="n">channel_count</span><span class="p">(),</span>
+                    <span class="s2">&quot;nominal_srate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_info</span><span class="o">.</span><span class="n">nominal_srate</span><span class="p">(),</span>
+                    <span class="s2">&quot;channel_format&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_info</span><span class="o">.</span><span class="n">channel_format</span><span class="p">(),</span>
+                    <span class="s2">&quot;source_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_info</span><span class="o">.</span><span class="n">source_id</span><span class="p">(),</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_liesl_session</span> <span class="o">=</span> <span class="n">liesl</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span>
+                <span class="n">mainfolder</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span><span class="si">}</span><span class="s2">\labrecordings&quot;</span><span class="p">,</span>
+                <span class="n">streamargs</span><span class="o">=</span><span class="n">streamargs</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_liesl_session</span><span class="p">(</span><span class="n">filesave</span><span class="p">):</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">threading</span><span class="o">.</span><span class="n">main_thread</span><span class="p">()</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                        <span class="c1"># Suppress output from pyLiesl</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_liesl_session</span><span class="o">.</span><span class="n">stop_recording</span><span class="p">()</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdout__</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stderr__</span>
+                        <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No file save specified. Data will not be saved to disk.&quot;</span><span class="p">)</span>
+            <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="OutputLSLStream.push_data">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.OutputLSLStream.push_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">push_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Push data to the outlet stream.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data: Tensor</span>
+<span class="sd">            Data to be pushed to the output stream</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lsl_marker_outlet</span><span class="o">.</span><span class="n">push_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">local_clock</span><span class="p">())</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">ve</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lsl_marker_outlet</span><span class="o">.</span><span class="n">push_sample</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">local_clock</span><span class="p">())</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">additional_msg</span> <span class="o">=</span> <span class="s2">&quot;Push data - Irreparable Error in LSL Output. No data pushed to output stream&quot;</span>
+                <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pretty_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">additional_msg</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">additional_msg</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pretty_msg</span><span class="p">)</span>
+                <span class="k">raise</span></div>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_outlet_from_streaminfo</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">,</span> <span class="n">filesave</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory method to create a OutletLSLStream mindpype object from a pylsl.StreamInfo object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+
+<span class="sd">        sess : session object</span>
+<span class="sd">            Session object where the data source will exist</span>
+<span class="sd">        stream_info : pylsl.StreamInfo object</span>
+<span class="sd">            pylsl.StreamInfo object that describes the stream to be created</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        src: OutputLSLStream</span>
+<span class="sd">            Output LSL Stream</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">,</span> <span class="n">filesave</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_out</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">src</span>
+
+<div class="viewcode-block" id="OutputLSLStream.create_outlet">
+<a class="viewcode-back" href="../../mindpype.html#mindpype.source.OutputLSLStream.create_outlet">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_outlet</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">sess</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;untitled&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">channel_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">nominal_srate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">channel_format</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">source_id</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">filesave</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Factory Method to create an OutletLSLStream mindpype object from scratch.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        sess : session object</span>
+<span class="sd">            Session object where the data source will exist</span>
+
+<span class="sd">        name : str, default = &#39;untitled&#39;</span>
+<span class="sd">            * Name of the stream.</span>
+<span class="sd">            * Describes the device (or product series) that this stream makes available.</span>
+
+<span class="sd">        type  str, default = &#39;&#39;</span>
+<span class="sd">            * Content type of the stream.</span>
+<span class="sd">            * By convention LSL uses the content types defined in the XDF file format specification where applicable.</span>
+
+<span class="sd">        channel_count : int, default = 1</span>
+<span class="sd">            * Number of channels per sample. This stays constant for the lifetime of the stream.</span>
+
+<span class="sd">        nominal_srate : float, default = 0.0</span>
+<span class="sd">            * The sampling rate (in Hz) as advertised by the data source.</span>
+
+<span class="sd">        channel_format : int or str, default = 1</span>
+<span class="sd">            * Format/type of each channel (ie. &#39;float32&#39;).</span>
+
+<span class="sd">        source_id : str, default = &#39;&#39;</span>
+<span class="sd">            * Unique identifier of the device or source of the data, if available (such as the serial number).</span>
+<span class="sd">            * This is critical for system robustness since it allows recipients to recover from failure even after the serving app, device or computer crashes (just by finding a stream with the same source id on the network again).</span>
+
+<span class="sd">        filesave : str, default = None</span>
+<span class="sd">            If not None, the data will be saved to the given file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        src: OutputLSLStream</span>
+<span class="sd">            Output LSL Stream</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">stream_info</span> <span class="o">=</span> <span class="n">pylsl</span><span class="o">.</span><span class="n">StreamInfo</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="nb">type</span><span class="p">,</span>
+            <span class="n">channel_count</span><span class="p">,</span>
+            <span class="n">nominal_srate</span><span class="p">,</span>
+            <span class="n">channel_format</span><span class="p">,</span>
+            <span class="n">source_id</span><span class="o">=</span><span class="s2">&quot;1007988689&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">stream_info</span><span class="p">,</span> <span class="n">filesave</span><span class="p">)</span>
+        <span class="n">sess</span><span class="o">.</span><span class="n">add_ext_out</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">src</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Nicolas Ivanov, Aaron Lio, Maddie Wong.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
