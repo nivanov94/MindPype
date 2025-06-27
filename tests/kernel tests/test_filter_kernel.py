@@ -37,7 +37,7 @@ class FirFilterKernelUnitTest:
         h_freq = 40
         Nc = 14
         Ns = int(Fs * 10)
-        f = mp.Filter.create_fir(self.__session, Fs, l_freq, h_freq, method='fir', phase='minimum')
+        f = mp.Filter.create_fir(self.__session, Fs, l_freq, h_freq)
         
         tensor_test_node = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor,f,outTensor,axis=0)
         self.__graph.verify()

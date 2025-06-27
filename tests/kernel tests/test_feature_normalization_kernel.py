@@ -20,7 +20,7 @@ class FeatureNormalizationKernelUnitTest:
         labels = mp.Tensor.create_from_data(self.__session, labels_data)
         node = mp.kernels.FeatureNormalizationKernel.add_to_graph(self.__graph,inTensor,outTensor,method=method,axis=0,init_data=initialization_tensor,labels=labels)
         self.__graph.verify()
-        self.__graph.initialize(initialization_tensor, labels)
+        self.__graph.initialize()
         self.__graph.execute()
         return outTensor.data
     

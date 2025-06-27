@@ -1403,7 +1403,7 @@ class CircleBuffer(Array):
         if self.is_empty():
             return 0
         else:
-            return ((self._tail - self._head) % self._capacity) + 1
+            return ((self._tail - self._head) % self.capacity) + 1
 
     def is_empty(self):
         """
@@ -1469,7 +1469,7 @@ class CircleBuffer(Array):
             )
 
         # compute the absolute index of the element in the buffer
-        abs_index = (index + self._head) % self._capacity
+        abs_index = (index + self._head) % self.capacity
         return self.get_element(abs_index)
 
     def peek(self):

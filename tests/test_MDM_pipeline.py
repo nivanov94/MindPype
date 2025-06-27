@@ -30,7 +30,7 @@ class MDMPipelineUnitTest:
 
         node1 = mp.kernels.FilterKernel.add_to_graph(self.__graph,inTensor, filter, virtual_tensors[0])
         node2 = mp.kernels.CovarianceKernel.add_to_graph(self.__graph,virtual_tensors[0],virtual_tensors[1], regularization=0.001, init_input=training_data, init_labels=labels)
-        node3 = mp.kernels.RiemannMDMClassifierKernel.add_to_graph(self.__graph,virtual_tensors[1],outTensor,num_classes=3)
+        node3 = mp.kernels.RiemannMDMClassifierKernel.add_to_graph(self.__graph,virtual_tensors[1],outTensor)
         
         self.__graph.verify()
         self.__graph.initialize()

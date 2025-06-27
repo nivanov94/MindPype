@@ -35,7 +35,7 @@ class CSPKernelExecutionUnitTest:
         
         sys.stdout = open(os.devnull, 'w')
         self.__graph.verify()
-        self.__graph.initialize(initialization_tensor, labels)
+        self.__graph.initialize()
         self.__graph.execute()
         sys.stdout = sys.__stdout__
 

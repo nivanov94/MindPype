@@ -450,11 +450,11 @@ class Graph(MPBase):
             If any of the nodes within the graph contain invalid initialization
             data inputs.
         """
-        if not self._verified:
+        if not self.verified:
             self.verify()
 
         # execute initialization for each node in the graph
-        for n in self._nodes:
+        for n in self.nodes:
             try:
                 n.update()
             except Exception as e:
