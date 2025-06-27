@@ -5,7 +5,7 @@ name: Unit tests
 
 on:
   push:
-    branches: [ "master", "create-arithmetic-kernel-tests" ]
+    branches: [ "master", "create-arithmetic-kernel-tests", "sam_unit_tests" ]
   pull_request:
     branches: [ "master" ]
 
