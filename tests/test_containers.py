@@ -203,4 +203,8 @@ def test_execute():
     at.TestArrayToTensor()
     at.TestCopyTo()
 
+    ct.TestGetQueuedElement()
+    ct.TestNumElements()
+    ct.TestPeek()
+
 test_execute()
