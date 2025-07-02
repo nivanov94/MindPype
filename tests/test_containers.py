@@ -207,6 +207,7 @@ class CircleBufferUnitTests:
         dest1 = mp.Array.create(self.__session, 3, mp.Scalar.create(self.__session, int))
         dest2 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, float))
         dest3 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        dest4 = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
 
         try:
             source.copy_to(dest1)
@@ -219,6 +220,25 @@ class CircleBufferUnitTests:
             print("Proper error")
 
         source.copy_to(dest3)
+        source.copy_to(dest4)
+
+    def TestToTensor(self):
+        # empty = mp.Array.create(self.__session, 0, mp.Scalar.create(self.__session, int))
+        # e = empty.to_tensor()
+        # assert e == None
+
+        c1 = mp.Array.create(self.__session, 3, mp.Scalar.create(self.__session, bool))
+        try:
+            c1.to_tensor()
+        except TypeError:
+            print("Proper error")
+
+        c2 = mp.Array.create(self.__session, 3, mp.Scalar.create_from_value(self.__session, 5))
+        t = c2.to_tensor()
+
+    def TestRandomData(self):
+        c = mp.Array.create(self.__session, 3, mp.Scalar.create(self.__session, int))
+        c.assign_random_data()
 
 def test_execute():
     st = ScalarUnitTests()   
@@ -249,5 +269,7 @@ def test_execute():
     ct.TestDequeue()
     ct.TestMakeCopy()
     ct.TestCopyTo()
+    ct.TestToTensor()
+    ct.TestRandomData()
 
 test_execute()
