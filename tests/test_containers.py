@@ -182,9 +182,9 @@ class CircleBufferUnitTests:
         p2 = cir2.peek()   ## line 1491
 
     def TestEnqueueChunk(self):
-        sour1 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        sour1 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, float))
         sour2 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create_from_value(self.__session, 5))
-        dest = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, float))
+        dest = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
 
         try:
             dest.enqueue_chunk(sour1)    ## line 1542
@@ -196,7 +196,29 @@ class CircleBufferUnitTests:
     def TestDequeue(self):
         dest = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, float))
         r = dest.dequeue()
-        assert r == None ## 1566
+        assert r == None
+
+    def TestMakeCopy(self):
+        cir = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        c = cir.make_copy()  
+
+    def TestCopyTo(self):
+        source = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        dest1 = mp.Array.create(self.__session, 3, mp.Scalar.create(self.__session, int))
+        dest2 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, float))
+        dest3 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+
+        try:
+            source.copy_to(dest1)
+        except ValueError:
+            print("Proper error")
+
+        try:
+            source.copy_to(dest2)
+        except TypeError:
+            print("Proper error")
+
+        source.copy_to(dest3)
 
 def test_execute():
     st = ScalarUnitTests()   
@@ -225,5 +247,7 @@ def test_execute():
     ct.TestPeek()
     ct.TestEnqueueChunk()
     ct.TestDequeue()
+    ct.TestMakeCopy()
+    ct.TestCopyTo()
 
 test_execute()
