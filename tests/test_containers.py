@@ -69,7 +69,7 @@ class TensorUnitTests:
     def TestTensorData(self):
         t = mp.Tensor.create(self.__session, (1,1))
         try:    
-            t.data = np.ndarray(np.double(3.1))  ## line 648
+            t.data = np.ndarray([np.double(3.1)])  ## line 648
         except TypeError:
             print("Proper error")
 
@@ -92,9 +92,17 @@ class TensorUnitTests:
         except ValueError:
             print("Proper error")
 
+        tensor1 = mp.Tensor.create(self.__session, (1, 2, 3))
+        try:
+            tensor1.assign_random_data(covariance=True)   ## line 808
+        except ValueError:
+            print("Proper error")
+
         tensor2 = mp.Tensor.create(self.__session, (3,3))
         tensor2.assign_random_data(covariance=True)   ## line 814
 
+    def TestCreateFromData(self):
+        tensor = mp.Tensor.create_from_data(self.__session, [1,2,3,3])   ## line 934
 
 class ArrayUnitTests:
     def __init__(self):
