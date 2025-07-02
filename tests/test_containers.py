@@ -30,7 +30,7 @@ class ScalarUnitTests:
             scal.data = np.array([1,2]) # line 199
         except ValueError:
             print("Proper error")
-        scal.data = np.float16(2)   ## line 126-128
+        scal.data = np.float16(2) 
         # scal.data = np.complexfloating(4.5,2)   ## line 209
 
         try:
@@ -46,6 +46,7 @@ class ScalarUnitTests:
 
     def TestCopyTo(self):
         scal = mp.Scalar.create(self.__session, int)
+        scal.data = np.array([1])
         dest1 = mp.Scalar.create(self.__session, int)
         dest2 = mp.Scalar.create(self.__session, float)
 
