@@ -169,7 +169,7 @@ class CircleBufferUnitTests:
     def TestGetQueuedElement(self):
         cir = mp.CircleBuffer.create(self.__session, 5, mp.Scalar.create(self.__session, int))
         try:
-            cir.get_queued_element(7)   ## 1467
+            cir.get_queued_element(7) 
         except ValueError:
             print("Proper error")
 
@@ -177,9 +177,26 @@ class CircleBufferUnitTests:
         cir1 = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
         cir2 = mp.CircleBuffer.create(self.__session, 5, mp.Scalar.create(self.__session, int))
 
-        p1 = cir1.peek()   ## line 1488
+        p1 = cir1.peek()  
         assert p1 == None
         p2 = cir2.peek()   ## line 1491
+
+    def TestEnqueueChunk(self):
+        sour1 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        sour2 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create_from_value(self.__session, 5))
+        dest = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, float))
+
+        try:
+            dest.enqueue_chunk(sour1)    ## line 1542
+        except TypeError:
+            print("Proper error")
+
+        dest.enqueue_chunk(sour2)   ## line 1548
+
+    def TestDequeue(self):
+        dest = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, float))
+        r = dest.dequeue()
+        assert r == None ## 1566
 
 def test_execute():
     st = ScalarUnitTests()   
@@ -206,5 +223,7 @@ def test_execute():
     ct.TestGetQueuedElement()
     ct.TestNumElements()
     ct.TestPeek()
+    ct.TestEnqueueChunk()
+    ct.TestDequeue()
 
 test_execute()
