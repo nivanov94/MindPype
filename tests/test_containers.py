@@ -4,7 +4,6 @@ import numpy as np
 class ScalarUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
 
     def TestScalarCreation(self):
         inScalar = mp.Scalar.create(self.__session, 'int')   
@@ -64,7 +63,6 @@ class ScalarUnitTests:
 class TensorUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
 
     def TestTensorData(self):
         t = mp.Tensor.create(self.__session, (1,1))
@@ -111,18 +109,15 @@ class ArrayUnitTests:
 
     def TestArrayGetElement(self):
         arr = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        arr.get_element(-1) #3 line 1077
+        arr.get_element(-1) 
         try:
-            arr.get_element(5)  ## 1080
+            arr.get_element(5)  
         except ValueError:
             print("Proper error")
 
     def TestArraySetElement(self):
         arr = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        try:
-            arr.set_element(-1, mp.Scalar.create(self.__session, int))   ## line 1111
-        except ValueError:
-            print("Proper error")
+        arr.set_element(-1, mp.Scalar.create(self.__session, int))   ## line 1111
 
         try:
             arr.set_element(5, mp.Scalar.create(self.__session, int))   ## line 1114
@@ -162,10 +157,35 @@ class ArrayUnitTests:
         except TypeError:
             print("Proper error")
 
+class CircleBufferUnitTests:
+    def __init__(self):
+        self.__session = mp.Session.create()
+
+    def TestNumElements(self):
+        cir = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
+        n = cir.num_elements()
+        assert n == 0
+
+    def TestGetQueuedElement(self):
+        cir = mp.CircleBuffer.create(self.__session, 5, mp.Scalar.create(self.__session, int))
+        try:
+            cir.get_queued_element(7)   ## 1467
+        except ValueError:
+            print("Proper error")
+
+    def TestPeek(self):
+        cir1 = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
+        cir2 = mp.CircleBuffer.create(self.__session, 5, mp.Scalar.create(self.__session, int))
+
+        p1 = cir1.peek()   ## line 1488
+        assert p1 == None
+        p2 = cir2.peek()   ## line 1491
+
 def test_execute():
     st = ScalarUnitTests()   
     tt = TensorUnitTests()
     at = ArrayUnitTests()
+    ct = CircleBufferUnitTests()
 
     st.TestAssignRandomData()
     st.TestScalarCreation()
