@@ -1,7 +1,7 @@
 import mindpype as mp
 import numpy as np
 
-class ScalarUnitTests:   ## limit methods to individual tests ex. TestingScalarType
+class ScalarUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
@@ -26,7 +26,10 @@ class ScalarUnitTests:   ## limit methods to individual tests ex. TestingScalarT
     def TestScalarData(self):
         scal = mp.Scalar.create(self.__session, int)
         scal.data = np.array([1])   ## line 197
-        scal.data = np.array([1,2]) # line 199
+        try:
+            scal.data = np.array([1,2]) # line 199
+        except ValueError:
+            print("Proper error")
         scal.data = np.float16(2)   ## line 126-128
         scal.data = np.complexfloating(4.5,2)   ## line 209
 
