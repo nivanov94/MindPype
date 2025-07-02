@@ -11,7 +11,7 @@ class ScalarUnitTests:   ## limit methods to individual tests ex. TestingScalarT
         scal = mp.Scalar.create(self.__session, float)   ## line 68,69
         random_scal = mp.Scalar.create(self.__session, int)
         try:
-            bad_scalar = mp.Scalar.create(self.__session, 'double')  ## line 281
+            bad_scalar = mp.Scalar.create(self.__session, 'double')  ## line 121
         except ValueError:
             print("Proper error")
 
@@ -25,11 +25,11 @@ class ScalarUnitTests:   ## limit methods to individual tests ex. TestingScalarT
         
     def TestScalarData(self):
         scal = mp.Scalar.create(self.__session, int)
-        scal.data = np.array([1])   ## line 122
+        scal.data = np.array([1])   ## line 197
+        scal.data = np.array([1,2]) # line 199
         scal.data = np.float16(2)   ## line 126-128
-        # verify scal data is actually equal 
-        scal.data = np.float16(4.5)   ## line 130
-        # scal.data = np.complex64(2, 1)   ## line 131,132
+        scal.data = np.complexfloating(4.5,2)   ## line 209
+
         try:
             scal.data = np.double(1.2)   ## line 137
         except ValueError:
@@ -41,8 +41,17 @@ class ScalarUnitTests:   ## limit methods to individual tests ex. TestingScalarT
         rand_scal1.assign_random_data()
         rand_scal2.assign_random_data()    ## all lines 213,216,217
 
-        # source_scal = mp.Scalar.create_from_source(self.__session, 'double', src)
-        # source_scalar_good = mp.Scalar.create_from_source(self.__session, int, src)    ## lines 390-396
+    def TestCopyTo(self):
+        scal = mp.Scalar.create(self.__session, int)
+        dest1 = mp.Scalar.create(self.__session, int)
+        dest2 = mp.Scalar.create(self.__session, float)
+
+        scal.copy_to(dest1)
+        
+        try:
+            scal.copy_to(dest2)
+        except TypeError:
+            print("Proper error")
 
 
 class TensorUnitTests:
