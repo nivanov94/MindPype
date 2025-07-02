@@ -69,7 +69,7 @@ class TensorUnitTests:
     def TestTensorData(self):
         t = mp.Tensor.create(self.__session, (1,1))
         try:    
-            t.data = np.ndarray([np.double(3.1)])  ## line 648
+            t.data = np.double(3.1)  ## line 648
         except TypeError:
             print("Proper error")
 
@@ -145,6 +145,7 @@ def test_execute():
     tt.TestTensorData()
     tt.TestTensorRandomData()
     tt.TestChangeShape()
+    tt.TestCreateFromData()
 
     at.TestArrayNumElements()
     at.TestArraySetElement
