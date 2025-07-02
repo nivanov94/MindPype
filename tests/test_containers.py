@@ -122,6 +122,7 @@ def test_execute():
     st.TestAssignRandomData()
     st.TestScalarCreation()
     st.TestScalarData()
+    st.TestCopyTo()
 
     tt.TestTensorData()
     tt.TestTensorRandomData()
