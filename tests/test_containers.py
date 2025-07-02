@@ -7,21 +7,24 @@ class ScalarUnitTests:
         self.__graph = mp.Graph.create(self.__session)
 
     def TestScalarCreation(self):
-        inScalar = mp.Scalar.create(self.__session, 'int')   ## line in containers, 65, hopefully also 275-278?
-        scal = mp.Scalar.create(self.__session, float)   ## line 68,69
+        inScalar = mp.Scalar.create(self.__session, 'int')   
+        scal = mp.Scalar.create(self.__session, float)   
         random_scal = mp.Scalar.create(self.__session, int)
         try:
             bad_scalar = mp.Scalar.create(self.__session, 'double')  ## line 121
         except ValueError:
             print("Proper error")
 
-        virtual = mp.Scalar.create_virtual(self.__session, 'int')   ## line 311-315
+        virtual = mp.Scalar.create_virtual(self.__session, 'int')   
         try: 
-            virtual1 = mp.Scalar.create_virtual(self.__session, 'double') ## line 317,318   .... might be mistake in lines 320,321
+            virtual1 = mp.Scalar.create_virtual(self.__session, 'double') 
         except ValueError:
             print("Proper error")
 
-        val_scalar = mp.Scalar.create_from_value(self.__session, 'hi')   ## line 356
+        try:
+            val_scalar = mp.Scalar.create_from_value(self.__session, np.double(4.2))  ## line 436
+        except TypeError:
+            print("Proper error")
         
     def TestScalarData(self):
         scal = mp.Scalar.create(self.__session, int)
@@ -34,7 +37,7 @@ class ScalarUnitTests:
         # scal.data = np.complexfloating(4.5,2)   ## line 209
 
         try:
-            scal.data = np.double(1.2)   ## line 137
+            scal.data = np.double(1.2)  
         except ValueError:
             print("Proper error")
       
@@ -65,25 +68,27 @@ class TensorUnitTests:
 
     def TestTensorData(self):
         t = mp.Tensor.create(self.__session, (1,1))
-        t.data = True   ## line 528
+        try:    
+            t.data = np.ndarray(np.double(3.1))  ## line 648
+        except TypeError:
+            print("Proper error")
+    
+    def TestChangeShape(self):
+        t = mp.Tensor.create(self.__session, (1,1))
+        try:    
+            t.change_shape(1)   ## line 702
+        except TypeError:
+            print("Proper error")
 
     def TestTensorRandomData(self):
-        tensor = mp.Tensor.create_from_data(self.__session, [1,2,3,4])  ## line 756
-        # handle = mp.Tensor.create_from_handle(self.__session, (2, 3, 5, 1), src)   ## line 783
+        tensor = mp.Tensor.create(self.__session, (1,1)) 
         try:
-            tensor.assign_random_data(covariance=True)   ## line 651 + 655
+            tensor.assign_random_data(covariance=True)   ## line 808
         except ValueError:
             print("Proper error")
 
-        tensor2 = mp.Tensor.create_from_data(self.__session, [3,3])
-        try:
-            tensor2.assign_random_data(covariance=True)   ## line 659
-        except ValueError:
-            print("Proper error")
-
-        # handle3 = mp.Tensor.create_from_data(self.__session, [1,1])
-        # handle3.shape = (1,1)
-        # handle3.assign_random_data(covariance=True)   ## line 659
+        tensor2 = mp.Tensor.create(self.__session, (3,3))
+        tensor2.assign_random_data(covariance=True)   ## line 814
 
 
 class ArrayUnitTests:
