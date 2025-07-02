@@ -74,7 +74,7 @@ class TensorUnitTests:
             print("Proper error")
 
         try:
-            t.data = np.ndarray(1, 2, 3)  ## line 667
+            t.data = np.ndarray([1, 2, 3])  ## line 667
         except ValueError:
             print("Proper error")
     
@@ -86,7 +86,7 @@ class TensorUnitTests:
             print("Proper error")
 
     def TestTensorRandomData(self):
-        tensor = mp.Tensor.create(self.__session, (1)) 
+        tensor = mp.Tensor.create(self.__session, (1, 1, 1, 1)) 
         try:
             tensor.assign_random_data(covariance=True)   ## line 802
         except ValueError:
