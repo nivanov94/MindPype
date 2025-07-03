@@ -83,7 +83,7 @@ class TensorUnitTests:
     def TestTensorData(self):
         t = mp.Tensor.create(self.__session, (1,1))
         try:    
-            t.data = np.double(3.1)  ## line 648
+            t.data = np.bool(True)  ## line 643
         except TypeError:
             print("Data assigned must be numpy array or scalar")
 
@@ -138,16 +138,16 @@ class ArrayUnitTests:
 
     def TestArraySetElement(self):
         arr = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        arr.set_element(-1, mp.Scalar.create_from_value(self.__session, 5))   ## line 1111
+        arr.set_element(-1, mp.Scalar.create_from_value(self.__session, 5))   ## line 1106
 
         try:
-            arr.set_element(5, mp.Scalar.create_from_value(self.__session, 5))   ## line 1114
+            arr.set_element(5, mp.Scalar.create_from_value(self.__session, 5))   ## line 1109
         except ValueError:
             print("Index out of bounds")
 
     def TestArrayNumElements(self):
         arr1 = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        num = arr1.num_elements   ## line 1124
+        num = arr1.num_elements 
         assert num == 4
 
     def TestCopyTo(self):
@@ -178,7 +178,7 @@ class ArrayUnitTests:
         arr3 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, bool))
         arr3.set_element(0, mp.Scalar.create_from_value(self.__session, True))
         try:
-            t = arr3.to_tensor()   ## line 1252
+            t = arr3.to_tensor()   ## line 1247  - go to containers file line 1246
         except TypeError:
             print("Array contains non-numeric scalar elements")
 

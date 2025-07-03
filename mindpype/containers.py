@@ -1243,7 +1243,7 @@ class Array(MPBase):
         if element.mp_type == MPEnums.SCALAR:
             # ensure all elements are numeric scalars
             for ei in range(self.capacity):
-                if not self.get_element(ei).is_numeric:
+                if not self.get_element(ei).is_numeric:  ## error here - is_numeric is not working
                     raise TypeError(
                         "Cannot convert Array to Tensor: Array contains "
                         "non-numeric Scalar elements."
