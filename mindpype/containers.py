@@ -1429,6 +1429,8 @@ class CircleBuffer(Array):
         bool
             True if circle buffer is full, False otherwise.
         """
+        if self._tail == None:
+            return False
         if self._head == ((self._tail + 1) % self.capacity):
             return True
         else:
