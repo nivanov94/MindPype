@@ -222,7 +222,7 @@ class CircleBufferUnitTests:
         assert cir.peek() == None
 
         cir.enqueue(mp.Scalar.create_from_value(self.__session, 1))
-        assert cir.peek().data == 1   ## line 1486
+        assert cir.peek().data == 1  
 
     def TestEnqueue(self):
         c = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
@@ -234,7 +234,7 @@ class CircleBufferUnitTests:
         y = c.get_queued_element(1)
         assert y.data == 2
 
-        c.enqueue(mp.Scalar.create_from_value(self.__session, 3))   ## line 1513
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 3))  
         z = c.get_queued_element(1)
         assert z.data == 3
 
@@ -247,11 +247,11 @@ class CircleBufferUnitTests:
         sour2.enqueue(mp.Scalar.create_from_value(self.__session, 6))
 
         try:
-            dest.enqueue_chunk(sour1)    ## line 1542   
+            dest.enqueue_chunk(sour1)    
         except TypeError:
             print("Non-matching types")
 
-        dest.enqueue_chunk(sour2)   ## line 1548
+        dest.enqueue_chunk(sour2)  
         assert dest.get_element(0).data == 5
         assert dest.get_element(1).data == 6
 
@@ -268,40 +268,41 @@ class CircleBufferUnitTests:
         c = cir.make_copy()
         assert c.get_element(0).data == 7  
 
-    def TestCopyTo(self):
+    def TestCopyTo(self):   ### ???
         source = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
         source.enqueue(mp.Scalar.create_from_value(self.__session, 7))
         source.enqueue(mp.Scalar.create_from_value(self.__session, 7))
+        source1 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
 
         dest1 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
         dest2 = mp.CircleBuffer.create(self.__session, 3, mp.Tensor.create(self.__session, (1,1)))
 
         dest3 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        source.copy_to(dest3)   
+        source1.copy_to(dest3)   ## line 1663
 
         dest3.enqueue(mp.Scalar.create_from_value(self.__session, 7))
-        source.copy_to(dest3)   ## line 1664
+        source.copy_to(dest3)  
 
         try:
-            source.copy_to(dest1)  ## line 1643
+            source.copy_to(dest1) 
         except ValueError:
             print("Destination array does not have capacity")
 
         try:
-            source.copy_to(dest2)   ## line 1650
+            source.copy_to(dest2)  
         except TypeError:
             print("Non-matching types")
 
     def TestToTensor(self):
         e = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
-        assert e.to_tensor() == None   ## line 1697
+        assert e.to_tensor() == None 
 
         c1 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, bool))
         c1.enqueue(mp.Scalar.create_from_value(self.__session, True))
         try:
-            c1.to_tensor()    ## line 1704
+            c1.to_tensor()    ## line 1706 -  same as above error
         except TypeError:
-            print("Proper error")
+            print("Non-numeric value")
 
         c2 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create_from_value(self.__session, 5))
         c2.enqueue(mp.Scalar.create_from_value(self.__session, 5))
@@ -309,7 +310,7 @@ class CircleBufferUnitTests:
         t = c2.to_tensor()
         # assert type(t) == MPEnums.TENSOR
 
-    def TestRandomData(self):
+    def TestRandomData(self):       ## not sure why this isn't working
         c = mp.Array.create(self.__session, 3, mp.Scalar.create(self.__session, int))
         c.assign_random_data()
 
