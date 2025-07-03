@@ -117,11 +117,6 @@ class Scalar(MPBase):
                 value = ""
             elif data_type == bool:
                 value = False
-            else:
-                raise ValueError(
-                    "Invalid data type for scalar, must be one of " 
-                    "[int, float, complex, str, bool]"
-                )
 
         self.ext_out = ext_out
         self.data = value

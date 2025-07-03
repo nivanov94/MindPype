@@ -1,6 +1,9 @@
 import mindpype as mp
 import numpy as np
 
+
+## try to debug errors more
+## add more checks to verify things are actually working as intended
 class ScalarUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -27,13 +30,14 @@ class ScalarUnitTests:
         
     def TestScalarData(self):
         scal = mp.Scalar.create(self.__session, int)
+        scal1 = mp.Scalar.create(self.__session, complex)
         scal.data = np.array([1])   
         try:
             scal.data = np.array([1,2]) 
         except ValueError:
             print("Proper error")
-        scal.data = np.float16(2) 
-        # scal.data = np.complexfloating(4.5,2)   ## line 209
+        scal.data = np.float16(3.2) 
+        scal1.data = np.cdouble(4.5,2)   ## line 209
 
         try:
             scal.data = np.double(1.2)  
@@ -162,9 +166,32 @@ class CircleBufferUnitTests:
         self.__session = mp.Session.create()
 
     def TestNumElements(self):
-        cir = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
-        # n = cir.num_elements()
-        # assert n == 0
+        cir = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
+        n = cir.num_elements
+        # assert n == 2
+    
+    def TestIsFull(self):
+        c = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
+        r = c.is_full()
+        assert r == False
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 1))
+        r = c.is_full()
+        assert r == False
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 1))
+        r = c.is_full()
+        assert r == True   ## line 1438
+
+    def TestEnqueue(self):
+        c = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 1))
+        x = c.get_queued_element(0)
+        assert x.data == 1
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 2))
+        y = c.get_queued_element(1)
+        assert y.data == 2
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 3))   ## line 1513
+        z = c.get_queued_element(1)
+        assert z.data == 3
 
     def TestGetQueuedElement(self):
         cir = mp.CircleBuffer.create(self.__session, 5, mp.Scalar.create(self.__session, int))
@@ -182,12 +209,12 @@ class CircleBufferUnitTests:
         p2 = cir2.peek()   ## line 1491
 
     def TestEnqueueChunk(self):
-        sour1 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, float))
+        sour1 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create_from_value(self.__session, 5.4))
         sour2 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create_from_value(self.__session, 5))
         dest = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
 
         try:
-            dest.enqueue_chunk(sour1)    ## line 1542
+            dest.enqueue_chunk(sour1)    ## line 1542     make it tensor
         except TypeError:
             print("Proper error")
 
@@ -264,6 +291,8 @@ def test_execute():
 
     ct.TestGetQueuedElement()
     ct.TestNumElements()
+    # ct.TestIsFull()
+    ct.TestEnqueue()
     ct.TestPeek()
     ct.TestEnqueueChunk()
     ct.TestDequeue()
