@@ -325,14 +325,15 @@ class CircleBufferUnitTests:
     def TestCBCopyTo(self):  
         """Ensure copy_to executes without error"""
         c_src = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        c_src.enqueue(mp.Scalar.create_from_value(self.__session, 7))
-        c_src.enqueue(mp.Scalar.create_from_value(self.__session, 7))
 
         c_dest1 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
         c_dest2 = mp.CircleBuffer.create(self.__session, 3, mp.Tensor.create(self.__session, (1,1)))
         c_dest3 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
 
         c_src.copy_to(c_dest3)   
+
+        c_src.enqueue(mp.Scalar.create_from_value(self.__session, 7))
+        c_src.enqueue(mp.Scalar.create_from_value(self.__session, 7))
 
         c_dest3.enqueue(mp.Scalar.create_from_value(self.__session, 7))
         c_src.copy_to(c_dest3)  
