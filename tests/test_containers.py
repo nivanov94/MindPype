@@ -1,131 +1,172 @@
 import mindpype as mp
 import numpy as np
 
+
+"""Unit tests for Scalar class in containers.py"""
 class ScalarUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
 
+    """Verify that Scalar objects are created with correct data types"""
     def TestScalarCreation(self):  
-        s = mp.Scalar.create(self.__session, 'int')
-        scal = mp.Scalar.create(self.__session, float)   
-        assert type(scal.data) == float
+        s_int_string = mp.Scalar.create(self.__session, 'int')
+        assert type(s_int_string.data) == int
 
-        random_scal = mp.Scalar.create(self.__session, int)
-        assert type(random_scal.data) == int
+        s_float = mp.Scalar.create(self.__session, float)   
+        assert type(s_float.data) == float
 
-        try:
-            bad_scalar = mp.Scalar.create(self.__session, 'double') 
+        s_int = mp.Scalar.create(self.__session, int)
+        assert type(s_int.data) == int
+
+        # Cannot create Scalar with type double
+        try:    
+            s_bad = mp.Scalar.create(self.__session, 'double') 
         except ValueError:
-            print("No allowed type double")
+            pass
 
-        virtual = mp.Scalar.create_virtual(self.__session, int)   
+        s_virtual_int = mp.Scalar.create_virtual(self.__session, int)
+        assert type(s_virtual_int.data) == int
+
+        # Cannot create Scalar with type double
         try: 
-            virtual1 = mp.Scalar.create_virtual(self.__session, 'double') 
+            s_virtual_bad = mp.Scalar.create_virtual(self.__session, 'double') 
         except ValueError:
-            print("No allowed type double")
+            pass
 
-        val_scal = mp.Scalar.create_from_value(self.__session, 4)
-        assert type(val_scal.data) == int
+        s_from_val = mp.Scalar.create_from_value(self.__session, 4)
+        assert type(s_from_val.data) == int
+
+        # Cannot create Scalar with type double
         try:
-            val_scalar = mp.Scalar.create_from_value(self.__session, np.double(4.2)) 
+            s_from_val_bad = mp.Scalar.create_from_value(self.__session, np.double(4.2)) 
         except TypeError:
-            print("No allowed type double")
+            pass
         
+    """Verify that data is correctly assigned to Scalar objects"""
     def TestScalarData(self):
-        scal = mp.Scalar.create(self.__session, int)
-        scal1 = mp.Scalar.create(self.__session, complex)
+        s_int = mp.Scalar.create(self.__session, int)
 
-        scal.data = np.array([1])   
-        assert type(scal.data) == int
+        s_int.data = np.array([1])   
+        assert type(s_int.data) == int
+
+        # Input array must contain one element
         try:
-            scal.data = np.array([1,2]) 
+            s_int.data = np.array([1,2]) 
         except ValueError:
-            print("Input numpy array must contain one element")
+            pass
+
+        # Cannot create Scalar with type double
+        try:
+            s_int.data = np.double(1.2)  
+        except ValueError:
+            pass
         
-        scal1.data = np.cdouble(4.5,2)   
-        assert type(scal1.data) == complex
+        s_complex = mp.Scalar.create(self.__session, complex)
 
-        try:
-            scal.data = np.double(1.2)  
-        except ValueError:
-            print("No allowed type double")
+        s_complex.data = np.cdouble(4.5,2)   
+        assert type(s_complex.data) == complex
       
+    """Ensure assign_random_data executes without error and assigns correct data type based on Scalar type"""
     def TestAssignRandomData(self):
-        rand_scal1 = mp.Scalar.create(self.__session, complex)
-        rand_scal2 = mp.Scalar.create(self.__session, bool)
-        rand_scal1.assign_random_data()
-        assert type(rand_scal1.data) == complex
-        rand_scal2.assign_random_data()  
-        assert type(rand_scal2.data) == bool  
+        s_rand1 = mp.Scalar.create(self.__session, complex)
+        s_rand2 = mp.Scalar.create(self.__session, bool)
 
+        s_rand1.assign_random_data()
+        assert type(s_rand1.data) == complex
+
+        s_rand2.assign_random_data()  
+        assert type(s_rand2.data) == bool  
+
+    
     def TestCopyTo(self):
-        scal = mp.Scalar.create(self.__session, int)
-        scal.data = 1
+        """Ensure copy_to executes without error"""
+        s_int = mp.Scalar.create(self.__session, int)
+        s_int.data = 1
 
-        dest1 = mp.Scalar.create(self.__session, int)
-        dest2 = mp.Scalar.create(self.__session, float)
+        s_dest1 = mp.Scalar.create(self.__session, int)
+        s_dest2 = mp.Scalar.create(self.__session, float)
 
-        scal.copy_to(dest1)
-        assert dest1.data == 1
+        s_int.copy_to(s_dest1)
+        assert s_dest1.data == 1
 
+        # Scalars must be of same data type
         try:
-            scal.copy_to(dest2)
+            s_int.copy_to(s_dest2)
         except TypeError:
-            print("Scalars have different types")
+            pass
 
-
+"""Unit tests for Tensor class in containers.py"""
 class TensorUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
 
+    """Verify that data is correctly assigned to Tensor objects"""
     def TestTensorData(self):
         t = mp.Tensor.create(self.__session, (1,1))
+
+        # Data assigned to Tensor object must be numpy array or scalar
         try:    
             t.data = np.bool(True) 
         except TypeError:
-            print("Data assigned must be numpy array or scalar")
+            pass
 
-        # t.data = np.ndarray([1], [], [])  ## line 652  .... will this be reacheD?
-        # print(t.data.shape)
+        src_data = np.ndarray([[[5]]])  ## line 652 
+        t.data = src_data
+        assert t.shape == (1,1) 
+        assert np.array_equal(t.data, src_data)
 
+        src_data = np.ndarray([5])
+        t.data = src_data
+        assert t.shape == (1,1)      
+        assert np.array_equal(t.data, src_data)
+
+        # Shape of assigned data must match shape of Tensor
         try:
-            t.data = np.ndarray([1, 2, 3])
+            t.data = np.ndarray([1,2,3])
         except ValueError:
-            print("Data shape does not match tensor")
+            pass
     
+    """Ensure change_shape executes without error"""
     def TestChangeShape(self):
         t = mp.Tensor.create(self.__session, (1,1))
+
+        # New shape must be tuple or list
         try:    
             t.change_shape(1)   
         except TypeError:
-            print("New shape must be tuple or list")
+            pass
 
+    """Ensure assign_random_data executes without error"""
     def TestTensorRandomData(self):
-        tensor = mp.Tensor.create(self.__session, (1, 1, 1, 1)) 
+        t_rand1 = mp.Tensor.create(self.__session, (1, 1, 1, 1))
+
+        # Rank of Tensor must be 2 or 3 for this function 
         try:
-            tensor.assign_random_data(covariance=True) 
+            t_rand1.assign_random_data(covariance=True) 
         except ValueError:
             print("Rank must be 2 or 3")
 
-        tensor1 = mp.Tensor.create(self.__session, (1, 2, 3))
+        t_rand2 = mp.Tensor.create(self.__session, (1, 2, 3))
         try:
-            tensor1.assign_random_data(covariance=True)   
+            t_rand2.assign_random_data(covariance=True)   
         except ValueError:
             print("Last 2 dimensions must be square")
 
-        tensor2 = mp.Tensor.create(self.__session, (3,3))
-        tensor2.assign_random_data(covariance=True) 
+        t_rand3 = mp.Tensor.create(self.__session, (3,3))
+        t_rand3.assign_random_data(covariance=True) 
 
     def TestCreateFromData(self):
         tensor = mp.Tensor.create_from_data(self.__session, [1,2,3,3])  
         assert type(tensor.data) == np.ndarray 
 
+
+"""Unit tests for Array class in containers.py"""
 class ArrayUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestArrayGetElement(self):
+    def TestArrayGetElement(self):    ## combine
         arr = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
         a = arr.get_element(-1) 
         ## how can i add an index check here???
@@ -136,7 +177,7 @@ class ArrayUnitTests:
 
     def TestArraySetElement(self):
         arr = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        arr.set_element(-1, mp.Scalar.create_from_value(self.__session, 5))   ## line 1106  - debugger wont work??
+        arr.set_element(-1, mp.Scalar.create_from_value(self.__session, 5))   ## line 1106  
 
         try:
             arr.set_element(5, mp.Scalar.create_from_value(self.__session, 5))   ## line 1109
@@ -171,15 +212,19 @@ class ArrayUnitTests:
     def TestArrayToTensor(self):
         arr2 = mp.Array.create(self.__session, 6, mp.Scalar.create(self.__session, int))
         t = arr2.to_tensor()
-        # assert t.mp_type == MPEnums.TENSOR        ## what type should this be
+        assert t.mp_type == mp.MPEnums.TENSOR     
 
-        arr3 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, bool))
-        arr3.set_element(0, mp.Scalar.create_from_value(self.__session, True))
+        arr3 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, str))
+        arr3.set_element(0, mp.Scalar.create_from_value(self.__session, 'hi'))
+
+        # 
         try:
-            t = arr3.to_tensor()   ## line 1247  - go to containers file line 1246
+            t = arr3.to_tensor()   ## line 1247  
         except TypeError:
             print("Array contains non-numeric scalar elements")
 
+
+"""Unit tests for CircleBuffer class in containers.py"""
 class CircleBufferUnitTests:
     def __init__(self):
         self.__session = mp.Session.create()
@@ -294,10 +339,12 @@ class CircleBufferUnitTests:
         e = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
         assert e.to_tensor() == None 
 
-        c1 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, bool))
-        c1.enqueue(mp.Scalar.create_from_value(self.__session, True))
+        c1 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, str))
+        c1.enqueue(mp.Scalar.create_from_value(self.__session, 'hi'))
+
+        # Data must be numeric value
         try:
-            c1.to_tensor()    ## line 1706 -  same as above error - containers file line 1246
+            c1.to_tensor()    ## line 1706 
         except TypeError:
             print("Non-numeric value")
 
@@ -305,10 +352,10 @@ class CircleBufferUnitTests:
         c2.enqueue(mp.Scalar.create_from_value(self.__session, 5))
         c2.enqueue(mp.Scalar.create_from_value(self.__session, 5))
         t = c2.to_tensor()
-        # assert type(t) == MPEnums.TENSOR
+        assert type(t) == mp.MPEnums.TENSOR
 
-    def TestRandomData(self):       ## not sure why this isn't working
-        c = mp.Array.create(self.__session, 3, mp.Scalar.create(self.__session, int))
+    def TestRandomData(self):     
+        c = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, int))
         c.assign_random_data()
 
 def test_execute():
@@ -329,7 +376,7 @@ def test_execute():
 
     at.TestArrayGetElement()
     at.TestArrayNumElements()
-    at.TestArraySetElement
+    at.TestArraySetElement()
     at.TestArrayToTensor()
     at.TestCopyTo()
 
