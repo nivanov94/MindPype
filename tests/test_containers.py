@@ -2,13 +2,13 @@ import mindpype as mp
 import numpy as np
 
 
-"""Unit tests for Scalar class in containers.py"""
 class ScalarUnitTests:
+    """Unit tests for Scalar class in containers.py"""
     def __init__(self):
         self.__session = mp.Session.create()
 
-    """Verify that Scalar objects are created with correct data types"""
     def TestScalarCreation(self):  
+        """Verify that Scalar objects are created with correct data types"""
         s_int_string = mp.Scalar.create(self.__session, 'int')
         assert type(s_int_string.data) == int
 
@@ -42,8 +42,8 @@ class ScalarUnitTests:
         except TypeError:
             pass
         
-    """Verify that data is correctly assigned to Scalar objects"""
     def TestScalarData(self):
+        """Verify that data is correctly assigned to Scalar objects"""
         s_int = mp.Scalar.create(self.__session, int)
 
         s_int.data = np.array([1])   
@@ -66,8 +66,8 @@ class ScalarUnitTests:
         s_complex.data = np.cdouble(4.5,2)   
         assert type(s_complex.data) == complex
       
-    """Ensure assign_random_data executes without error and assigns correct data type based on Scalar type"""
-    def TestAssignRandomData(self):
+    def TestScalarAssignRandomData(self):
+        """Ensure assign_random_data executes without error and assigns correct data type based on Scalar type"""
         s_rand1 = mp.Scalar.create(self.__session, complex)
         s_rand2 = mp.Scalar.create(self.__session, bool)
 
@@ -76,9 +76,8 @@ class ScalarUnitTests:
 
         s_rand2.assign_random_data()  
         assert type(s_rand2.data) == bool  
-
     
-    def TestCopyTo(self):
+    def TestScalarCopyTo(self):
         """Ensure copy_to executes without error"""
         s_int = mp.Scalar.create(self.__session, int)
         s_int.data = 1
@@ -95,13 +94,14 @@ class ScalarUnitTests:
         except TypeError:
             pass
 
-"""Unit tests for Tensor class in containers.py"""
+
 class TensorUnitTests:
+    """Unit tests for Tensor class in containers.py"""
     def __init__(self):
         self.__session = mp.Session.create()
 
-    """Verify that data is correctly assigned to Tensor objects"""
     def TestTensorData(self):
+        """Verify that data is correctly assigned to Tensor objects"""
         t = mp.Tensor.create(self.__session, (1,1))
 
         # Data assigned to Tensor object must be numpy array or scalar
@@ -110,7 +110,7 @@ class TensorUnitTests:
         except TypeError:
             pass
 
-        t.data = np.array([[[5]]])   ## line 652
+        t.data = np.array([[[5]]])
         assert t.shape == (1,1) 
         assert np.array_equal(t.data, np.array([[5]]))
 
@@ -124,8 +124,8 @@ class TensorUnitTests:
         except ValueError:
             pass
     
-    """Ensure change_shape executes without error"""
-    def TestChangeShape(self):
+    def TestTensorChangeShape(self):
+        """Ensure change_shape executes without error"""
         t = mp.Tensor.create(self.__session, (1,1))
 
         # New shape must be tuple or list
@@ -134,8 +134,8 @@ class TensorUnitTests:
         except TypeError:
             pass
 
-    """Ensure assign_random_data executes without error"""
     def TestTensorRandomData(self):
+        """Ensure assign_random_data executes without error"""
         t_rand1 = mp.Tensor.create(self.__session, (1, 1, 1, 1))
 
         # Rank of Tensor must be 2 or 3 for this function 
@@ -153,241 +153,260 @@ class TensorUnitTests:
         t_rand3 = mp.Tensor.create(self.__session, (3,3))
         t_rand3.assign_random_data(covariance=True) 
 
-    def TestCreateFromData(self):
-        tensor = mp.Tensor.create_from_data(self.__session, [1,2,3,3])  
-        assert type(tensor.data) == np.ndarray 
+    def TestTensorCreateFromData(self):
+        """Ensure create_from_data executes without error"""
+        t_data = mp.Tensor.create_from_data(self.__session, [1,2,3,3])  
+        assert type(t_data.data) == np.ndarray 
 
 
-"""Unit tests for Array class in containers.py"""
 class ArrayUnitTests:
+    """Unit tests for Array class in containers.py"""
     def __init__(self):
         self.__session = mp.Session.create()
         self.__graph = mp.Graph.create(self.__session)
 
-    def TestArrayGetElement(self):    ## combine
-        arr = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        a = arr.get_element(-1) 
-        ## how can i add an index check here???
-        try:
-            arr.get_element(5)  
-        except ValueError:
-            print("Index out of bounds")
+    def TestArraySetandGetElement(self):  
+        """Ensure that Array elements are properly set using set_element and that get_element returns correct element"""
+        a_int = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        a_int.set_element(-1, mp.Scalar.create_from_value(self.__session, 5))  
 
-    def TestArraySetElement(self):
-        arr = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        arr.set_element(-1, mp.Scalar.create_from_value(self.__session, 5))   ## line 1106  
+        element = a_int.get_element(-1) 
+        assert element.data == 5
 
+        # Index is out of bounds of Array object
         try:
-            arr.set_element(5, mp.Scalar.create_from_value(self.__session, 5))   ## line 1109
+            a_int.get_element(5)  
         except ValueError:
-            print("Index out of bounds")
+            pass
+
+        # Index is out of bounds of Array object
+        try:
+            a_int.set_element(5, mp.Scalar.create_from_value(self.__session, 5))   
+        except ValueError:
+            pass
 
     def TestArrayNumElements(self):
-        arr1 = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        num = arr1.num_elements 
-        assert num == 4
+        """Ensure num_elements executes without error and returns correct number of elements"""
+        a_elements = mp.Array.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        assert a_elements.num_elements == 4
 
-    def TestCopyTo(self):
-        a = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
-        a.set_element(0, mp.Scalar.create_from_value(self.__session, 4))
-        dest1 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
-        dest2 = mp.Array.create(self.__session, 5, mp.Scalar.create(self.__session, int))
-        dest3 = mp.Array.create(self.__session, 1, mp.Tensor.create(self.__session, (1,1)))
+    def TestArrayCopyTo(self):
+        """Ensure copy_to executes without error"""
+        a_src = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
+        a_src.set_element(0, mp.Scalar.create_from_value(self.__session, 4))
 
-        a.copy_to(dest1)
-        assert dest1.get_element(0).data == a.get_element(0).data
+        a_dest1 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
+        a_dest2 = mp.Array.create(self.__session, 5, mp.Scalar.create(self.__session, int))
+        a_dest3 = mp.Array.create(self.__session, 1, mp.Tensor.create(self.__session, (1,1)))
+
+        a_src.copy_to(a_dest1)
+        assert a_dest1.get_element(0).data == a_src.get_element(0).data
         
+        # Array capacities must match
         try:
-            a.copy_to(dest2)
+            a_src.copy_to(a_dest2)
         except ValueError:
-            print("Index must match")
+            pass
 
+        # Array data types must match
         try:
-            a.copy_to(dest3)
+            a_src.copy_to(a_dest3)
         except TypeError:
-            print("Data type must match")
+            pass
 
     def TestArrayToTensor(self):
-        arr2 = mp.Array.create(self.__session, 6, mp.Scalar.create(self.__session, int))
-        t = arr2.to_tensor()
-        assert t.mp_type == mp.MPEnums.TENSOR     
+        """Ensure to_tensor executes without error and that Array object becomes Tensor object"""
+        a_int = mp.Array.create(self.__session, 6, mp.Scalar.create(self.__session, int))
+        t_int = a_int.to_tensor()
+        assert t_int.mp_type == mp.MPEnums.TENSOR     
 
-        arr3 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, str))
-        arr3.set_element(0, mp.Scalar.create_from_value(self.__session, 'hi'))
+        a_str = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, str))
+        a_str.set_element(0, mp.Scalar.create_from_value(self.__session, 'hi'))
 
-        # 
+        # Array must be numeric data type
         try:
-            t = arr3.to_tensor()   ## line 1247  
+            t_str = a_str.to_tensor()    
         except TypeError:
-            print("Array contains non-numeric scalar elements")
+            pass
 
 
-"""Unit tests for CircleBuffer class in containers.py"""
 class CircleBufferUnitTests:
+    """Unit tests for CircleBuffer class in containers.py"""
     def __init__(self):
         self.__session = mp.Session.create()
 
-    def TestNumElements(self):
-        cir = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
-        assert cir.num_elements == 0
+    def TestCBNumElements(self):
+        """Ensure num_elements executes without error and test for enqueued elements"""
+        c = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
+        assert c.num_elements == 0
 
-        cir.enqueue(mp.Scalar.create_from_value(self.__session, 5))
-        assert cir.num_elements == 1
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 5))
+        assert c.num_elements == 1
 
-        cir.enqueue(mp.Scalar.create_from_value(self.__session, 5))
-        assert cir.num_elements == 2
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 5))
+        assert c.num_elements == 2
     
-    def TestIsFull(self):
+    def TestCBIsFull(self):
+        """Verify that is_full returns True when CircleBuffer is full"""
         c = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
-        r = c.is_full()
-        assert r == False
+        assert c.is_full() == False
 
         c.enqueue(mp.Scalar.create_from_value(self.__session, 1))
-        r = c.is_full()
-        assert r == False
+        assert c.is_full() == False
 
         c.enqueue(mp.Scalar.create_from_value(self.__session, 1))
-        r = c.is_full()
-        assert r == True  
+        assert c.is_full() == True  
 
-    def TestGetQueuedElement(self):
-        cir = mp.CircleBuffer.create(self.__session, 5, mp.Scalar.create(self.__session, int))
+    def TestCBGetQueuedElement(self):
+        """Ensure get_queued_element executes without error"""
+        c = mp.CircleBuffer.create(self.__session, 5, mp.Scalar.create(self.__session, int))
+
+        # Index is out of bounds of CircleBuffer
         try:
-            cir.get_queued_element(7) 
+            c.get_queued_element(7) 
         except ValueError:
-            print("Index out of bounds")
+            pass
 
-    def TestPeek(self):
-        cir = mp.CircleBuffer.create(self.__session, 1, mp.Scalar.create(self.__session, int))
-        assert cir.peek() == None
+    def TestCBPeek(self):
+        """Ensure peek executes without error and verify correct elements are returned"""
+        c = mp.CircleBuffer.create(self.__session, 1, mp.Scalar.create(self.__session, int))
+        assert c.peek() == None
 
-        cir.enqueue(mp.Scalar.create_from_value(self.__session, 1))
-        assert cir.peek().data == 1  
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 1))
+        assert c.peek().data == 1  
 
-    def TestEnqueue(self):
+    def TestCBEnqueue(self):
+        """Ensure enqueue executes without error and verify correct elements are enqueued"""
         c = mp.CircleBuffer.create(self.__session, 2, mp.Scalar.create(self.__session, int))
         c.enqueue(mp.Scalar.create_from_value(self.__session, 1))
-        x = c.get_queued_element(0)
-        assert x.data == 1
+        assert c.get_queued_element(0).data == 1
 
         c.enqueue(mp.Scalar.create_from_value(self.__session, 2))
-        y = c.get_queued_element(1)
-        assert y.data == 2
+        assert c.get_queued_element(1).data == 2
 
         c.enqueue(mp.Scalar.create_from_value(self.__session, 3))  
-        z = c.get_queued_element(1)
-        assert z.data == 3
+        assert c.get_queued_element(1).data == 3
 
-    def TestEnqueueChunk(self):
-        dest = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        sour1 = mp.CircleBuffer.create(self.__session, 4, mp.Tensor.create(self.__session, (1,1)))
+    def TestCBEnqueueChunk(self):
+        """Ensure enqueue_chunk executes without error and verify correct elements are enqueued"""
+        c_dest = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        c_src1 = mp.CircleBuffer.create(self.__session, 4, mp.Tensor.create(self.__session, (1,1)))
 
-        sour2 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create_from_value(self.__session, 5))
-        sour2.enqueue(mp.Scalar.create_from_value(self.__session, 5))
-        sour2.enqueue(mp.Scalar.create_from_value(self.__session, 6))
+        c_src2 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create_from_value(self.__session, 5))
+        c_src2.enqueue(mp.Scalar.create_from_value(self.__session, 5))
+        c_src2.enqueue(mp.Scalar.create_from_value(self.__session, 6))
 
+        # Source and destination have non matching types
         try:
-            dest.enqueue_chunk(sour1)    
+            c_dest.enqueue_chunk(c_src1)    
         except TypeError:
-            print("Non-matching types")
+            pass
 
-        dest.enqueue_chunk(sour2)  
-        assert dest.get_element(0).data == 5
-        assert dest.get_element(1).data == 6
+        c_dest.enqueue_chunk(c_src2)  
+        assert c_dest.get_element(0).data == 5
+        assert c_dest.get_element(1).data == 6
 
-    def TestDequeue(self):
-        dest = mp.CircleBuffer.create(self.__session, 1, mp.Scalar.create(self.__session, float))
-        assert dest.dequeue() == None
+    def TestCBDequeue(self):
+        """Ensure dequeue executes without error and verify correct elements are dequeued"""
+        c_dest = mp.CircleBuffer.create(self.__session, 1, mp.Scalar.create(self.__session, float))
+        assert c_dest.dequeue() == None
 
-        dest.enqueue(mp.Scalar.create_from_value(self.__session, 5.6))
-        assert dest.dequeue().data == 5.6
+        c_dest.enqueue(mp.Scalar.create_from_value(self.__session, 5.6))
+        assert c_dest.dequeue().data == 5.6
 
-    def TestMakeCopy(self):
-        cir = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        cir.enqueue(mp.Scalar.create_from_value(self.__session, 7))
-        c = cir.make_copy()
-        assert c.get_element(0).data == 7  
+    def TestCBMakeCopy(self):
+        """Ensure make_copy executes without error and verify correct elements"""
+        c = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 7))
 
-    def TestCopyTo(self):   ### ???
-        source = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        source.enqueue(mp.Scalar.create_from_value(self.__session, 7))
-        source.enqueue(mp.Scalar.create_from_value(self.__session, 7))
-        source1 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        c_copy = c.make_copy()
+        assert c_copy.get_element(0).data == 7  
 
-        dest1 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
-        dest2 = mp.CircleBuffer.create(self.__session, 3, mp.Tensor.create(self.__session, (1,1)))
+    def TestCBCopyTo(self):  
+        """Ensure copy_to executes without error"""
+        c_src = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
+        c_src.enqueue(mp.Scalar.create_from_value(self.__session, 7))
+        c_src.enqueue(mp.Scalar.create_from_value(self.__session, 7))
 
-        dest3 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
-        source1.copy_to(dest3)   ## line 1663 ... should be good
+        c_dest1 = mp.Array.create(self.__session, 1, mp.Scalar.create(self.__session, int))
+        c_dest2 = mp.CircleBuffer.create(self.__session, 3, mp.Tensor.create(self.__session, (1,1)))
+        c_dest3 = mp.CircleBuffer.create(self.__session, 4, mp.Scalar.create(self.__session, int))
 
-        dest3.enqueue(mp.Scalar.create_from_value(self.__session, 7))
-        source.copy_to(dest3)  
+        c_src.copy_to(c_dest3)   
 
+        c_dest3.enqueue(mp.Scalar.create_from_value(self.__session, 7))
+        c_src.copy_to(c_dest3)  
+
+        # Source and destination must have same capacities
         try:
-            source.copy_to(dest1) 
+            c_src.copy_to(c_dest1) 
         except ValueError:
-            print("Destination array does not have capacity")
+            pass
 
+        # Source and destination must have matching types
         try:
-            source.copy_to(dest2)  
+            c_src.copy_to(c_dest2)  
         except TypeError:
-            print("Non-matching types")
+            pass
 
-    def TestToTensor(self):
-        e = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
-        assert e.to_tensor() == None 
+    def TestCBToTensor(self):
+        """Ensure CircleBuffer object is converted to Tensor object without error"""
+        c_empty = mp.CircleBuffer.create(self.__session, 0, mp.Scalar.create(self.__session, int))
+        assert c_empty.to_tensor() == None 
 
-        c1 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, str))
-        c1.enqueue(mp.Scalar.create_from_value(self.__session, 'hi'))
+        c_string = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, str))
+        c_string.enqueue(mp.Scalar.create_from_value(self.__session, 'hi'))
 
         # Data must be numeric value
         try:
-            c1.to_tensor()    ## line 1706 
+            c_string.to_tensor()    
         except TypeError:
-            print("Non-numeric value")
+            pass
 
-        c2 = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create_from_value(self.__session, 5))
-        c2.enqueue(mp.Scalar.create_from_value(self.__session, 5))
-        c2.enqueue(mp.Scalar.create_from_value(self.__session, 5))
-        t = c2.to_tensor()
-        # assert type(t) == mp.MPEnums.TENSOR
+        c = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create_from_value(self.__session, 5))
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 5))
+        c.enqueue(mp.Scalar.create_from_value(self.__session, 5))
 
-    def TestRandomData(self):     
+        t = c.to_tensor()
+        print(type(t))
+        assert t.mp_type == mp.MPEnums.TENSOR
+
+    def TestCBRandomData(self):     
+        """Ensure assign_random_data executes without error"""
         c = mp.CircleBuffer.create(self.__session, 3, mp.Scalar.create(self.__session, int))
         c.assign_random_data()
 
 def test_execute():
-    st = ScalarUnitTests()   
-    tt = TensorUnitTests()
-    at = ArrayUnitTests()
-    ct = CircleBufferUnitTests()
+    s = ScalarUnitTests()   
+    t = TensorUnitTests()
+    a = ArrayUnitTests()
+    c = CircleBufferUnitTests()
 
-    st.TestAssignRandomData()
-    st.TestScalarCreation()
-    st.TestScalarData()
-    st.TestCopyTo()
+    s.TestScalarAssignRandomData()
+    s.TestScalarCreation()
+    s.TestScalarData()
+    s.TestScalarCopyTo()
 
-    tt.TestTensorData()
-    tt.TestTensorRandomData()
-    tt.TestChangeShape()
-    tt.TestCreateFromData()
+    t.TestTensorData()
+    t.TestTensorRandomData()
+    t.TestTensorChangeShape()
+    t.TestTensorCreateFromData()
 
-    at.TestArrayGetElement()
-    at.TestArrayNumElements()
-    at.TestArraySetElement()
-    at.TestArrayToTensor()
-    at.TestCopyTo()
+    a.TestArraySetandGetElement()
+    a.TestArrayNumElements()
+    a.TestArrayToTensor()
+    a.TestArrayCopyTo()
 
-    ct.TestGetQueuedElement()
-    ct.TestNumElements()
-    ct.TestIsFull()
-    ct.TestEnqueue()
-    ct.TestPeek()
-    ct.TestEnqueueChunk()
-    ct.TestDequeue()
-    ct.TestMakeCopy()
-    ct.TestCopyTo()
-    ct.TestToTensor()
-    ct.TestRandomData()
+    c.TestCBGetQueuedElement()
+    c.TestCBNumElements()
+    c.TestCBIsFull()
+    c.TestCBEnqueue()
+    c.TestCBPeek()
+    c.TestCBEnqueueChunk()
+    c.TestCBDequeue()
+    c.TestCBMakeCopy()
+    c.TestCBCopyTo()
+    c.TestCBToTensor()
+    c.TestCBRandomData()
 
-# test_execute()
+test_execute()
