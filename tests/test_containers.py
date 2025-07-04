@@ -9,8 +9,10 @@ class ScalarUnitTests:
         s = mp.Scalar.create(self.__session, 'int')
         scal = mp.Scalar.create(self.__session, float)   
         assert type(scal.data) == float
+
         random_scal = mp.Scalar.create(self.__session, int)
         assert type(random_scal.data) == int
+
         try:
             bad_scalar = mp.Scalar.create(self.__session, 'double') 
         except ValueError:
@@ -340,7 +342,7 @@ def test_execute():
     ct.TestDequeue()
     ct.TestMakeCopy()
     ct.TestCopyTo()
-    # ct.TestToTensor()
-    # ct.TestRandomData()
+    ct.TestToTensor()
+    ct.TestRandomData()
 
 # test_execute()
