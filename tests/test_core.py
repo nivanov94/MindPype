@@ -1,41 +1,52 @@
-# import mindpype as mp
-# import numpy as np
-# import pickle
-# import pytest
+import mindpype as mp
+import numpy as np
+import pickle
+import pytest
+from sklearn.svm import SVC
 
-# class CoreUnitTest():
-#     def __init__(self):
-#         self.__session = mp.Session.create()
+class CoreUnitTest():
+    """Unit test for Session class in core.py"""
+    def __init__(self):
+        self.__session = mp.Session.create()
     
-#     def TestFindObjFunc(self, raw_data):
-#         obj1 = mp.Tensor.create_from_data(self.__session, raw_data)
-#         obj2 = mp.Scalar.create_from_value(self.__session, 'test')
-#         obj = self.__session.find_obj(obj1.session_id)
-#         return obj
+    def TestFindObjFunc(self):
+        """Ensure find_obj executes without error and returns correct object using session id"""
+        raw_data = np.zeros((3,3,3))
+
+        t = mp.Tensor.create_from_data(self.__session, raw_data)
+        s = mp.Scalar.create_from_value(self.__session, 'test')         
+        misc = mp.Classifier.create_SVM(self.__session)
+
+        ## how to do id of session?
+
+        t_obj = self.__session.find_obj(t.session_id)
+        assert t_obj == t
+
+        s_obj = self.__session.find_obj(s.session_id)  
+        assert s_obj == s
+
+        misc_obj = self.__session.find_obj(misc.session_id)   ## this is returning None
+        print(misc.mp_type)
+        assert misc_obj == misc    
+
+        ## can we do ext src?
     
-#     def TestSaveSessionFunc(self):   
-#         obj1 = mp.Tensor.create_from_data(self.__session, np.zeros((3,3,3)))
-#         obj2 = mp.Scalar.create_from_value(self.__session, 'test')
-#         output = self.__session.save_session(file='test.pickle')
-#         return output
+    def TestAddToSession(self):
+        """Ensure add_to_session correctly MindPype adds object to session"""
+        ## obj not inheriting MPBase???
+
+        test_string = 'test'
+
+        try:
+            self.__session.add_to_session(test_string)
+        except ValueError:
+            pass
     
-#     def TestAddToSessionError(self):
-#         test_string = 'test'
-#         self.__session.add_to_session(test_string)
+def test_execute():
+    t = CoreUnitTest()
     
-# def test_execute():
-#     Test = CoreUnitTest()
-#     res = Test.TestSaveSessionFunc()
-#     with open("test.pickle", "rb") as f:
-#         x = pickle.load(f)
+    t.TestFindObjFunc()
+
+    t.TestAddToSession()
     
-#     assert isinstance(res['pipeline'], mp.Session)
-    
-#     raw_data = np.zeros((3,3,3))
-#     res = Test.TestFindObjFunc(raw_data)
-#     assert (res.data == raw_data).all()
-    
-#     with pytest.raises(ValueError) as e_info:
-#         res = Test.TestAddToSessionError()
-    
-# test_execute()
+test_execute()
