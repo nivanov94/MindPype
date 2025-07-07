@@ -8,6 +8,7 @@ class FilterObjectUnitTest:
     def TestProperties(self, btype, Fs, bandpass):
         order = 4
         f = mp.Filter.create_butter(self.__session,order,bandpass,btype=btype,fs=Fs,implementation='ba')
+        print(f)
         
         return f.ftype, f.btype, f.fs, f.crit_frqs
 
@@ -18,6 +19,12 @@ class FilterObjectUnitTest:
         ellip = mp.Filter.create_ellip(self.__session,order,rp,rp,Wn,btype='bandpass',fs=Fs,implementation='zpk')
         bessel = mp.Filter.create_bessel(self.__session,order,Wn,btype='bandpass',fs=Fs,implementation='zpk')
         return butter.coeffs, cheby1.coeffs, cheby2.coeffs, ellip.coeffs, bessel.coeffs
+    
+    def TestFirCreation(self, Fs):
+        fir_lowpass = mp.Filter.create_fir(self.__session, Fs, low_freq=None, high_freq=100)
+        fir_highpass = mp.Filter.create_fir(self.__session, Fs, low_freq=20, high_freq=None)
+        fir_bandpass = mp.Filter.create_fir(self.__session, Fs, low_freq=20, high_freq=100)
+        fir_bandstop = mp.Filter.create_fir(self.__session, Fs, low_freq=50, high_freq=20)
 
 def test_execute():
     btype = 'bandpass'
@@ -57,3 +64,5 @@ def test_execute():
     assert (res[4]['z'] == bessel_z).all()
     assert (res[4]['p'] == bessel_p).all()
     assert (res[4]['k'] == bessel_k).all()
+
+    FilterTests.TestFirCreation(fs)
