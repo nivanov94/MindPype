@@ -104,6 +104,13 @@ class ScalarUnitTests:
 
         s_source = mp.Scalar.create_from_source(self.__session, int, src)
 
+    # def TestScalarVolatileData(self):
+    #     src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
+
+    #     s_source = mp.Scalar.create_from_source(self.__session, int, src)
+
+    #     s_source.poll_volatile_data()
+
 
 class TensorUnitTests:
     """Unit tests for Tensor class in containers.py"""
@@ -409,6 +416,7 @@ def test_execute():
     s.TestScalarData()
     s.TestScalarCopyTo()
     s.TestScalarCreateFromSource()
+    # s.TestScalarVolatileData()
 
     t.TestTensorData()
     t.TestTensorRandomData()
