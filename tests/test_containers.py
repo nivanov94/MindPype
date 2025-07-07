@@ -160,7 +160,7 @@ class TensorUnitTests:
 
     def TestTensorCreateFromSource(self):
         src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
-        
+
         t_input = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="input")
         t_output = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="input")
 
@@ -403,6 +403,7 @@ def test_execute():
     t.TestTensorRandomData()
     t.TestTensorChangeShape()
     t.TestTensorCreateFromData()
+    t.TestTensorCreateFromSource()
 
     a.TestArraySetandGetElement()
     a.TestArrayNumElements()
