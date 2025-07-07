@@ -9,6 +9,7 @@ class ScalarUnitTests:
 
     def TestScalarCreation(self):  
         """Verify that Scalar objects are created with correct data types"""
+
         s_int_string = mp.Scalar.create(self.__session, 'int')
         assert type(s_int_string.data) == int
 
@@ -41,6 +42,10 @@ class ScalarUnitTests:
             s_from_val_bad = mp.Scalar.create_from_value(self.__session, np.double(4.2)) 
         except TypeError:
             pass
+
+        # ext_src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
+        # out_src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
+        # s_source = 
         
     def TestScalarData(self):
         """Verify that data is correctly assigned to Scalar objects"""
@@ -93,6 +98,11 @@ class ScalarUnitTests:
             s_int.copy_to(s_dest2)
         except TypeError:
             pass
+
+    def TestScalarCreateFromSource(self):
+        src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
+
+        s_source = mp.Scalar.create_from_source(self.__session, int, src)
 
 
 class TensorUnitTests:
@@ -162,7 +172,7 @@ class TensorUnitTests:
         src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
 
         t_input = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="input")
-        t_output = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="input")
+        t_output = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="output")
 
         # Direction must be input or output
         try: 
@@ -398,6 +408,7 @@ def test_execute():
     s.TestScalarCreation()
     s.TestScalarData()
     s.TestScalarCopyTo()
+    s.TestScalarCreateFromSource()
 
     t.TestTensorData()
     t.TestTensorRandomData()
