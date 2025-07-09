@@ -20,9 +20,9 @@ class GraphUnitTest():
         node2 = mp.kernels.ClassifierKernel.add_to_graph(self.__graph,inTensor,mp_clsf,predictions,
                                                         num_classes=num_classes)
         mean_stat = self.__graph.cross_validate(predictions, folds=num_folds, statistic=stat)
-        # self.__graph.verify()
-        # self.__graph.initialize()
-        # self.__graph.execute()
+        self.__graph.verify()
+        self.__graph.initialize()
+        self.__graph.execute()
         return mean_stat
         
     def TestGraph(self):
@@ -58,14 +58,14 @@ class GraphUnitTest():
         inB = mp.Scalar.create_from_value(session, 20)
         out = mp.Scalar.create(session, int)
 
+        out1 = mp.Scalar.create(session, int)
         out2 = mp.Scalar.create(session, int)
 
         node1 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out)
         node2 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out)
 
-        node3 = mp.kernels.AdditionKernel.add_to_graph(graph1, out, inB, out2)
-        # out1 = mp.Scalar.create(session, int)
-        # node4 = mp.kernels.AdditionKernel.add_to_graph(graph1, inA, inB, out1)
+        node3 = mp.kernels.AdditionKernel.add_to_graph(graph1, out1, inB, out2)
+        node4 = mp.kernels.AdditionKernel.add_to_graph(graph1, inA, inB, out1)
         
         # Can't have multiple nodes write to single data object
         try:
@@ -74,6 +74,8 @@ class GraphUnitTest():
             pass
 
         graph1.verify()
+        graph1.initialize()
+        graph1.execute()
 
 
     
