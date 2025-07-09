@@ -48,6 +48,34 @@ class GraphUnitTest():
         # mp.Graph.add_node(node_src)
 
         graph.verify()
+
+    def TestGraphInvalid(self):
+        session = mp.Session.create()
+        graph = mp.Graph.create(session)
+        graph1 = mp.Graph.create(session)
+
+        inA = mp.Scalar.create_from_value(session, 10)
+        inB = mp.Scalar.create_from_value(session, 20)
+        out = mp.Scalar.create(session, int)
+
+        out2 = mp.Scalar.create(session, int)
+
+        node1 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out)
+        node2 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out)
+
+        node3 = mp.kernels.AdditionKernel.add_to_graph(graph1, out, inB, out2)
+        # out1 = mp.Scalar.create(session, int)
+        # node4 = mp.kernels.AdditionKernel.add_to_graph(graph1, inA, inB, out1)
+        
+        # Can't have multiple nodes write to single data object
+        try:
+            graph.verify()
+        except ValueError:
+            pass
+
+        graph1.verify()
+
+
     
 def test_execute():
     np.random.seed(44)
@@ -85,5 +113,6 @@ def test_execute():
 
 
     KernelExecutionUnitTest_Object.TestGraph()
+    KernelExecutionUnitTest_Object.TestGraphInvalid()
     
 # test_execute()
