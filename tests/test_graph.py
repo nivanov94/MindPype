@@ -25,18 +25,40 @@ class GraphUnitTest():
         # self.__graph.execute()
         return mean_stat
         
-        
+    def TestGraph(self):
+        session = mp.Session.create()
+        graph = mp.Graph.create(session)
+
+        inA = mp.Scalar.create_from_value(session, 5)
+        inB = mp.Scalar.create_from_value(session, 5)
+
+        out1 = mp.Scalar.create(session, int)
+        out2 = mp.Scalar.create(session, int)
+        out_and = mp.Scalar.create(session, bool)
+
+        node1 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out1)
+        # mp.Graph.add_node(node1)
+
+        in_src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(session, active=False)
+        node_src = mp.kernels.DivisionKernel.add_to_graph(graph, in_src, inB, out2)
+        # mp.Graph.add_node(node_src)
+
+        node2 = mp.kernels.AndKernel.add_to_graph(graph, out1, out2, out_and)
+        # mp.Graph.add_node(node2)
+    
 def test_execute():
     np.random.seed(44)
     raw_data = np.random.randn(50,50)
     init_data = np.random.randn(50,50)
     init_labels_data = np.random.randint(0,2, (50,))
     num_folds = 5
+
     KernelExecutionUnitTest_Object = GraphUnitTest()
     classifier = sklearn.discriminant_analysis.LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
     stats = ['accuracy', 'f1', 'precision', 'recall', 'cross_entropy']
     
     init_after_transpose = np.transpose(init_data)
+
     for s in stats:
         res = KernelExecutionUnitTest_Object.TestCrossValidationFunction(raw_data, init_after_transpose, init_labels_data, num_classes=2, num_folds=num_folds, stat=s)
         skf = StratifiedKFold(n_splits=num_folds)
@@ -57,5 +79,8 @@ def test_execute():
             mean_stat += stat
         mean_stat /= num_folds
         assert res == mean_stat  
+
+
+    KernelExecutionUnitTest_Object.TestGraph()
     
-test_execute()
+# test_execute()

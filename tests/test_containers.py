@@ -116,7 +116,7 @@ class ScalarUnitTests:
         except RuntimeError:
             pass
 
-        # s = mp.containers.Scalar(self.__session, data_type=int, value=4, ext_out = src_output)
+        s = mp.containers.Scalar(self.__session, data_type=int, value=4, ext_out = src_output)
         # s.push_volatile_outputs()
 
         # Scalar can't be virtual and volatile
