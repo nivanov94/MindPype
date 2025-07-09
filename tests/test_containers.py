@@ -120,7 +120,7 @@ class ScalarUnitTests:
 
         # Scalar can't be virtual and volatile
         try:
-            s_virtual = mp.containers.Scalar(self.__session, int, virtual=True, ext_out=src)
+            s_virtual = mp.containers.Scalar(self.__session, int, virtual=True, ext_src=src)
         except ValueError:
             pass
         
@@ -199,6 +199,12 @@ class TensorUnitTests:
         try: 
             t_invalid = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="invalid")
         except ValueError:
+            pass
+
+        # Source must be active
+        try:
+            t_input.poll_volatile_data()
+        except RuntimeError:
             pass
 
 class ArrayUnitTests:
