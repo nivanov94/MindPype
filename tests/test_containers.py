@@ -104,12 +104,26 @@ class ScalarUnitTests:
 
         s_source = mp.Scalar.create_from_source(self.__session, int, src)
 
-    # def TestScalarVolatileData(self):
-    #     src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
+    def TestScalarVolatileData(self):
+        src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
 
-    #     s_source = mp.Scalar.create_from_source(self.__session, int, src)
+        s_source = mp.Scalar.create_from_source(self.__session, int, src)
 
-    #     s_source.poll_volatile_data()
+        # Source must be an active stream
+        try:
+            s_source.poll_volatile_data()
+        except RuntimeError:
+            pass
+
+        s = mp.containers.Scalar(self.__session, int, ext_out = src)
+        # s.push_volatile_outputs()
+
+        # Scalar can't be virtual and volatile
+        try:
+            s_virtual = mp.containers.Scalar(self.__session, int, virtual=True, ext_out=src)
+        except ValueError:
+            pass
+        
 
 
 class TensorUnitTests:
@@ -416,7 +430,7 @@ def test_execute():
     s.TestScalarData()
     s.TestScalarCopyTo()
     s.TestScalarCreateFromSource()
-    # s.TestScalarVolatileData()
+    s.TestScalarVolatileData()
 
     t.TestTensorData()
     t.TestTensorRandomData()

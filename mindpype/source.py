@@ -676,9 +676,9 @@ class InputLSLStream(MPBase):
         self.n_epochs = n_epochs
         self._epochs_polled = 0
         self._data_buffer = {"time_series": None, "time_stamps": None}
+        self._active = False # will be set to True when the stream is opened
 
-        if active:
-            self._active = False # will be set to True when the stream is opened
+        if active:    
             self.update_input_streams(pred, channels, marker_coupled, marker_fmt, marker_pred, stream_info, marker_stream_info, Ns)
 
     def poll_data(self, label=None):
@@ -695,7 +695,7 @@ class InputLSLStream(MPBase):
         """
 
         if not self._active:
-            raise RuntimeWarning("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
+            raise RuntimeError("InputLSLStream.poll_data() called on inactive stream. Please call update_input_streams() first to configure the stream object.")
 
         poll_marker = False
         if self.marker_coupled:
