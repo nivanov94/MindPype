@@ -39,12 +39,15 @@ class GraphUnitTest():
         node1 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out1)
         # mp.Graph.add_node(node1)
 
-        in_src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(session, active=False)
-        node_src = mp.kernels.DivisionKernel.add_to_graph(graph, in_src, inB, out2)
-        # mp.Graph.add_node(node_src)
-
         node2 = mp.kernels.AndKernel.add_to_graph(graph, out1, out2, out_and)
         # mp.Graph.add_node(node2)
+
+        # in_src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(session, active=False)
+        # in_src = np.ones(20)
+        node_src = mp.kernels.DivisionKernel.add_to_graph(graph, out1, inB, out2)
+        # mp.Graph.add_node(node_src)
+
+        graph.verify()
     
 def test_execute():
     np.random.seed(44)

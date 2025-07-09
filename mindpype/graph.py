@@ -258,7 +258,7 @@ class Graph(MPBase):
                     # schedule this node
                     if scheduled_nodes != node_index:
                         # swap the nodes at these indices
-                        tmp = self._nodes[scheduled_nodes]
+                        tmp = self.nodes[scheduled_nodes]
                         self.nodes[scheduled_nodes] = self.nodes[node_index]
                         self.nodes[node_index] = tmp
 
