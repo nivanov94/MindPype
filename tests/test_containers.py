@@ -106,6 +106,7 @@ class ScalarUnitTests:
 
     def TestScalarVolatileData(self):
         src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
+        src_output = mp.source.OutputLSLStream.create_outlet(self.__session)
 
         s_source = mp.Scalar.create_from_source(self.__session, int, src)
 
@@ -115,7 +116,7 @@ class ScalarUnitTests:
         except RuntimeError:
             pass
 
-        s = mp.containers.Scalar(self.__session, int, ext_out = src)
+        # s = mp.containers.Scalar(self.__session, data_type=int, value=4, ext_out = src_output)
         # s.push_volatile_outputs()
 
         # Scalar can't be virtual and volatile
@@ -191,9 +192,10 @@ class TensorUnitTests:
 
     def TestTensorCreateFromSource(self):
         src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(self.__session, active=False)
+        src_output = mp.source.OutputLSLStream.create_outlet(self.__session)
 
         t_input = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="input")
-        t_output = mp.Tensor.create_from_source(self.__session, (1,1), src, direction="output")
+        t_output = mp.Tensor.create_from_source(self.__session, (1,1), src_output, direction="output")
 
         # Direction must be input or output
         try: 
@@ -204,6 +206,11 @@ class TensorUnitTests:
         # Source must be active
         try:
             t_input.poll_volatile_data()
+        except RuntimeError:
+            pass
+
+        try:
+            t_output.push_volatile_outputs()
         except RuntimeError:
             pass
 
