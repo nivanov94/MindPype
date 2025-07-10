@@ -29,8 +29,11 @@ class GraphUnitTest():
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
+        src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(session, active=False)
+
         inA = mp.Scalar.create_from_value(session, 5)
         inB = mp.Scalar.create_from_value(session, 5)
+        in_src = mp.Scalar.create_from_source(session, int, src)
 
         out1 = mp.Scalar.create(session, int)
         out2 = mp.Scalar.create(session, int)
@@ -42,12 +45,10 @@ class GraphUnitTest():
         node2 = mp.kernels.AndKernel.add_to_graph(graph, out1, out2, out_and)
         # mp.Graph.add_node(node2)
 
-        # in_src = mp.source.InputLSLStream.create_marker_uncoupled_data_stream(session, active=False)
-        # in_src = np.ones(20)
         node_src = mp.kernels.DivisionKernel.add_to_graph(graph, out1, inB, out2)
         # mp.Graph.add_node(node_src)
 
-        graph.verify()
+        graph.execute()
 
     def TestGraphInvalid(self):
         session = mp.Session.create()
