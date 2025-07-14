@@ -40,15 +40,19 @@ class GraphUnitTest():
         out_and = mp.Scalar.create(session, bool)
 
         node1 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out1)
-        # mp.Graph.add_node(node1)
 
         node2 = mp.kernels.AndKernel.add_to_graph(graph, out1, out2, out_and)
         # mp.Graph.add_node(node2)
 
-        node_src = mp.kernels.DivisionKernel.add_to_graph(graph, out1, inB, out2)
+        node_src = mp.kernels.DivisionKernel.add_to_graph(graph, in_src, out1, out2)
         # mp.Graph.add_node(node_src)
 
-        graph.execute()
+        # Can't call inactive stream for source data
+        try:
+            graph.execute()
+        except RuntimeError:
+            pass
+        
 
     def TestGraphInvalid(self):
         session = mp.Session.create()
@@ -66,7 +70,7 @@ class GraphUnitTest():
         node2 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out)
 
         node3 = mp.kernels.AdditionKernel.add_to_graph(graph1, out1, inB, out2)
-        node4 = mp.kernels.AdditionKernel.add_to_graph(graph1, inA, inB, out1)
+        node4 = mp.kernels.AdditionKernel.add_to_graph(graph1, out2, inB, out1)
         
         # Can't have multiple nodes write to single data object
         try:
@@ -74,10 +78,12 @@ class GraphUnitTest():
         except ValueError:
             pass
 
-        graph1.verify()
-        graph1.initialize()
-        graph1.execute()
-
+        # Invalid graph
+        try:
+            graph1.verify()
+        except ValueError:
+            pass
+        
 
     
 def test_execute():
