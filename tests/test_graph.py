@@ -84,7 +84,17 @@ class GraphUnitTest():
         except ValueError:
             pass
         
+    def TestUpdateGraph(self):
+        session = mp.Session.create()
+        graph = mp.Graph.create(session)
 
+        inA = mp.Scalar.create_from_value(session, 10)
+        inB = mp.Scalar.create_from_value(session, 20)
+        out = mp.Scalar.create(session, int)
+
+        node = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out)
+
+        node.update()
     
 def test_execute():
     np.random.seed(44)
@@ -123,5 +133,6 @@ def test_execute():
 
     KernelExecutionUnitTest_Object.TestGraph()
     KernelExecutionUnitTest_Object.TestGraphInvalid()
+    KernelExecutionUnitTest_Object.TestUpdateGraph()
     
 # test_execute()
