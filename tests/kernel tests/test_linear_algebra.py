@@ -38,7 +38,9 @@ class LinearAlgebraUnitTest:
         n3 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_2, inB_inner_3)
         n4 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_3, inB_inner_3)
 
+        self.__graph.verify()
         self.__graph.initialize()
+        self.__graph.execute()
 
 
 def test_execute():
