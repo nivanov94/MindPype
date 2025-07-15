@@ -34,9 +34,9 @@ class LinearAlgebraUnitTest:
         out1 = mp.Tensor.create(self.__session, (2, 3))
 
         n1 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_2, inB_inner_2, out1)
-        # n2 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_3, inB_inner_2)
-        # n3 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_2, inB_inner_3)
-        # n4 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_3, inB_inner_3)
+        n2 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_3, inB_inner_2)
+        n3 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_2, inB_inner_3)
+        n4 = mp.kernels.MatrixMultKernel.add_to_graph(self.__graph, inA_inner_3, inB_inner_3)
 
 
 def test_execute():
