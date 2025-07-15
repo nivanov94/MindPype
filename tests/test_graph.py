@@ -42,10 +42,8 @@ class GraphUnitTest():
         node1 = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out1)
 
         node2 = mp.kernels.AndKernel.add_to_graph(graph, out1, out2, out_and)
-        # mp.Graph.add_node(node2)
 
         node_src = mp.kernels.DivisionKernel.add_to_graph(graph, in_src, out1, out2)
-        # mp.Graph.add_node(node_src)
 
         # Can't call inactive stream for source data
         try:
@@ -53,7 +51,6 @@ class GraphUnitTest():
         except RuntimeError:
             pass
         
-
     def TestGraphInvalid(self):
         session = mp.Session.create()
         graph = mp.Graph.create(session)
@@ -94,7 +91,10 @@ class GraphUnitTest():
 
         node = mp.kernels.AdditionKernel.add_to_graph(graph, inA, inB, out)
 
-        node.update()
+        graph.update()
+        graph.initialize()
+        node.execute() ## line 1052
+        graph.execute()
     
 def test_execute():
     np.random.seed(44)
@@ -134,5 +134,3 @@ def test_execute():
     KernelExecutionUnitTest_Object.TestGraph()
     KernelExecutionUnitTest_Object.TestGraphInvalid()
     KernelExecutionUnitTest_Object.TestUpdateGraph()
-    
-# test_execute()
