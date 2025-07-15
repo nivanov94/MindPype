@@ -31,8 +31,6 @@ class MatrixMultKernel(Kernel):
         self.inputs = [inA, inB]
         self.outputs = [outA]
 
-        self._covariance_inputs = (0, 1) # HACK for now probably need to remove verification pass... too restrictive
-
     def _compute_output_sz(self, inA, inB):
         """
         Compute the output tensor size based on the input tensors.

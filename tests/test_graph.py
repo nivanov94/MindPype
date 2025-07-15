@@ -93,7 +93,7 @@ class GraphUnitTest():
 
         graph.update()
         graph.initialize()
-        node.execute() ## line 1052
+        node.execute()
         graph.execute()
     
 def test_execute():
