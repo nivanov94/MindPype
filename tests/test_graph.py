@@ -43,14 +43,14 @@ class GraphUnitTest():
         out_preds = mp.Tensor.create(session, (50,))
         bad = mp.Scalar.create(session, int)
 
-        # csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
+        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
         var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
 
         # Target validation must be produced by node in graph
         try:
-            cv = graph.cross_validate(bad)
+            cv = graph.cross_validate(bad)  ## line 641
         except KeyError:
             pass
 
@@ -127,12 +127,12 @@ class GraphUnitTest():
         div = mp.kernels.DivisionKernel.add_to_graph(graph2, in_divA, in_divB, out_div)
 
         # Cannot divide by zero
-        # try:
-        graph2.verify()   ## trying to get line 522 ...
-        graph2.initialize()
-        graph2.execute()
-        # except ZeroDivisionError:
-        #     pass
+        try:
+            graph2.verify()   ## trying to get line 522 ...
+            graph2.initialize()
+            graph2.execute()
+        except ZeroDivisionError:
+            pass
 
         
     def TestUpdateGraph(self, raw_data, init_data, init_labels):
