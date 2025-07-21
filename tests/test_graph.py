@@ -127,12 +127,12 @@ class GraphUnitTest():
         div = mp.kernels.DivisionKernel.add_to_graph(graph2, in_divA, in_divB, out_div)
 
         # Cannot divide by zero
-        try:
-            graph2.verify()   ## trying to get line 522 ...
-            graph2.initialize()
-            graph2.execute()
-        except ZeroDivisionError:
-            pass
+        # try:
+        graph2.verify()   ## trying to get line 522 ...
+        graph2.initialize()
+        graph2.execute()
+        # except ZeroDivisionError:
+        #     pass
 
         
     def TestUpdateGraph(self, raw_data, init_data, init_labels):
