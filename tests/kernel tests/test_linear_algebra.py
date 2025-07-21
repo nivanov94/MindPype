@@ -39,7 +39,11 @@ class LinearAlgebraUnitTest:
 
     def TestComputeOutputSize(self):
         session = mp.Session.create()
+        graph1 = mp.Graph.create(session)
         graph2 = mp.Graph.create(session)
+        graph3 = mp.Graph.create(session)
+        graph4 = mp.Graph.create(session)
+
         inA_inner_2 = mp.Tensor.create_from_data(session, [[1,2], [1,2]])
         inA_inner_2_b = mp.Tensor.create_from_data(session, [[1], [1], [1]])
         inB_inner_2 = mp.Tensor.create_from_data(session, [[1,2,3], [1,2,3]])
@@ -57,27 +61,48 @@ class LinearAlgebraUnitTest:
         out7 = mp.Tensor.create(session, (2,2))
         out8 = mp.Tensor.create(session, (2,2))
 
-        n1 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_2, inB_inner_2, out1)
+        n1 = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inA_inner_2, inB_inner_2, out1)
         # Inner dimensions of input tensors must match
-        n2 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_2_b, inB_inner_2, out5)
+        n2 = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inA_inner_2_b, inB_inner_2, out5)
 
         n3 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_3, inB_inner_2, out2)
         # Inner dimensions of input tensors must match
         n4 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_3, inA_inner_2_b, out6)
 
-        n5 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_2, inB_inner_3, out3)
+        n5 = mp.kernels.MatrixMultKernel.add_to_graph(graph3, inA_inner_2, inB_inner_3, out3)
         # Inner dimensions of input tensors must match
-        n6 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_2_b, inA_inner_3, out7)
+        n6 = mp.kernels.MatrixMultKernel.add_to_graph(graph3, inA_inner_2_b, inA_inner_3, out7)
 
-        n7 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_3, inB_inner_3, out4)
+        n7 = mp.kernels.MatrixMultKernel.add_to_graph(graph4, inA_inner_3, inB_inner_3, out4)
         # Inner dimensions of input tensors must match
-        n8 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA_inner_3, inB_inner_3_b, out8)
+        n8 = mp.kernels.MatrixMultKernel.add_to_graph(graph4, inA_inner_3, inB_inner_3_b, out8)
 
         # Inner dimensions of input tensors must match
+        try:
+            graph1.verify()
+            graph1.initialize()
+            graph1.execute()
+        except ValueError:
+            pass
+
         try:
             graph2.verify()
             graph2.initialize()
             graph2.execute()
+        except ValueError:
+            pass
+
+        try:
+            graph3.verify()
+            graph3.initialize()
+            graph3.execute()
+        except ValueError:
+            pass
+
+        try:
+            graph4.verify()
+            graph4.initialize()
+            graph4.execute()
         except ValueError:
             pass
 
