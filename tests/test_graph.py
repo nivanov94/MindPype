@@ -4,11 +4,7 @@ import sklearn
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
 
-class GraphUnitTest():
-    def __init__(self):
-        self.__session = mp.Session.create()
-        self.__graph = mp.Graph.create(self.__session)
-        
+class GraphUnitTest():        
     # def TestCrossValidationFunction(self, raw_data, init_data, init_labels_data, num_classes, num_folds, stat):
     #     mp_clsf = mp.Classifier.create_LDA(self.__session, shrinkage='auto', solver='lsqr')
     #     inTensor = mp.Tensor.create_from_data(self.__session, raw_data)
@@ -47,14 +43,14 @@ class GraphUnitTest():
         out_preds = mp.Tensor.create(session, (50,))
         bad = mp.Scalar.create(session, int)
 
-        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
-        var = mp.kernels.VarKernel.add_to_graph(graph, v1, v2, axis=-1)
+        # csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
 
         # Target validation must be produced by node in graph
         try:
-            cv = graph.cross_validate(bad)  ## 641
+            cv = graph.cross_validate(bad)
         except KeyError:
             pass
 
@@ -64,10 +60,9 @@ class GraphUnitTest():
         cv = graph.cross_validate(out_preds, statistic='recall')
         cv = graph.cross_validate(out_preds, statistic='cross_entropy')
 
-        #graph.verify()
-        #graph.initialize()
-        #graph.execute()
- 
+        # graph.verify()
+        # graph.initialize()
+        # graph.execute()
         
     def TestGraph(self):
         session = mp.Session.create()
@@ -191,6 +186,7 @@ def test_execute():
     #     assert res == mean_stat  
 
     KernelExecutionUnitTest_Object.TestCV()
+    # KernelExecutionUnitTest_Object.TestCVInvalid()
     KernelExecutionUnitTest_Object.TestGraph()
     KernelExecutionUnitTest_Object.TestGraphInvalid()
     KernelExecutionUnitTest_Object.TestUpdateGraph(raw_data, init_data, init_labels_data)

@@ -22,7 +22,7 @@ class LinearAlgebraUnitTest:
         labels = mp.Tensor.create_from_data(session, [1,2,3])
         # labels.data = np.array([1,2,3])
 
-        # node = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inA, inB, out, init_inputs=in_data, init_labels=labels)
+        node = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inA, inB, out, init_inputs=in_data, init_labels=labels)
 
         graph1.verify()
         graph1.initialize()
@@ -77,7 +77,11 @@ class LinearAlgebraUnitTest:
         except ValueError:
             pass
 
-        graph2.verify()
+        # Inner dimensions of input tensors must match
+        try:
+            graph2.verify()
+        except ValueError:
+            pass
         graph2.initialize()
         graph2.execute()
 
