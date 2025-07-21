@@ -43,6 +43,7 @@ class LinearAlgebraUnitTest:
         graph2 = mp.Graph.create(session)
         graph3 = mp.Graph.create(session)
         graph4 = mp.Graph.create(session)
+        graph5 = mp.Graph.create(session)
 
         inA_inner_2 = mp.Tensor.create_from_data(session, [[1,2], [1,2]])
         inA_inner_2_b = mp.Tensor.create_from_data(session, [[1], [1], [1]])
@@ -50,7 +51,7 @@ class LinearAlgebraUnitTest:
 
         inA_inner_3 = mp.Tensor.create_from_data(session, [[[1,2], [1,2]], [[1,2], [1,2]]])
         inB_inner_3 = mp.Tensor.create_from_data(session, [[[1,2], [1,2]], [[1,2], [1,2]]])
-        inB_inner_3_b = mp.Tensor.create_from_data(session, [[[1,2], [1,2]]])
+        inB_inner_3_b = mp.Tensor.create_from_data(session, [[[1,2], [1,2], [1,2]]])
 
         out1 = mp.Tensor.create(session, (2,3))
         out2 = mp.Tensor.create(session, (2,2,3))
@@ -60,6 +61,7 @@ class LinearAlgebraUnitTest:
         out6 = mp.Tensor.create(session, (2,2))
         out7 = mp.Tensor.create(session, (2,2))
         out8 = mp.Tensor.create(session, (2,2))
+        out9 = mp.Tensor.create(session, (2,2))
 
         n1 = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inA_inner_2, inB_inner_2, out1)
         # Inner dimensions of input tensors must match
@@ -76,6 +78,8 @@ class LinearAlgebraUnitTest:
         n7 = mp.kernels.MatrixMultKernel.add_to_graph(graph4, inA_inner_3, inB_inner_3, out4)
         # Inner dimensions of input tensors must match
         n8 = mp.kernels.MatrixMultKernel.add_to_graph(graph4, inA_inner_3, inB_inner_3_b, out8)
+
+        n9 = mp.kernels.MatrixMultKernel.add_to_graph(graph5, mp.Tensor.create_from_data(session, [[[[1,2]]]]), mp.Tensor.create_from_data(session, [[[1,2,3]]]), out9)
 
         # Inner dimensions of input tensors must match
         try:
