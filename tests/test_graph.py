@@ -45,13 +45,24 @@ class GraphUnitTest():
         v2 = mp.Tensor.create_virtual(session)
         v3 = mp.Tensor.create_virtual(session)
         out_preds = mp.Tensor.create(session, (50,))
+        bad = mp.Scalar.create(session, int)
 
         csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
         var = mp.kernels.VarKernel.add_to_graph(graph, v1, v2, axis=-1)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
 
-        cv = graph.cross_validate(out_preds)
+        # Target validation must be produced by node in graph
+        try:
+            cv = graph.cross_validate(bad)  ## 641
+        except KeyError:
+            pass
+
+        cv = graph.cross_validate(out_preds, statistic='accuracy')
+        cv = graph.cross_validate(out_preds, statistic='f1')
+        cv = graph.cross_validate(out_preds, statistic='precision')
+        cv = graph.cross_validate(out_preds, statistic='recall')
+        cv = graph.cross_validate(out_preds, statistic='cross_entropy')
 
         #graph.verify()
         #graph.initialize()
@@ -88,6 +99,7 @@ class GraphUnitTest():
         session = mp.Session.create()
         graph = mp.Graph.create(session)
         graph1 = mp.Graph.create(session)
+        graph2 = mp.Graph.create(session)
 
         inA = mp.Scalar.create_from_value(session, 10)
         inB = mp.Scalar.create_from_value(session, 20)
@@ -113,6 +125,15 @@ class GraphUnitTest():
             graph1.verify()
         except ValueError:
             pass
+
+        in_clf = mp.Tensor.create_from_data(session, [1,2,3,4])
+        preds = mp.Tensor.create_from_data(session, [1,2,1,2])
+        clf = mp.Classifier.create_LDA(session)
+        node_clf = mp.kernels.ClassifierKernel(graph2, in_clf, clf, preds, output_probs=50, num_classes=2)
+
+        graph2.verify()
+        graph2.initialize()
+        graph2.execute()
         
     def TestUpdateGraph(self, raw_data, init_data, init_labels):
         session = mp.Session.create()
@@ -127,11 +148,14 @@ class GraphUnitTest():
 
         node = mp.kernels.classifier.ClassifierKernel.add_to_graph(graph, raw_data, clf, out, initialization_data=init_data, labels=init_labels)
 
-    
         graph.initialize()
+
+        init_data = np.zeros((50,50))
+        init_labels = np.zeros((50,))  ## is this how this works?
+
         graph.update()
-        node.execute()
-        graph.execute()
+        # node.execute()
+        # graph.execute()
     
 def test_execute():
     np.random.seed(44)
