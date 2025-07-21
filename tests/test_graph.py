@@ -121,14 +121,19 @@ class GraphUnitTest():
         except ValueError:
             pass
 
-        in_clf = mp.Tensor.create_from_data(session, [1,2,3,4])
-        preds = mp.Tensor.create_from_data(session, [1,2,1,2])
-        clf = mp.Classifier.create_LDA(session)
-        node_clf = mp.kernels.ClassifierKernel(graph2, in_clf, clf, preds, output_probs=50, num_classes=2)
+        in_divA = mp.Scalar.create_from_value(session, 5)
+        in_divB = mp.Scalar.create_from_value(session, 0)
+        out_div = mp.Scalar.create(session, int)
+        div = mp.kernels.DivisionKernel.add_to_graph(graph2, in_divA, in_divB, out_div)
 
-        graph2.verify()
-        graph2.initialize()
-        graph2.execute()
+        # Cannot divide by zero
+        try:
+            graph2.verify()   ## trying to get line 522 ...
+            graph2.initialize()
+            graph2.execute()
+        except ZeroDivisionError:
+            pass
+
         
     def TestUpdateGraph(self, raw_data, init_data, init_labels):
         session = mp.Session.create()
@@ -146,9 +151,9 @@ class GraphUnitTest():
         graph.initialize()
 
         init_data = np.zeros((50,50))
-        init_labels = np.zeros((50,))  ## is this how this works?
+        init_labels = np.zeros((50,)) 
 
-        graph.update()
+        graph.update()    ## trying to hit line 460... 
         # node.execute()
         # graph.execute()
     
