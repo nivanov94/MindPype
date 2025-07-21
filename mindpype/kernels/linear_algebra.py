@@ -79,7 +79,7 @@ class MatrixMultKernel(Kernel):
         else:
             return ()
 
-    def _initalize(self, init_inputs, init_outputs, labels=None):
+    def _initialize(self, init_inputs, init_outputs, labels=None):
         """
         Compute any initialization data outputs needed to 
         initialize other nodes within the graph.
