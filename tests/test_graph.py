@@ -44,7 +44,7 @@ class GraphUnitTest():
         bad = mp.Scalar.create(session, int)
 
         csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
-        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)   ## line 678
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
 

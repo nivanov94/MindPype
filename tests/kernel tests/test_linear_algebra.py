@@ -89,5 +89,5 @@ class LinearAlgebraUnitTest:
 def test_execute():
     test = LinearAlgebraUnitTest()
     
-    # test.TestKernelCreation()
-    # test.TestComputeOutputSize()
+    test.TestKernelCreation()
+    test.TestComputeOutputSize()
