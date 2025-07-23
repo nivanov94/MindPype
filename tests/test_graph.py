@@ -83,6 +83,12 @@ class GraphUnitTest():
             cv = graph.cross_validate(invalid_target)  ## line 641
         except KeyError:
             pass
+
+        cv = graph.cross_validate(out_preds, statistic='accuracy') 
+
+        graph.verify()
+        graph.initialize()
+        graph.execute()
     
     def TestGraph(self):
         session = mp.Session.create()
