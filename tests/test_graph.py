@@ -53,14 +53,57 @@ class GraphUnitTest():
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
-        raw_data = np.random.rand(50)   ## is this non batched?
+        raw_data = np.random.rand(50)   
         init_data = np.random.randn(50)
         init_labels = np.concatenate(
             (np.zeros((25,)), np.ones((25,))), axis=0
         )
 
         init_data = mp.Scalar.create_from_value(session, init_data)   ##line 724
-        init_labels = mp.Scalar.create_from_value(session, init_labels)
+        init_labels = mp.Scalar.create_from_value(session, init_labels)  ## line 727
+
+        clf = mp.Classifier.create_LDA(session)
+
+        v1 = mp.Tensor.create_virtual(session)
+        v2 = mp.Tensor.create_virtual(session)
+        v3 = mp.Tensor.create_virtual(session)
+
+        out_preds = mp.Tensor.create(session, (50,))
+        output_scalar = mp.Scalar.create(session, int)
+
+        invalid_target = mp.Scalar.create(session, int)
+        invlalid_node = mp.kernels.AdditionKernel(graph, mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 5), invalid_target)
+
+        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1)
+        log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
+        lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
+        add = mp.kernels.AdditionKernel.add_to_graph(graph, out_preds, mp.Scalar.create_from_value(session, 5), output_scalar)
+
+        # Target validation must be produced by node in graph
+        try:
+            cv = graph.cross_validate(invalid_target)  ## line 641
+        except KeyError:
+            pass
+
+        cv = graph.cross_validate(output_scalar, statistic='accuracy') 
+
+        graph.verify()
+        graph.initialize()
+        graph.execute()
+
+    def TestNonBatched(self):
+        session = mp.Session.create()
+        graph = mp.Graph.create(session)
+
+        raw_data = np.random.rand(50, 100)   ## is this non batched?
+        init_data = np.random.randn(100)
+        init_labels = np.concatenate(
+            (np.zeros((50,)), np.ones((50,))), axis=0
+        )
+
+        init_data = mp.Scalar.create_from_value(session, init_data)   ##line 724
+        init_labels = mp.Scalar.create_from_value(session, init_labels)  ## line 727
 
         clf = mp.Classifier.create_LDA(session)
 
@@ -70,25 +113,18 @@ class GraphUnitTest():
 
         out_preds = mp.Tensor.create(session, (50,))
 
-        invalid_target = mp.Scalar.create(session, int)
-        invlalid_node = mp.kernels.AdditionKernel(graph, mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 5), invalid_target)
-
         csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
         var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
-
-        # Target validation must be produced by node in graph
-        try:
-            cv = graph.cross_validate(invalid_target)  ## line 641
-        except KeyError:
-            pass
+        add = mp.kernels.AdditionKernel.add_to_graph(graph, out_preds, mp.Scalar.create_from_value(session, 5), out_preds)
 
         cv = graph.cross_validate(out_preds, statistic='accuracy') 
 
         graph.verify()
         graph.initialize()
         graph.execute()
+
     
     def TestGraph(self):
         session = mp.Session.create()
@@ -152,9 +188,9 @@ class GraphUnitTest():
         out_div = mp.Scalar.create(session, int)
         div = mp.kernels.DivisionKernel.add_to_graph(graph2, in_divA, in_divB, out_div)
 
-        # Cannot divide by zero
+        # Invalid graph, cannot divide by zero
         try:
-            graph2.verify()   ## trying to get line 522 ...
+            graph2.verify()   
             graph2.initialize()
             graph2.execute()
         except ZeroDivisionError:
