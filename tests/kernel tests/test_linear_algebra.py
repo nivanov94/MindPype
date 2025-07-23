@@ -9,28 +9,23 @@ class LinearAlgebraUnitTest:
 
         inA = mp.Tensor.create_from_data(session, [[1,2], [3,4]])
         inB = mp.Tensor.create_from_data(session, [[2,2], [2,2]])
+        inC = mp.Tensor.create_from_data(session, [[2,3], [4,5]])
         in_bad = mp.Scalar.create(session, int)
-        out = mp.Tensor.create(session, (2,2))
+        out = mp.Tensor.create_virtual(session)
         out1 = mp.Tensor.create(session, (2,2))
 
         node = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inA, inB, out)
-        
-        node_bad = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inA, in_bad, out1)
+        node1 = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inC, out, out1)
 
-        # input/output must be tensors
-        try:
-            graph1.verify()
-            graph1.initialize()
-            graph1.execute()
-        except TypeError:
-            pass
-        
+        graph1.verify()
+        graph1.initialize()
+        graph1.execute()        
 
         in_data = [mp.Tensor.create_from_data(session, [1,2,3]), mp.Tensor.create_from_data(session, [2,2])]
         labels = mp.Tensor.create_from_data(session, [1,2])
         # labels.data = np.array([1,2,3])
 
-        node = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA, inB, out, init_inputs=in_data, init_labels=labels)
+        node2 = mp.kernels.MatrixMultKernel.add_to_graph(graph2, inA, inB, out, init_inputs=in_data, init_labels=labels)
 
         graph2.verify()
         graph2.initialize()
@@ -118,8 +113,35 @@ class LinearAlgebraUnitTest:
         except ValueError:
             pass
 
+    def TestInvalid(self):
+        session = mp.Session.create()
+        graph = mp.Graph.create(session)
+        graph1 = mp.Graph.create(session)
+
+        inA = mp.Scalar.create(session, int)
+        inB = mp.Scalar.create(session, int)
+
+        outA = mp.Tensor.create(session, (2,2))
+
+        node = mp.kernels.MatrixMultKernel(graph, inA, inB, outA)
+
+        # input must be type Tensor
+        try:
+            graph.verify()
+            graph.initialize()
+            graph.execute()
+        except TypeError:
+            pass
+
+        inC = mp.Tensor.create_from_data(session, [2,3,4])
+        inD = mp.Tensor.create_from_data(session, [[2], [3], [4]])
+        outB = mp.Tensor.create(session, (3,3))
+
+        node1 = mp.kernels.MatrixMultKernel(graph1, inC, inD, outB)
+
 def test_execute():
     test = LinearAlgebraUnitTest()
     
     test.TestKernelCreation()
     test.TestComputeOutputSize()
+    test.TestInvalid()
