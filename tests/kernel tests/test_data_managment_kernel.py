@@ -14,3 +14,8 @@ class DataManagment():
         graph.verify()
         graph.initialize()
         graph.execute()
+
+def test_execute():
+    test = DataManagment()
+
+    test.TestEnqueueKernel()
