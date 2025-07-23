@@ -121,11 +121,17 @@ class LinearAlgebraUnitTest:
         inA = mp.Scalar.create(session, int)
         inB = mp.Scalar.create(session, int)
 
+        init_inputs = mp.Scalar.create_from_value(session, 5)
+
         outA = mp.Tensor.create(session, (2,2))
 
-        node = mp.kernels.MatrixMultKernel(graph, inA, inB, outA)
+        # init input cannot be scalar
+        try:
+            node = mp.kernels.MatrixMultKernel.add_to_graph(graph, inA, inB, outA, init_inputs)
+        except TypeError:
+            pass
 
-        # input must be type Tensor
+        # init input must be type Tensor
         try:
             graph.verify()
             graph.initialize()
@@ -134,10 +140,17 @@ class LinearAlgebraUnitTest:
             pass
 
         inC = mp.Tensor.create_from_data(session, [2,3,4])
-        inD = mp.Tensor.create_from_data(session, [[2], [3], [4]])
+        inD = mp.Tensor.create_from_data(session, [2,3])
         outB = mp.Tensor.create(session, (3,3))
 
-        node1 = mp.kernels.MatrixMultKernel(graph1, inC, inD, outB)
+        node1 = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inC, inD, outB)
+
+        try:
+            graph1.verify()
+            graph1.initialize()
+            graph1.execute()
+        except ValueError:
+            pass
 
 def test_execute():
     test = LinearAlgebraUnitTest()
