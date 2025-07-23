@@ -139,8 +139,8 @@ class LinearAlgebraUnitTest:
         except TypeError:
             pass
 
-        inC = mp.Tensor.create_from_data(session, [2,3,4])
-        inD = mp.Tensor.create_from_data(session, [2,3])
+        inC = mp.Tensor.create_from_data(session, [2])
+        inD = mp.Tensor.create_from_data(session, [2])
         outB = mp.Tensor.create(session, (3,3))
 
         node1 = mp.kernels.MatrixMultKernel.add_to_graph(graph1, inC, inD, outB)

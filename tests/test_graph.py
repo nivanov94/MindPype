@@ -3,6 +3,7 @@ import numpy as np
 import sklearn
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, log_loss
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 class GraphUnitTest():        
     # def TestCrossValidationFunction(self, raw_data, init_data, init_labels_data, num_classes, num_folds, stat):
@@ -21,27 +22,56 @@ class GraphUnitTest():
     #     self.__graph.execute()
     #     return mean_stat
 
-    def TestCV(self):
+    def TestCV(self, raw_data, init_data, init_labels, stat):
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
-        clf = mp.Classifier.create_LDA(session)
-
-        raw_data = np.random.randn(50,12,200)
-        init_data = np.random.randn(50,12,200)
-        init_labels = np.concatenate(
-            (np.zeros((25,)), np.ones((25,))), axis=0
-        )
-
         raw_data = mp.Tensor.create_from_data(session, raw_data)
-        init_data = mp.Tensor.create_from_data(session, init_data)   ## must be 3 dmiensional !!!
+        init_data = mp.Tensor.create_from_data(session, init_data) 
         init_labels = mp.Tensor.create_from_data(session, init_labels)
+
+        clf = mp.Classifier.create_LDA(session)
 
         v1 = mp.Tensor.create_virtual(session)
         v2 = mp.Tensor.create_virtual(session)
         v3 = mp.Tensor.create_virtual(session)
+
         out_preds = mp.Tensor.create(session, (50,))
-        bad = mp.Scalar.create(session, int)
+
+        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)   ## line 678
+        log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
+        lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
+
+        cv = graph.cross_validate(out_preds, statistic=stat)
+
+        # graph.verify()
+        # graph.initialize()
+        # graph.execute()
+        
+    def TestCVInvalid(self):
+        session = mp.Session.create()
+        graph = mp.Graph.create(session)
+
+        raw_data = np.random.rand(50)   ## is this non batched?
+        init_data = np.random.randn(50)
+        init_labels = np.concatenate(
+            (np.zeros((25,)), np.ones((25,))), axis=0
+        )
+
+        init_data = mp.Scalar.create_from_value(session, init_data)   ##line 724
+        init_labels = mp.Scalar.create_from_value(session, init_labels)
+
+        clf = mp.Classifier.create_LDA(session)
+
+        v1 = mp.Tensor.create_virtual(session)
+        v2 = mp.Tensor.create_virtual(session)
+        v3 = mp.Tensor.create_virtual(session)
+
+        out_preds = mp.Tensor.create(session, (50,))
+
+        invalid_target = mp.Scalar.create(session, int)
+        invlalid_node = mp.kernels.AdditionKernel(graph, mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 5), invalid_target)
 
         csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
         var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)   ## line 678
@@ -50,20 +80,10 @@ class GraphUnitTest():
 
         # Target validation must be produced by node in graph
         try:
-            cv = graph.cross_validate(bad)  ## line 641
+            cv = graph.cross_validate(invalid_target)  ## line 641
         except KeyError:
             pass
-
-        cv = graph.cross_validate(out_preds, statistic='accuracy')
-        cv = graph.cross_validate(out_preds, statistic='f1')
-        cv = graph.cross_validate(out_preds, statistic='precision')
-        cv = graph.cross_validate(out_preds, statistic='recall')
-        cv = graph.cross_validate(out_preds, statistic='cross_entropy')
-
-        # graph.verify()
-        # graph.initialize()
-        # graph.execute()
-        
+    
     def TestGraph(self):
         session = mp.Session.create()
         graph = mp.Graph.create(session)
@@ -139,6 +159,12 @@ class GraphUnitTest():
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
+        raw_data = np.random.randn(50,100)
+        init_data = np.random.randn(50,100)
+        init_labels = np.concatenate(
+            (np.zeros((25,)), np.ones((25,))), axis=0
+        )
+
         out = mp.Tensor.create(session, (50,))
         clf = mp.Classifier.create_LDA(session)
 
@@ -159,39 +185,43 @@ class GraphUnitTest():
     
 def test_execute():
     np.random.seed(44)
-    raw_data = np.random.randn(50,50)
-    init_data = np.random.randn(50,50)
-    init_labels_data = np.random.randint(0,2, (50,))
+    raw_data = np.random.randn(50,12,100)
+    init_data = np.random.randn(50,12,100)
+    init_labels = np.concatenate(
+        (np.zeros((25,)), np.ones((25,))), axis=0
+    )
 
     KernelExecutionUnitTest_Object = GraphUnitTest()
-    # classifier = sklearn.discriminant_analysis.LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
+    # classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
     # stats = ['accuracy', 'f1', 'precision', 'recall', 'cross_entropy']
     
     # init_after_transpose = np.transpose(init_data)
 
     # for s in stats:
-    #     res = KernelExecutionUnitTest_Object.TestCrossValidationFunction(raw_data, init_after_transpose, init_labels_data, num_classes=2, num_folds=num_folds, stat=s)
-    #     skf = StratifiedKFold(n_splits=num_folds)
+    #     res = KernelExecutionUnitTest_Object.TestCV(raw_data, init_data, init_labels, stat=s)
+    #     skf = StratifiedKFold(n_splits=5)
     #     mean_stat = 0
-    #     for train_index, test_index in skf.split(init_after_transpose, init_labels_data):
-    #         classifier.fit(init_after_transpose[train_index], init_labels_data[train_index])
+    #     for train_index, test_index in skf.split(init_after_transpose, init_labels):
+    #         classifier.fit(init_after_transpose[train_index], init_labels[train_index])
     #         expected_predicitions = classifier.predict(init_after_transpose[test_index])
     #         if s == 'accuracy':
-    #             stat = accuracy_score(init_labels_data[test_index], expected_predicitions)
+    #             stat = accuracy_score(init_labels[test_index], expected_predicitions)
     #         elif s == 'f1':
-    #             stat = f1_score(init_labels_data[test_index], expected_predicitions)
+    #             stat = f1_score(init_labels[test_index], expected_predicitions)
     #         elif s == 'precision':
-    #             stat = precision_score(init_labels_data[test_index], expected_predicitions)
+    #             stat = precision_score(init_labels[test_index], expected_predicitions)
     #         elif s == 'recall':
-    #             stat = recall_score(init_labels_data[test_index], expected_predicitions)
+    #             stat = recall_score(init_labels[test_index], expected_predicitions)
     #         else:
-    #             stat = log_loss(init_labels_data[test_index], expected_predicitions)
+    #             stat = log_loss(init_labels[test_index], expected_predicitions)
     #         mean_stat += stat
-    #     mean_stat /= num_folds
+    #     mean_stat /= 5
     #     assert res == mean_stat  
 
-    KernelExecutionUnitTest_Object.TestCV()
+    stats = ['accuracy', 'f1', 'precision', 'recall', 'cross_entropy']
+    for s in stats:
+        KernelExecutionUnitTest_Object.TestCV(raw_data, init_data, init_labels, stat=s)
     # KernelExecutionUnitTest_Object.TestCVInvalid()
     KernelExecutionUnitTest_Object.TestGraph()
     KernelExecutionUnitTest_Object.TestGraphInvalid()
-    KernelExecutionUnitTest_Object.TestUpdateGraph(raw_data, init_data, init_labels_data)
+    KernelExecutionUnitTest_Object.TestUpdateGraph(raw_data, init_data, init_labels)
