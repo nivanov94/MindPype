@@ -19,8 +19,10 @@
 
 # def test_execute():
 #     t = PatternStateKernelTest()
+
 #     raw_data = np.ones((2,2)) 
 #     init_data = py.datasets.make_matrices(20, 10, 'spd')
+
 #     t.TestKernelCreation(raw_data, init_data)
 
 # test_execute()
