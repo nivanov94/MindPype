@@ -79,7 +79,7 @@ class LinearAlgebraUnitTest:
         # Inner dimensions of input tensors must match
         n8 = mp.kernels.MatrixMultKernel.add_to_graph(graph4, inA_inner_3, inB_inner_3_b, out8)
 
-        n9 = mp.kernels.MatrixMultKernel.add_to_graph(graph5, mp.Tensor.create_from_data(session, [[[[1,2]]]]), mp.Tensor.create_from_data(session, [[[1,2,3]]]), out9)
+        n9 = mp.kernels.MatrixMultKernel.add_to_graph(graph5, mp.Tensor.create_from_data(session, [[[[1,2]]]]), mp.Tensor.create_from_data(session, [1]), out9)
 
         # Inner dimensions of input tensors must match
         try:
@@ -110,6 +110,13 @@ class LinearAlgebraUnitTest:
         except ValueError:
             pass
 
+        # Invalid input tensor dimensions
+        try:
+            graph5.verify()
+            graph5.initialize()
+            graph5.execute()
+        except ValueError:
+            pass
 
 def test_execute():
     test = LinearAlgebraUnitTest()
