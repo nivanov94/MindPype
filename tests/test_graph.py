@@ -45,9 +45,9 @@ class GraphUnitTest():
 
         cv = graph.cross_validate(out_preds, statistic=stat)
 
-        # graph.verify()
-        # graph.initialize()
-        # graph.execute()
+        graph.verify()
+        graph.initialize()
+        graph.execute()
         
     def TestCVInvalid(self):
         session = mp.Session.create()
@@ -74,7 +74,7 @@ class GraphUnitTest():
         invlalid_node = mp.kernels.AdditionKernel(graph, mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 5), invalid_target)
 
         csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
-        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)   ## line 678
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
 
