@@ -121,7 +121,7 @@ class LinearAlgebraUnitTest:
         inA = mp.Scalar.create(session, int)
         inB = mp.Scalar.create(session, int)
 
-        init_inputs = mp.Scalar.create_from_value(session, 5)
+        init_inputs = [mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 4)]
 
         outA = mp.Tensor.create(session, (2,2))
 
