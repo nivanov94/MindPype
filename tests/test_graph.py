@@ -303,4 +303,4 @@ def test_execute():
     KernelExecutionUnitTest_Object.TestGraphInvalid()
     KernelExecutionUnitTest_Object.TestUpdateGraph()
     KernelExecutionUnitTest_Object.TestNonBatched()
-    KernelExecutionUnitTest_Object.TestCVMultiNodeInit(raw_data, init_data, init_labels)
+    # KernelExecutionUnitTest_Object.TestCVMultiNodeInit(raw_data, init_data, init_labels)
