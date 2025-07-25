@@ -152,7 +152,7 @@ class LinearAlgebraUnitTest:
         except ValueError:
             pass
 
-def test_execute():
+def test_execute():   ## add verification tests
     test = LinearAlgebraUnitTest()
     
     test.TestKernelCreation()

@@ -96,8 +96,8 @@ class GraphUnitTest():
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
-        raw_data = np.random.rand(50, 100)   ## is this non batched?
-        init_data = np.random.randn(100)
+        raw_data = np.random.rand(12, 500)   ## is this non batched?
+        init_data = np.random.randn(100, 12, 500)
         init_labels = np.concatenate(
             (np.zeros((50,)), np.ones((50,))), axis=0
         )
@@ -197,7 +197,7 @@ class GraphUnitTest():
             pass
 
         
-    def TestUpdateGraph(self, raw_data, init_data, init_labels):
+    def TestUpdateGraph(self):
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
@@ -266,4 +266,4 @@ def test_execute():
     # KernelExecutionUnitTest_Object.TestCVInvalid()
     KernelExecutionUnitTest_Object.TestGraph()
     KernelExecutionUnitTest_Object.TestGraphInvalid()
-    KernelExecutionUnitTest_Object.TestUpdateGraph(raw_data, init_data, init_labels)
+    KernelExecutionUnitTest_Object.TestUpdateGraph()
