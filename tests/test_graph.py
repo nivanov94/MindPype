@@ -48,6 +48,37 @@ class GraphUnitTest():
         graph.verify()
         graph.initialize()
         graph.execute()
+
+    def TestCVMultiNodeInit(self, raw_data, init_data, init_labels):
+        session = mp.Session.create()
+        graph = mp.Graph.create(session)
+
+        raw_data = mp.Tensor.create_from_data(session, raw_data)
+        init_data = mp.Tensor.create_from_data(session, init_data) 
+        init_labels = mp.Tensor.create_from_data(session, init_labels)
+
+        clf = mp.Classifier.create_LDA(session)
+
+        v1 = mp.Tensor.create_virtual(session)
+        v2 = mp.Tensor.create_virtual(session)
+        v3 = mp.Tensor.create_virtual(session)
+        v4 = mp.Tensor.create_virtual(session)
+        v5 = mp.Tensor.create_virtual(session)
+
+        out_preds = mp.Tensor.create(session, (50,))
+
+        csp1 = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
+        csp2 = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v4, initialization_data=init_data, labels=init_labels)
+        add = mp.kernels.AdditionKernel.add_to_graph(graph, v1, v4, v5)
+        var = mp.kernels.VarKernel.add_to_graph(graph, v5, v2, axis=-1)   ## line 678
+        log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
+        lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
+
+        cv = graph.cross_validate(out_preds)
+
+        graph.verify()
+        graph.initialize()
+        graph.execute()
         
     def TestCVInvalid(self):
         session = mp.Session.create()
@@ -59,8 +90,11 @@ class GraphUnitTest():
             (np.zeros((25,)), np.ones((25,))), axis=0
         )
 
-        init_data = mp.Scalar.create_from_value(session, init_data)   ##line 724
-        init_labels = mp.Scalar.create_from_value(session, init_labels)  ## line 727
+        a_init_data = mp.Array.create(session, 50, mp.Scalar.create(session, int))   ##line 724
+        a_init_labels = mp.Array.create(session, 50, mp.Scalar.create(session, int))
+        for i, (e, l) in enumerate(zip(init_data, init_labels)):
+            a_init_data.set_element(i, e)
+            a_init_labels.set_element(i, l)
 
         clf = mp.Classifier.create_LDA(session)
 
@@ -74,8 +108,8 @@ class GraphUnitTest():
         invalid_target = mp.Scalar.create(session, int)
         invlalid_node = mp.kernels.AdditionKernel(graph, mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 5), invalid_target)
 
-        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
-        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1)
+        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1)
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, initialization_data=a_init_data, labels=a_init_labels)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
         add = mp.kernels.AdditionKernel.add_to_graph(graph, out_preds, mp.Scalar.create_from_value(session, 5), output_scalar)
@@ -86,7 +120,7 @@ class GraphUnitTest():
         except KeyError:
             pass
 
-        cv = graph.cross_validate(output_scalar, statistic='accuracy') 
+        cv = graph.cross_validate(output_scalar)   ## line 710
 
         graph.verify()
         graph.initialize()
@@ -102,8 +136,9 @@ class GraphUnitTest():
             (np.zeros((50,)), np.ones((50,))), axis=0
         )
 
-        init_data = mp.Scalar.create_from_value(session, init_data)   ##line 724
-        init_labels = mp.Scalar.create_from_value(session, init_labels)  ## line 727
+        raw_data = mp.Tensor.create_from_data(session, raw_data)
+        init_data = mp.Tensor.create_from_data(session, init_data) 
+        init_labels = mp.Tensor.create_from_data(session, init_labels) 
 
         clf = mp.Classifier.create_LDA(session)
 
@@ -111,13 +146,12 @@ class GraphUnitTest():
         v2 = mp.Tensor.create_virtual(session)
         v3 = mp.Tensor.create_virtual(session)
 
-        out_preds = mp.Tensor.create(session, (50,))
+        out_preds = mp.Tensor.create(session, (1,))
 
         csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
         var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
-        add = mp.kernels.AdditionKernel.add_to_graph(graph, out_preds, mp.Scalar.create_from_value(session, 5), out_preds)
 
         cv = graph.cross_validate(out_preds, statistic='accuracy') 
 
@@ -234,18 +268,19 @@ def test_execute():
     )
 
     KernelExecutionUnitTest_Object = GraphUnitTest()
+    
+    ## I removed this when I made a new function for CV testing 
+
     # classifier = LinearDiscriminantAnalysis(shrinkage='auto', solver='lsqr')
     # stats = ['accuracy', 'f1', 'precision', 'recall', 'cross_entropy']
     
-    # init_after_transpose = np.transpose(init_data)
-
     # for s in stats:
     #     res = KernelExecutionUnitTest_Object.TestCV(raw_data, init_data, init_labels, stat=s)
     #     skf = StratifiedKFold(n_splits=5)
     #     mean_stat = 0
-    #     for train_index, test_index in skf.split(init_after_transpose, init_labels):
-    #         classifier.fit(init_after_transpose[train_index], init_labels[train_index])
-    #         expected_predicitions = classifier.predict(init_after_transpose[test_index])
+    #     for train_index, test_index in skf.split(init_data, init_labels):
+    #         classifier.fit(init_data[train_index], init_labels[train_index])
+    #         expected_predicitions = classifier.predict(init_data[test_index])
     #         if s == 'accuracy':
     #             stat = accuracy_score(init_labels[test_index], expected_predicitions)
     #         elif s == 'f1':
@@ -267,3 +302,5 @@ def test_execute():
     KernelExecutionUnitTest_Object.TestGraph()
     KernelExecutionUnitTest_Object.TestGraphInvalid()
     KernelExecutionUnitTest_Object.TestUpdateGraph()
+    KernelExecutionUnitTest_Object.TestNonBatched()
+    KernelExecutionUnitTest_Object.TestCVMultiNodeInit(raw_data, init_data, init_labels)
