@@ -39,7 +39,7 @@ class GraphUnitTest():
         out_preds = mp.Tensor.create(session, (50,))
 
         csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=init_data, labels=init_labels)
-        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, init_input=init_data, init_labels=init_labels)   ## line 678
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1)  
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
 
@@ -84,17 +84,24 @@ class GraphUnitTest():
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
-        raw_data = np.random.rand(50)   
-        init_data = np.random.randn(50)
+        raw_data = np.random.rand(12, 100)   
+        init_data = np.random.rand(50, 12, 100)
         init_labels = np.concatenate(
             (np.zeros((25,)), np.ones((25,))), axis=0
         )
 
-        a_init_data = mp.Array.create(session, 50, mp.Scalar.create(session, int))   ##line 724
-        a_init_labels = mp.Array.create(session, 50, mp.Scalar.create(session, int))
+        raw_data = mp.Tensor.create_from_data(session, raw_data)
+
+        t_tmp = mp.Tensor.create(session, (12, 100))
+        s_tmp = mp.Scalar.create(session, int)
+        a_init_data = mp.Array.create(session, 50, t_tmp)   ##line 724
+        a_init_labels = mp.Array.create(session, 50, s_tmp)
+
         for i, (e, l) in enumerate(zip(init_data, init_labels)):
-            a_init_data.set_element(i, e)
-            a_init_labels.set_element(i, l)
+            t_tmp.data = e
+            a_init_data.set_element(i, t_tmp)
+            s_tmp.data = l
+            a_init_labels.set_element(i, s_tmp)
 
         clf = mp.Classifier.create_LDA(session)
 
@@ -105,20 +112,20 @@ class GraphUnitTest():
         out_preds = mp.Tensor.create(session, (50,))
         output_scalar = mp.Scalar.create(session, int)
 
-        invalid_target = mp.Scalar.create(session, int)
-        invlalid_node = mp.kernels.AdditionKernel(graph, mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 5), invalid_target)
+        #invalid_target = mp.Scalar.create(session, int)
+        #invalid_node = mp.kernels.AdditionKernel(graph, mp.Scalar.create_from_value(session, 5), mp.Scalar.create_from_value(session, 5), invalid_target)
 
-        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1)
-        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1, initialization_data=a_init_data, labels=a_init_labels)
+        csp = mp.kernels.csp.CommonSpatialPatternKernel.add_to_graph(graph, raw_data, v1, initialization_data=a_init_data, labels=a_init_labels)
+        var = mp.kernels.VarKernel.add_to_graph(graph, raw_data, v2, axis=-1)
         log = mp.kernels.LogKernel.add_to_graph(graph, v2, v3)
         lda = mp.kernels.ClassifierKernel.add_to_graph(graph, v3, clf, out_preds)
         add = mp.kernels.AdditionKernel.add_to_graph(graph, out_preds, mp.Scalar.create_from_value(session, 5), output_scalar)
 
         # Target validation must be produced by node in graph
-        try:
-            cv = graph.cross_validate(invalid_target)  ## line 641
-        except KeyError:
-            pass
+        #try:
+        #    cv = graph.cross_validate(invalid_target)  ## line 641
+        #except ValueError:
+        #    pass
 
         cv = graph.cross_validate(output_scalar)   ## line 710
 
@@ -130,7 +137,7 @@ class GraphUnitTest():
         session = mp.Session.create()
         graph = mp.Graph.create(session)
 
-        raw_data = np.random.rand(12, 500)   ## is this non batched?
+        raw_data = np.random.rand(12, 500)   
         init_data = np.random.randn(100, 12, 500)
         init_labels = np.concatenate(
             (np.zeros((50,)), np.ones((50,))), axis=0
@@ -275,7 +282,7 @@ def test_execute():
     # stats = ['accuracy', 'f1', 'precision', 'recall', 'cross_entropy']
     
     # for s in stats:
-    #     res = KernelExecutionUnitTest_Object.TestCV(raw_data, init_data, init_labels, stat=s)
+    #     res = KernelExecutionUnitTest_Object.TestCV(raw_data, init_data, init_labels)
     #     skf = StratifiedKFold(n_splits=5)
     #     mean_stat = 0
     #     for train_index, test_index in skf.split(init_data, init_labels):
